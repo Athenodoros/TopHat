@@ -3,21 +3,46 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.11.4",
+    "@material-ui/icons": "^4.11.2",
+    "@reduxjs/toolkit": "^1.6.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@types/chroma-js": "^2.1.3",
     "@types/jest": "^26.0.15",
+    "@types/lodash-es": "^4.17.4",
+    "@types/luxon": "^1.27.0",
     "@types/node": "^12.0.0",
+    "@types/numeral": "^2.0.1",
+    "@types/papaparse": "^5.2.5",
     "@types/react": "^17.0.0",
+    "@types/react-beautiful-dnd": "^13.1.0",
     "@types/react-dom": "^17.0.0",
+    "@types/react-redux": "^7.1.16",
+    "@types/victory": "^33.1.5",
+    "axios": "^0.21.1",
+    "chroma-js": "^2.1.2",
+    "clsx": "^1.1.1",
+    "lodash-es": "^4.17.21",
+    "luxon": "^1.27.0",
+    "notistack": "^1.0.9",
+    "numeral": "^2.0.6",
+    "papaparse": "^5.3.1",
+    "prettier": "^2.3.2",
     "react": "^17.0.2",
+    "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
+    "react-dropzone": "^11.3.4",
+    "react-redux": "^7.2.4",
     "react-scripts": "4.0.3",
+    "redux": "^4.1.0",
     "typescript": "^4.1.2",
+    "victory": "^35.9.0",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "BROWSER=none react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -26,6 +51,16 @@
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/*.ts"
+        ],
+        "rules": {
+          "react-hooks/rules-of-hooks": "off"
+        }
+      }
     ]
   },
   "browserslist": {
