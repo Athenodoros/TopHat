@@ -39,17 +39,25 @@ interface AppState {
     page: PageStateType;
 }
 
+export const getPagePathForPageState = ({ id }: PageStateType) => "/" + id;
+export const getPageStateFromPagePath = (path: string) =>
+    get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
+
 export const AppSlice = createSlice({
     name: "app",
     initialState: {
-        page: DefaultPages.summary,
+        page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
     } as AppState,
     reducers: {
         setPage: (state, { payload }: PayloadAction<PageStateType["id"]>) => ({
             ...state,
             page: DefaultPages[payload],
         }),
-        setPageState: (state, { payload }: PayloadAction<PageStateType>) => ({ ...state, page: payload }),
+        setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => ({ ...state, page }),
+        setPageStateFromPath: (state) => ({
+            ...state,
+            page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
+        }),
     },
 });
 const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion
@@ -62,7 +70,3 @@ AppSlice.reducer = (state: AppState | undefined, action: AnyAction) => {
 
     return newState;
 };
-
-export const getPagePathForPageState = ({ id }: PageStateType) => "/" + id;
-export const getPageStateFromPagePath = (path: string) =>
-    get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
