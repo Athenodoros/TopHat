@@ -28,6 +28,7 @@ const useStyles = makeStyles({
     },
     notificationColumn: {
         flexShrink: 0,
+        alignSelf: "flex-start",
         width: 350,
 
         "& > div": {
@@ -80,13 +81,13 @@ export const SummaryPage: React.FC = () => {
                                 padding={{ left: 50, right: 10, top: 10, bottom: 10 }}
                                 minDomain={{ x: -0.7 }}
                             >
-                                <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[100] } }} />
+                                <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[600] } }} />
                                 <VictoryAxis
                                     dependentAxis={true}
                                     tickFormat={formatNumber}
                                     style={{
-                                        axis: { stroke: Greys[100] },
-                                        tickLabels: { fontSize: 12, fill: Greys[100] },
+                                        axis: { stroke: Greys[600] },
+                                        tickLabels: { fontSize: 12, fill: Greys[600] },
                                     }}
                                     axisValue={-0.7}
                                     crossAxis={false}
@@ -94,7 +95,7 @@ export const SummaryPage: React.FC = () => {
                                 <VictoryBar
                                     data={reverse(clone(assets))}
                                     barRatio={1}
-                                    style={{ data: { fill: Intents.primary.light, opacity: 0.4 } }}
+                                    style={{ data: { fill: Intents.success.light, opacity: 0.4 } }}
                                     minDomain={-1}
                                 />
                                 <VictoryBar
@@ -170,13 +171,13 @@ export const SummaryPage: React.FC = () => {
                                 minDomain={{ x: -0.7 }}
                                 width={width}
                             >
-                                <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[100] } }} />
+                                <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[600] } }} />
                                 <VictoryAxis
                                     dependentAxis={true}
                                     tickFormat={formatNumber}
                                     style={{
-                                        axis: { stroke: Greys[100] },
-                                        tickLabels: { fontSize: 12, fill: Greys[100] },
+                                        axis: { stroke: Greys[600] },
+                                        tickLabels: { fontSize: 12, fill: Greys[600] },
                                     }}
                                     axisValue={-0.7}
                                     crossAxis={false}
@@ -184,7 +185,7 @@ export const SummaryPage: React.FC = () => {
                                 <VictoryBar
                                     data={reverse(clone(credits))}
                                     barRatio={1}
-                                    style={{ data: { fill: Intents.primary.light, opacity: 0.4 } }}
+                                    style={{ data: { fill: Intents.success.light, opacity: 0.4 } }}
                                     minDomain={-1}
                                 />
                                 <VictoryBar
@@ -209,7 +210,7 @@ export const SummaryPage: React.FC = () => {
 };
 
 const SeeMore: React.FC<{ page: PageStateType["id"] }> = ({ page }) => (
-    <Button endIcon={<ChevronRight />} onClick={OpenPageCache[page]}>
+    <Button endIcon={<ChevronRight />} onClick={OpenPageCache[page]} size="small">
         See More
     </Button>
 );

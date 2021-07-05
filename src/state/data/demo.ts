@@ -14,8 +14,8 @@ type CurrencyArgs = [string, string, number, string];
 const currencyFields = ["symbol", "longName", "exchangeRate", "name"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
-        id: id + 1,
-        index: id + 1,
+        id: id,
+        index: id,
         colour: currencyColourScale(id + 1).hex(),
         transactions: {
             credits: [] as number[],

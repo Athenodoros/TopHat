@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { get, trimStart } from "lodash";
 import { PageStateType } from "./types";
 
 export const DefaultPages = {
@@ -51,3 +52,17 @@ export const AppSlice = createSlice({
         setPageState: (state, { payload }: PayloadAction<PageStateType>) => ({ ...state, page: payload }),
     },
 });
+const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion
+AppSlice.reducer = (state: AppState | undefined, action: AnyAction) => {
+    const newState = oldReducer(state, action);
+
+    if (state && window.location.pathname !== getPagePathForPageState(newState.page)) {
+        window.history.pushState(null, "", getPagePathForPageState(newState.page));
+    }
+
+    return newState;
+};
+
+export const getPagePathForPageState = ({ id }: PageStateType) => "/" + id;
+export const getPageStateFromPagePath = (path: string) =>
+    get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;

@@ -1,6 +1,5 @@
-import { Button, IconButton, makeStyles, useTheme } from "@material-ui/core";
-import { Clear, NoteAdd, Payment, TrendingUp } from "@material-ui/icons";
-import clsx from "clsx";
+import { Button, IconButton, makeStyles, Typography, useTheme } from "@material-ui/core";
+import { Clear, Payment, PostAdd, TrendingUp } from "@material-ui/icons";
 import React from "react";
 import { Intents } from "../../styles/colours";
 import { IconType } from "../../utilities/types";
@@ -43,7 +42,6 @@ const useStyles = makeStyles((theme) => ({
     },
     headerTitle: {
         flexGrow: 1,
-        fontWeight: 500,
     },
 
     buttons: {
@@ -89,12 +87,16 @@ export const Notification: React.FC<NotificationProps> = ({
             <div className={classes.backdrop} style={{ backgroundColor: colour }} />
             <div className={classes.header}>
                 <Icon className={classes.headerIcon} />
-                <p className={clsx("bp3-text-large", classes.headerTitle)}>{title}</p>
+                <Typography variant="subtitle2" className={classes.headerTitle}>
+                    {title}
+                </Typography>
                 <IconButton onClick={dismiss} size="small">
                     <Clear fontSize="inherit" />
                 </IconButton>
             </div>
-            <div className="bp3-running-text">{children}</div>
+            <Typography variant="body2" component="span">
+                {children}
+            </Typography>
             {buttons && (
                 <div className={classes.buttons}>
                     {buttons.map(({ text, onClick }, idx) => (
@@ -135,7 +137,7 @@ export const Notifications: React.FC = () => {
                 to categories.
             </Notification>
             <Notification
-                icon={NoteAdd}
+                icon={PostAdd}
                 title="Statement Ready"
                 dismiss={console.log}
                 colour={palette.info.main}

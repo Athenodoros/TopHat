@@ -14,4 +14,6 @@ export const debug = () => {
     (window as any).chroma = chroma;
     (window as any).store = store;
     (window as any).axios = axios;
+
+    console.log("Setting up debug variables...");
 };

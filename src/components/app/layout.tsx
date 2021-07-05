@@ -1,5 +1,5 @@
-import { IconButton, makeStyles, Paper } from "@material-ui/core";
-import { AddTwoTone, NotificationsTwoTone } from "@material-ui/icons";
+import { IconButton, makeStyles, Paper, Typography } from "@material-ui/core";
+import { AddTwoTone, Notifications as NotificationsIcon } from "@material-ui/icons";
 import clsx from "clsx";
 import { Greys } from "../../styles/colours";
 import { NAVBAR_LOGO_HEIGHT } from "./navbar";
@@ -15,7 +15,7 @@ const usePageStyles = makeStyles((theme) => ({
     },
 
     title: {
-        height: NAVBAR_LOGO_HEIGHT - 8,
+        height: NAVBAR_LOGO_HEIGHT,
         flexShrink: 0,
         paddingTop: 4,
 
@@ -38,13 +38,13 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
     return (
         <div className={classes.page}>
             <div className={classes.title}>
-                <h1>{title}</h1>
+                <Typography variant="h3">{title}</Typography>
                 <div className={classes.titleButtons}>
                     <IconButton>
-                        <NotificationsTwoTone fontSize="large" />
+                        <NotificationsIcon />
                     </IconButton>
                     <IconButton>
-                        <AddTwoTone fontSize="large" />
+                        <AddTwoTone />
                     </IconButton>
                 </div>
             </div>
@@ -67,8 +67,12 @@ const useSectionStyles = makeStyles((theme) => ({
         marginBottom: 12,
         height: 32,
 
+        "& > h6": {
+            color: Greys[600],
+        },
+
         "& button": {
-            color: Greys[100] + " !important",
+            color: Greys[600] + " !important",
             transition: theme.transitions.create("color"),
         },
 
@@ -96,7 +100,7 @@ export const Section: React.FC<SectionProps> = ({ className, title, headers, onC
     return (
         <div className={clsx(className, classes.section)}>
             <div className={classes.sectionHeader}>
-                <h6>{title}</h6>
+                <Typography variant="h6">{title}</Typography>
                 <div>{headers}</div>
             </div>
             <Paper className={classes.sectionBody} onClick={onCardClick}>

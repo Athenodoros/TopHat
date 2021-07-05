@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, Typography } from "@material-ui/core";
 import { Greys, Intents, WHITE } from "../../styles/colours";
 import { IconType } from "../../utilities/types";
 
@@ -50,21 +50,27 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
         <div className={classes.summaryNumber}>
             <Icon className={classes.icon} fontSize="small" />
             <div>
-                <h6 style={{ color: primary.positive ? Intents.success.main : Intents.danger.main }}>
+                <Typography
+                    variant="h6"
+                    style={{ color: primary.positive ? Intents.success.main : Intents.danger.main, lineHeight: 1 }}
+                >
                     {primary.value}
-                </h6>
+                </Typography>
                 <div className={classes.numbers}>
                     {secondary ? (
-                        <p
+                        <Typography
+                            variant="caption"
                             style={{
                                 color: secondary.positive ? Intents.success.main : Intents.danger.main,
                                 fontWeight: 500,
                             }}
                         >
                             {secondary.value + "\u00A0"}
-                        </p>
+                        </Typography>
                     ) : undefined}
-                    <p className="bp3-text-muted">{subtext}</p>
+                    <Typography variant="caption" style={{ color: Greys[600] }}>
+                        {subtext}
+                    </Typography>
                 </div>
             </div>
         </div>

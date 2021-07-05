@@ -1,13 +1,12 @@
 import { IconButton, makeStyles, Paper } from "@material-ui/core";
 import {
-    AccountBalanceTwoTone,
-    BrightnessHighTwoTone,
-    CameraTwoTone,
+    AccountBalanceWalletTwoTone,
+    Camera,
     InsertChartTwoTone,
     ListTwoTone,
     PaymentTwoTone,
-    ShoppingCartTwoTone,
-    TrendingUpTwoTone,
+    SettingsTwoTone,
+    ShoppingBasketTwoTone,
 } from "@material-ui/icons";
 import chroma from "chroma-js";
 import clsx from "clsx";
@@ -102,12 +101,8 @@ export const NavBar: React.FC = () => {
             <IconButton
                 className={clsx(classes.button, selected && classes.selected)}
                 style={{
-                    stroke: logo ? WHITE : undefined,
-                    color: selected
-                        ? chroma(WHITE)
-                              .alpha(logo ? 0.5 : 1)
-                              .hex()
-                        : main,
+                    // stroke: logo ? WHITE : undefined,
+                    color: selected ? WHITE : main,
                     background: chroma(main)
                         .alpha(selected ? 1 : 0.1)
                         .hex(),
@@ -115,24 +110,24 @@ export const NavBar: React.FC = () => {
                 }}
                 onClick={OpenPageCache[id]}
             >
-                <Icon style={{ fontSize: logo ? "2.1875rem" : "1.7rem" }} />
+                <Icon style={{ fontSize: logo ? "2rem" : "1.7rem" }} />
             </IconButton>
         );
     };
 
     return (
         <Paper elevation={3} className={classes.navbar}>
-            <div className={classes.logo}>{getTab("summary", CameraTwoTone, true)}</div>
+            <div className={classes.logo}>{getTab("summary", Camera, true)}</div>
             <div className={classes.apps}>
-                {getTab("accounts", AccountBalanceTwoTone)}
+                {getTab("accounts", AccountBalanceWalletTwoTone)}
                 {getTab("transactions", PaymentTwoTone)}
-                {getTab("categories", ShoppingCartTwoTone)}
+                {getTab("categories", ShoppingBasketTwoTone)}
                 {getTab("analysis", InsertChartTwoTone)}
-                {getTab("forecasts", TrendingUpTwoTone)}
+                {/* {getTab("forecasts", TrendingUpTwoTone)} */}
             </div>
             <div className={classes.admin}>
                 {getTab("data", ListTwoTone)}
-                {getTab("settings", BrightnessHighTwoTone)}
+                {getTab("settings", SettingsTwoTone)}
             </div>
         </Paper>
     );
