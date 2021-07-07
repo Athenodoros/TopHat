@@ -1,13 +1,18 @@
+import { zipObject } from "lodash";
 import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
 
 /**
  * A bank account or asset, possibly held at a financial institution
  */
 export const AccountTypes = [
-    { id: 0, name: "Transaction", colour: ColourScale(0).hex() },
-    { id: 1, name: "Asset", colour: ColourScale(0.15).hex() },
-    { id: 2, name: "Investment", colour: ColourScale(0.6).hex() },
+    { id: 1, name: "Transaction", colour: ColourScale(0).hex() },
+    { id: 2, name: "Asset", colour: ColourScale(0.15).hex() },
+    { id: 3, name: "Investment", colour: ColourScale(0.6).hex() },
 ];
+export const AccountTypeMap = zipObject(
+    AccountTypes.map(({ id }) => id),
+    AccountTypes
+);
 export type Account = {
     id: ID;
     index: number;

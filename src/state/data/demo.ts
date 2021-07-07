@@ -14,7 +14,7 @@ type CurrencyArgs = [string, string, number, string];
 const currencyFields = ["symbol", "longName", "exchangeRate", "name"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
-        id: id,
+        id: id + 1,
         index: id,
         colour: currencyColourScale(id + 1).hex(),
         transactions: {
@@ -49,7 +49,7 @@ const categories = ["Social", "Groceries", "Transport", "Travel", "Mortgage", "I
 
 type InstitutionArgs = [string, string, string];
 const makeInstitution = (args: InstitutionArgs, id: number) =>
-    ({ id, index: id, ...zipObject(["name", "icon", "colour"], args) } as Institution);
+    ({ id: id + 1, index: id, ...zipObject(["name", "icon", "colour"], args) } as Institution);
 const rawInstitutions: InstitutionArgs[] = [
     [
         "ING Direct",
@@ -78,7 +78,7 @@ type AccountArgs = [string, boolean, Account["category"], number | undefined];
 const accountFields = ["name", "isActive", "category", "institution"] as const;
 const makeAccount = (args: AccountArgs, id: number) =>
     ({
-        id,
+        id: id + 1,
         index: id,
         // colour: args[3] !== undefined ? rawInstitutions[args[3]][2] : greys[500],
         lastUpdate,
@@ -91,21 +91,21 @@ const makeAccount = (args: AccountArgs, id: number) =>
     } as Account);
 const accounts = (
     [
-        ["Orange Everyday", true, 0, 0],
-        ["Super", true, 2, 0],
-        ["Transaction Account", true, 0, 1],
-        ["Investment Account", true, 2, 1],
-        ["International Account", true, 0, 2],
-        ["Transaction Account", false, 0, 3],
-        ["Mortgage", true, 0, 3],
-        ["Apartment", true, 1, undefined],
+        ["Orange Everyday", true, 1, 1],
+        ["Super", true, 3, 1],
+        ["Transaction Account", true, 1, 2],
+        ["Investment Account", true, 3, 2],
+        ["International Account", true, 1, 3],
+        ["Transaction Account", false, 1, 4],
+        ["Mortgage", true, 1, 4],
+        ["Apartment", true, 2, undefined],
     ] as AccountArgs[]
 ).map(makeAccount);
 
 type RuleArgs = [string, Condition[], string | undefined, string | undefined, number | undefined];
 const ruleFields = ["name", "conditions", "newSummary", "newDescription", "newCategory"];
 const makeRule = (args: RuleArgs, id: number) =>
-    ({ id, index: id, isActive: true, ...zipObject(ruleFields, args) } as Rule);
+    ({ id: id + 1, index: id, isActive: true, ...zipObject(ruleFields, args) } as Rule);
 const rules = (
     [
         ["Weekly Shop", [{ type: "reference", values: ["WOOLWORTHS"], regex: false }], "Weekly Shop", undefined, 1],
@@ -145,14 +145,14 @@ type TransactionArgs = [
 const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
     const date = today.minus(args[0]);
     return {
-        id,
+        id: id + 1,
         date: date.toISODate(),
         reference: args[1],
         transfer: !!args[6],
         [args[7] ? "recordedBalance" : "value"]: args[2],
-        account: args[3],
+        account: args[3] + 1,
         category: args[5] !== undefined ? args[5] + 1 : 0,
-        currency: args[4],
+        currency: args[4] + 1,
         description: args[8],
         statement: args[9] || false, // && statementMap[makeStatement(date)],
     };

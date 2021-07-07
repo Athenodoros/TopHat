@@ -4,9 +4,9 @@ import { clone, reverse, sum, unzip, values, zip } from "lodash";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
-import { Page, Section } from "../../components/app";
-import { Notifications } from "../../components/app/notifications";
 import { SummaryNumber } from "../../components/display/SummaryNumber";
+import { Page, Section, SECTION_MARGIN } from "../../components/layout";
+import { Notifications } from "../../components/shell/notifications";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/types";
 import { useAllAccounts, useAllCategories, useDefaultCurrency } from "../../state/data/hooks";
@@ -20,7 +20,7 @@ const useStyles = makeStyles({
     },
     summaryColumn: {
         flexGrow: 1,
-        marginRight: 40,
+        marginRight: SECTION_MARGIN,
 
         "& > * > *:nth-child(2), & > * > *:nth-child(4)": {
             display: "flex",

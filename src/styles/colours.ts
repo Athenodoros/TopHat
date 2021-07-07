@@ -12,6 +12,7 @@ export const Greys = {
     "800": "#2D3748",
     "900": "#1A202C",
 };
+export const MissingValueColour = Greys[600];
 
 export const Intents = {
     primary: {

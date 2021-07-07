@@ -36,7 +36,7 @@ const defaults = {
     institution: IndexedAdapter.getInitialState(),
     rule: IndexedAdapter.getInitialState(),
     transaction: DateAdapter.getInitialState(),
-    user: { currency: 0 },
+    user: { currency: 1 },
 } as DataState;
 
 export const DataSlice = createSlice({

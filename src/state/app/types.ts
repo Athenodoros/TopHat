@@ -1,14 +1,14 @@
 import { Transaction } from "../data/types";
 
-export type Sign = "all" | "credits" | "debits";
-export const Signs = ["all", "credits", "debits"] as Sign[];
+export type ChartSign = "all" | "credits" | "debits";
+export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];
 
 export type SummaryPageState = {
     id: "summary";
 };
 export type AccountsPageState = {
     id: "accounts";
-    chartSign: Sign;
+    chartSign: ChartSign;
     chartAggregation: "account" | "currency" | "institution" | "type";
     account: number[];
     institution: number[];
@@ -16,6 +16,7 @@ export type AccountsPageState = {
     currency: number[];
     filterInactive: boolean;
 };
+export const AccountsPageAggregations = ["account", "currency", "institution", "type"] as const;
 export type TransactionsPageState = {
     id: "transactions";
     fromDate?: string;
@@ -26,7 +27,7 @@ export type TransactionsPageState = {
     category: number[];
     currency: number[];
     statement: (number | undefined)[];
-    chartSign: Sign;
+    chartSign: ChartSign;
     chartAggregation: "category" | "currency" | "account";
     transfers: "all" | "include" | "exclude";
     showStubs: boolean;
