@@ -162,7 +162,9 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
     const balances = toPairs(account.balances);
 
     const value =
-        defaultCurrency.symbol + " " + numeral(sumBy(balances, ([_, balance]) => balance.base[0])).format("-0.00a");
+        defaultCurrency.symbol +
+        " " +
+        numeral(sumBy(balances, ([_, balance]) => balance.localised[0])).format("-0.00a");
     const summary = getAccountSummary(
         balances,
         currencies,
@@ -173,10 +175,10 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
     const charts = [
         <VictoryArea
             data={range(12).map((i) => ({
-                y: sumBy(balances, ([_, balance]) => balance.base[i]) || 0,
+                y: sumBy(balances, ([_, balance]) => balance.localised[i]) || 0,
                 x: i === 0 ? 11.1 : 11 - i,
             }))}
-            interpolation="natural"
+            interpolation="monotoneX"
             style={{
                 data: {
                     fill: chroma(Intents.primary.main).alpha(0.5).hex(),
@@ -187,7 +189,7 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
             key={0}
         />,
         <VictoryScatter
-            data={[{ x: 11, y: sumBy(balances, ([_, balance]) => balance.base[0]) }]}
+            data={[{ x: 11, y: sumBy(balances, ([_, balance]) => balance.localised[0]) }]}
             style={{
                 data: {
                     fill: WHITE,
@@ -210,15 +212,15 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
 //     const balances = toPairs(account.balances);
 
 //     const value =
-//         defaultCurrency.symbol + " " + numeral(sumBy(balances, ([_, balance]) => balance.base[0])).format("-0.00a");
+//         defaultCurrency.symbol + " " + numeral(sumBy(balances, ([_, balance]) => balance.localised[0])).format("-0.00a");
 //     const summary = getAccountSummary(balances, currencies, defaultCurrency, (id) => currencies[id]!.colour);
 
 //     const charts = [
 //         <VictoryStack key={0}>
 //             {balances.map(([strID, balance]) => (
 //                 <VictoryArea
-//                     data={range(12).map((i) => ({ y: balance.base[i] || 0, x: i === 0 ? 11.1 : 11 - i }))}
-//                     interpolation="natural"
+//                     data={range(12).map((i) => ({ y: balance.localised[i] || 0, x: i === 0 ? 11.1 : 11 - i }))}
+//                     interpolation="monotoneX"
 //                     style={{
 //                         data: {
 //                             fill: currencies[Number(strID)]!.colour,
@@ -232,7 +234,7 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
 //         <VictoryScatter
 //             data={balances.map(([strID, balance]) => ({
 //                 x: 11,
-//                 y: balance.base[0] || 0,
+//                 y: balance.localised[0] || 0,
 //                 colour: chroma(currencies[Number(strID)]!.colour).darken(1).hex(),
 //             }))}
 //             style={{
@@ -256,10 +258,10 @@ const getAccountSummary = (
     getColour: (id: number, balance: number) => string
 ) => {
     const summary = balances
-        .filter(([_, balance]) => range(12).some((i) => balance.base[i]))
+        .filter(([_, balance]) => range(12).some((i) => balance.localised[i]))
         .map(([idStr, balance]) => (
-            <Typography variant="h6" style={{ color: getColour(Number(idStr), balance.local[0]) }} key={idStr}>
-                {currencies[Number(idStr)]!.symbol + " " + numeral(balance.local[0]).format("-0,0.00")}
+            <Typography variant="h6" style={{ color: getColour(Number(idStr), balance.original[0]) }} key={idStr}>
+                {currencies[Number(idStr)]!.symbol + " " + numeral(balance.original[0]).format("-0,0.00")}
             </Typography>
         ))
         .flatMap((element, i, array) =>

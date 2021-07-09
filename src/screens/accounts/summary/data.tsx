@@ -19,7 +19,7 @@ export function useAccountsSummaryData() {
     accountIDs.forEach((accountId) => {
         const account = accounts[accountId]!;
 
-        toPairs(account.balances).forEach(([currency, { local, base }]) => {
+        toPairs(account.balances).forEach(([currency, { original, localised }]) => {
             const id = {
                 account: account.id,
                 currency: Number(currency),
@@ -27,7 +27,7 @@ export function useAccountsSummaryData() {
                 type: account.category,
             }[aggregation];
 
-            const history = zip(local, trends[id]?.credits || [], trends[id]?.debits || []).map(
+            const history = zip(original, trends[id]?.credits || [], trends[id]?.debits || []).map(
                 ([value, credit, debit]) =>
                     value && value > 0
                         ? [value + (credit || 0), debit || 0]
@@ -37,8 +37,8 @@ export function useAccountsSummaryData() {
 
             trends[id] = zipObject(["credits", "debits"], unzip(history)) as HistorySummary;
             currencyTotals[id] = {
-                credit: currencyTotal.credit + (base[0] >= 0 ? base[0] : 0),
-                debit: currencyTotal.debit + (base[0] || 0),
+                credit: currencyTotal.credit + (localised[0] >= 0 ? localised[0] : 0),
+                debit: currencyTotal.debit + (localised[0] || 0),
             };
         });
     });

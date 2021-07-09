@@ -220,7 +220,7 @@ const useNetWorthHistory = () => {
 
     return useMemo(() => {
         const trends = accounts
-            .flatMap(({ balances }) => values(balances).map((balance) => balance.base))
+            .flatMap(({ balances }) => values(balances).map((balance) => balance.localised))
             .reduce(
                 (accs, balances) =>
                     zip(accs, balances).map(([acc, bal]) => {

@@ -233,13 +233,13 @@ const getTransactionSummaries = (
                 const history = balances[tx.account][tx.currency];
                 const bucket = parseDate(history.start).diff(date, "months")["months"];
 
-                if (bucket >= history.base.length) {
-                    history.base = extendHistory(
-                        history.base,
+                if (bucket >= history.localised.length) {
+                    history.localised = extendHistory(
+                        history.localised,
                         bucket,
                         changeCurrencyValue(currencies[defaultCurrency]!, currencies[tx.currency]!, tx.balance)
                     );
-                    history.local = extendHistory(history.local, bucket, tx.balance);
+                    history.original = extendHistory(history.original, bucket, tx.balance);
                 }
             }
         });

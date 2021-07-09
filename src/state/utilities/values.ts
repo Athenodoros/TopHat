@@ -13,14 +13,14 @@ export const getRandomColour = () => ColourScale(Math.random()).hex();
  */
 export interface BalanceHistory {
     start: SDate;
-    local: number[]; // Value in transaction currency
-    base: number[]; // Value in user's base currency
+    original: number[]; // Value in transaction currency
+    localised: number[]; // Value in user's base currency
 }
 export const BaseBalanceValues = () =>
     ({
         start: formatDate(getToday().startOf("month")),
-        local: [],
-        base: [],
+        original: [],
+        localised: [],
     } as BalanceHistory);
 
 export interface TransactionHistory {
