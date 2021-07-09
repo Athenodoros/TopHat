@@ -1,7 +1,7 @@
 import { identity, reverse, sortBy } from "lodash";
 import { DateTime } from "luxon";
 import numeral from "numeral";
-import React, { useMemo } from "react";
+import React from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { ChartSign } from "../../state/app/types";
 import { useDefaultCurrency } from "../../state/data/hooks";
@@ -47,6 +47,8 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                     ),
                 true
             )}
+            // This stupid trick prevents a bug with events when chart props change
+            key={charts.map((points) => points[0].id).join(",")}
         >
             <VictoryAxis tickFormat={formatEmpty} orientation={sign === "debits" ? "bottom" : undefined} />
             <VictoryAxis
@@ -85,7 +87,8 @@ interface SummaryChartEvent {
 
 // Utilities
 const useCharts = (rawSeries: SummaryBarChartPoint[], sign: ChartSign) =>
-    useMemo(() => {
+    // useMemo(() => {
+    {
         const sorted = sortBy(
             rawSeries,
             (s) => sign === "all" && !(s.value.credit && s.value.debit),
@@ -110,4 +113,4 @@ const useCharts = (rawSeries: SummaryBarChartPoint[], sign: ChartSign) =>
                 .map(reverse)
                 .filter((points) => points.length)
         );
-    }, [rawSeries, sign]);
+    }; // , [rawSeries, sign]);
