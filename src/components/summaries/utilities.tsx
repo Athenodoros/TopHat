@@ -36,6 +36,8 @@ export const getChartEvents = <T extends ChartPointEvent>(
 
                 return {
                     mutation: (event: T) => {
+                        if (event.datum.id === EMPTY_ID_PLACEHOLDER) return;
+
                         onClick(event);
                         return {
                             style: Object.assign({}, event.style, {

@@ -35,6 +35,11 @@ export const Intents = {
         main: "#DB3737",
         dark: "#A82A2A",
     },
+    default: {
+        light: Greys[300],
+        main: Greys[500],
+        dark: Greys[700],
+    },
 };
 
 export const AppColours = {

@@ -5,9 +5,9 @@ import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../u
  * A bank account or asset, possibly held at a financial institution
  */
 export const AccountTypes = [
-    { id: 1, name: "Transaction", colour: ColourScale(0).hex() },
+    { id: 1, name: "Transaction Account", colour: ColourScale(0).hex() },
     { id: 2, name: "Asset", colour: ColourScale(0.15).hex() },
-    { id: 3, name: "Investment", colour: ColourScale(0.6).hex() },
+    { id: 3, name: "Investment Account", colour: ColourScale(0.6).hex() },
 ];
 export const AccountTypeMap = zipObject(
     AccountTypes.map(({ id }) => id),
@@ -30,6 +30,7 @@ export type Account = {
         [currency: number]: BalanceHistory; // Monthly balances, in reverse order from current date
     };
     transactions: TransactionHistory;
+    usesStatements: boolean;
 };
 
 /**

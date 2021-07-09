@@ -4,7 +4,7 @@ import _ from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
-import { store } from "..";
+import { TopHatStore } from "..";
 
 export const debug = () => {
     (window as any).Papa = Papa;
@@ -12,7 +12,7 @@ export const debug = () => {
     (window as any).numeral = numeral;
     (window as any)._ = _;
     (window as any).chroma = chroma;
-    (window as any).store = store;
+    (window as any).store = TopHatStore;
     (window as any).axios = axios;
 
     console.log("Setting up debug variables...");

@@ -1,13 +1,11 @@
 import chroma from "chroma-js";
 import { DateTime } from "luxon";
-import { Greys } from "../../styles/colours";
 
 /**
  * Colour Values
  */
 export const ColourScale = chroma.scale("set1");
 ColourScale.cache(false);
-export const MissingValueColour = Greys[500];
 export const getRandomColour = () => ColourScale(Math.random()).hex();
 
 /**

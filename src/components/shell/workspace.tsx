@@ -4,7 +4,7 @@ import { SnackbarProvider } from "notistack";
 import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
-import { store } from "../../state";
+import { TopHatStore } from "../../state";
 import { theme } from "../../styles/theme";
 
 export const FileHandlerContext = React.createContext<{
@@ -43,7 +43,7 @@ export const Workspace: React.FC = ({ children }) => {
                     <FileHandlerContext.Provider
                         value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
                     >
-                        <Provider store={store}>
+                        <Provider store={TopHatStore}>
                             <div {...omit(getRootProps(), ["onClick"])}>
                                 <input id="file-upload-dropzone" {...getInputProps({ style: { display: "none" } })} />
                                 {children}

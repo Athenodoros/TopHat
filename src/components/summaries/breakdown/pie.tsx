@@ -76,8 +76,8 @@ const useGetPie = (setFilter: (id: ID) => void) => {
             standalone: false,
             width: 105,
             height: 105,
-            // animate: false,
-            animate: { duration: 500, onLoad: { duration: 500 } },
+            animate: false,
+            // animate: { duration: 500, onLoad: { duration: 500 } },
             labels: () => null,
             padAngle: 5,
             events: getChartEvents(

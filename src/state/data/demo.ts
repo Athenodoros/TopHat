@@ -74,8 +74,8 @@ const rawInstitutions: InstitutionArgs[] = [
 ];
 const institutions = rawInstitutions.map(makeInstitution);
 
-type AccountArgs = [string, boolean, Account["category"], number | undefined];
-const accountFields = ["name", "isActive", "category", "institution"] as const;
+type AccountArgs = [string, boolean, Account["category"], number | undefined, boolean];
+const accountFields = ["name", "isActive", "category", "institution", "usesStatements"] as const;
 const makeAccount = (args: AccountArgs, id: number) =>
     ({
         id: id + 1,
@@ -91,14 +91,14 @@ const makeAccount = (args: AccountArgs, id: number) =>
     } as Account);
 const accounts = (
     [
-        ["Orange Everyday", true, 1, 1],
-        ["Super", true, 3, 1],
-        ["Transaction Account", true, 1, 2],
-        ["Investment Account", true, 3, 2],
-        ["International Account", true, 1, 3],
-        ["Transaction Account", false, 1, 4],
-        ["Mortgage", true, 1, 4],
-        ["Apartment", true, 2, undefined],
+        ["Orange Everyday", true, 1, 1, true],
+        ["Super", true, 3, 1, false],
+        ["Transaction Account", true, 1, 2, true],
+        ["Investment Account", true, 3, 2, false],
+        ["International Account", true, 1, 3, true],
+        ["Transaction Account", false, 1, 4, true],
+        ["Mortgage", true, 1, 4, true],
+        ["Apartment", true, 2, undefined, false],
     ] as AccountArgs[]
 ).map(makeAccount);
 

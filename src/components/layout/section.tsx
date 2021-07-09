@@ -43,9 +43,9 @@ export interface SectionProps {
     className?: string;
     title: string;
     headers?: React.ReactNode | React.ReactNode[];
-    onCardClick?: () => void;
+    emptyBody?: boolean;
 }
-export const Section: React.FC<SectionProps> = ({ className, title, headers, onCardClick, children }) => {
+export const Section: React.FC<SectionProps> = ({ className, title, headers, children, emptyBody }) => {
     const classes = useSectionStyles();
 
     return (
@@ -54,9 +54,13 @@ export const Section: React.FC<SectionProps> = ({ className, title, headers, onC
                 <Typography variant="h6">{title}</Typography>
                 <div>{headers}</div>
             </div>
-            <Paper className={classes.sectionBody} onClick={onCardClick}>
-                {children}
-            </Paper>
+            {emptyBody ? (
+                children
+            ) : (
+                <Paper className={classes.sectionBody} variant="outlined">
+                    {children}
+                </Paper>
+            )}
         </div>
     );
 };

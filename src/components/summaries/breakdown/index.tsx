@@ -13,7 +13,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         justifyContent: "stretch",
         margin: -5,
-        height: "100%",
+        height: 330,
     },
     divider: {
         height: 1,
@@ -26,6 +26,7 @@ const useStyles = makeStyles({
         flexDirection: "column",
         justifyContent: "stretch",
         flexShrink: 1,
+        flexGrow: 1,
     },
 });
 
