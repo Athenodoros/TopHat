@@ -98,8 +98,10 @@ export const Value: React.FC<{
                 <div
                     className={classes.colour}
                     style={{
-                        backgroundColor: colour || (placeholder ? Greys[300] : undefined),
-                        borderColor: colour && chroma(colour).darken(1).hex(),
+                        backgroundColor: chroma(colour || Greys[400])
+                            .alpha(0.5)
+                            .hex(),
+                        borderColor: colour || Greys[400],
                     }}
                 />
             )}

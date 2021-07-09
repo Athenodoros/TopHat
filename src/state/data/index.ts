@@ -253,7 +253,7 @@ const getTransactionSummaries = (
 const extendHistory = (history: number[], length: number, fill?: number) =>
     history.concat(range(length + 1 - history.length).map((_) => fill || 0));
 const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
-    (value * to.exchangeRate) / from.exchangeRate;
+    (value * from.exchangeRate) / to.exchangeRate;
 
 const markAllBalances = (transactionState: EntityState<Transaction>) => {
     const ids = transactionState.ids;

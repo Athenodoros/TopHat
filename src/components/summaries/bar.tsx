@@ -102,7 +102,7 @@ const useCharts = (rawSeries: SummaryBarChartPoint[], sign: ChartSign) =>
                                     id: category.id || EMPTY_ID_PLACEHOLDER,
                                     x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
                                     y,
-                                    colour: category.colour || Greys[600],
+                                    colour: category.colour || Greys[400],
                                 } as SummaryChartPoint)
                         )
                         .filter(identity)

@@ -102,7 +102,7 @@ const useMaybePieChartData = (sign: "credits" | "debits", series: SummaryPieChar
                       (p) =>
                           ({
                               id: p.id || EMPTY_ID_PLACEHOLDER,
-                              colour: p.colour || Greys[300],
+                              colour: p.colour || Greys[400],
                               value: Math.abs(p.value[sign === "credits" ? "credit" : "debit"]),
                           } as PieChartDatum)
                   )

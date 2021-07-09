@@ -68,7 +68,7 @@ const useStyles = makeStyles({
         borderRadius: "50%",
     },
     accountUpdateContainer: {
-        width: 120,
+        width: 160,
         marginLeft: 10,
         display: "flex",
         flexDirection: "column",
@@ -261,7 +261,7 @@ const getAccountSummary = (
         .filter(([_, balance]) => range(12).some((i) => balance.localised[i]))
         .map(([idStr, balance]) => (
             <Typography variant="h6" style={{ color: getColour(Number(idStr), balance.original[0]) }} key={idStr}>
-                {currencies[Number(idStr)]!.symbol + " " + numeral(balance.original[0]).format("-0,0.00")}
+                {currencies[Number(idStr)]!.symbol + " " + numeral(balance.original[0]).format("-0.00a")}
             </Typography>
         ))
         .flatMap((element, i, array) =>
@@ -300,7 +300,7 @@ const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
                         : Intents.danger.main,
             }}
         >
-            {date ? date.toRelative() : "Never Updated"}
+            {date ? "Updated " + date.toRelative() : "Never Updated"}
         </Typography>
     );
 };

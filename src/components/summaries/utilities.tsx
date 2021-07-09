@@ -1,3 +1,4 @@
+import chroma from "chroma-js";
 import React from "react";
 import { VictoryStyleInterface } from "victory-core";
 
@@ -13,49 +14,42 @@ export const EMPTY_ID_PLACEHOLDER = -1;
 export const getChartEvents = <T extends ChartPointEvent>(
     onClick: (t: T) => void,
     highlightSeries: boolean = false
-) => [
-    {
-        childName: "all",
-        target: "data" as const,
-        eventHandlers: {
-            onMouseEnter: () => ({
-                eventKey: highlightSeries ? "all" : undefined,
-                mutation: (event: ChartPointEvent) =>
-                    event && {
-                        style: Object.assign({}, event.style, {
-                            stroke: event.datum.id !== EMPTY_ID_PLACEHOLDER ? "black" : undefined,
-                            strokeWidth: 2,
-                            transition: "none",
-                        }),
-                    },
-            }),
-            onMouseOut: () => ({ eventKey: highlightSeries ? "all" : undefined, mutation: () => null }),
-            onClick: (event: React.SyntheticEvent) => {
-                event.preventDefault();
-                event.stopPropagation();
+) => {
+    const mutation = (alpha?: number, transition?: string, callback?: (t: T) => void) => () => ({
+        eventKey: highlightSeries ? "all" : undefined,
+        mutation: (event: T) => {
+            if (!alpha || !event || event.datum.id === EMPTY_ID_PLACEHOLDER) return;
+            if (callback) callback(event);
 
-                return {
-                    mutation: (event: T) => {
-                        if (event.datum.id === EMPTY_ID_PLACEHOLDER) return;
+            return {
+                style: Object.assign({}, event.style, { fill: fadeColour(event.datum.colour, alpha), transition }),
+            };
+        },
+    });
 
-                        onClick(event);
-                        return {
-                            style: Object.assign({}, event.style, {
-                                stroke: event.datum.id !== EMPTY_ID_PLACEHOLDER ? "black" : undefined,
-                                strokeWidth: 2,
-                                transition: "none",
-                            }),
-                        };
-                    },
-                };
+    return [
+        {
+            childName: "all",
+            target: "data" as const,
+            eventHandlers: {
+                onMouseEnter: mutation(0.75, "none"),
+                onMouseOut: mutation(),
+                onMouseDown: mutation(1, "none", onClick),
+                onMouseUp: mutation(0.75, "fill 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"),
             },
         },
-    },
-];
+    ];
+};
+
+const fadeColour = (colour: string | undefined, value: number) => colour && chroma(colour).alpha(value).hex();
+
 export const CHART_SECTION_STYLE: VictoryStyleInterface = {
     data: {
         cursor: ({ datum }) => (datum.id !== EMPTY_ID_PLACEHOLDER ? "pointer" : "inherit"),
-        fill: ({ datum }) => datum.colour,
-        transition: "stroke 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+        // Sometimes datum.colour is stripped for zero-height sections
+        fill: ({ datum }) => fadeColour(datum.colour, 0.5)!,
+        stroke: ({ datum }) => datum.colour,
+        strokeWidth: ({ datum }) => (datum.id !== EMPTY_ID_PLACEHOLDER ? 1 : 0),
+        transition: "fill 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
     },
 };
