@@ -3,7 +3,6 @@ import { Clear } from "@material-ui/icons";
 import React from "react";
 import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
-import { Intents } from "../../styles/colours";
 
 const useStyles = makeStyles((theme) => ({
     notification: {
@@ -50,17 +49,6 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "flex-end",
         margin: 5,
     },
-
-    numberGreen: {
-        fontWeight: 600,
-        color: Intents.success.main,
-        display: "inline",
-    },
-    numberOrange: {
-        fontWeight: 600,
-        color: Intents.warning.main,
-        display: "inline",
-    },
 }));
 
 const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
@@ -85,9 +73,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                     <Clear fontSize="inherit" />
                 </IconButton>
             </div>
-            <Typography variant="body2" component="span">
-                {children}
-            </Typography>
+            {children}
             {buttons && (
                 <div className={classes.buttons}>
                     {buttons.map(({ text, onClick }, idx) => (

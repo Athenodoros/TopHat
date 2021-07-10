@@ -78,7 +78,7 @@ export const SummaryPage: React.FC = () => {
                             <VictoryChart
                                 height={200}
                                 width={width}
-                                padding={{ left: 50, right: 10, top: 10, bottom: 10 }}
+                                padding={{ left: 70, right: 10, top: 10, bottom: 10 }}
                                 minDomain={{ x: -0.7 }}
                             >
                                 <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[600] } }} />
@@ -167,7 +167,7 @@ export const SummaryPage: React.FC = () => {
                         <div ref={chartRef} style={{ flexGrow: 1 }}>
                             <VictoryChart
                                 height={200}
-                                padding={{ left: 50, right: 10, top: 10, bottom: 10 }}
+                                padding={{ left: 70, right: 10, top: 10, bottom: 10 }}
                                 minDomain={{ x: -0.7 }}
                                 width={width}
                             >

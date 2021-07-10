@@ -1,9 +1,16 @@
 import { shallowEqual, useSelector } from "react-redux";
 import { TopHatState } from "..";
+import { ID } from "../utilities/values";
+import { Account, Institution } from "./types";
 
 export const useDefaultCurrency = () =>
     useSelector(({ data }: TopHatState) => data.currency.entities[data.user.currency]!, shallowEqual);
 
+export function useAccountByID(id: ID): Account;
+export function useAccountByID(id: ID | undefined): Account | undefined;
+export function useAccountByID(id: ID | undefined): Account | undefined {
+    return useSelector((state: TopHatState) => state.data.account.entities[id as ID]);
+}
 export const useAccountIDs = () => useSelector((state: TopHatState) => state.data.account.ids);
 export const useAccountMap = () => useSelector((state: TopHatState) => state.data.account.entities);
 export const useAllAccounts = () =>
@@ -25,6 +32,11 @@ export const useAllCurrencies = () =>
         shallowEqual
     );
 
+export function useInstitutionByID(id: ID): Institution;
+export function useInstitutionByID(id: ID | undefined): Institution | undefined;
+export function useInstitutionByID(id: ID | undefined): Institution | undefined {
+    return useSelector((state: TopHatState) => state.data.institution.entities[id as ID]);
+}
 export const useInstitutionMap = () => useSelector((state: TopHatState) => state.data.institution.entities);
 export const useAllInstitutions = () =>
     useSelector(
