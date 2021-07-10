@@ -323,6 +323,12 @@ const transactions = (
     ] as TransactionArgs[]
 ).map(makeTransaction);
 
+const notifications = [
+    { id: 1, type: "new-milestone", contents: 200000 },
+    { id: 2, type: "uncategorised-transactions", contents: 3 },
+    { id: 3, type: "statement-ready", contents: 4 },
+] as const;
+
 // Initialise Demo
 export const DemoObjects = {
     accounts,
@@ -331,4 +337,5 @@ export const DemoObjects = {
     currencies,
     rules,
     transactions,
+    notifications,
 };

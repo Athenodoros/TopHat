@@ -31,3 +31,9 @@ export const useAllInstitutions = () =>
         (state: TopHatState) => state.data.institution.ids.map((id) => state.data.institution.entities[id]!),
         shallowEqual
     );
+
+export const useAllNotifications = () =>
+    useSelector(
+        (state: TopHatState) => state.data.notifications.ids.map((id) => state.data.notifications.entities[id]!),
+        shallowEqual
+    );

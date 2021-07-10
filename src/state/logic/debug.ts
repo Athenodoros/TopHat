@@ -5,6 +5,8 @@ import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
 import { TopHatStore } from "..";
+import { AppSlice } from "../app";
+import { DataSlice } from "../data";
 
 export const debug = () => {
     (window as any).Papa = Papa;
@@ -14,6 +16,8 @@ export const debug = () => {
     (window as any).chroma = chroma;
     (window as any).store = TopHatStore;
     (window as any).axios = axios;
+    (window as any).AppSlice = AppSlice;
+    (window as any).DataSlice = DataSlice;
 
     console.log("Setting up debug variables...");
 };

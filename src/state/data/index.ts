@@ -10,9 +10,10 @@ import {
     TransactionHistory,
 } from "../utilities/values";
 import { DemoObjects } from "./demo";
-import { Account, Category, Currency, Institution, Rule, Transaction } from "./types";
-export type { Account, Category, Currency, Institution, Rule, Transaction } from "./types";
+import { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
+export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
 
+const BaseAdapter = createEntityAdapter();
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: (a, b) => -a.date.localeCompare(b.date) });
 
@@ -27,6 +28,7 @@ interface DataState {
     rule: EntityState<Rule>;
     transaction: EntityState<Transaction>;
     user: UserState;
+    notifications: EntityState<Notification>;
 }
 
 const defaults = {
@@ -37,8 +39,11 @@ const defaults = {
     rule: IndexedAdapter.getInitialState(),
     transaction: DateAdapter.getInitialState(),
     user: { currency: 1 },
+    notifications: BaseAdapter.getInitialState(),
 } as DataState;
 
+// Create Slice automatically wraps reducer functions with Immer objects to allow mutation
+// See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
     name: "data",
     initialState: defaults,
@@ -89,6 +94,7 @@ export const DataSlice = createSlice({
                 rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rules),
                 transaction: transactions,
                 user: defaults.user,
+                notifications: BaseAdapter.addMany(defaults.notifications, DemoObjects.notifications),
             };
         },
 
@@ -180,12 +186,13 @@ export const DataSlice = createSlice({
         // }),
 
         // User
-        UpdateUserCurrency: (state, action: PayloadAction<number>) => ({
-            ...state,
-            user: {
-                currency: action.payload,
-            },
-        }),
+        updateUserCurrency: (state, { payload }: PayloadAction<number>) => {
+            state.user.currency = payload;
+        },
+
+        // Notifications
+        deleteNotification: (state, { payload }: PayloadAction<ID>) =>
+            void BaseAdapter.removeOne(state.notifications, payload),
     },
 });
 

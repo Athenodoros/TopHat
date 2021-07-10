@@ -1,8 +1,9 @@
-import { Button, IconButton, makeStyles, Typography, useTheme } from "@material-ui/core";
-import { Clear, Payment, PostAdd, TrendingUp } from "@material-ui/icons";
+import { Button, IconButton, makeStyles, Typography } from "@material-ui/core";
+import { Clear } from "@material-ui/icons";
 import React from "react";
+import { useAllNotifications } from "../../state/data/hooks";
+import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
 import { Intents } from "../../styles/colours";
-import { IconType } from "../../utilities/types";
 
 const useStyles = makeStyles((theme) => ({
     notification: {
@@ -62,17 +63,7 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-interface NotificationProps {
-    icon: IconType;
-    title: string;
-    dismiss?: () => void;
-    colour: string;
-    buttons?: {
-        text: string;
-        onClick: () => void;
-    }[];
-}
-export const Notification: React.FC<NotificationProps> = ({
+const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     icon: Icon,
     title,
     dismiss,
@@ -110,41 +101,10 @@ export const Notification: React.FC<NotificationProps> = ({
     );
 };
 
-export const Notifications: React.FC = () => {
-    const { palette } = useTheme();
-    const classes = useStyles();
-
-    return (
-        <>
-            <Notification
-                icon={TrendingUp}
-                title="New Milestone Reached!"
-                dismiss={console.log}
-                colour={palette.success.main}
-                buttons={[{ text: "Update", onClick: console.log }]}
-            >
-                You have a net worth of over <p className={classes.numberGreen}>AU$200k</p>, and more every day. Keep up
-                the good work!
-            </Notification>
-            <Notification
-                icon={Payment}
-                title="Uncategorised Transactions"
-                dismiss={console.log}
-                colour={palette.warning.main}
-                buttons={[{ text: "Update", onClick: console.log }]}
-            >
-                There are <strong className={classes.numberOrange}>3</strong> transactions which haven’t been allocated
-                to categories.
-            </Notification>
-            <Notification
-                icon={PostAdd}
-                title="Statement Ready"
-                dismiss={console.log}
-                colour={palette.info.main}
-                buttons={[{ text: "Upload", onClick: console.log }]}
-            >
-                The account should have a new statement available.
-            </Notification>
-        </>
-    );
-};
+export const Notifications: React.FC = () => (
+    <>
+        {useAllNotifications().map((notification) => (
+            <NotificationDisplay key={notification.id} {...getNotificationDisplayMetadata(notification)} />
+        ))}
+    </>
+);

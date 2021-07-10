@@ -135,3 +135,14 @@ export interface Transaction {
 export interface UserState {
     defaultCurrency: ID;
 }
+
+export interface NotificationRuleDefinitions {
+    "new-milestone": number;
+    "uncategorised-transactions": number;
+    "statement-ready": ID;
+}
+export interface Notification<K extends keyof NotificationRuleDefinitions = keyof NotificationRuleDefinitions> {
+    id: ID;
+    type: K;
+    contents: NotificationRuleDefinitions[K];
+}

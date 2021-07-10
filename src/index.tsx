@@ -2,8 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { App } from "./components/shell";
 import reportWebVitals from "./reportWebVitals";
-import { debug } from "./state/utilities/debug";
-import { startup } from "./state/utilities/startup";
+import { debug } from "./state/logic/debug";
+import { startup } from "./state/logic/startup";
 
 debug();
 startup();
