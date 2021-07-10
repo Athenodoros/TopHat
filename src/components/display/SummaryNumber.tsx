@@ -1,5 +1,6 @@
 import { makeStyles, Typography } from "@material-ui/core";
 import { Greys, Intents, WHITE } from "../../styles/colours";
+import { NBSP } from "../../utilities/constants";
 import { IconType } from "../../utilities/types";
 
 const useStyles = makeStyles((theme) => ({
@@ -65,7 +66,7 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
                                 fontWeight: 500,
                             }}
                         >
-                            {secondary.value + "\u00A0"}
+                            {secondary.value + NBSP}
                         </Typography>
                     ) : undefined}
                     <Typography variant="caption" style={{ color: Greys[600] }}>

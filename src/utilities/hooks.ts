@@ -42,5 +42,6 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
                 horizontal: "center",
             } as const,
         },
+        setIsOpen,
     };
 };

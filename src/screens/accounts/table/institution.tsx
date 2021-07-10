@@ -1,4 +1,5 @@
-import { Button, Card, makeStyles, Typography } from "@material-ui/core";
+import { Avatar, Button, Card, makeStyles, Typography } from "@material-ui/core";
+import { AccountBalance } from "@material-ui/icons";
 import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../../styles/colours";
@@ -41,9 +42,6 @@ const useStyles = makeStyles((theme) => ({
         margin: `29px ${ICON_MARGIN_RIGHT}px 29px ${ICON_MARGIN_LEFT}px`,
         borderRadius: 5,
     },
-    institutionImagePlaceholder: {
-        backgroundColor: Greys[200],
-    },
     institutionNameContainer: {
         flexGrow: 0,
     },
@@ -82,11 +80,9 @@ export const AccountsInstitutionDisplay: React.FC<{ institution: AccountsInstitu
                 style={{ backgroundColor: institution.colour || Greys[700] }}
             />
             <div className={classes.institutionSummary}>
-                {institution.icon ? (
-                    <img src={institution.icon} className={classes.institutionImage} alt={institution.name} />
-                ) : (
-                    <div className={clsx(classes.institutionImage, classes.institutionImagePlaceholder)} />
-                )}
+                <Avatar src={institution?.icon} className={classes.institutionImage}>
+                    <AccountBalance style={{ height: "50%" }} />
+                </Avatar>
                 <div className={classes.institutionNameContainer}>
                     <Typography
                         variant="h5"

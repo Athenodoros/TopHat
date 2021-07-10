@@ -1,12 +1,12 @@
 import { FormControl, makeStyles, MenuItem, Select } from "@material-ui/core";
 import { zipObject } from "lodash";
-import { onSelectChange } from "../../../components/inputs/select";
 import { Section, SECTION_MARGIN } from "../../../components/layout";
-import { SummaryBarChart, SummaryBreakdown } from "../../../components/summaries";
+import { SummaryBarChart, SummaryBreakdown } from "../../../components/summary";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
 import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/types";
+import { onSelectChange } from "../../../utilities/events";
 import { useAccountsSummaryData } from "./data";
 
 const useStyles = makeStyles({

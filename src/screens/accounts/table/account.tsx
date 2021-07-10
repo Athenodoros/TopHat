@@ -11,6 +11,7 @@ import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
 import { BalanceHistory, parseDate } from "../../../state/utilities/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
 import { formatEmpty } from "../../../utilities/data";
+import { suppressEvent } from "../../../utilities/events";
 
 export const ACCOUNT_TABLE_LEFT_PADDING = 19;
 
@@ -140,7 +141,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
             )}
             <div className={classes.accountUpdateContainer}>
                 {getAccountAgeDescription(account.lastTransactionDate)}
-                <div className={classes.accountUpdateActions} onMouseDown={innerButtonHandler}>
+                <div className={classes.accountUpdateActions} onMouseDown={suppressEvent}>
                     <Tooltip title="Mark Up-To-Date">
                         <Button size="small" startIcon={<Update />} />
                     </Tooltip>
@@ -155,8 +156,6 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
         </ButtonBase>
     );
 };
-
-const innerButtonHandler = (event: React.MouseEvent) => event.stopPropagation();
 
 const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>, defaultCurrency: Currency) => {
     const balances = toPairs(account.balances);

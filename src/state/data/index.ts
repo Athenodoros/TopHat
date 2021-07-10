@@ -1,5 +1,5 @@
 import { createEntityAdapter, createSlice, Dictionary, EntityId, EntityState, PayloadAction } from "@reduxjs/toolkit";
-import { clone, cloneDeep, fromPairs, range, reverse, round, zipObject } from "lodash";
+import { clone, cloneDeep, fromPairs, range, reverse, round, toPairs, zipObject } from "lodash";
 import {
     BalanceHistory,
     BaseBalanceValues,
@@ -66,6 +66,9 @@ export const DataSlice = createSlice({
                         lastTransactionDate: accountLastTransactionDates[account.id],
                         balances: accountBalances[account.id],
                         transactions: transactionSummaries.account[account.id],
+                        currencies: toPairs(accountBalances[account.id])
+                            .filter(([_, balances]) => balances.localised[0])
+                            .map(([idStr, _]) => Number(idStr)),
                     }))
                 ),
                 category: IndexedAdapter.addMany(

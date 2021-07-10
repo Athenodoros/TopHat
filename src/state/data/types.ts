@@ -1,3 +1,4 @@
+import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
 import { zipObject } from "lodash";
 import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
 
@@ -5,9 +6,9 @@ import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../u
  * A bank account or asset, possibly held at a financial institution
  */
 export const AccountTypes = [
-    { id: 1, name: "Transaction Account", colour: ColourScale(0).hex() },
-    { id: 2, name: "Asset", colour: ColourScale(0.15).hex() },
-    { id: 3, name: "Investment Account", colour: ColourScale(0.6).hex() },
+    { id: 1, name: "Transaction Account", icon: AccountBalance, colour: ColourScale(0).hex() },
+    { id: 2, name: "Asset", icon: Home, colour: ColourScale(0.15).hex() },
+    { id: 3, name: "Investment Account", icon: TrendingUp, colour: ColourScale(0.6).hex() },
 ];
 export const AccountTypeMap = zipObject(
     AccountTypes.map(({ id }) => id),
