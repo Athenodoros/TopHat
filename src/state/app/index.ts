@@ -49,22 +49,21 @@ export const AppSlice = createSlice({
         page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
     } as AppState,
     reducers: {
-        setPage: (state, { payload }: PayloadAction<PageStateType["id"]>) => ({
-            ...state,
-            page: DefaultPages[payload],
-        }),
-        setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => ({ ...state, page }),
-        setPageStateFromPath: (state) => ({
-            ...state,
-            page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
-        }),
-        setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => ({
-            ...state,
-            page: {
+        setPage: (state, { payload }: PayloadAction<PageStateType["id"]>) => {
+            state.page = DefaultPages[payload];
+        },
+        setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => {
+            state.page = page;
+        },
+        setPageStateFromPath: (state) => {
+            state.page = getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"];
+        },
+        setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
+            state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),
                 ...payload,
-            },
-        }),
+            };
+        },
     },
 });
 const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion
