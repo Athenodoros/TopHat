@@ -1,5 +1,28 @@
 import { LegacyRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+// export const useStateWithRef = <T>(initial: T) => {
+//     const [state, setState] = useState(initial);
+//     const ref = useRef(state);
+//     useEffect(() => {
+//         ref.current = state;
+//     }, [state]);
+
+//     return [ref, setState, state] as [React.MutableRefObject<T>, (t: T) => void, T];
+// };
+
+// export const useStateWithEqualityBuffer = <T>(initial: T, buffer: (t1: T, t2: T) => boolean = isEqual) => {
+//     const [ref, setStateRaw, state] = useStateWithRef(initial);
+
+//     const setState = useCallback(
+//         (newState: T) => {
+//             if (!buffer(newState, ref.current)) setStateRaw(newState);
+//         },
+//         [buffer, setStateRaw, ref]
+//     );
+
+//     return [state, setState] as [T, (t: T) => void];
+// };
+
 export const useDivBoundingRect = () => {
     const [rect, setRect] = useState<DOMRectReadOnly>(new DOMRectReadOnly(0, 0, 0, 0));
 

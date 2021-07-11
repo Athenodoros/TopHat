@@ -1,3 +1,5 @@
+import numeral from "numeral";
+import { useCallback } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import { TopHatState } from "..";
 import { ID } from "../utilities/values";
@@ -5,6 +7,10 @@ import { Account, Institution } from "./types";
 
 export const useDefaultCurrency = () =>
     useSelector(({ data }: TopHatState) => data.currency.entities[data.user.currency]!, shallowEqual);
+export const useFormatValue = (format: string) => {
+    const { symbol } = useDefaultCurrency();
+    return useCallback((value: number) => symbol + " " + numeral(value).format(format), [symbol, format]);
+};
 
 export function useAccountByID(id: ID): Account;
 export function useAccountByID(id: ID | undefined): Account | undefined;

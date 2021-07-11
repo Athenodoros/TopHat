@@ -2,7 +2,7 @@ import { Button, ButtonBase, makeStyles, Tooltip, Typography } from "@material-u
 import { Add, Description, Edit, PostAdd, Update } from "@material-ui/icons";
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
-import { range, sumBy, toPairs } from "lodash";
+import { max, min, range, sumBy, toPairs } from "lodash";
 import numeral from "numeral";
 import React from "react";
 import { VictoryArea, VictoryAxis, VictoryChart, VictoryScatter } from "victory";
@@ -110,7 +110,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
     const currencies = useCurrencyMap();
     const defaultCurrency = useDefaultCurrency();
 
-    const { value, summary, charts } = getAccountSummaries(account, currencies, defaultCurrency);
+    const { value, summary, charts, domain } = getAccountSummaries(account, currencies, defaultCurrency);
 
     return (
         <ButtonBase key={account.id} className={classes.container} component="div">
@@ -120,11 +120,11 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
             </div>
             <div className={classes.chartContainer}>
                 <VictoryChart
-                    height={50}
+                    height={45}
                     width={230}
-                    padding={{ top: 4, right: 2, bottom: 4, left: 0 }}
-                    domainPadding={{ y: 5 }}
-                    domain={{ x: [-0.5, 11.5] }}
+                    padding={{ top: 0, right: 2, bottom: 0, left: 0 }}
+                    domainPadding={{ y: 3 }}
+                    domain={{ x: [-0.5, 11.5], y: domain }}
                 >
                     <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[500] } }} />
                     {charts}
@@ -171,12 +171,12 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
         (_, balance) => Intents[!balance ? "default" : balance < 0 ? "danger" : "success"].main
     );
 
+    const values = range(12).map((i) => sumBy(balances, ([_, balance]) => balance.localised[i]) || 0);
+    const domain = [min(values.concat([0])), max(values.concat([0]))] as [number, number];
+
     const charts = [
         <VictoryArea
-            data={range(12).map((i) => ({
-                y: sumBy(balances, ([_, balance]) => balance.localised[i]) || 0,
-                x: i === 0 ? 11.1 : 11 - i,
-            }))}
+            data={range(12).map((i) => ({ y: values[i], x: i === 0 ? 11.1 : 11 - i }))}
             interpolation="monotoneX"
             style={{
                 data: {
@@ -200,7 +200,7 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
         />,
     ];
 
-    return { value, summary, charts };
+    return { value, summary, charts, domain };
 };
 
 // const getAccountSummariesByCurrency = (
