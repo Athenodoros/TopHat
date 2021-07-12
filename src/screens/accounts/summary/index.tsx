@@ -60,7 +60,12 @@ export const AccountsPageSummary: React.FC = () => {
                 ]}
                 className={classes.chart}
             >
-                <SummaryBarChart series={data} sign={sign} setFilter={setFilterID[aggregation]} />
+                <SummaryBarChart
+                    series={data}
+                    sign={sign}
+                    setFilter={setFilterID[aggregation]}
+                    id={aggregation + sign}
+                />
             </Section>
         </div>
     );

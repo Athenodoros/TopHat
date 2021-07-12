@@ -1,4 +1,4 @@
-import { identity, reverse, sortBy } from "lodash";
+import { last, max, min, sortBy, sumBy, unzip } from "lodash";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
@@ -6,9 +6,9 @@ import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { ChartSign } from "../../state/app/types";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/utilities/values";
-import { Greys } from "../../styles/colours";
-import { formatEmpty } from "../../utilities/data";
+import { BLACK, Greys } from "../../styles/colours";
 import { FlexWidthChart } from "../display/FlexWidthChart";
+import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
 import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents } from "./utilities";
 
 interface SummaryBarChartPoint {
@@ -21,46 +21,56 @@ type SummaryBarChartProps = {
     series: SummaryBarChartPoint[];
     sign: ChartSign;
     setFilter: (id: ID, fromDate: string, toDate: string) => void;
+    id?: string;
 };
-export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, setFilter }) => {
+export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, setFilter, id }) => {
     const { symbol } = useDefaultCurrency();
 
-    const charts = useChartData(series, sign);
+    const { charts, domain } = useChartData(series, sign);
     const getChart = useCallback(
         () => (
             <VictoryChart
                 height={310}
-                animate={false}
-                // animate={{ duration: 500, onLoad: { duration: 500 } }}
-                domainPadding={{ x: [40, 20] as [number, number] }}
+                animate={false} // {{ duration: 500, onLoad: { duration: 500 } }}
                 padding={{ left: 100, top: 20, bottom: 20, right: 20 }}
-                events={getChartEvents(
-                    (props: SummaryChartEvent) =>
-                        setFilter(
-                            props.datum.id,
-                            formatJSDate(props.datum.x),
-                            formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }))
-                        ),
-                    true
-                )}
-                // This stupid trick (often?) prevents a bug with events when chart props change
-                key={charts.map((points) => points[0].id).join(",")}
+                {...getChartPerformanceProps(domain, { x: "time", y: "linear" })}
+                key={id} // This stupid trick (often?) prevents a bug with events when chart props change
             >
-                <VictoryAxis tickFormat={formatEmpty} orientation={sign === "debits" ? "bottom" : undefined} />
+                {getHiddenTickAxis(BLACK, { orientation: sign === "debits" ? "bottom" : undefined })}
                 <VictoryAxis
                     dependentAxis={true}
                     tickFormat={(value: number) => symbol + " " + numeral(value).format("0.00a")}
                     crossAxis={false}
                     invertAxis={sign === "debits"}
                 />
-                <VictoryStack>
-                    {charts.map((points) => (
-                        <VictoryBar key={points[0].id} data={points} barRatio={0.8} style={CHART_SECTION_STYLE} />
-                    ))}
+                <VictoryStack
+                    categories={[]}
+                    events={getChartEvents(
+                        (props: SummaryChartEvent) =>
+                            setFilter(
+                                props.datum.id,
+                                formatJSDate(props.datum.x),
+                                formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }))
+                            ),
+                        true
+                    )}
+                >
+                    {charts
+                        .filter((_) => _.some((p) => p.y))
+                        .map((points) => (
+                            <VictoryBar
+                                sortKey="x"
+                                key={points[0].id}
+                                data={points}
+                                barRatio={0.8}
+                                style={CHART_SECTION_STYLE}
+                                domain={domain}
+                            />
+                        ))}
                 </VictoryStack>
             </VictoryChart>
         ),
-        [charts, sign, setFilter, symbol]
+        [charts, sign, setFilter, symbol, domain, id]
     );
 
     return <FlexWidthChart style={{ height: "100%", display: "flex", justifyContent: "center" }} getChart={getChart} />;
@@ -85,22 +95,38 @@ const useChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
             (s) => (sign !== "debits" ? -s.value.credit : 0) + (sign !== "credits" ? s.value.debit : 0)
         );
 
-        return sorted.flatMap((category) =>
-            (sign === "all" ? (["credits", "debits"] as const) : [sign])
-                .map((trend) =>
-                    category.trend[trend]
-                        .map(
-                            (y, idx) =>
-                                ({
-                                    id: category.id || EMPTY_ID_PLACEHOLDER,
-                                    x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
-                                    y,
-                                    colour: category.colour || Greys[400],
-                                } as SummaryChartPoint)
-                        )
-                        .filter(identity)
+        const charts = sorted.flatMap((category) =>
+            (sign === "all" ? (["credits", "debits"] as const) : [sign]).map((trend) =>
+                category.trend[trend].map(
+                    (y, idx) =>
+                        ({
+                            id: category.id || EMPTY_ID_PLACEHOLDER,
+                            x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
+                            y,
+                            colour: category.colour || Greys[400],
+                        } as SummaryChartPoint)
                 )
-                .map(reverse)
-                .filter((points) => points.length)
+            )
         );
+
+        const domain = {
+            x: [
+                DateTime.fromJSDate(last(charts[0])!.x).minus({ months: 1 }).toJSDate(),
+                DateTime.fromJSDate(charts[0][0].x).plus({ months: 1 }).toJSDate(),
+            ] as [Date, Date],
+            y: [
+                min(
+                    unzip(charts)
+                        .map((month) => sumBy(month, (point) => Math.min(0, point?.y || 0)))
+                        .concat([0])
+                ),
+                max(
+                    unzip(charts)
+                        .map((month) => sumBy(month, (point) => Math.max(0, point?.y || 0)))
+                        .concat([0])
+                ),
+            ] as [number, number],
+        };
+
+        return { charts, domain };
     }, [series, sign]);

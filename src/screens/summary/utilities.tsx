@@ -1,13 +1,13 @@
 import { Button } from "@material-ui/core";
 import { ChevronRight } from "@material-ui/icons";
-import { clone, reverse } from "lodash";
+import { clone, max, min, reverse } from "lodash";
 import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
+import { getChartPerformanceProps, getHiddenTickAxis } from "../../components/display/PerformantCharts";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/types";
 import { useFormatValue } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
-import { formatEmpty } from "../../utilities/data";
 
 export const SeeMore: React.FC<{ page: PageStateType["id"] }> = ({ page }) => (
     <Button endIcon={<ChevronRight />} onClick={OpenPageCache[page]} size="small">
@@ -19,8 +19,15 @@ export const useSummaryChart = ({ credits, debits }: { credits: number[]; debits
     const format = useFormatValue("0a");
     return useCallback(
         () => (
-            <VictoryChart height={200} padding={{ left: 70, right: 10, top: 10, bottom: 10 }} minDomain={{ x: -0.7 }}>
-                <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[600] } }} />
+            <VictoryChart
+                height={200}
+                padding={{ left: 70, right: 10, top: 10, bottom: 10 }}
+                {...getChartPerformanceProps({
+                    x: [-0.7, Math.max(credits.length, debits.length)],
+                    y: [min(debits) || 0, max(credits) || 0],
+                })}
+            >
+                {getHiddenTickAxis(Greys[600])}
                 <VictoryAxis
                     dependentAxis={true}
                     tickFormat={format}

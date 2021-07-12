@@ -5,12 +5,12 @@ import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";
 import numeral from "numeral";
 import React from "react";
-import { VictoryArea, VictoryAxis, VictoryChart, VictoryScatter } from "victory";
+import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
+import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
 import { BalanceHistory, parseDate } from "../../../state/utilities/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
-import { formatEmpty } from "../../../utilities/data";
 import { suppressEvent } from "../../../utilities/events";
 
 export const ACCOUNT_TABLE_LEFT_PADDING = 19;
@@ -124,9 +124,9 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                     width={230}
                     padding={{ top: 0, right: 2, bottom: 0, left: 0 }}
                     domainPadding={{ y: 3 }}
-                    domain={{ x: [-0.5, 11.5], y: domain }}
+                    {...getChartPerformanceProps(domain)}
                 >
-                    <VictoryAxis tickFormat={formatEmpty} style={{ axis: { stroke: Greys[500] } }} />
+                    {getHiddenTickAxis(Greys[400])}
                     {charts}
                 </VictoryChart>
             </div>
@@ -172,7 +172,10 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
     );
 
     const values = range(12).map((i) => sumBy(balances, ([_, balance]) => balance.localised[i]) || 0);
-    const domain = [min(values.concat([0])), max(values.concat([0]))] as [number, number];
+    const domain = {
+        x: [-0.5, 11.5] as [number, number],
+        y: [min(values.concat([0])), max(values.concat([0]))] as [number, number],
+    };
 
     const charts = [
         <VictoryArea
