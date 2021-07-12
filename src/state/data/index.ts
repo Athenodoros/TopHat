@@ -255,8 +255,6 @@ const getTransactionSummaries = (
         }
     });
 
-    console.log(totals);
-
     return {
         accountLastTransactionDates: transactionDates,
         accountBalances: balances,

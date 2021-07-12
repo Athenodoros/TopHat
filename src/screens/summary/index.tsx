@@ -20,7 +20,6 @@ const useStyles = makeStyles({
     notificationColumn: {
         flexShrink: 0,
         alignSelf: "flex-start",
-        width: 350,
 
         "& > div": {
             padding: 0,

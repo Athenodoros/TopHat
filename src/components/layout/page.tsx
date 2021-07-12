@@ -1,6 +1,9 @@
-import { IconButton, makeStyles, Typography } from "@material-ui/core";
+import { Badge, IconButton, makeStyles, Popover, Typography } from "@material-ui/core";
 import { AddTwoTone, Notifications as NotificationsIcon } from "@material-ui/icons";
+import { useNotificationCount } from "../../state/data/hooks";
+import { usePopoverProps } from "../../utilities/hooks";
 import { NAVBAR_LOGO_HEIGHT } from "../shell/navbar";
+import { Notifications } from "../shell/notifications";
 
 const usePageStyles = makeStyles((theme) => ({
     page: {
@@ -31,16 +34,27 @@ const usePageStyles = makeStyles((theme) => ({
 }));
 
 export const Page: React.FC<{ title: string }> = ({ children, title }) => {
+    const notifications = useNotificationCount();
     const classes = usePageStyles();
+    const { buttonProps, popoverProps } = usePopoverProps();
 
     return (
         <div className={classes.page}>
             <div className={classes.title}>
                 <Typography variant="h3">{title}</Typography>
                 <div className={classes.titleButtons}>
-                    <IconButton>
-                        <NotificationsIcon />
+                    <IconButton {...buttonProps}>
+                        <Badge badgeContent={notifications} color="secondary" overlap="circle" variant="dot">
+                            <NotificationsIcon />
+                        </Badge>
                     </IconButton>
+                    <Popover
+                        {...popoverProps}
+                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                        transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    >
+                        <Notifications />
+                    </Popover>
                     <IconButton>
                         <AddTwoTone />
                     </IconButton>

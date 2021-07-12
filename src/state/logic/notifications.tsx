@@ -1,5 +1,6 @@
 import { Avatar, makeStyles, styled, Typography } from "@material-ui/core";
 import { AccountBalance, Payment, PostAdd, TrendingUp } from "@material-ui/icons";
+import { noop } from "lodash";
 import numeral from "numeral";
 import React from "react";
 import { TopHatDispatch } from "..";
@@ -92,7 +93,7 @@ const RuleDefinitions: {
             title: "New Milestone Reached!",
             dismiss: defaultDismissNotification(alert.id),
             colour: Intents.success.main,
-            buttons: [{ text: "Update", onClick: console.log }],
+            buttons: [{ text: "Update", onClick: noop }],
             children: <NewMilestoneContents value={alert.contents} />,
         }),
     },
@@ -104,7 +105,7 @@ const RuleDefinitions: {
             title: "Uncategorised Transactions",
             dismiss: defaultDismissNotification(alert.id),
             colour: Intents.warning.main,
-            buttons: [{ text: "Update", onClick: console.log }],
+            buttons: [{ text: "Update", onClick: noop }],
             children: (
                 <NotificationContents>
                     There are <OrangeText>{alert.contents}</OrangeText> transactions which haven’t been allocated to
@@ -121,7 +122,7 @@ const RuleDefinitions: {
             title: "Statement Ready",
             dismiss: defaultDismissNotification(alert.id),
             colour: Intents.primary.main,
-            buttons: [{ text: "Upload", onClick: console.log }],
+            buttons: [{ text: "Upload", onClick: noop }],
             children: <StatementReadyContents id={alert.contents} />,
         }),
     },

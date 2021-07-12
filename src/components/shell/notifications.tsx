@@ -13,6 +13,7 @@ const useStyles = makeStyles((theme) => ({
         overflow: "hidden",
         padding: "0 17px",
         fontSize: 20,
+        width: 350,
 
         marginBottom: 20,
         "&:first-child": {

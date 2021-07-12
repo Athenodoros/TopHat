@@ -51,6 +51,7 @@ export const useAllInstitutions = () =>
         shallowEqual
     );
 
+export const useNotificationCount = () => useSelector((state: TopHatState) => state.data.notifications.ids.length);
 export const useAllNotifications = () =>
     useSelector(
         (state: TopHatState) => state.data.notifications.ids.map((id) => state.data.notifications.entities[id]!),
