@@ -1,10 +1,9 @@
 import { makeStyles } from "@material-ui/core";
 import React from "react";
-import { useSelector } from "react-redux";
 import { AccountsPage } from "../../screens/accounts";
 import { SummaryPage } from "../../screens/summary";
 import { TransactionsPage } from "../../screens/transactions";
-import { TopHatState } from "../../state";
+import { useSelector } from "../../state/utilities/hooks";
 import { NavBar } from "./navbar";
 
 const useViewStyles = makeStyles((theme) => ({
@@ -20,7 +19,7 @@ const useViewStyles = makeStyles((theme) => ({
 }));
 
 export const View: React.FC = () => {
-    const page = useSelector((state: TopHatState) => state.app.page.id);
+    const page = useSelector((state) => state.app.page.id);
     const classes = useViewStyles();
 
     return (

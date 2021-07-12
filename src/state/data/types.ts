@@ -124,7 +124,7 @@ export interface Transaction {
     balance?: number;
 
     account: ID;
-    category: ID;
+    category: ID | undefined;
     currency: ID;
     statement: boolean;
 }

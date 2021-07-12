@@ -11,3 +11,16 @@ export const updateListSelection = <T>(t: T, ts: T[]) => (ts.includes(t) ? ts.fi
 
 export const takeWithDefault = <T>(array: T[], length: number, fallback: T) =>
     range(length).map((i) => array[i] || fallback);
+
+export const takeWithFilter = <T>(array: T[], count: number, filter: (t: T) => boolean) => {
+    let values = [];
+
+    for (let value of array) {
+        if (filter(value)) {
+            values.push(value);
+            if (values.length === count) break;
+        }
+    }
+
+    return values;
+};

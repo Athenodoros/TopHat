@@ -21,7 +21,7 @@ export const DefaultPages = {
         account: [],
         category: [],
         currency: [],
-        statement: [],
+        statement: "all" as const,
         transfers: "all" as const,
         showStubs: false,
         tableLimit: 100,

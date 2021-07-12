@@ -12,10 +12,9 @@ import chroma from "chroma-js";
 import clsx from "clsx";
 import { get } from "lodash-es";
 import React from "react";
-import { useSelector } from "react-redux";
-import { TopHatState } from "../../state";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/types";
+import { useSelector } from "../../state/utilities/hooks";
 import { AppColours, Greys, WHITE } from "../../styles/colours";
 import { IconType } from "../../utilities/types";
 
@@ -90,7 +89,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const NavBar: React.FC = () => {
-    const page = useSelector((state: TopHatState) => state.app.page.id);
+    const page = useSelector((state) => state.app.page.id);
     const classes = useStyles();
 
     const getTab = (id: PageStateType["id"], Icon: IconType, logo: boolean = false) => {

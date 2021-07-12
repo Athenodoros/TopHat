@@ -1,4 +1,5 @@
 import { groupBy, toPairs } from "lodash";
+import { filterListByID, filterListByIDs } from "../../../components/table";
 import { useAccountsPageState } from "../../../state/app/hooks";
 import { Account } from "../../../state/data";
 import { useAllAccounts, useInstitutionMap } from "../../../state/data/hooks";
@@ -39,7 +40,3 @@ export const useAccountsTableData = () => {
         }
     );
 };
-
-const filterListByID = (list: number[], value: number | undefined) => filterListByIDs(list, [value as number]);
-const filterListByIDs = (list: number[], values: number[]) =>
-    list.length === 0 || values.some((value) => list.includes(value));

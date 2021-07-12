@@ -204,7 +204,7 @@ const transactions = (
             1,
             false,
             false,
-            "Weekly shop",
+            "Weekly shop - groceries, toiletries, and basic necessities",
             true,
         ]),
         ...range(1, 730)

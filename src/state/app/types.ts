@@ -27,7 +27,7 @@ export type TransactionsPageState = {
     account: number[];
     category: number[];
     currency: number[];
-    statement: (number | undefined)[];
+    statement: "all" | "include" | "exclude";
     chartSign: ChartSign;
     chartAggregation: typeof TransactionsPageAggregations[number];
     transfers: "all" | "include" | "exclude";

@@ -219,9 +219,10 @@ const getTransactionSummaries = (
 
         if (tx.value && !tx.transfer) {
             totals.forEach(([type, histories]) => {
-                if (histories[tx[type]] === undefined) histories[tx[type]] = BaseTransactionHistory();
+                if (tx[type] === undefined) return;
+                if (histories[tx[type]!] === undefined) histories[tx[type]!] = BaseTransactionHistory();
 
-                const history = histories[tx[type]];
+                const history = histories[tx[type]!];
                 const bucket = parseDate(history.start).diff(date, "months")["months"];
 
                 if (bucket >= history.credits.length) {
