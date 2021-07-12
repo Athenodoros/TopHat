@@ -10,21 +10,18 @@ import { useAllAccounts, useAllCurrencies, useAllInstitutions, useInstitutionMap
 import { AccountTypes } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
 import { usePopoverProps } from "../../../utilities/hooks";
-import { ACCOUNT_TABLE_LEFT_PADDING } from "./account";
-import { ICON_MARGIN_LEFT, ICON_MARGIN_RIGHT, ICON_WIDTH, INSTITUTION_WIDTH } from "./institution";
+import { ACCOUNT_TABLE_LEFT_PADDING, useAccountsTableStyles } from "./styles";
 
 const useStyles = makeStyles((theme) => ({
-    institution: {
+    institutionInner: {
         display: "flex",
         alignItems: "center",
-        paddingLeft: ICON_MARGIN_LEFT + ICON_WIDTH + ICON_MARGIN_RIGHT,
-        width: INSTITUTION_WIDTH,
 
         "& > h6": {
             marginLeft: 10,
         },
     },
-    account: {
+    accountInner: {
         display: "flex",
         alignItems: "center",
         paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
@@ -33,18 +30,10 @@ const useStyles = makeStyles((theme) => ({
             marginLeft: 10,
         },
     },
-    filters: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-    },
-    filter: {
-        display: "flex",
-        justifyContent: "space-between",
-    },
 }));
 
 export const AccountsTableHeader: React.FC = () => {
+    const accountsTableClasses = useAccountsTableStyles();
     const classes = useStyles();
     const popover1 = usePopoverProps();
     const popover2 = usePopoverProps();
@@ -57,75 +46,80 @@ export const AccountsTableHeader: React.FC = () => {
 
     return (
         <TableHeaderContainer>
-            <div className={classes.institution}>
-                <FilterIcon badgeContent={filters.institution.length} ButtonProps={popover1.buttonProps} />
-                <Typography variant="h6">Institution</Typography>
-                <FilterMenu
-                    options={institutions}
-                    MenuProps={{
-                        ...popover1.popoverProps,
-                        PaperProps: { style: { maxHeight: 300, width: 300 } },
-                    }}
-                    select={onSelectIDs("institution")}
-                    selected={filters.institution}
-                    getOptionIcon={(institution, className) => (
-                        <Avatar src={institution.icon} className={className}>
-                            <AccountBalance style={{ height: "60%" }} />
-                        </Avatar>
-                    )}
-                />
-            </div>
-            <div className={classes.account}>
-                <FilterIcon
-                    badgeContent={filters.account.length || filters.type.length || filters.currency.length}
-                    ButtonProps={popover2.buttonProps}
-                />
-                <Typography variant="h6">Account</Typography>
-                <Menu
-                    {...popover2.popoverProps}
-                    PaperProps={{
-                        style: {
-                            width: 300,
-                        },
-                    }}
-                >
-                    <NestedMenuSelector
-                        icon={Category}
-                        name="Types"
-                        select={onSelectIDs("type")}
-                        selected={filters.type}
-                        options={AccountTypes}
-                        getOptionIcon={(type, className) => (
-                            <Avatar className={className} style={{ backgroundColor: type.colour }}>
-                                <type.icon style={{ height: "60%" }} />
-                            </Avatar>
-                        )}
-                    />
-                    <NestedMenuSelector
-                        icon={Euro}
-                        name="Currencies"
-                        select={onSelectIDs("currency")}
-                        selected={filters.currency}
-                        options={currencies}
-                        getOptionIcon={(currency, className) => (
-                            <Avatar className={className} style={{ backgroundColor: currency.colour }}>
-                                <Typography variant="button">{last(currency.symbol)}</Typography>
-                            </Avatar>
-                        )}
-                    />
-                    <NestedMenuSelector
-                        icon={AccountBalanceWallet}
-                        name="Accounts"
-                        select={onSelectIDs("account")}
-                        selected={filters.account}
-                        options={accounts}
-                        getOptionIcon={(account, className) => (
-                            <Avatar src={institutionMap[account.institution!]?.icon} className={className}>
+            <div className={accountsTableClasses.icon} />
+            <div className={accountsTableClasses.institution}>
+                <div className={classes.institutionInner}>
+                    <FilterIcon badgeContent={filters.institution.length} ButtonProps={popover1.buttonProps} />
+                    <Typography variant="h6">Institution</Typography>
+                    <FilterMenu
+                        options={institutions}
+                        MenuProps={{
+                            ...popover1.popoverProps,
+                            PaperProps: { style: { maxHeight: 300, width: 300 } },
+                        }}
+                        select={onSelectIDs("institution")}
+                        selected={filters.institution}
+                        getOptionIcon={(institution, className) => (
+                            <Avatar src={institution.icon} className={className}>
                                 <AccountBalance style={{ height: "60%" }} />
                             </Avatar>
                         )}
                     />
-                </Menu>
+                </div>
+            </div>
+            <div className={accountsTableClasses.accounts}>
+                <div className={classes.accountInner}>
+                    <FilterIcon
+                        badgeContent={filters.account.length || filters.type.length || filters.currency.length}
+                        ButtonProps={popover2.buttonProps}
+                    />
+                    <Typography variant="h6">Account</Typography>
+                    <Menu
+                        {...popover2.popoverProps}
+                        PaperProps={{
+                            style: {
+                                width: 300,
+                            },
+                        }}
+                    >
+                        <NestedMenuSelector
+                            icon={Category}
+                            name="Types"
+                            select={onSelectIDs("type")}
+                            selected={filters.type}
+                            options={AccountTypes}
+                            getOptionIcon={(type, className) => (
+                                <Avatar className={className} style={{ backgroundColor: type.colour }}>
+                                    <type.icon style={{ height: "60%" }} />
+                                </Avatar>
+                            )}
+                        />
+                        <NestedMenuSelector
+                            icon={Euro}
+                            name="Currencies"
+                            select={onSelectIDs("currency")}
+                            selected={filters.currency}
+                            options={currencies}
+                            getOptionIcon={(currency, className) => (
+                                <Avatar className={className} style={{ backgroundColor: currency.colour }}>
+                                    <Typography variant="button">{last(currency.symbol)}</Typography>
+                                </Avatar>
+                            )}
+                        />
+                        <NestedMenuSelector
+                            icon={AccountBalanceWallet}
+                            name="Accounts"
+                            select={onSelectIDs("account")}
+                            selected={filters.account}
+                            options={accounts}
+                            getOptionIcon={(account, className) => (
+                                <Avatar src={institutionMap[account.institution!]?.icon} className={className}>
+                                    <AccountBalance style={{ height: "60%" }} />
+                                </Avatar>
+                            )}
+                        />
+                    </Menu>
+                </div>
             </div>
         </TableHeaderContainer>
     );

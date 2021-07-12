@@ -12,8 +12,7 @@ import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
 import { BalanceHistory, parseDate } from "../../../state/utilities/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
 import { suppressEvent } from "../../../utilities/events";
-
-export const ACCOUNT_TABLE_LEFT_PADDING = 19;
+import { ACCOUNT_TABLE_LEFT_PADDING } from "./styles";
 
 const useStyles = makeStyles({
     container: {
@@ -24,20 +23,23 @@ const useStyles = makeStyles({
         marginBottom: 10,
 
         "&:hover": {
-            backgroundColor: Greys[200],
+            backgroundColor: chroma(Greys[500]).alpha(0.1).hex(),
         },
         "&:last-child": {
             marginBottom: 0,
         },
     },
     accountNameContainer: {
-        flexShrink: 0,
+        flexGrow: 2,
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        width: 200,
+        width: 180,
         marginRight: 30,
 
+        "& > *": {
+            width: "100%",
+        },
         "& > p:nth-child(2)": {
             color: Greys[600],
         },
@@ -48,6 +50,7 @@ const useStyles = makeStyles({
     },
     accountValueContainer: {
         marginLeft: 30,
+        width: 140,
         flexGrow: 1,
         display: "flex",
         flexDirection: "column",
@@ -115,8 +118,12 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
     return (
         <ButtonBase key={account.id} className={classes.container} component="div">
             <div className={classes.accountNameContainer}>
-                <Typography variant="h6">{account.name}</Typography>
-                <Typography variant="body2">{AccountTypeMap[account.category].name}</Typography>
+                <Typography variant="h6" noWrap={true}>
+                    {account.name}
+                </Typography>
+                <Typography variant="body2" noWrap={true}>
+                    {AccountTypeMap[account.category].name}
+                </Typography>
             </div>
             <div className={classes.chartContainer}>
                 <VictoryChart

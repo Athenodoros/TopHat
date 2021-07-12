@@ -5,6 +5,7 @@ import React from "react";
 import { Greys } from "../../../styles/colours";
 import { AccountTableEntry } from "./account";
 import { AccountsInstitutionSummary } from "./data";
+import { useAccountsTableStyles } from "./styles";
 
 export const ICON_MARGIN_LEFT = 27;
 export const ICON_WIDTH = 40;
@@ -29,25 +30,10 @@ const useStyles = makeStyles((theme) => ({
         borderRadius: 48,
         transform: "rotate(-60deg)",
     },
-    institutionSummary: {
-        display: "flex",
-        alignItems: "center",
-        width: INSTITUTION_WIDTH,
-        height: 100,
-        flexShrink: 0,
-    },
-    institutionImage: {
-        height: ICON_WIDTH,
-        width: ICON_WIDTH,
-        margin: `29px ${ICON_MARGIN_RIGHT}px 29px ${ICON_MARGIN_LEFT}px`,
-        borderRadius: 5,
-    },
-    institutionNameContainer: {
-        flexGrow: 0,
-    },
     institutionName: {
         lineHeight: 1,
         marginTop: 2,
+        width: "100%",
     },
     missingInstitutionName: {
         fontStyle: "italics",
@@ -60,49 +46,37 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 2,
         marginLeft: -5,
     },
-
-    accounts: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        margin: "16px 50px 16px 0",
-        flexGrow: 1,
-    },
 }));
 
 export const AccountsInstitutionDisplay: React.FC<{ institution: AccountsInstitutionSummary }> = ({ institution }) => {
+    const accountsTableClasses = useAccountsTableStyles();
     const classes = useStyles();
 
     return (
         <Card className={classes.container}>
+            <Avatar src={institution?.icon} className={accountsTableClasses.icon}>
+                <AccountBalance style={{ height: "50%" }} />
+            </Avatar>
+            <div className={accountsTableClasses.institution}>
+                <Typography
+                    variant="h5"
+                    className={clsx(
+                        classes.institutionName,
+                        institution.name ? undefined : classes.missingInstitutionName
+                    )}
+                    noWrap={true}
+                >
+                    {institution.name || "No Institution"}
+                </Typography>
+                <Button size="small" className={classes.institutionEditAction} disabled={institution.id === undefined}>
+                    EDIT
+                </Button>
+            </div>
             <div
                 className={classes.institutionColourSquare}
                 style={{ backgroundColor: institution.colour || Greys[700] }}
             />
-            <div className={classes.institutionSummary}>
-                <Avatar src={institution?.icon} className={classes.institutionImage}>
-                    <AccountBalance style={{ height: "50%" }} />
-                </Avatar>
-                <div className={classes.institutionNameContainer}>
-                    <Typography
-                        variant="h5"
-                        className={clsx(
-                            classes.institutionName,
-                            institution.name ? undefined : classes.missingInstitutionName
-                        )}
-                    >
-                        {institution.name || "No Institution"}
-                    </Typography>
-                    <Button
-                        size="small"
-                        className={classes.institutionEditAction}
-                        disabled={institution.id === undefined}
-                    >
-                        EDIT
-                    </Button>
-                </div>
-            </div>
-            <div className={classes.accounts}>
+            <div className={accountsTableClasses.accounts}>
                 {institution.accounts.map((account) => (
                     <AccountTableEntry account={account} key={account.id} />
                 ))}
