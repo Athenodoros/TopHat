@@ -41,7 +41,7 @@ const useValueStyles = makeStyles((theme) => ({
         justifyContent: "flex-start",
     },
     title: {
-        fontWeight: "bold",
+        fontWeight: 500,
         color: Greys[800],
     },
     placeholder: {
@@ -69,7 +69,10 @@ const useValueStyles = makeStyles((theme) => ({
     value: {
         color: Greys[600],
         textAlign: "right",
-        lineHeight: 1.1,
+        lineHeight: 1.2,
+    },
+    valueWithSubValue: {
+        color: Greys[800],
     },
 }));
 export const Value: React.FC<{
@@ -122,12 +125,19 @@ export const Value: React.FC<{
                 {values.map((value, idx) =>
                     value || values.filter(identity).length === 0 ? (
                         <div key={idx}>
-                            <Typography className={clsx(classes.value, title && classes.title)} variant={variant}>
+                            <Typography
+                                className={clsx(
+                                    classes.value,
+                                    title && classes.title,
+                                    subValues && classes.valueWithSubValue
+                                )}
+                                variant={variant}
+                            >
                                 {numeral(value).format("+0,0.00")}
                             </Typography>
                             {subValues && (
                                 <Typography className={classes.value} variant="caption">
-                                    {subValues.symbol + numeral(subValues.values[idx]).format("0.00a")}
+                                    {subValues.symbol + " " + numeral(subValues.values[idx]).format("0.00a")}
                                 </Typography>
                             )}
                         </div>

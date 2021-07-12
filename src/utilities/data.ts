@@ -1,4 +1,4 @@
-import { zip } from "lodash-es";
+import { range, zip } from "lodash-es";
 
 export const equalZip = <S, T>(s: S[], t: T[]) => zip(s, t) as [S, T][];
 
@@ -8,3 +8,6 @@ export const flipListIncludes = <T>(id: T, list: T[]) =>
 export const formatEmpty = () => "";
 
 export const updateListSelection = <T>(t: T, ts: T[]) => (ts.includes(t) ? ts.filter((x) => x !== t) : ts.concat([t]));
+
+export const takeWithDefault = <T>(array: T[], length: number, fallback: T) =>
+    range(length).map((i) => array[i] || fallback);

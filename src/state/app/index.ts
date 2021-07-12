@@ -1,6 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimStart } from "lodash";
-import { AccountsPageState, PageStateType } from "./types";
+import { AccountsPageState, PageStateType, TransactionsPageState } from "./types";
 
 export const DefaultPages = {
     summary: { id: "summary" as const },
@@ -61,6 +61,12 @@ export const AppSlice = createSlice({
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),
+                ...payload,
+            };
+        },
+        setTransactionsPagePartial: (state, { payload }: PayloadAction<Partial<TransactionsPageState>>) => {
+            state.page = {
+                ...(state.page.id === "transactions" ? state.page : DefaultPages["transactions"]),
                 ...payload,
             };
         },

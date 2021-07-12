@@ -1,9 +1,10 @@
+import { Dictionary } from "@reduxjs/toolkit";
 import numeral from "numeral";
 import { useCallback } from "react";
 import { shallowEqual, useSelector } from "react-redux";
 import { TopHatState } from "..";
 import { ID } from "../utilities/values";
-import { Account, Institution } from "./types";
+import { Account, BasicObjectName, BasicObjectType, Institution } from "./types";
 
 export const useDefaultCurrency = () =>
     useSelector(({ data }: TopHatState) => data.currency.entities[data.user.currency]!, shallowEqual);
@@ -53,5 +54,15 @@ export const useAllInstitutions = () =>
 export const useAllNotifications = () =>
     useSelector(
         (state: TopHatState) => state.data.notifications.ids.map((id) => state.data.notifications.entities[id]!),
+        shallowEqual
+    );
+
+export const useObjectIDs = <T extends BasicObjectName>(type: T) =>
+    useSelector((state: TopHatState) => state.data[type].ids);
+export const useObjectMap = <T extends BasicObjectName>(type: T) =>
+    useSelector((state: TopHatState) => state.data[type].entities as Dictionary<BasicObjectType[T]>);
+export const useAllObjects = <T extends BasicObjectName>(type: T) =>
+    useSelector(
+        (state: TopHatState) => state.data[type].ids.map((id) => state.data[type].entities[id]! as BasicObjectType[T]),
         shallowEqual
     );

@@ -66,6 +66,8 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
         ({ value }) => (sign !== "debits" ? -value.credit : 0) + (sign !== "credits" ? value.debit : 0)
     ).filter(({ value }) => (sign !== "debits" && value.credit) || (sign !== "credits" && value.debit));
 
+    console.log({ points, data });
+
     return (
         <div className={classes.container}>
             {sign !== "debits" ? (

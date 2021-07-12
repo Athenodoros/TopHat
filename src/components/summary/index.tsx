@@ -1,2 +1,27 @@
+import { makeStyles } from "@material-ui/core";
+import React from "react";
+import { SECTION_MARGIN } from "../layout";
+
 export * from "./bar";
 export * from "./breakdown";
+
+const useStyles = makeStyles({
+    container: {
+        display: "flex",
+
+        "& > div:first-child": {
+            width: 300,
+            marginRight: SECTION_MARGIN,
+        },
+
+        "& > div:last-child": {
+            flexGrow: 1,
+        },
+    },
+});
+
+export const SummarySection: React.FC = ({ children }) => {
+    const classes = useStyles();
+
+    return <div className={classes.container}>{children}</div>;
+};

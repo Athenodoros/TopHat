@@ -1,5 +1,6 @@
 import { createEntityAdapter, createSlice, Dictionary, EntityId, EntityState, PayloadAction } from "@reduxjs/toolkit";
-import { clone, cloneDeep, fromPairs, range, reverse, round, toPairs, zipObject } from "lodash";
+import { clone, cloneDeep, fromPairs, reverse, round, toPairs, zipObject } from "lodash";
+import { takeWithDefault } from "../../utilities/data";
 import {
     BalanceHistory,
     BaseBalanceValues,
@@ -69,9 +70,9 @@ export const DataSlice = createSlice({
                     DemoObjects.accounts.map((account) => ({
                         ...account,
                         lastTransactionDate: accountLastTransactionDates[account.id],
-                        balances: accountBalances[account.id],
-                        transactions: transactionSummaries.account[account.id],
-                        currencies: toPairs(accountBalances[account.id])
+                        balances: accountBalances[account.id] || {},
+                        transactions: transactionSummaries.account[account.id] || BaseTransactionHistory(),
+                        currencies: toPairs(accountBalances[account.id] || {})
                             .filter(([_, balances]) => balances.localised[0])
                             .map(([idStr, _]) => Number(idStr)),
                     }))
@@ -80,14 +81,14 @@ export const DataSlice = createSlice({
                     defaults.category,
                     DemoObjects.categories.map((category) => ({
                         ...category,
-                        transactions: transactionSummaries.category[category.id],
+                        transactions: transactionSummaries.category[category.id] || BaseTransactionHistory(),
                     }))
                 ),
                 currency: IndexedAdapter.addMany(
                     defaults.currency,
                     DemoObjects.currencies.map((currency) => ({
                         ...currency,
-                        transactions: transactionSummaries.currency[currency.id],
+                        transactions: transactionSummaries.currency[currency.id] || BaseTransactionHistory(),
                     }))
                 ),
                 institution: IndexedAdapter.addMany(defaults.institution, DemoObjects.institutions),
@@ -209,50 +210,52 @@ const getTransactionSummaries = (
     ];
     const transactionDates: Record<ID, SDate> = {};
 
-    transactionState.ids
-        .map((id) => transactionState.entities[id]!)
-        .forEach((tx) => {
-            const date = parseDate(tx.date).startOf("month");
+    transactionState.ids.forEach((id) => {
+        const tx = transactionState.entities[id]!;
 
-            if (!transactionDates[tx.account] && tx.value) transactionDates[tx.account] = tx.date;
+        const date = parseDate(tx.date).startOf("month");
 
-            if (tx.value && !tx.transfer) {
-                totals.forEach(([type, histories]) => {
-                    if (histories[tx[type]] === undefined) histories[tx[type]] = BaseTransactionHistory();
+        if (!transactionDates[tx.account] && tx.value) transactionDates[tx.account] = tx.date;
 
-                    const history = histories[tx[type]];
-                    const bucket = parseDate(history.start).diff(date, "months")["months"];
+        if (tx.value && !tx.transfer) {
+            totals.forEach(([type, histories]) => {
+                if (histories[tx[type]] === undefined) histories[tx[type]] = BaseTransactionHistory();
 
-                    if (bucket >= history.credits.length) {
-                        history.credits = extendHistory(history.credits, bucket);
-                        history.debits = extendHistory(history.debits, bucket);
-                    }
-
-                    history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
-                        currencies[defaultCurrency]!,
-                        currencies[tx.currency]!,
-                        tx.value!
-                    );
-                });
-            }
-
-            if (tx.balance !== undefined) {
-                if (!balances[tx.account]) balances[tx.account] = {};
-                if (!balances[tx.account][tx.currency]) balances[tx.account][tx.currency] = BaseBalanceValues();
-
-                const history = balances[tx.account][tx.currency];
+                const history = histories[tx[type]];
                 const bucket = parseDate(history.start).diff(date, "months")["months"];
 
-                if (bucket >= history.localised.length) {
-                    history.localised = extendHistory(
-                        history.localised,
-                        bucket,
-                        changeCurrencyValue(currencies[defaultCurrency]!, currencies[tx.currency]!, tx.balance)
-                    );
-                    history.original = extendHistory(history.original, bucket, tx.balance);
+                if (bucket >= history.credits.length) {
+                    history.credits = takeWithDefault(history.credits, bucket + 1, 0);
+                    history.debits = takeWithDefault(history.debits, bucket + 1, 0);
                 }
+
+                history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
+                    currencies[defaultCurrency]!,
+                    currencies[tx.currency]!,
+                    tx.value!
+                );
+            });
+        }
+
+        if (tx.balance !== undefined) {
+            if (!balances[tx.account]) balances[tx.account] = {};
+            if (!balances[tx.account][tx.currency]) balances[tx.account][tx.currency] = BaseBalanceValues();
+
+            const history = balances[tx.account][tx.currency];
+            const bucket = parseDate(history.start).diff(date, "months")["months"];
+
+            if (bucket >= history.localised.length) {
+                history.localised = takeWithDefault(
+                    history.localised,
+                    bucket + 1,
+                    changeCurrencyValue(currencies[defaultCurrency]!, currencies[tx.currency]!, tx.balance)
+                );
+                history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
             }
-        });
+        }
+    });
+
+    console.log(totals);
 
     return {
         accountLastTransactionDates: transactionDates,
@@ -260,8 +263,6 @@ const getTransactionSummaries = (
         transactionSummaries: fromPairs(totals) as Record<typeof totals[0][0], Record<ID, TransactionHistory>>,
     };
 };
-const extendHistory = (history: number[], length: number, fill?: number) =>
-    history.concat(range(length + 1 - history.length).map((_) => fill || 0));
 const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
     (value * from.exchangeRate) / to.exchangeRate;
 

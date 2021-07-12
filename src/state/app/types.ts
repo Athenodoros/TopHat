@@ -6,17 +6,18 @@ export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];
 export type SummaryPageState = {
     id: "summary";
 };
+export const AccountsPageAggregations = ["account", "currency", "institution", "type"] as const;
 export type AccountsPageState = {
     id: "accounts";
     chartSign: ChartSign;
-    chartAggregation: "account" | "currency" | "institution" | "type";
+    chartAggregation: typeof AccountsPageAggregations[number];
     account: number[];
     institution: number[];
     type: number[];
     currency: number[];
     filterInactive: boolean;
 };
-export const AccountsPageAggregations = ["account", "currency", "institution", "type"] as const;
+export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
 export type TransactionsPageState = {
     id: "transactions";
     fromDate?: string;
@@ -28,7 +29,7 @@ export type TransactionsPageState = {
     currency: number[];
     statement: (number | undefined)[];
     chartSign: ChartSign;
-    chartAggregation: "category" | "currency" | "account";
+    chartAggregation: typeof TransactionsPageAggregations[number];
     transfers: "all" | "include" | "exclude";
     showStubs: boolean;
     tableLimit: number;

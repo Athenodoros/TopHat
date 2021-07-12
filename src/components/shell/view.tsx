@@ -3,6 +3,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { AccountsPage } from "../../screens/accounts";
 import { SummaryPage } from "../../screens/summary";
+import { TransactionsPage } from "../../screens/transactions";
 import { TopHatState } from "../../state";
 import { NavBar } from "./navbar";
 
@@ -27,6 +28,7 @@ export const View: React.FC = () => {
             <NavBar />
             {page === "summary" ? <SummaryPage /> : undefined}
             {page === "accounts" ? <AccountsPage /> : undefined}
+            {page === "transactions" ? <TransactionsPage /> : undefined}
         </div>
     );
 };

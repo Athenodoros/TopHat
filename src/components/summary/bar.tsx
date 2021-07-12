@@ -73,7 +73,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
         [charts, sign, setFilter, symbol, domain, id]
     );
 
-    return <FlexWidthChart style={{ height: "100%", display: "flex", justifyContent: "center" }} getChart={getChart} />;
+    return <FlexWidthChart style={{ height: 320, display: "flex", justifyContent: "center" }} getChart={getChart} />;
 };
 
 interface SummaryChartPoint extends ChartPoint {
@@ -111,8 +111,10 @@ const useChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
 
         const domain = {
             x: [
-                DateTime.fromJSDate(last(charts[0])!.x).minus({ months: 1 }).toJSDate(),
-                DateTime.fromJSDate(charts[0][0].x).plus({ months: 1 }).toJSDate(),
+                DateTime.fromJSDate(min(charts.map((c) => last(c)?.x)) || new Date())
+                    .minus({ months: 1 })
+                    .toJSDate(),
+                getToday().startOf("month").plus({ months: 1 }).toJSDate(),
             ] as [Date, Date],
             y: [
                 min(

@@ -146,3 +146,14 @@ export interface Notification<K extends keyof NotificationRuleDefinitions = keyo
     type: K;
     contents: NotificationRuleDefinitions[K];
 }
+
+/**
+ * Meta-types for general use
+ */
+export interface BasicObjectType {
+    account: Account;
+    category: Category;
+    currency: Currency;
+    institution: Institution;
+}
+export type BasicObjectName = keyof BasicObjectType;

@@ -1,13 +1,12 @@
-import { toPairs, unzip, zip, zipObject } from "lodash-es";
-import { useAccountsPageState } from "../../../state/app/hooks";
+import { omit, toPairs, unzip, zip, zipObject } from "lodash-es";
+import { AccountsPageState } from "../../../state/app/types";
 import { useAccountIDs, useAccountMap, useCurrencyMap, useInstitutionMap } from "../../../state/data/hooks";
 import { AccountTypeMap } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
 
-type HistorySummary = { credits: number[]; debits: number[] };
+type HistorySummary = { credits: number[]; debits: number[]; totals: { credit: number; debit: number } };
 
-export function useAccountsSummaryData() {
-    const aggregation = useAccountsPageState((state) => state.chartAggregation);
+export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggregation"]) {
     const accountIDs = useAccountIDs();
     const accounts = useAccountMap();
     const institutions = useInstitutionMap();
@@ -15,7 +14,6 @@ export function useAccountsSummaryData() {
 
     // Iterate through all balances and allocate to keyed histories
     const trends: Record<ID, HistorySummary> = {};
-    const currencyTotals: Record<ID, { credit: number; debit: number }> = {};
     accountIDs.forEach((accountId) => {
         const account = accounts[accountId]!;
 
@@ -27,26 +25,32 @@ export function useAccountsSummaryData() {
                 type: account.category,
             }[aggregation];
 
-            const history = zip(original, trends[id]?.credits || [], trends[id]?.debits || []).map(
+            const history = zip(localised, trends[id]?.credits || [], trends[id]?.debits || []).map(
                 ([value, credit, debit]) =>
                     value && value > 0
                         ? [value + (credit || 0), debit || 0]
                         : [credit || 0, (value || 0) + (debit || 0)]
             );
-            const currencyTotal = currencyTotals[id] || { credit: 0, debit: 0 };
+            const currencyTotal = trends[id]?.totals || { credit: 0, debit: 0 };
 
-            trends[id] = zipObject(["credits", "debits"], unzip(history)) as HistorySummary;
-            currencyTotals[id] = {
-                credit: currencyTotal.credit + (localised[0] >= 0 ? localised[0] : 0),
-                debit: currencyTotal.debit + (localised[0] || 0),
-            };
+            trends[id] = {
+                ...zipObject(["credits", "debits"], unzip(history)),
+                totals: {
+                    credit: currencyTotal.credit + (original[0] > 0 ? original[0] : 0),
+                    debit: currencyTotal.debit + (original[0] < 0 ? original[0] : 0),
+                },
+            } as HistorySummary;
         });
     });
 
     // Create full summaries by category
     return toPairs(trends).map(([strID, trend]) => {
         const id = Number(strID);
-        const common = { id, value: { credit: trend.credits[0], debit: trend.debits[0] }, trend };
+        const common = {
+            id,
+            value: { credit: trend.credits[0], debit: trend.debits[0] },
+            trend: omit(trend, ["totals"]),
+        };
 
         if (aggregation === "institution") {
             const institution = institutions[id];
@@ -67,7 +71,7 @@ export function useAccountsSummaryData() {
                 name: currency.name,
                 colour: currency.colour,
                 subtitle: currency.longName,
-                subValue: { symbol: currency.symbol, ...currencyTotals[id] },
+                subValue: { symbol: currency.symbol, ...trend.totals },
                 ...common,
             };
         }

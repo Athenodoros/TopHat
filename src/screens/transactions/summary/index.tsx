@@ -4,24 +4,24 @@ import { Section } from "../../../components/layout";
 import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { useAccountsPageState } from "../../../state/app/hooks";
-import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/types";
+import { useTransactionsPageState } from "../../../state/app/hooks";
+import { TransactionsPageAggregations, TransactionsPageState } from "../../../state/app/types";
 import { onSelectChange } from "../../../utilities/events";
-import { useAccountsSummaryData } from "./data";
+import { useTransactionsSummaryData } from "./data";
 
-export const AccountsPageSummary: React.FC = () => {
-    const aggregation = useAccountsPageState((state) => state.chartAggregation);
-    const sign = useAccountsPageState((state) => state.chartSign);
-    const data = useAccountsSummaryData(aggregation);
+export const TransactionsPageSummary: React.FC = () => {
+    const aggregation = useTransactionsPageState((state) => state.chartAggregation);
+    const sign = useTransactionsPageState((state) => state.chartSign);
+    const data = useTransactionsSummaryData(aggregation);
 
     return (
         <SummarySection>
-            <Section title="Net Worth">
+            <Section title="Transaction Summary">
                 <SummaryBreakdown
                     data={data}
                     sign={sign}
-                    creditsName="Total Assets"
-                    debitsName="Total Liabilities"
+                    creditsName="Monthly Income"
+                    debitsName="Monthly Expenses"
                     setFilter={setFilterID[aggregation]}
                 />
             </Section>
@@ -31,16 +31,15 @@ export const AccountsPageSummary: React.FC = () => {
                     <FormControl variant="outlined" size="small" key="aggregation">
                         <Select value={aggregation} onChange={setAggregation}>
                             <MenuItem value="account">By Account</MenuItem>
+                            <MenuItem value="category">By Category</MenuItem>
                             <MenuItem value="currency">By Currency</MenuItem>
-                            <MenuItem value="institution">By Institution</MenuItem>
-                            <MenuItem value="type">By Type</MenuItem>
                         </Select>
                     </FormControl>,
                     <FormControl variant="outlined" size="small" key="sign">
                         <Select value={sign} onChange={setChartSign}>
-                            <MenuItem value="all">All Balances</MenuItem>
-                            <MenuItem value="credits">Assets</MenuItem>
-                            <MenuItem value="debits">Liabilities</MenuItem>
+                            <MenuItem value="all">All Transactions</MenuItem>
+                            <MenuItem value="credits">Income</MenuItem>
+                            <MenuItem value="debits">Expenses</MenuItem>
                         </Select>
                     </FormControl>,
                 ]}
@@ -56,23 +55,23 @@ export const AccountsPageSummary: React.FC = () => {
     );
 };
 
-const setAggregation = onSelectChange((chartAggregation: AccountsPageState["chartAggregation"]) =>
-    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ chartAggregation }))
+const setAggregation = onSelectChange((chartAggregation: TransactionsPageState["chartAggregation"]) =>
+    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartAggregation }))
 );
 
-const setChartSign = onSelectChange((chartSign: AccountsPageState["chartSign"]) =>
-    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ chartSign }))
+const setChartSign = onSelectChange((chartSign: TransactionsPageState["chartSign"]) =>
+    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartSign }))
 );
 
 const setFilterID = zipObject(
-    AccountsPageAggregations,
-    AccountsPageAggregations.map(
+    TransactionsPageAggregations,
+    TransactionsPageAggregations.map(
         (aggregation) => (id: number, _1?: string, _2?: string) =>
             TopHatDispatch(
-                AppSlice.actions.setAccountsPagePartial({
+                AppSlice.actions.setTransactionsPagePartial({
                     ...zipObject(
-                        AccountsPageAggregations,
-                        AccountsPageAggregations.map((_) => [])
+                        TransactionsPageAggregations,
+                        TransactionsPageAggregations.map((_) => [])
                     ),
                     [aggregation]: [id],
                 })
