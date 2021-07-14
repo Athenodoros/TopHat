@@ -1,4 +1,6 @@
 import { makeStyles } from "@material-ui/core";
+import chroma from "chroma-js";
+import numeral from "numeral";
 import { Greys } from "../../../styles/colours";
 
 const DEFAULT_ROW_HEIGHT = 50;
@@ -12,6 +14,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     // Overall container layout
     container: {
         display: "flex",
+        alignItems: "flex-start",
         padding: "0 5px",
         ...theme.typography.body1,
 
@@ -20,12 +23,17 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
             borderBottomColor: "transparent",
         },
 
-        "&:hover > div:last-child": {
-            visibility: "inherit",
-        },
-
         "& p": {
             lineHeight: "1 !important",
+        },
+    },
+    headerContainer: {},
+    rowContainer: {
+        "& > div:last-child": {
+            visibility: "hidden",
+        },
+        "&:hover > div:last-child": {
+            visibility: "inherit",
         },
     },
 
@@ -101,7 +109,6 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     actions: {
         width: 100,
         padding: "0 5px",
-        visibility: "hidden",
         ...CENTERED_CONTAINER,
         justifyContent: "flex-end",
     },
@@ -121,3 +128,17 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         color: Greys[500],
     },
 }));
+
+export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");
+
+const defaultIconStyles = {
+    backgroundColor: chroma(Greys[400]).alpha(0.5).hex(),
+    borderColor: Greys[400],
+};
+export const getIconStyles = (colour?: string) =>
+    colour
+        ? {
+              backgroundColor: chroma(colour).alpha(0.5).hex(),
+              borderColor: colour,
+          }
+        : defaultIconStyles;

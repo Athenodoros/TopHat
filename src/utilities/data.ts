@@ -1,4 +1,4 @@
-import { range, zip } from "lodash-es";
+import { range, zip, zipObject as zipObjectRaw } from "lodash-es";
 
 export const equalZip = <S, T>(s: S[], t: T[]) => zip(s, t) as [S, T][];
 
@@ -24,3 +24,6 @@ export const takeWithFilter = <T>(array: T[], count: number, filter: (t: T) => b
 
     return values;
 };
+
+export const zipObject = <K extends string | number, V>(keys: readonly K[], values: readonly V[]) =>
+    zipObjectRaw(keys, values) as Record<K, V>;

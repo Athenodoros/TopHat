@@ -1,9 +1,7 @@
 import { Avatar, Checkbox, IconButton, Typography } from "@material-ui/core";
-import { AccountBalance, Edit, ImportExport } from "@material-ui/icons";
-import chroma from "chroma-js";
+import { AccountBalance, Description, Edit, ImportExport } from "@material-ui/icons";
 import clsx from "clsx";
 import { noop } from "lodash-es";
-import numeral from "numeral";
 import React from "react";
 import {
     useAccountByID,
@@ -13,8 +11,7 @@ import {
     useTransactionByID,
 } from "../../../state/data/hooks";
 import { ID, parseDate } from "../../../state/utilities/values";
-import { Greys } from "../../../styles/colours";
-import { useTransactionsTableStyles } from "./styles";
+import { formatTransactionsTableNumber, getIconStyles, useTransactionsTableStyles } from "./styles";
 
 export const TransactionsTableEntry: React.FC<{ id: ID }> = ({ id }) => {
     const classes = useTransactionsTableStyles();
@@ -25,7 +22,7 @@ export const TransactionsTableEntry: React.FC<{ id: ID }> = ({ id }) => {
     const institution = useInstitutionByID(account.institution);
 
     return (
-        <div className={classes.container}>
+        <div className={clsx(classes.container, classes.rowContainer)}>
             <div className={classes.checkbox}>
                 <Checkbox checked={false} onChange={noop} color="primary" />
             </div>
@@ -58,22 +55,14 @@ export const TransactionsTableEntry: React.FC<{ id: ID }> = ({ id }) => {
                         <Typography variant="caption" className={classes.subtext}>
                             {currency.symbol}
                         </Typography>
-                        {format(tx.value)}
+                        {formatTransactionsTableNumber(tx.value)}
                     </div>
                 ) : undefined}
             </div>
             <div className={classes.category}>
                 {category ? (
                     <div className={classes.compound}>
-                        <div
-                            className={classes.categoryIcon}
-                            style={{
-                                backgroundColor: chroma(category?.colour || Greys[400])
-                                    .alpha(0.5)
-                                    .hex(),
-                                borderColor: category?.colour || Greys[400],
-                            }}
-                        />
+                        <div className={classes.categoryIcon} style={getIconStyles(category?.colour)} />
                         {category.name}
                     </div>
                 ) : undefined}
@@ -90,13 +79,13 @@ export const TransactionsTableEntry: React.FC<{ id: ID }> = ({ id }) => {
                         variant="body1"
                         className={tx.recordedBalance === undefined ? classes.missing : undefined}
                     >
-                        {format(tx.recordedBalance ?? tx.balance!)}
+                        {formatTransactionsTableNumber(tx.recordedBalance ?? tx.balance!)}
                     </Typography>
                 </div>
             </div>
             <div className={classes.statement}>
                 <IconButton size="small" disabled={true}>
-                    <ImportExport fontSize="small" style={{ visibility: tx.statement ? undefined : "hidden" }} />
+                    <Description fontSize="small" style={{ visibility: tx.statement ? undefined : "hidden" }} />
                 </IconButton>
             </div>
             <div className={classes.account}>
@@ -113,5 +102,3 @@ export const TransactionsTableEntry: React.FC<{ id: ID }> = ({ id }) => {
         </div>
     );
 };
-
-const format = (value: number) => numeral(value).format("0,0.00");

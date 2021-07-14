@@ -18,12 +18,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const TableHeaderContainer: React.FC = ({ children }) => {
+export const TableHeaderContainer: React.FC<{ className?: string }> = ({ children, className }) => {
     const classes = useStyles();
 
     return (
         <div className={classes.container}>
-            <Card elevation={2} className={classes.card}>
+            <Card elevation={2} className={className || classes.card}>
                 {children}
             </Card>
         </div>

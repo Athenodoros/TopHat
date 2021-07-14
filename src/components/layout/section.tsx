@@ -44,8 +44,9 @@ export interface SectionProps {
     title: string;
     headers?: React.ReactNode | React.ReactNode[];
     emptyBody?: boolean;
+    onClick?: () => void;
 }
-export const Section: React.FC<SectionProps> = ({ className, title, headers, children, emptyBody }) => {
+export const Section: React.FC<SectionProps> = ({ className, title, headers, children, emptyBody, onClick }) => {
     const classes = useSectionStyles();
 
     return (
@@ -57,7 +58,7 @@ export const Section: React.FC<SectionProps> = ({ className, title, headers, chi
             {emptyBody ? (
                 children
             ) : (
-                <Paper className={classes.sectionBody} variant="outlined">
+                <Paper className={classes.sectionBody} variant="outlined" onClick={onClick}>
                     {children}
                 </Paper>
             )}

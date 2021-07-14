@@ -1,11 +1,11 @@
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { zipObject } from "lodash";
 import { Section } from "../../../components/layout";
 import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
 import { TransactionsPageAggregations, TransactionsPageState } from "../../../state/app/types";
+import { zipObject } from "../../../utilities/data";
 import { onSelectChange } from "../../../utilities/events";
 import { useTransactionsSummaryData } from "./data";
 
@@ -16,7 +16,7 @@ export const TransactionsPageSummary: React.FC = () => {
 
     return (
         <SummarySection>
-            <Section title="Transaction Summary">
+            <Section title="Transaction Summary" onClick={clearFilter}>
                 <SummaryBreakdown
                     data={data}
                     sign={sign}
@@ -43,6 +43,7 @@ export const TransactionsPageSummary: React.FC = () => {
                         </Select>
                     </FormControl>,
                 ]}
+                onClick={clearFilter}
             >
                 <SummaryBarChart
                     series={data}
@@ -66,7 +67,7 @@ const setChartSign = onSelectChange((chartSign: TransactionsPageState["chartSign
 const setFilterID = zipObject(
     TransactionsPageAggregations,
     TransactionsPageAggregations.map(
-        (aggregation) => (id: number, _1?: string, _2?: string) =>
+        (aggregation) => (id: number, fromDate?: string, toDate?: string) =>
             TopHatDispatch(
                 AppSlice.actions.setTransactionsPagePartial({
                     ...zipObject(
@@ -74,7 +75,20 @@ const setFilterID = zipObject(
                         TransactionsPageAggregations.map((_) => [])
                     ),
                     [aggregation]: [id],
+                    fromDate,
+                    toDate,
                 })
             )
     )
 );
+const clearFilter = () =>
+    TopHatDispatch(
+        AppSlice.actions.setTransactionsPagePartial({
+            ...zipObject(
+                TransactionsPageAggregations,
+                TransactionsPageAggregations.map((_) => [])
+            ),
+            fromDate: undefined,
+            toDate: undefined,
+        })
+    );

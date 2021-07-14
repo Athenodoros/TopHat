@@ -1,11 +1,11 @@
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { zipObject } from "lodash";
 import { Section } from "../../../components/layout";
 import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
 import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/types";
+import { zipObject } from "../../../utilities/data";
 import { onSelectChange } from "../../../utilities/events";
 import { useAccountsSummaryData } from "./data";
 
@@ -16,7 +16,7 @@ export const AccountsPageSummary: React.FC = () => {
 
     return (
         <SummarySection>
-            <Section title="Net Worth">
+            <Section title="Net Worth" onClick={clearFilter}>
                 <SummaryBreakdown
                     data={data}
                     sign={sign}
@@ -44,12 +44,14 @@ export const AccountsPageSummary: React.FC = () => {
                         </Select>
                     </FormControl>,
                 ]}
+                onClick={clearFilter}
             >
                 <SummaryBarChart
                     series={data}
                     sign={sign}
                     setFilter={setFilterID[aggregation]}
                     id={aggregation + sign}
+                    highlightSeries={true}
                 />
             </Section>
         </SummarySection>
@@ -67,15 +69,24 @@ const setChartSign = onSelectChange((chartSign: AccountsPageState["chartSign"]) 
 const setFilterID = zipObject(
     AccountsPageAggregations,
     AccountsPageAggregations.map(
-        (aggregation) => (id: number, _1?: string, _2?: string) =>
+        (aggregation) => (id?: number, _1?: string, _2?: string) =>
             TopHatDispatch(
                 AppSlice.actions.setAccountsPagePartial({
                     ...zipObject(
                         AccountsPageAggregations,
                         AccountsPageAggregations.map((_) => [])
                     ),
-                    [aggregation]: [id],
+                    [aggregation]: id === undefined ? [] : [id],
                 })
             )
     )
 );
+const clearFilter = () =>
+    TopHatDispatch(
+        AppSlice.actions.setAccountsPagePartial({
+            ...zipObject(
+                AccountsPageAggregations,
+                AccountsPageAggregations.map((_) => [])
+            ),
+        })
+    );

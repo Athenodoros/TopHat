@@ -2,6 +2,8 @@ import { Transaction } from "../data/types";
 
 export type ChartSign = "all" | "credits" | "debits";
 export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];
+export type BooleanFilter = "all" | "include" | "exclude";
+export const BooleanFilters = ["all", "include", "exclude"] as BooleanFilter[];
 
 export type SummaryPageState = {
     id: "summary";
@@ -27,10 +29,10 @@ export type TransactionsPageState = {
     account: number[];
     category: number[];
     currency: number[];
-    statement: "all" | "include" | "exclude";
+    statement: BooleanFilter;
     chartSign: ChartSign;
     chartAggregation: typeof TransactionsPageAggregations[number];
-    transfers: "all" | "include" | "exclude";
+    transfers: BooleanFilter;
     showStubs: boolean;
     tableLimit: number;
     search: string;

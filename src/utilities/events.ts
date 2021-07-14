@@ -1,7 +1,7 @@
-import { SelectProps } from "@material-ui/core";
+import { SelectProps, TextFieldProps } from "@material-ui/core";
 import React from "react";
 
-export const suppressEvent = (event: React.MouseEvent) => {
+export const suppressEvent = (event: React.MouseEvent | React.SyntheticEvent) => {
     event.stopPropagation();
     event.preventDefault();
 };
@@ -13,6 +13,11 @@ export const withSuppressEvent =
     };
 
 export const onSelectChange =
-    <T>(onChange: (t: T) => void) =>
-    (event: Parameters<NonNullable<SelectProps["onChange"]>>[0]) =>
+    <T>(onChange: (t: T) => void): SelectProps["onChange"] =>
+    (event) =>
         onChange(event.target.value as T);
+
+export const onTextFieldChange =
+    (onChange: (value: string) => void): TextFieldProps["onChange"] =>
+    (event) =>
+        onChange(event.target.value);

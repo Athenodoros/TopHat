@@ -1,8 +1,9 @@
-import { omit, toPairs, unzip, zip, zipObject } from "lodash-es";
+import { omit, toPairs, unzip, zip } from "lodash-es";
 import { AccountsPageState } from "../../../state/app/types";
 import { useAccountIDs, useAccountMap, useCurrencyMap, useInstitutionMap } from "../../../state/data/hooks";
 import { AccountTypeMap } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
+import { zipObject } from "../../../utilities/data";
 
 type HistorySummary = { credits: number[]; debits: number[]; totals: { credit: number; debit: number } };
 
@@ -45,7 +46,7 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
 
     // Create full summaries by category
     return toPairs(trends).map(([strID, trend]) => {
-        const id = Number(strID);
+        const id = Number(strID) as 1 | 2 | 3;
         const common = {
             id,
             value: { credit: trend.credits[0], debit: trend.debits[0] },

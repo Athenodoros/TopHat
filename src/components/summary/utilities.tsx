@@ -1,6 +1,7 @@
 import chroma from "chroma-js";
 import React from "react";
 import { VictoryStyleInterface } from "victory-core";
+import { suppressEvent } from "../../utilities/events";
 
 export interface ChartPoint {
     id: number;
@@ -36,6 +37,10 @@ export const getChartEvents = <T extends ChartPointEvent>(
                 // onMouseDown has two, so that the styling obeys highlightSeries but onClick only triggers once
                 onMouseDown: () => [mutation(1, "none"), { mutation: onClick }],
                 onMouseUp: () => mutation(0.75, "fill 500ms cubic-bezier(0.4, 0, 0.2, 1) 0ms"),
+                onClick: (event: React.SyntheticEvent) => {
+                    suppressEvent(event);
+                    return [];
+                },
             },
         },
     ];

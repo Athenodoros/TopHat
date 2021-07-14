@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
 import { useSelector } from "../utilities/hooks";
 import { ID } from "../utilities/values";
-import { Account, BasicObjectName, BasicObjectType, Category, Institution } from "./types";
+import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution } from "./types";
 
 export const useDefaultCurrency = () =>
     useSelector(({ data }) => data.currency.entities[data.user.currency]!, shallowEqual);
@@ -31,7 +31,11 @@ export function useCategoryByID(id: ID | undefined): Category | undefined {
 export const useAllCategories = () =>
     useSelector((state) => state.data.category.ids.map((id) => state.data.category.entities[id]!), shallowEqual);
 
-export const useCurrencyByID = (id: ID) => useSelector((state) => state.data.currency.entities[id]!);
+export function useCurrencyByID(id: ID): Currency;
+export function useCurrencyByID(id: ID | undefined): Currency | undefined;
+export function useCurrencyByID(id: ID | undefined): Currency | undefined {
+    return useSelector((state) => state.data.currency.entities[id as ID]);
+}
 export const useCurrencyMap = () => useSelector((state) => state.data.currency.entities);
 export const useAllCurrencies = () =>
     useSelector((state) => state.data.currency.ids.map((id) => state.data.currency.entities[id]!), shallowEqual);

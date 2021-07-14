@@ -1,5 +1,5 @@
 import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
-import { zipObject } from "lodash";
+import { zipObject } from "../../utilities/data";
 import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
 
 /**
@@ -9,7 +9,7 @@ export const AccountTypes = [
     { id: 1, name: "Transaction Account", icon: AccountBalance, colour: ColourScale(0).hex() },
     { id: 2, name: "Asset", icon: Home, colour: ColourScale(0.15).hex() },
     { id: 3, name: "Investment Account", icon: TrendingUp, colour: ColourScale(0.6).hex() },
-];
+] as const;
 export const AccountTypeMap = zipObject(
     AccountTypes.map(({ id }) => id),
     AccountTypes
@@ -21,7 +21,7 @@ export type Account = {
     // colour: string;
 
     isActive: boolean;
-    category: 0 | 1 | 2;
+    category: 1 | 2 | 3;
     lastUpdate: SDate;
     institution?: ID;
 

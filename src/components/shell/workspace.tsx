@@ -1,4 +1,6 @@
+import LuxonUtils from "@date-io/luxon";
 import { CssBaseline, ThemeProvider } from "@material-ui/core";
+import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import { noop, omit } from "lodash-es";
 import { SnackbarProvider } from "notistack";
 import React from "react";
@@ -39,18 +41,23 @@ export const Workspace: React.FC = ({ children }) => {
         <>
             <CssBaseline />
             <SnackbarProvider>
-                <ThemeProvider theme={theme}>
-                    <FileHandlerContext.Provider
-                        value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
-                    >
-                        <Provider store={TopHatStore}>
-                            <div {...omit(getRootProps(), ["onClick"])}>
-                                <input id="file-upload-dropzone" {...getInputProps({ style: { display: "none" } })} />
-                                {children}
-                            </div>
-                        </Provider>
-                    </FileHandlerContext.Provider>
-                </ThemeProvider>
+                <MuiPickersUtilsProvider utils={LuxonUtils}>
+                    <ThemeProvider theme={theme}>
+                        <FileHandlerContext.Provider
+                            value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
+                        >
+                            <Provider store={TopHatStore}>
+                                <div {...omit(getRootProps(), ["onClick"])}>
+                                    <input
+                                        id="file-upload-dropzone"
+                                        {...getInputProps({ style: { display: "none" } })}
+                                    />
+                                    {children}
+                                </div>
+                            </Provider>
+                        </FileHandlerContext.Provider>
+                    </ThemeProvider>
+                </MuiPickersUtilsProvider>
             </SnackbarProvider>
         </>
     );

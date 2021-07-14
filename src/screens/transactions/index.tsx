@@ -4,7 +4,7 @@ import { TransactionsPageSummary } from "./summary";
 import { TransactionsTable } from "./table";
 
 export const TransactionsPage: React.FC = () => (
-    <Page title="Transactions">
+    <Page title="Transactions" padding={200}>
         <TransactionsPageSummary />
         <TransactionsTable />
     </Page>

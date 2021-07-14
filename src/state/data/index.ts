@@ -1,6 +1,6 @@
 import { createEntityAdapter, createSlice, Dictionary, EntityId, EntityState, PayloadAction } from "@reduxjs/toolkit";
-import { clone, cloneDeep, fromPairs, reverse, round, toPairs, zipObject } from "lodash";
-import { takeWithDefault } from "../../utilities/data";
+import { clone, cloneDeep, fromPairs, reverse, round, toPairs } from "lodash";
+import { takeWithDefault, zipObject } from "../../utilities/data";
 import {
     BalanceHistory,
     BaseBalanceValues,
@@ -262,7 +262,7 @@ const getTransactionSummaries = (
         transactionSummaries: fromPairs(totals) as Record<typeof totals[0][0], Record<ID, TransactionHistory>>,
     };
 };
-const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
+export const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
     (value * from.exchangeRate) / to.exchangeRate;
 
 const markAllBalances = (transactionState: EntityState<Transaction>) => {

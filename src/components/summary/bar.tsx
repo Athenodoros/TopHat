@@ -22,8 +22,9 @@ type SummaryBarChartProps = {
     sign: ChartSign;
     setFilter: (id: ID, fromDate: string, toDate: string) => void;
     id?: string;
+    highlightSeries?: boolean;
 };
-export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, setFilter, id }) => {
+export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, setFilter, id, highlightSeries }) => {
     const { symbol } = useDefaultCurrency();
 
     const { charts, domain } = useChartData(series, sign);
@@ -50,9 +51,9 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                             setFilter(
                                 props.datum.id,
                                 formatJSDate(props.datum.x),
-                                formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }))
+                                formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }).minus({ days: 1 }))
                             ),
-                        true
+                        highlightSeries
                     )}
                 >
                     {charts
@@ -70,7 +71,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                 </VictoryStack>
             </VictoryChart>
         ),
-        [charts, sign, setFilter, symbol, domain, id]
+        [charts, sign, setFilter, symbol, domain, id, highlightSeries]
     );
 
     return <FlexWidthChart style={{ height: 320, display: "flex", justifyContent: "center" }} getChart={getChart} />;

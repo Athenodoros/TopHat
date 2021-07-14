@@ -20,8 +20,8 @@ export const useTransactionsTableData = () => {
                 filters.search && filters.searchRegex
                     ? (tx.summary && regex.test(tx.summary)) || (tx.description && regex.test(tx.description))
                     : filters.search
-                    ? tx.summary?.toLocaleLowerCase().includes(filters.search) ||
-                      tx.description?.toLocaleLowerCase().includes(filters.search)
+                    ? (tx.summary || tx.reference)?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
+                      tx.description?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())
                     : true;
 
             return Boolean(

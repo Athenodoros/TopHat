@@ -3,8 +3,9 @@ import chroma from "chroma-js";
 import clsx from "clsx";
 import { identity } from "lodash";
 import numeral from "numeral";
-import React from "react";
+import React, { useCallback } from "react";
 import { Greys } from "../../../styles/colours";
+import { suppressEvent } from "../../../utilities/events";
 
 const useValueStyles = makeStyles((theme) => ({
     container: {
@@ -90,12 +91,19 @@ export const Value: React.FC<{
 }> = ({ name, subtitle, values, subValues, colour, title, placeholder, onClick }) => {
     const classes = useValueStyles();
     const variant = title ? "body1" : "body2";
+    const onClickWrapped = useCallback(
+        (event: React.MouseEvent) => {
+            suppressEvent(event);
+            onClick && onClick();
+        },
+        [onClick]
+    );
 
     return (
         <ButtonBase
             className={clsx(classes.container, title || classes.nonTitleContainer)}
             disabled={!onClick}
-            onClick={onClick}
+            onClick={onClickWrapped}
         >
             {title ? undefined : (
                 <div

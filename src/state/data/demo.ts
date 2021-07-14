@@ -1,6 +1,7 @@
 import chroma from "chroma-js";
-import { random as randomInt, range, zipObject } from "lodash";
+import { random as randomInt, range } from "lodash";
 import { DurationObject } from "luxon";
+import { zipObject } from "../../utilities/data";
 import { formatDate, getToday } from "../utilities/values";
 import { Account, Category, Condition, Currency, Institution, Rule, Transaction } from "./types";
 

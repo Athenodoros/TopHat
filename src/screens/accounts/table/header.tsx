@@ -1,14 +1,20 @@
-import { Avatar, makeStyles, Menu, Typography } from "@material-ui/core";
-import { AccountBalance, AccountBalanceWallet, Category, Euro } from "@material-ui/icons";
-import { last } from "lodash";
+import { makeStyles, Menu, Typography } from "@material-ui/core";
+import { AccountBalanceWallet, Category, Euro } from "@material-ui/icons";
 import React from "react";
-import { FilterIcon, FilterMenu, NestedMenuSelector, TableHeaderContainer } from "../../../components/table";
+import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
+import {
+    getAccountCategoryIcon,
+    getCurrencyIcon,
+    getInstitutionIcon,
+    useGetAccountIcon,
+} from "../../../components/table/filters/FilterMenuOption";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
-import { useAllAccounts, useAllCurrencies, useAllInstitutions, useInstitutionMap } from "../../../state/data/hooks";
+import { useAllAccounts, useAllCurrencies, useAllInstitutions } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
+import { zipObject } from "../../../utilities/data";
 import { usePopoverProps } from "../../../utilities/hooks";
 import { ACCOUNT_TABLE_LEFT_PADDING, useAccountsTableStyles } from "./styles";
 
@@ -16,19 +22,11 @@ const useStyles = makeStyles((theme) => ({
     institutionInner: {
         display: "flex",
         alignItems: "center",
-
-        "& > h6": {
-            marginLeft: 10,
-        },
     },
     accountInner: {
         display: "flex",
         alignItems: "center",
         paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
-
-        "& > h6": {
-            marginLeft: 10,
-        },
     },
 }));
 
@@ -39,41 +37,39 @@ export const AccountsTableHeader: React.FC = () => {
     const popover2 = usePopoverProps();
 
     const filters = useAccountsPageState();
-    const institutionMap = useInstitutionMap();
     const institutions = useAllInstitutions();
     const accounts = useAllAccounts();
     const currencies = useAllCurrencies();
+
+    const getAccountIcon = useGetAccountIcon();
 
     return (
         <TableHeaderContainer>
             <div className={accountsTableClasses.icon} />
             <div className={accountsTableClasses.institution}>
                 <div className={classes.institutionInner}>
-                    <FilterIcon badgeContent={filters.institution.length} ButtonProps={popover1.buttonProps} />
                     <Typography variant="h6">Institution</Typography>
-                    <FilterMenu
-                        options={institutions}
-                        MenuProps={{
-                            ...popover1.popoverProps,
-                            PaperProps: { style: { maxHeight: 300, width: 300 } },
-                        }}
-                        select={onSelectIDs("institution")}
-                        selected={filters.institution}
-                        getOptionIcon={(institution, className) => (
-                            <Avatar src={institution.icon} className={className}>
-                                <AccountBalance style={{ height: "60%" }} />
-                            </Avatar>
-                        )}
-                    />
+                    <FilterIcon badgeContent={filters.institution.length} ButtonProps={popover1.buttonProps} />
+                    <Menu {...popover1.popoverProps} PaperProps={{ style: { maxHeight: 300, width: 300 } }}>
+                        {institutions.map((institution) => (
+                            <FilterMenuOption
+                                key={institution.id}
+                                option={institution}
+                                select={onSelectIDs["institution"]}
+                                selected={filters.institution}
+                                getOptionIcon={getInstitutionIcon}
+                            />
+                        ))}
+                    </Menu>
                 </div>
             </div>
             <div className={accountsTableClasses.accounts}>
                 <div className={classes.accountInner}>
+                    <Typography variant="h6">Account</Typography>
                     <FilterIcon
                         badgeContent={filters.account.length || filters.type.length || filters.currency.length}
                         ButtonProps={popover2.buttonProps}
                     />
-                    <Typography variant="h6">Account</Typography>
                     <Menu
                         {...popover2.popoverProps}
                         PaperProps={{
@@ -82,42 +78,54 @@ export const AccountsTableHeader: React.FC = () => {
                             },
                         }}
                     >
-                        <NestedMenuSelector
+                        <FilterMenuNestedOption
                             icon={Category}
                             name="Types"
-                            select={onSelectIDs("type")}
-                            selected={filters.type}
-                            options={AccountTypes}
-                            getOptionIcon={(type, className) => (
-                                <Avatar className={className} style={{ backgroundColor: type.colour }}>
-                                    <type.icon style={{ height: "60%" }} />
-                                </Avatar>
-                            )}
-                        />
-                        <NestedMenuSelector
+                            count={filters.type.length}
+                            maxHeight={250}
+                        >
+                            {AccountTypes.map((option) => (
+                                <FilterMenuOption
+                                    key={option.id}
+                                    option={option}
+                                    select={onSelectIDs["type"]}
+                                    selected={filters.type}
+                                    getOptionIcon={getAccountCategoryIcon}
+                                />
+                            ))}
+                        </FilterMenuNestedOption>
+                        <FilterMenuNestedOption
                             icon={Euro}
                             name="Currencies"
-                            select={onSelectIDs("currency")}
-                            selected={filters.currency}
-                            options={currencies}
-                            getOptionIcon={(currency, className) => (
-                                <Avatar className={className} style={{ backgroundColor: currency.colour }}>
-                                    <Typography variant="button">{last(currency.symbol)}</Typography>
-                                </Avatar>
-                            )}
-                        />
-                        <NestedMenuSelector
+                            count={filters.currency.length}
+                            maxHeight={250}
+                        >
+                            {currencies.map((option) => (
+                                <FilterMenuOption
+                                    key={option.id}
+                                    option={option}
+                                    select={onSelectIDs["currency"]}
+                                    selected={filters.currency}
+                                    getOptionIcon={getCurrencyIcon}
+                                />
+                            ))}
+                        </FilterMenuNestedOption>
+                        <FilterMenuNestedOption
                             icon={AccountBalanceWallet}
                             name="Accounts"
-                            select={onSelectIDs("account")}
-                            selected={filters.account}
-                            options={accounts}
-                            getOptionIcon={(account, className) => (
-                                <Avatar src={institutionMap[account.institution!]?.icon} className={className}>
-                                    <AccountBalance style={{ height: "60%" }} />
-                                </Avatar>
-                            )}
-                        />
+                            count={filters.account.length}
+                            maxHeight={250}
+                        >
+                            {accounts.map((option) => (
+                                <FilterMenuOption
+                                    key={option.id}
+                                    option={option}
+                                    select={onSelectIDs["account"]}
+                                    selected={filters.account}
+                                    getOptionIcon={getAccountIcon}
+                                />
+                            ))}
+                        </FilterMenuNestedOption>
                     </Menu>
                 </div>
             </div>
@@ -125,5 +133,8 @@ export const AccountsTableHeader: React.FC = () => {
     );
 };
 
-const onSelectIDs = (type: "account" | "institution" | "currency" | "type") => (ids: ID[]) =>
-    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ [type]: ids }));
+const filters = ["account", "institution", "currency", "type"] as const;
+const onSelectIDs = zipObject(
+    filters,
+    filters.map((f) => (ids: ID[]) => TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ [f]: ids })))
+);
