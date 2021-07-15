@@ -7,7 +7,7 @@ import React, { useCallback } from "react";
 import { Greys } from "../../../styles/colours";
 import { suppressEvent } from "../../../utilities/events";
 
-const useValueStyles = makeStyles((theme) => ({
+const useValueStyles = makeStyles({
     container: {
         display: "flex",
         padding: "2px 5px 0 5px",
@@ -75,7 +75,7 @@ const useValueStyles = makeStyles((theme) => ({
     valueWithSubValue: {
         color: Greys[800],
     },
-}));
+});
 export const Value: React.FC<{
     name: string;
     subtitle?: string;

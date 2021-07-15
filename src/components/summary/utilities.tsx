@@ -3,9 +3,11 @@ import React from "react";
 import { VictoryStyleInterface } from "victory-core";
 import { suppressEvent } from "../../utilities/events";
 
+export type SummaryChartSign = "credits" | "debits";
 export interface ChartPoint {
     id: number;
     colour: string;
+    sign: SummaryChartSign;
 }
 export interface ChartPointEvent {
     style: React.CSSProperties;

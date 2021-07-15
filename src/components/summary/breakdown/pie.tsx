@@ -5,7 +5,7 @@ import { VictoryPie, VictoryPieProps } from "victory";
 import { ChartSign } from "../../../state/app/types";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
-import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents } from "../utilities";
+import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents, SummaryChartSign } from "../utilities";
 
 const useStyles = makeStyles({
     container: {
@@ -37,7 +37,7 @@ interface SummaryPieChartPoint {
 type SummaryPieChartProps = {
     series: SummaryPieChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID) => void;
+    setFilter: (id: ID, sign: SummaryChartSign) => void;
 };
 export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, setFilter }) => {
     const classes = useStyles();
@@ -68,7 +68,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
     );
 };
 
-const useGetPie = (setFilter: (id: ID) => void) => {
+const useGetPie = (setFilter: (id: ID, sign: SummaryChartSign) => void) => {
     const props = useMemo<VictoryPieProps>(
         () => ({
             y: "value",
@@ -81,7 +81,7 @@ const useGetPie = (setFilter: (id: ID) => void) => {
             labels: () => null,
             padAngle: 5,
             events: getChartEvents(
-                ({ datum: { id } }: SummaryPieEventProps) => id !== EMPTY_ID_PLACEHOLDER && setFilter(id)
+                ({ datum: { id, sign } }: SummaryPieEventProps) => id !== EMPTY_ID_PLACEHOLDER && setFilter(id, sign)
             ),
             style: CHART_SECTION_STYLE,
         }),
@@ -104,6 +104,7 @@ const useMaybePieChartData = (sign: "credits" | "debits", series: SummaryPieChar
                               id: p.id || EMPTY_ID_PLACEHOLDER,
                               colour: p.colour || Greys[400],
                               value: Math.abs(p.value[sign === "credits" ? "credit" : "debit"]),
+                              sign,
                           } as PieChartDatum)
                   )
                 : undefined,

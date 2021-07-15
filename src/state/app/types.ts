@@ -18,6 +18,7 @@ export type AccountsPageState = {
     type: number[];
     currency: number[];
     filterInactive: boolean;
+    balances: ChartSign;
 };
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
 export type TransactionsPageState = {

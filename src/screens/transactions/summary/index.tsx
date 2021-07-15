@@ -1,6 +1,7 @@
 import { FormControl, MenuItem, Select } from "@material-ui/core";
 import { Section } from "../../../components/layout";
 import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
+import { SummaryChartSign } from "../../../components/summary/utilities";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
@@ -67,13 +68,15 @@ const setChartSign = onSelectChange((chartSign: TransactionsPageState["chartSign
 const setFilterID = zipObject(
     TransactionsPageAggregations,
     TransactionsPageAggregations.map(
-        (aggregation) => (id: number, fromDate?: string, toDate?: string) =>
+        (aggregation) => (id: number, sign?: SummaryChartSign, fromDate?: string, toDate?: string) =>
             TopHatDispatch(
                 AppSlice.actions.setTransactionsPagePartial({
                     ...zipObject(
                         TransactionsPageAggregations,
                         TransactionsPageAggregations.map((_) => [])
                     ),
+                    valueFrom: sign === "credits" ? 0 : undefined,
+                    valueTo: sign === "debits" ? 0 : undefined,
                     [aggregation]: [id],
                     fromDate,
                     toDate,
@@ -90,5 +93,7 @@ const clearFilter = () =>
             ),
             fromDate: undefined,
             toDate: undefined,
+            valueFrom: undefined,
+            valueTo: undefined,
         })
     );

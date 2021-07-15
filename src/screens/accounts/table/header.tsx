@@ -1,5 +1,13 @@
-import { makeStyles, Menu, Typography } from "@material-ui/core";
-import { AccountBalanceWallet, Category, Euro } from "@material-ui/icons";
+import { ListItem, ListItemText, makeStyles, Menu, Typography } from "@material-ui/core";
+import {
+    AccountBalanceWallet,
+    AddCircleOutline,
+    Category,
+    Euro,
+    Exposure,
+    IndeterminateCheckBox,
+} from "@material-ui/icons";
+import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import React from "react";
 import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
 import {
@@ -11,6 +19,7 @@ import {
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
+import { ChartSign } from "../../../state/app/types";
 import { useAllAccounts, useAllCurrencies, useAllInstitutions } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
@@ -18,7 +27,7 @@ import { zipObject } from "../../../utilities/data";
 import { usePopoverProps } from "../../../utilities/hooks";
 import { ACCOUNT_TABLE_LEFT_PADDING, useAccountsTableStyles } from "./styles";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     institutionInner: {
         display: "flex",
         alignItems: "center",
@@ -28,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
         alignItems: "center",
         paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
     },
-}));
+});
 
 export const AccountsTableHeader: React.FC = () => {
     const accountsTableClasses = useAccountsTableStyles();
@@ -67,7 +76,12 @@ export const AccountsTableHeader: React.FC = () => {
                 <div className={classes.accountInner}>
                     <Typography variant="h6">Account</Typography>
                     <FilterIcon
-                        badgeContent={filters.account.length || filters.type.length || filters.currency.length}
+                        badgeContent={
+                            filters.account.length ||
+                            filters.type.length ||
+                            filters.currency.length ||
+                            filters.balances !== "all"
+                        }
                         ButtonProps={popover2.buttonProps}
                     />
                     <Menu
@@ -126,6 +140,25 @@ export const AccountsTableHeader: React.FC = () => {
                                 />
                             ))}
                         </FilterMenuNestedOption>
+                        <ListItem>
+                            <ListItemText>Balances</ListItemText>
+                            <ToggleButtonGroup
+                                size="small"
+                                value={filters.balances}
+                                exclusive={true}
+                                onChange={onSetBalances}
+                            >
+                                <ToggleButton value="all">
+                                    <Exposure fontSize="small" />
+                                </ToggleButton>
+                                <ToggleButton value="credits">
+                                    <AddCircleOutline fontSize="small" />
+                                </ToggleButton>
+                                <ToggleButton value="debits">
+                                    <IndeterminateCheckBox fontSize="small" />
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+                        </ListItem>
                     </Menu>
                 </div>
             </div>
@@ -138,3 +171,6 @@ const onSelectIDs = zipObject(
     filters,
     filters.map((f) => (ids: ID[]) => TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ [f]: ids })))
 );
+
+const onSetBalances = (_: any, balances: ChartSign) =>
+    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ balances }));

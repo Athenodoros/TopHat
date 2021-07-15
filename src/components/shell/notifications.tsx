@@ -4,7 +4,7 @@ import React from "react";
 import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     notification: {
         display: "flex",
         flexDirection: "column",
@@ -50,7 +50,7 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "flex-end",
         margin: 5,
     },
-}));
+});
 
 const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     icon: Icon,

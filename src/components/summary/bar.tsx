@@ -9,7 +9,7 @@ import { formatDate, formatJSDate, getToday, ID } from "../../state/utilities/va
 import { BLACK, Greys } from "../../styles/colours";
 import { FlexWidthChart } from "../display/FlexWidthChart";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
-import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents } from "./utilities";
+import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents, SummaryChartSign } from "./utilities";
 
 interface SummaryBarChartPoint {
     id: ID | null;
@@ -20,7 +20,7 @@ interface SummaryBarChartPoint {
 type SummaryBarChartProps = {
     series: SummaryBarChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID, fromDate: string, toDate: string) => void;
+    setFilter: (id: ID, sign: SummaryChartSign, fromDate: string, toDate: string) => void;
     id?: string;
     highlightSeries?: boolean;
 };
@@ -50,6 +50,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                         (props: SummaryChartEvent) =>
                             setFilter(
                                 props.datum.id,
+                                props.datum.sign,
                                 formatJSDate(props.datum.x),
                                 formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }).minus({ days: 1 }))
                             ),
@@ -105,6 +106,7 @@ const useChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
                             x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
                             y,
                             colour: category.colour || Greys[400],
+                            sign: trend,
                         } as SummaryChartPoint)
                 )
             )

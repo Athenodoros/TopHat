@@ -3,7 +3,7 @@ import { Greys, Intents, WHITE } from "../../styles/colours";
 import { NBSP } from "../../utilities/constants";
 import { IconType } from "../../utilities/types";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     summaryNumber: {
         display: "flex",
         width: 250,
@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     numbers: {
         display: "flex",
     },
-}));
+});
 
 interface SummaryNumberProps {
     icon: IconType;

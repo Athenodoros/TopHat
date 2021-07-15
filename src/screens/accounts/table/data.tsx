@@ -1,4 +1,4 @@
-import { groupBy, toPairs } from "lodash";
+import { groupBy, toPairs, values } from "lodash";
 import { filterListByID, filterListByIDs } from "../../../components/table";
 import { useAccountsPageState } from "../../../state/app/hooks";
 import { Account } from "../../../state/data";
@@ -22,7 +22,12 @@ export const useAccountsTableData = () => {
             filterListByID(filters.account, account.id) &&
             filterListByID(filters.institution, account.institution) &&
             filterListByID(filters.type, account.category) &&
-            filterListByIDs(filters.currency, account.currencies)
+            filterListByIDs(filters.currency, account.currencies) &&
+            (filters.balances === "all" ||
+                values(account.balances).some(({ localised: [balance] }) => {
+                    // prettier-ignore
+                    return balance && ((balance > 0) === (filters.balances === "credits"));
+                }))
     );
 
     const institutionMetadataMap = useInstitutionMap();

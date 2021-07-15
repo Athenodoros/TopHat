@@ -12,7 +12,7 @@ export const ICON_WIDTH = 40;
 export const ICON_MARGIN_RIGHT = 17;
 export const INSTITUTION_WIDTH = 400;
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     container: {
         display: "flex",
         alignItems: "flex-start",
@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: 2,
         marginLeft: -5,
     },
-}));
+});
 
 export const AccountsInstitutionDisplay: React.FC<{ institution: AccountsInstitutionSummary }> = ({ institution }) => {
     const accountsTableClasses = useAccountsTableStyles();

@@ -13,6 +13,7 @@ export const DefaultPages = {
         currency: [],
         type: [],
         filterInactive: true,
+        balances: "all" as const,
     },
     transactions: {
         id: "transactions" as const,
