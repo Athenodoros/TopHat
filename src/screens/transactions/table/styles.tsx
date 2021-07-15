@@ -1,5 +1,4 @@
 import { makeStyles } from "@material-ui/core";
-import chroma from "chroma-js";
 import numeral from "numeral";
 import { Greys } from "../../../styles/colours";
 
@@ -175,15 +174,3 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
 }));
 
 export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");
-
-const defaultIconStyles = {
-    backgroundColor: chroma(Greys[400]).alpha(0.5).hex(),
-    borderColor: Greys[400],
-};
-export const getIconStyles = (colour?: string) =>
-    colour
-        ? {
-              backgroundColor: chroma(colour).alpha(0.5).hex(),
-              borderColor: colour,
-          }
-        : defaultIconStyles;

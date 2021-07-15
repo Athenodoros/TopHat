@@ -9,13 +9,13 @@ import {
 } from "@material-ui/icons";
 import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import React from "react";
-import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
 import {
     getAccountCategoryIcon,
     getCurrencyIcon,
     getInstitutionIcon,
     useGetAccountIcon,
-} from "../../../components/table/filters/FilterMenuOption";
+} from "../../../components/display/ObjectDisplay";
+import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";

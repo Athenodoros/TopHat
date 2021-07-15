@@ -1,11 +1,11 @@
 import { ButtonBase, makeStyles, Typography } from "@material-ui/core";
-import chroma from "chroma-js";
 import clsx from "clsx";
 import { identity } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { Greys } from "../../../styles/colours";
 import { suppressEvent } from "../../../utilities/events";
+import { fadeSolidColour } from "../../display/ObjectDisplay";
 
 const useValueStyles = makeStyles({
     container: {
@@ -109,9 +109,7 @@ export const Value: React.FC<{
                 <div
                     className={classes.colour}
                     style={{
-                        backgroundColor: chroma(colour || Greys[400])
-                            .alpha(0.5)
-                            .hex(),
+                        backgroundColor: fadeSolidColour(colour || Greys[400]),
                         borderColor: colour || Greys[400],
                     }}
                 />

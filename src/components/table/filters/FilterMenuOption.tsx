@@ -1,10 +1,6 @@
-import { Avatar, Checkbox, ListItemText, makeStyles, MenuItem, Typography } from "@material-ui/core";
-import { AccountBalance, CheckBox, CheckBoxOutlineBlank, ShoppingCart } from "@material-ui/icons";
-import { last } from "lodash";
-import React, { useCallback } from "react";
-import { Institution } from "../../../state/data";
-import { useInstitutionMap } from "../../../state/data/hooks";
-import { Account, AccountTypes, Category, Currency } from "../../../state/data/types";
+import { Checkbox, ListItemText, makeStyles, MenuItem } from "@material-ui/core";
+import { CheckBox, CheckBoxOutlineBlank } from "@material-ui/icons";
+import React from "react";
 import { ID } from "../../../state/utilities/values";
 import { updateListSelection } from "../../../utilities/data";
 
@@ -55,35 +51,3 @@ const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
 export const FilterMenuOption = React.forwardRef(FilterMenuOptionFunction) as <T extends { id: ID; name: string }>(
     props: FilterMenuOptionProps<T>
 ) => React.ReactElement;
-
-export const useGetAccountIcon = () => {
-    const institutions = useInstitutionMap();
-    return useCallback(
-        (account: Account, className: string) => (
-            <Avatar src={institutions[account.institution!]?.icon} className={className}>
-                <AccountBalance style={{ height: "60%" }} />
-            </Avatar>
-        ),
-        [institutions]
-    );
-};
-export const getInstitutionIcon = (institution: Institution, className: string) => (
-    <Avatar src={institution.icon} className={className}>
-        <AccountBalance style={{ height: "60%" }} />
-    </Avatar>
-);
-export const getCategoryIcon = (category: Category | undefined, className: string) => (
-    <Avatar className={className} style={{ backgroundColor: category?.colour }}>
-        <ShoppingCart style={{ height: "60%" }} />
-    </Avatar>
-);
-export const getAccountCategoryIcon = (type: typeof AccountTypes[number], className: string) => (
-    <Avatar className={className} style={{ backgroundColor: type.colour }}>
-        <type.icon style={{ height: "60%" }} />
-    </Avatar>
-);
-export const getCurrencyIcon = (currency: Currency, className: string) => (
-    <Avatar className={className} style={{ backgroundColor: currency.colour }}>
-        <Typography variant="button">{last(currency.symbol)}</Typography>
-    </Avatar>
-);

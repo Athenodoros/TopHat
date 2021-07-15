@@ -1,7 +1,7 @@
-import { groupBy, toPairs, values } from "lodash";
+import { groupBy, sortBy, toPairs, values } from "lodash";
 import { filterListByID, filterListByIDs } from "../../../components/table";
 import { useAccountsPageState } from "../../../state/app/hooks";
-import { Account } from "../../../state/data";
+import { Account, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
 import { useAllAccounts, useInstitutionMap } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 
@@ -30,8 +30,10 @@ export const useAccountsTableData = () => {
     );
 
     const institutionMetadataMap = useInstitutionMap();
-    return toPairs(groupBy(accounts, (account) => account.institution)).map(([idStr, accounts]) => ({
+    const institutions = toPairs(groupBy(accounts, (account) => account.institution)).map(([idStr, accounts]) => ({
         ...institutionMetadataMap[idStr]!,
         accounts,
     }));
+
+    return sortBy(institutions, (institution) => [institution.id === PLACEHOLDER_INSTITUTION_ID, institution.id]);
 };

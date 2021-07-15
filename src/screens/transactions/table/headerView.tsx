@@ -11,17 +11,15 @@ import {
     Typography,
 } from "@material-ui/core";
 import { AddCircleOutline, Description, ImportExport } from "@material-ui/icons";
-import clsx from "clsx";
 import { last } from "lodash-es";
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
+import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
 import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
 import { FilterIcon, FilterMenuOption } from "../../../components/table/";
-import { useGetAccountIcon } from "../../../components/table/filters/FilterMenuOption";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
 import { BooleanFilters, TransactionsPageState } from "../../../state/app/types";
-import { Category } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useFormatValue } from "../../../state/data/hooks";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
 import { ID } from "../../../state/utilities/values";
@@ -29,7 +27,7 @@ import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { onTextFieldChange } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
-import { getIconStyles, useTransactionsTableStyles } from "./styles";
+import { useTransactionsTableStyles } from "./styles";
 
 const useHeaderStyles = makeStyles({
     description: {
@@ -84,12 +82,6 @@ export const TransactionsTableHeaderView: React.FC = () => {
     const accounts = useAllAccounts();
     const categories = useAllCategories();
     const getAccountIcon = useGetAccountIcon();
-    const getCategoryIcon = useCallback(
-        (category: Category, className: string) => (
-            <div className={clsx(classes.categoryIcon, className)} style={getIconStyles(category?.colour)} />
-        ),
-        [classes.categoryIcon]
-    );
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();

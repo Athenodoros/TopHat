@@ -4,15 +4,9 @@ import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React from "react";
-import { getCategoryIcon, useGetAccountIcon } from "../../../components/table/filters/FilterMenuOption";
-import { Account, Category, Transaction } from "../../../state/data";
-import {
-    useAccountByID,
-    useAllAccounts,
-    useAllCategories,
-    useCategoryByID,
-    useCurrencyByID,
-} from "../../../state/data/hooks";
+import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
+import { Account, Category, PLACEHOLDER_CATEGORY_ID, Transaction } from "../../../state/data";
+import { useAllAccounts, useAllCategories, useCurrencyByID } from "../../../state/data/hooks";
 import { Intents } from "../../../styles/colours";
 import { useFirstValue, usePopoverProps } from "../../../utilities/hooks";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
@@ -61,8 +55,6 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
     const classes = useTransactionsTableStyles();
     const editClasses = useEditStyles();
     const currency = useCurrencyByID(tx.currency);
-    const category = useCategoryByID(tx.category);
-    const account = useAccountByID(tx.account);
 
     const categories = useAllCategories();
     const accounts = useAllAccounts();
@@ -73,12 +65,13 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
             <Typography variant="body1">{account.name}</Typography>
         </>
     );
-    const renderCategory = (category?: Category) => (
+    const renderCategory = (category: Category) => (
         <>
             {getCategoryIcon(category, editClasses.categoryDropdownIcon)}
             <Typography variant="body1">{category?.name}</Typography>
         </>
     );
+    const currentCategorySelection = categories.find((category) => category.id === tx.category);
 
     const AccountPopoverState = usePopoverProps();
     const CategoryPopoverState = usePopoverProps();
@@ -154,7 +147,9 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
                     {...CategoryPopoverState.buttonProps}
                     className={editClasses.selectButton}
                 >
-                    {renderCategory(categories.find((category) => category.id === tx.category))}
+                    {currentCategorySelection && currentCategorySelection.id !== PLACEHOLDER_CATEGORY_ID
+                        ? renderCategory(currentCategorySelection)
+                        : undefined}
                 </Button>
                 <Menu {...CategoryPopoverState.popoverProps} style={{ maxHeight: 250 }}>
                     {categories.map((category) => (

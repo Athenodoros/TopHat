@@ -6,6 +6,7 @@ import { max, min, range, sumBy, toPairs } from "lodash";
 import numeral from "numeral";
 import React from "react";
 import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
+import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
@@ -190,7 +191,7 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
             interpolation="monotoneX"
             style={{
                 data: {
-                    fill: chroma(Intents.primary.main).alpha(0.5).hex(),
+                    fill: fadeSolidColour(Intents.primary.main),
                     stroke: Intents.primary.main,
                     strokeWidth: 2,
                 },

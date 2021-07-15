@@ -66,8 +66,6 @@ export const DataSlice = createSlice({
                 )
             );
 
-            console.log(transactionSummaries);
-
             return {
                 account: IndexedAdapter.addMany(
                     defaults.account,
