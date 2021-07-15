@@ -72,6 +72,14 @@ const useHeaderStyles = makeStyles({
             opacity: "1 !important",
         },
     },
+    icon: {
+        // This is to ensure the icons line up with the transaction table
+        borderColor: "transparent",
+
+        "& svg:not(.MuiSvgIcon-colorPrimary):not(.MuiSvgIcon-colorError)": {
+            color: Greys[500],
+        },
+    },
 });
 
 export const TransactionsTableHeaderView: React.FC = () => {
@@ -111,6 +119,8 @@ export const TransactionsTableHeaderView: React.FC = () => {
                 <Button
                     endIcon={<ImportExport fontSize="small" color={BooleanFilterColours[filters.transfers]} />}
                     onClick={onTransferToggle}
+                    className={headerClasses.icon}
+                    variant="outlined"
                 />
             </div>
             <div className={classes.date}>
@@ -224,6 +234,8 @@ export const TransactionsTableHeaderView: React.FC = () => {
                 <Button
                     endIcon={<Description fontSize="small" color={BooleanFilterColours[filters.statement]} />}
                     onClick={onStatementToggle}
+                    className={headerClasses.icon}
+                    variant="outlined"
                 />
             </div>
             <div className={classes.account}>

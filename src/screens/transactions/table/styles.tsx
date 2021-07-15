@@ -18,9 +18,9 @@ const ICON_BUTTON = {
         padding: 2,
         // color: Greys[600],
 
-        "&:not(.MuiButton-outlinedPrimary)": {
-            border: "1px solid transparent",
-        },
+        // "&:not(.MuiButton-outlinedPrimary)": {
+        //     border: "1px solid transparent",
+        // },
 
         "& .MuiButton-endIcon": {
             margin: 0,

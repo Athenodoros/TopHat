@@ -68,7 +68,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
     const renderCategory = (category: Category) => (
         <>
             {getCategoryIcon(category, editClasses.categoryDropdownIcon)}
-            <Typography variant="body1">{category?.name}</Typography>
+            <Typography variant="body1">{category.name}</Typography>
         </>
     );
     const currentCategorySelection = categories.find((category) => category.id === tx.category);
@@ -100,7 +100,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
             <div className={classes.transfer}>
                 <Button
                     variant="outlined"
-                    color="primary"
+                    // color="default"
                     endIcon={
                         <ImportExport
                             fontSize="small"
