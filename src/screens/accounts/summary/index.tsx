@@ -70,14 +70,14 @@ const setChartSign = onSelectChange((chartSign: AccountsPageState["chartSign"]) 
 const setFilterID = zipObject(
     AccountsPageAggregations,
     AccountsPageAggregations.map(
-        (aggregation) => (id?: number, sign?: SummaryChartSign, _1?: string, _2?: string) =>
+        (aggregation) => (id: number, sign?: SummaryChartSign, _1?: string, _2?: string) =>
             TopHatDispatch(
                 AppSlice.actions.setAccountsPagePartial({
                     ...zipObject(
                         AccountsPageAggregations,
                         AccountsPageAggregations.map((_) => [])
                     ),
-                    [aggregation]: id === undefined ? [] : [id],
+                    [aggregation]: [id],
                     balances: sign || "all",
                 })
             )

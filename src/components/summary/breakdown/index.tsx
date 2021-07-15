@@ -31,9 +31,9 @@ const useStyles = makeStyles({
 });
 
 interface SummaryBreakdownDatum {
-    id: number | null;
+    id: number;
     name: string;
-    colour?: string;
+    colour: string;
     value: {
         credit: number;
         debit: number;
@@ -44,6 +44,7 @@ interface SummaryBreakdownDatum {
         credit: number;
         debit: number;
     };
+    placeholder?: boolean;
 }
 interface SummaryBreakdownProps {
     sign: ChartSign;
@@ -98,9 +99,9 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
                             }
                         }
                         colour={p.colour}
-                        placeholder={p.id === null}
+                        placeholder={p.placeholder}
                         key={p.id}
-                        onClick={p.id !== null ? () => setFilter(p.id!) : undefined}
+                        onClick={() => setFilter(p.id!)}
                     />
                 ))}
             </div>

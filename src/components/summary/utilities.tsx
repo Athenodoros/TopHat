@@ -13,7 +13,6 @@ export interface ChartPointEvent {
     style: React.CSSProperties;
     datum: ChartPoint;
 }
-export const EMPTY_ID_PLACEHOLDER = -1;
 export const getChartEvents = <T extends ChartPointEvent>(
     onClick: (t: T) => void,
     highlightSeries: boolean = false
@@ -21,7 +20,7 @@ export const getChartEvents = <T extends ChartPointEvent>(
     const mutation = (alpha?: number, transition?: string) => ({
         eventKey: highlightSeries ? "all" : undefined,
         mutation: (event: T) => {
-            if (!alpha || !event || event.datum.id === EMPTY_ID_PLACEHOLDER) return;
+            if (!alpha || !event) return;
 
             return {
                 style: Object.assign({}, event.style, { fill: fadeColour(event.datum.colour, alpha), transition }),
@@ -48,15 +47,15 @@ export const getChartEvents = <T extends ChartPointEvent>(
     ];
 };
 
-const fadeColour = (colour: string | undefined, value: number) => colour && chroma(colour).alpha(value).hex();
+const fadeColour = (colour: string, value: number) => colour && chroma(colour).alpha(value).hex();
 
 export const CHART_SECTION_STYLE: VictoryStyleInterface = {
     data: {
-        cursor: ({ datum }) => (datum.id !== EMPTY_ID_PLACEHOLDER ? "pointer" : "inherit"),
+        cursor: "pointer",
         // Sometimes datum.colour is stripped for zero-height sections
         fill: ({ datum }) => fadeColour(datum.colour, 0.5)!,
         stroke: ({ datum }) => datum.colour,
-        strokeWidth: ({ datum }) => (datum.id !== EMPTY_ID_PLACEHOLDER ? 1 : 0),
+        strokeWidth: 1,
         transition: "fill 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
     },
 };

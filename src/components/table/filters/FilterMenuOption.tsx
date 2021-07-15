@@ -42,6 +42,7 @@ const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
                     checkedIcon={<CheckBox fontSize="small" />}
                     style={{ marginRight: 8 }}
                     checked={selected.includes(option.id)}
+                    color="primary"
                 />
             </MenuItem>
         </div>

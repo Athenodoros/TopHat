@@ -2,11 +2,12 @@ import chroma from "chroma-js";
 import { random as randomInt, range } from "lodash";
 import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
-import { formatDate, getToday } from "../utilities/values";
+import { getToday, getTodayString } from "../utilities/values";
 import { Account, Category, Condition, Currency, Institution, Rule, Transaction } from "./types";
+import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const today = getToday();
-const lastUpdate = formatDate(today);
+const lastUpdate = getTodayString();
 
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
@@ -105,7 +106,7 @@ const accounts = (
         ["International Account", true, 1, 3, true],
         ["Transaction Account", false, 1, 4, true],
         ["Mortgage", true, 1, 4, true],
-        ["Apartment", true, 2, undefined, false],
+        ["Apartment", true, 2, PLACEHOLDER_INSTITUTION_ID, false],
         ["Euro Account", true, 1, 2, true],
     ] as AccountArgs[]
 ).map(makeAccount);
@@ -155,11 +156,11 @@ const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
     return {
         id: id + 1,
         date: date.toISODate(),
-        reference: args[1],
+        reference: args[1] || "",
         transfer: !!args[6],
         [args[7] ? "recordedBalance" : "value"]: args[2],
         account: args[3] + 1,
-        category: args[5] !== undefined ? args[5] + 1 : 0,
+        category: args[5] !== undefined ? args[5] + 1 : PLACEHOLDER_CATEGORY_ID,
         currency: args[4] + 1,
         description: args[8],
         statement: args[9] || false, // && statementMap[makeStatement(date)],

@@ -6,14 +6,14 @@ import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { ChartSign } from "../../state/app/types";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/utilities/values";
-import { BLACK, Greys } from "../../styles/colours";
+import { BLACK } from "../../styles/colours";
 import { FlexWidthChart } from "../display/FlexWidthChart";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
-import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents, SummaryChartSign } from "./utilities";
+import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./utilities";
 
 interface SummaryBarChartPoint {
-    id: ID | null;
-    colour?: string;
+    id: ID;
+    colour: string;
     value: { credit: number; debit: number };
     trend: { credits: number[]; debits: number[] };
 }
@@ -102,10 +102,10 @@ const useChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
                 category.trend[trend].map(
                     (y, idx) =>
                         ({
-                            id: category.id || EMPTY_ID_PLACEHOLDER,
+                            id: category.id,
                             x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
                             y,
-                            colour: category.colour || Greys[400],
+                            colour: category.colour,
                             sign: trend,
                         } as SummaryChartPoint)
                 )

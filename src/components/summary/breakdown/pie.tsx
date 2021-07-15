@@ -5,7 +5,7 @@ import { VictoryPie, VictoryPieProps } from "victory";
 import { ChartSign } from "../../../state/app/types";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
-import { ChartPoint, CHART_SECTION_STYLE, EMPTY_ID_PLACEHOLDER, getChartEvents, SummaryChartSign } from "../utilities";
+import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "../utilities";
 
 const useStyles = makeStyles({
     container: {
@@ -80,9 +80,7 @@ const useGetPie = (setFilter: (id: ID, sign: SummaryChartSign) => void) => {
             // animate: { duration: 500, onLoad: { duration: 500 } },
             labels: () => null,
             padAngle: 5,
-            events: getChartEvents(
-                ({ datum: { id, sign } }: SummaryPieEventProps) => id !== EMPTY_ID_PLACEHOLDER && setFilter(id, sign)
-            ),
+            events: getChartEvents(({ datum: { id, sign } }: SummaryPieEventProps) => setFilter(id, sign)),
             style: CHART_SECTION_STYLE,
         }),
         [setFilter]
@@ -101,8 +99,8 @@ const useMaybePieChartData = (sign: "credits" | "debits", series: SummaryPieChar
                 ? series.map(
                       (p) =>
                           ({
-                              id: p.id || EMPTY_ID_PLACEHOLDER,
-                              colour: p.colour || Greys[400],
+                              id: p.id,
+                              colour: p.colour,
                               value: Math.abs(p.value[sign === "credits" ? "credit" : "debit"]),
                               sign,
                           } as PieChartDatum)

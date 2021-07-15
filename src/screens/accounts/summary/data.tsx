@@ -1,5 +1,6 @@
 import { omit, toPairs, unzip, zip } from "lodash-es";
 import { AccountsPageState } from "../../../state/app/types";
+import { PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
 import { useAccountIDs, useAccountMap, useCurrencyMap, useInstitutionMap } from "../../../state/data/hooks";
 import { AccountTypeMap } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
@@ -46,7 +47,7 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
 
     // Create full summaries by category
     return toPairs(trends).map(([strID, trend]) => {
-        const id = Number(strID) as 1 | 2 | 3;
+        const id = Number(strID);
         const common = {
             id,
             value: { credit: trend.credits[0], debit: trend.debits[0] },
@@ -54,17 +55,22 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
         };
 
         if (aggregation === "institution") {
-            const institution = institutions[id];
+            const institution = institutions[id]!;
             return {
                 ...common,
-                id: id || null,
+                id,
                 name: institution?.name || "No Institution",
-                colour: institution?.colour,
+                colour: institution.colour,
+                placeholder: id === PLACEHOLDER_INSTITUTION_ID,
             };
         }
 
         if (aggregation === "type")
-            return { name: AccountTypeMap[id].name, colour: AccountTypeMap[id].colour, ...common };
+            return {
+                name: AccountTypeMap[id as 1 | 2 | 3].name,
+                colour: AccountTypeMap[id as 1 | 2 | 3].colour,
+                ...common,
+            };
 
         if (aggregation === "currency") {
             const currency = currencies[id]!;
@@ -78,11 +84,11 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
         }
 
         const account = accounts[id]!;
-        const institution = account.institution === undefined ? undefined : institutions[account.institution];
+        const institution = institutions[account.institution]!;
         return {
             name: account.name,
-            subtitle: institution?.name,
-            colour: institution?.colour,
+            subtitle: institution.name,
+            colour: institution.colour,
             ...common,
         };
     });

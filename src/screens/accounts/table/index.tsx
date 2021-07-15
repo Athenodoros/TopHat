@@ -24,7 +24,7 @@ export const AccountsTable: React.FC = () => {
         >
             <AccountsTableHeader />
             {institutions.map((institution) => (
-                <AccountsInstitutionDisplay key={institution.id || "missing"} institution={institution} />
+                <AccountsInstitutionDisplay key={institution.id} institution={institution} />
             ))}
         </TableContainer>
     );

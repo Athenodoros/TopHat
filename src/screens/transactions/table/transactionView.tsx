@@ -2,7 +2,7 @@ import { Avatar, IconButton, Typography } from "@material-ui/core";
 import { AccountBalance, Description, Edit, ImportExport } from "@material-ui/icons";
 import clsx from "clsx";
 import React from "react";
-import { Transaction } from "../../../state/data";
+import { PLACEHOLDER_CATEGORY_ID, Transaction } from "../../../state/data";
 import { useAccountByID, useCategoryByID, useCurrencyByID, useInstitutionByID } from "../../../state/data/hooks";
 import { parseDate } from "../../../state/utilities/values";
 import { formatTransactionsTableNumber, getIconStyles, useTransactionsTableStyles } from "./styles";
@@ -63,9 +63,9 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
             </div>
             <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
             <div className={classes.category}>
-                {category ? (
+                {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
                     <div className={classes.compound}>
-                        <div className={classes.categoryIcon} style={getIconStyles(category?.colour)} />
+                        <div className={classes.categoryIcon} style={getIconStyles(category.colour)} />
                         {category.name}
                     </div>
                 ) : undefined}

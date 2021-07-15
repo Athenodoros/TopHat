@@ -23,7 +23,7 @@ export type Account = {
     isActive: boolean;
     category: 1 | 2 | 3;
     lastUpdate: SDate;
-    institution?: ID;
+    institution: ID;
 
     lastTransactionDate?: SDate;
     currencies: ID[];
@@ -114,17 +114,17 @@ export interface Transaction {
     id: ID;
 
     date: SDate;
-    reference?: string;
+    reference: string;
     summary?: string;
     description?: string;
-    transfer?: boolean;
+    transfer: boolean;
 
     value?: number;
     recordedBalance?: number;
     balance?: number;
 
     account: ID;
-    category: ID | undefined;
+    category: ID;
     currency: ID;
     statement: boolean;
 }

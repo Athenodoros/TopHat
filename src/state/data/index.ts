@@ -12,7 +12,9 @@ import {
 } from "../utilities/values";
 import { DemoObjects } from "./demo";
 import { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
+import { PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION } from "./utilities";
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
+export { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter();
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
@@ -33,14 +35,14 @@ interface DataState {
 }
 
 const defaults = {
-    account: IndexedAdapter.getInitialState(),
-    category: IndexedAdapter.getInitialState(),
-    currency: IndexedAdapter.getInitialState(),
-    institution: IndexedAdapter.getInitialState(),
-    rule: IndexedAdapter.getInitialState(),
-    transaction: DateAdapter.getInitialState(),
+    account: IndexedAdapter.getInitialState() as EntityState<Account>,
+    category: IndexedAdapter.getInitialState() as EntityState<Category>,
+    currency: IndexedAdapter.getInitialState() as EntityState<Currency>,
+    institution: IndexedAdapter.getInitialState() as EntityState<Institution>,
+    rule: IndexedAdapter.getInitialState() as EntityState<Rule>,
+    transaction: DateAdapter.getInitialState() as EntityState<Transaction>,
     user: { currency: 1 },
-    notifications: BaseAdapter.getInitialState(),
+    notifications: BaseAdapter.getInitialState() as EntityState<Notification>,
 } as DataState;
 
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
@@ -64,6 +66,8 @@ export const DataSlice = createSlice({
                 )
             );
 
+            console.log(transactionSummaries);
+
             return {
                 account: IndexedAdapter.addMany(
                     defaults.account,
@@ -79,7 +83,7 @@ export const DataSlice = createSlice({
                 ),
                 category: IndexedAdapter.addMany(
                     defaults.category,
-                    DemoObjects.categories.map((category) => ({
+                    DemoObjects.categories.concat([PLACEHOLDER_CATEGORY]).map((category) => ({
                         ...category,
                         transactions: transactionSummaries.category[category.id] || BaseTransactionHistory(),
                     }))
@@ -91,7 +95,10 @@ export const DataSlice = createSlice({
                         transactions: transactionSummaries.currency[currency.id] || BaseTransactionHistory(),
                     }))
                 ),
-                institution: IndexedAdapter.addMany(defaults.institution, DemoObjects.institutions),
+                institution: IndexedAdapter.addMany(
+                    defaults.institution,
+                    DemoObjects.institutions.concat([PLACEHOLDER_INSTITUTION])
+                ),
                 rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rules),
                 transaction: transactions,
                 user: defaults.user,
