@@ -71,8 +71,8 @@ export const getInstitutionIcon = (institution: Institution, className: string) 
         <AccountBalance style={{ height: "60%" }} />
     </Avatar>
 );
-export const getCategoryIcon = (category: Category, className: string) => (
-    <Avatar className={className} style={{ backgroundColor: category.colour }}>
+export const getCategoryIcon = (category: Category | undefined, className: string) => (
+    <Avatar className={className} style={{ backgroundColor: category?.colour }}>
         <ShoppingCart style={{ height: "60%" }} />
     </Avatar>
 );

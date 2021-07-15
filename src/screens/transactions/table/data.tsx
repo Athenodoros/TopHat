@@ -16,7 +16,7 @@ export const useTransactionsTableData = () => {
         const included = takeWithFilter(transactions as number[], filters.tableLimit, (id) => {
             const tx = metadata[id]!;
 
-            let search =
+            const search =
                 filters.search && filters.searchRegex
                     ? (tx.summary && regex.test(tx.summary)) || (tx.description && regex.test(tx.description))
                     : filters.search
@@ -30,7 +30,7 @@ export const useTransactionsTableData = () => {
                     filterListByID(filters.currency, tx.currency) &&
                     (!filters.fromDate || tx.date >= filters.fromDate) &&
                     (!filters.toDate || tx.date <= filters.toDate) &&
-                    (filters.showStubs || tx.value) &&
+                    (!filters.hideStubs || tx.value) &&
                     (filters.transfers === "all" || (filters.transfers === "include") === tx.transfer) &&
                     (filters.statement === "all" || (filters.statement === "include") === tx.statement) &&
                     (filters.valueTo === undefined || tx.value! <= filters.valueTo) &&
@@ -39,6 +39,10 @@ export const useTransactionsTableData = () => {
             );
         });
 
-        return toPairs(groupBy(included, (id) => metadata[id]!.date));
+        return {
+            ids: included,
+            groups: toPairs(groupBy(included, (id) => metadata[id]!.date)),
+            metadata,
+        };
     }, [transactions, metadata, filters]);
 };

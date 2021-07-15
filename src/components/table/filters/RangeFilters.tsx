@@ -1,7 +1,9 @@
 import { Slider, SliderProps } from "@material-ui/core";
 import { DateTime } from "luxon";
+import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { formatDate, getToday, parseDate } from "../../../state/utilities/values";
+import { useFirstValue } from "../../../utilities/hooks";
 
 interface DateRangeFilterProps {
     min?: string;
@@ -33,8 +35,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ min, max, from
     }, [max, min, rawFrom, rawTo, setRange]);
 
     // Defaults shouldn't be changed after the component is initialised.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const defaults = useMemo(() => values, []);
+    const defaults = useFirstValue(values);
 
     return <Slider max={range} defaultValue={defaults} onChangeCommitted={onChange as SliderProps["onChange"]} />;
 };
@@ -60,8 +61,7 @@ export const NumericRangeFilter: React.FC<NumericRangeFilterProps> = ({ min, max
     );
 
     // Defaults shouldn't be changed after the component is initialised.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const defaults = useMemo(() => [from || min || 0, to || max || 0], []);
+    const defaults = useFirstValue([from || min || 0, to || max || 0]);
 
     return (
         <Slider
@@ -69,6 +69,10 @@ export const NumericRangeFilter: React.FC<NumericRangeFilterProps> = ({ min, max
             max={max || 0}
             defaultValue={defaults}
             onChangeCommitted={onChange as SliderProps["onChange"]}
+            valueLabelDisplay="auto"
+            valueLabelFormat={formatLarge}
         />
     );
 };
+
+const formatLarge = (value: number) => numeral(value).format("-0a");

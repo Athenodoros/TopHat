@@ -24,7 +24,7 @@ export const DefaultPages = {
         currency: [],
         statement: "all" as const,
         transfers: "all" as const,
-        showStubs: false,
+        hideStubs: false,
         tableLimit: 50,
         search: "",
         searchRegex: false,

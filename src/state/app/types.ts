@@ -1,4 +1,4 @@
-import { Transaction } from "../data/types";
+import { ID, SDate } from "../utilities/values";
 
 export type ChartSign = "all" | "credits" | "debits";
 export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];
@@ -10,35 +10,44 @@ export type SummaryPageState = {
 };
 export const AccountsPageAggregations = ["account", "currency", "institution", "type"] as const;
 export type AccountsPageState = {
+    // Page ID
     id: "accounts";
+
+    // Summary
     chartSign: ChartSign;
     chartAggregation: typeof AccountsPageAggregations[number];
-    account: number[];
-    institution: number[];
-    type: number[];
-    currency: number[];
-    filterInactive: boolean;
+
+    // Filters
+    account: ID[];
+    institution: ID[];
+    type: ID[];
+    currency: ID[];
     balances: ChartSign;
+    filterInactive: boolean;
 };
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
 export type TransactionsPageState = {
+    // Page ID
     id: "transactions";
-    fromDate?: string;
-    toDate?: string;
-    valueFrom?: number;
-    valueTo?: number;
-    account: number[];
-    category: number[];
-    currency: number[];
-    statement: BooleanFilter;
+
+    // Summary
     chartSign: ChartSign;
     chartAggregation: typeof TransactionsPageAggregations[number];
+
+    // Filters
+    fromDate?: SDate;
+    toDate?: SDate;
+    valueFrom?: number;
+    valueTo?: number;
+    account: ID[];
+    category: ID[];
+    currency: ID[];
+    statement: BooleanFilter;
     transfers: BooleanFilter;
-    showStubs: boolean;
-    tableLimit: number;
+    hideStubs: boolean;
     search: string;
     searchRegex: boolean;
-    edit?: Partial<Transaction>;
+    tableLimit: number;
 };
 export type CategoriesPageState = {
     id: "categories";

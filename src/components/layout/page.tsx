@@ -44,7 +44,7 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
                 <Typography variant="h3">{title}</Typography>
                 <div className={classes.titleButtons}>
                     <IconButton {...buttonProps}>
-                        <Badge badgeContent={notifications} color="secondary" overlap="circle" variant="dot">
+                        <Badge badgeContent={notifications} color="error" overlap="circular" variant="dot">
                             <NotificationsIcon />
                         </Badge>
                     </IconButton>

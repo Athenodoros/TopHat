@@ -1,5 +1,7 @@
 import {
+    Button,
     Checkbox,
+    CheckboxProps,
     FormControlLabel,
     IconButton,
     makeStyles,
@@ -10,9 +12,9 @@ import {
 } from "@material-ui/core";
 import { AddCircleOutline, Description, ImportExport } from "@material-ui/icons";
 import clsx from "clsx";
-import { last, noop } from "lodash-es";
+import { last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
-import { DateRangeFilter, NumericRangeFilter, TableHeaderContainer } from "../../../components/table";
+import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
 import { FilterIcon, FilterMenuOption } from "../../../components/table/";
 import { useGetAccountIcon } from "../../../components/table/filters/FilterMenuOption";
 import { TopHatDispatch, TopHatStore } from "../../../state";
@@ -46,21 +48,12 @@ const useHeaderStyles = makeStyles({
                 width: 200,
             },
         },
-        "& > label:last-child": {
-            alignSelf: "flex-end",
-            transform: "scale(0.7)",
-            transformOrigin: "top right",
-
-            "&:hover": {
-                opacity: "1 !important",
-            },
-        },
     },
     range: {
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
-        padding: 20,
+        padding: "15px 25px",
         width: 300,
 
         "& > div:first-child": {
@@ -72,9 +65,18 @@ const useHeaderStyles = makeStyles({
         fontStyle: "italic",
         color: Greys[500],
     },
+    subItemCheckbox: {
+        alignSelf: "flex-end",
+        transform: "scale(0.8)",
+        transformOrigin: "top right",
+
+        "&:hover": {
+            opacity: "1 !important",
+        },
+    },
 });
 
-export const TransactionsTableHeader: React.FC = () => {
+export const TransactionsTableHeaderView: React.FC = () => {
     const classes = useTransactionsTableStyles();
     const headerClasses = useHeaderStyles();
     const filters = useTransactionsPageState();
@@ -99,15 +101,25 @@ export const TransactionsTableHeader: React.FC = () => {
     const CategoryPopoverState = usePopoverProps();
     const ValuePopoverState = usePopoverProps();
 
+    const getSubItemCheckbox = (label: string, checked: boolean, setChecked: CheckboxProps["onChange"]) => (
+        <FormControlLabel
+            className={headerClasses.subItemCheckbox}
+            control={<Checkbox color="primary" size="small" value={checked} onChange={setChecked} />}
+            label={label}
+            labelPlacement="start"
+            style={{
+                opacity: checked ? undefined : 0.5,
+            }}
+        />
+    );
+
     return (
-        <TableHeaderContainer className={classes.container}>
-            <div className={classes.checkbox}>
-                <Checkbox checked={false} onChange={noop} color="primary" />
-            </div>
+        <>
             <div className={classes.transfer}>
-                <IconButton size="small" onClick={onTransferToggle}>
-                    <ImportExport fontSize="small" color={BooleanFilterColours[filters.transfers]} />
-                </IconButton>
+                <Button
+                    endIcon={<ImportExport fontSize="small" color={BooleanFilterColours[filters.transfers]} />}
+                    onClick={onTransferToggle}
+                />
             </div>
             <div className={classes.date}>
                 <div className={classes.compound}>
@@ -160,21 +172,7 @@ export const TransactionsTableHeader: React.FC = () => {
                                 onChange={setSearch}
                             />
                         </div>
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    color="primary"
-                                    size="small"
-                                    value={filters.searchRegex}
-                                    onChange={setSearchRegex}
-                                />
-                            }
-                            label="RegEx Search"
-                            labelPlacement="start"
-                            style={{
-                                opacity: filters.searchRegex ? undefined : 0.5,
-                            }}
-                        />
+                        {getSubItemCheckbox("Regex Search", filters.searchRegex, setSearchRegex)}
                     </Popover>
                 </div>
             </div>
@@ -208,6 +206,7 @@ export const TransactionsTableHeader: React.FC = () => {
                             to={filters.valueTo}
                             setRange={setValueRange}
                         />
+                        {getSubItemCheckbox("Hide Stubs", filters.hideStubs, setHideStubs)}
                     </Popover>
                 </div>
             </div>
@@ -230,9 +229,10 @@ export const TransactionsTableHeader: React.FC = () => {
             </div>
             <div className={classes.balance}>BALANCE</div>
             <div className={classes.statement}>
-                <IconButton size="small" onClick={onStatementToggle}>
-                    <Description fontSize="small" color={BooleanFilterColours[filters.statement]} />
-                </IconButton>
+                <Button
+                    endIcon={<Description fontSize="small" color={BooleanFilterColours[filters.statement]} />}
+                    onClick={onStatementToggle}
+                />
             </div>
             <div className={classes.account}>
                 ACCOUNT
@@ -254,7 +254,7 @@ export const TransactionsTableHeader: React.FC = () => {
                     <AddCircleOutline />
                 </IconButton>
             </div>
-        </TableHeaderContainer>
+        </>
     );
 };
 
@@ -275,6 +275,7 @@ const setSearchRegex = (_: any, checked: boolean) => setFilterPartial("searchReg
 
 const setValueRange = (valueFrom: number | undefined, valueTo: number | undefined) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom, valueTo }));
+const setHideStubs = (_: any, checked: boolean) => setFilterPartial("hideStubs", checked);
 
 const filters = ["account", "category"] as const;
 const onSelectIDs = zipObject(
@@ -285,7 +286,7 @@ const onSelectIDs = zipObject(
 const BooleanFilterColours = {
     all: "inherit",
     include: "primary",
-    exclude: "secondary",
+    exclude: "error",
 } as const;
 
 const useTransactionValueRange = () => {

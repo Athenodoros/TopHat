@@ -9,6 +9,25 @@ const CENTERED_CONTAINER = {
     display: "flex",
     alignItems: "center",
 };
+const ICON_BUTTON = {
+    "& > svg": {
+        margin: 3,
+    },
+
+    "& > button": {
+        minWidth: "auto",
+        padding: 2,
+        // color: Greys[600],
+
+        "&:not(.MuiButton-outlinedPrimary)": {
+            border: "1px solid transparent",
+        },
+
+        "& .MuiButton-endIcon": {
+            margin: 0,
+        },
+    },
+};
 
 export const useTransactionsTableStyles = makeStyles((theme) => ({
     // Overall container layout
@@ -28,6 +47,11 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         },
     },
     headerContainer: {},
+    rowGroupContainer: {
+        marginTop: 20,
+        borderRadius: 10,
+        padding: 0,
+    },
     rowContainer: {
         "& > div:last-child": {
             visibility: "hidden",
@@ -44,12 +68,17 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     transfer: {
         margin: "0 5px",
         ...CENTERED_CONTAINER,
+        ...ICON_BUTTON,
     },
     date: {
         width: 110,
         marginLeft: 5,
         flexGrow: 1,
         ...CENTERED_CONTAINER,
+
+        "& > *": {
+            width: 110,
+        },
     },
     text: {
         width: 150,
@@ -94,6 +123,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     statement: {
         margin: "0 15px",
         ...CENTERED_CONTAINER,
+        ...ICON_BUTTON,
     },
     account: {
         width: 170,
@@ -111,6 +141,10 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         padding: "0 5px",
         ...CENTERED_CONTAINER,
         justifyContent: "flex-end",
+
+        "& > *": {
+            marginLeft: 5,
+        },
     },
 
     // Utility classes
@@ -126,6 +160,17 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     missing: {
         fontStyle: "italic",
         color: Greys[500],
+    },
+    disabledIcon: {
+        opacity: 0.3,
+    },
+    iconButton: {
+        minWidth: "auto",
+        padding: 0,
+
+        "& .MuiButton-endIcon": {
+            margin: 0,
+        },
     },
 }));
 

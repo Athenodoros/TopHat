@@ -68,3 +68,6 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
         setIsOpen,
     };
 };
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+export const useFirstValue = <T>(value: T) => useMemo(() => value, []);
