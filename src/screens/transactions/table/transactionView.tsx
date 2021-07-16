@@ -23,8 +23,8 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
         [tx]
     );
 
-    const getCurrencyDisplay = (value: number | undefined, missing?: boolean) =>
-        value !== undefined ? (
+    const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
+        value !== null && value !== undefined ? (
             <div className={classes.compound}>
                 {currency && (
                     <Typography
@@ -79,7 +79,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                 ) : undefined}
             </div>
             <div className={classes.balance}>
-                {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === undefined)}
+                {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
             </div>
             <div className={classes.statement}>
                 <Description

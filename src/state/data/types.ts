@@ -115,13 +115,13 @@ export interface Transaction {
 
     date: SDate;
     reference: string;
-    summary?: string;
-    description?: string;
+    summary: string | null;
+    description: string | null;
     transfer: boolean;
 
-    value?: number;
-    recordedBalance?: number;
-    balance?: number;
+    value: number | null;
+    recordedBalance: number | null;
+    balance: number | null;
 
     account: ID;
     category: ID;

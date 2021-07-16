@@ -243,7 +243,7 @@ const getTransactionSummaries = (
             });
         }
 
-        if (tx.balance !== undefined) {
+        if (tx.balance !== null) {
             if (!balances[tx.account]) balances[tx.account] = {};
             if (!balances[tx.account][tx.currency]) balances[tx.account][tx.currency] = BaseBalanceValues();
 
@@ -274,27 +274,27 @@ const markAllBalances = (transactionState: EntityState<Transaction>) => {
     const ids = transactionState.ids;
     const entities = cloneDeep(transactionState.entities);
     ids.forEach((id) => {
-        entities[id]!.balance = undefined;
+        entities[id]!.balance = null;
     });
 
-    type Accumulator = { balance: number | undefined; previous: number };
+    type Accumulator = { balance: number | null; previous: number };
     const statefullyUpdateBalances = (
         ids: EntityId[],
-        defaultBalance: number | undefined,
-        getNewBalance: (tx: Transaction, acc: Accumulator) => number | undefined
+        defaultBalance: number | null,
+        getNewBalance: (tx: Transaction, acc: Accumulator) => number | null
     ) =>
         ids.reduce(
             (accumulator, id) => {
                 const tx = entities[id]!;
                 if (accumulator[tx.account] === undefined) accumulator[tx.account] = {};
 
-                let balance: number | undefined;
-                if (tx.balance !== undefined) {
+                let balance: number | null;
+                if (tx.balance !== null) {
                     balance = tx.balance;
                 } else {
                     const old = accumulator[tx.account][tx.currency] || { balance: defaultBalance, previous: 0 };
                     balance = getNewBalance(tx, old);
-                    balance = balance !== undefined ? round(balance, 2) : undefined;
+                    balance = balance !== null ? round(balance, 2) : null;
                     if (tx.balance !== balance) tx.balance = balance;
                 }
 
@@ -306,17 +306,13 @@ const markAllBalances = (transactionState: EntityState<Transaction>) => {
         );
 
     // Iterate backwards in time, filling balances
-    statefullyUpdateBalances(ids, undefined, (tx, acc) =>
-        tx?.recordedBalance !== undefined
-            ? tx.recordedBalance
-            : acc.balance === undefined
-            ? undefined
-            : acc.balance - acc.previous
+    statefullyUpdateBalances(ids, null, (tx, acc) =>
+        tx?.recordedBalance !== null ? tx.recordedBalance : acc.balance === null ? null : acc.balance - acc.previous
     );
 
     // Iterate forwards in time, filling balances
     statefullyUpdateBalances(reverse(clone(ids)), 0, (tx, acc) =>
-        tx?.balance !== undefined ? tx.balance : acc.balance === undefined ? undefined : acc.balance + (tx.value || 0)
+        tx?.balance !== null ? tx.balance : acc.balance === null ? null : acc.balance + (tx.value || 0)
     );
 
     return { ids, entities };

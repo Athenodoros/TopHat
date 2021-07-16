@@ -157,12 +157,15 @@ const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
         id: id + 1,
         date: date.toISODate(),
         reference: args[1] || "",
+        summary: null,
         transfer: !!args[6],
-        [args[7] ? "recordedBalance" : "value"]: args[2],
+        value: args[7] ? null : args[2],
+        recordedBalance: args[7] ? args[2] : null,
+        balance: null,
         account: args[3] + 1,
         category: args[5] !== undefined ? args[5] + 1 : PLACEHOLDER_CATEGORY_ID,
         currency: args[4] + 1,
-        description: args[8],
+        description: args[8] || null,
         statement: args[9] || false, // && statementMap[makeStatement(date)],
     };
 };

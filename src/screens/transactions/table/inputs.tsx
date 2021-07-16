@@ -56,14 +56,14 @@ const NumberRegex = /^-?\d*\.?\d?\d?$/;
 
 interface EditableCurrencyValueProps {
     currency: Currency;
-    value: number | undefined;
-    placeholder?: number;
-    onChange: (value: number | undefined) => void;
+    value: number | null;
+    placeholder?: number | null;
+    onChange: (value: number | null) => void;
 }
 export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     currency,
     value,
-    placeholder,
+    placeholder = null,
     onChange,
 }) => {
     const classes = useEditableCurrencyValueStyles();
@@ -71,14 +71,14 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
 
     const currencies = useAllCurrencies();
 
-    const [text, setText] = useState(value !== undefined ? "" + value : "");
+    const [text, setText] = useState(value !== null ? "" + value : "");
     const handleChange = useMemo(
         () =>
             onTextFieldChange((value) => {
                 if (NumberRegex.test(value)) {
                     setText(value);
 
-                    if (value === "") onChange(undefined);
+                    if (value === "") onChange(null);
                     else if (value === (+value).toString()) onChange(+value);
                 }
             }),
@@ -91,7 +91,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                 <OutlinedInput
                     value={text}
                     onChange={handleChange}
-                    placeholder={placeholder !== undefined ? "" + placeholder : ""}
+                    placeholder={placeholder !== null ? "" + placeholder : ""}
                     startAdornment={
                         <InputAdornment position="start">
                             <Button {...popover.buttonProps}>{currency.symbol}</Button>
