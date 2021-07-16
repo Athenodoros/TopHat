@@ -3,12 +3,11 @@ import React from "react";
 
 const useStyles = makeStyles((theme) => ({
     container: {
-        height: 60,
         top: 0,
         position: "sticky",
         backgroundColor: theme.palette.background.default,
         zIndex: 1,
-        margin: "-20px -10px 15px -10px",
+        margin: "-20px -10px 5px -10px",
         padding: "20px 10px 0 10px",
     },
     card: {

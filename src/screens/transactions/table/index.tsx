@@ -38,7 +38,11 @@ export const TransactionsTable: React.FC = () => {
                         disabled={!!edit}
                     />
                 </div>
-                {selection.length ? (
+                {edit && edit.id === undefined ? (
+                    <TransactionsTableEditEntry
+                        transaction={getAllCommonValues(selection.map((id) => metadata[id]!))}
+                    />
+                ) : selection.length ? (
                     <TransactionsTableViewEntry
                         transaction={getAllCommonValues(selection.map((id) => metadata[id]!))}
                     />

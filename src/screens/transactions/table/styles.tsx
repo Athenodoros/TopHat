@@ -27,6 +27,13 @@ const ICON_BUTTON = {
         },
     },
 };
+const MIXED_PLACEHOLDER = {
+    opacity: 1,
+    fontStyle: "italic",
+    color: Greys[500],
+    overflow: "visible",
+    fontWeight: 300,
+};
 
 export const useTransactionsTableStyles = makeStyles((theme) => ({
     // Overall container layout
@@ -35,7 +42,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         alignItems: "flex-start",
         padding: "0 5px",
         ...theme.typography.body1,
-        transition: theme.transitions.create(["transform", "box-shadow"]),
+        transition: theme.transitions.create(["box-shadow"]),
 
         borderBottom: "1px solid " + Greys[200],
         "&:last-child": {
@@ -47,7 +54,6 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         },
     },
     selectedHeaderContainer: {
-        transform: "scale(1.02)",
         boxShadow: theme.shadows[5],
     },
     rowGroupContainer: {
@@ -161,6 +167,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     missing: {
         fontStyle: "italic",
         color: Greys[500],
+        overflow: "visible",
     },
     disabledIcon: {
         opacity: 0.3,
@@ -173,6 +180,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
             margin: 0,
         },
     },
+    mixed: MIXED_PLACEHOLDER,
+    mixedPlaceholder: { "&::placeholder": MIXED_PLACEHOLDER },
 }));
 
 export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");

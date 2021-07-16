@@ -1,5 +1,5 @@
 import { Avatar, IconButton, Typography } from "@material-ui/core";
-import { AccountBalance, Description, Edit, ImportExport } from "@material-ui/icons";
+import { AccountBalance, Description, Edit, Help, ImportExport } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback } from "react";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
@@ -24,7 +24,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
     );
 
     const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
-        value !== null && value !== undefined ? (
+        value !== undefined && value !== null ? (
             <div className={classes.compound}>
                 {currency && (
                     <Typography
@@ -38,16 +38,26 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                     {formatTransactionsTableNumber(value)}
                 </Typography>
             </div>
+        ) : value === undefined ? (
+            <Typography variant="body1" noWrap={true} className={classes.mixed}>
+                (mixed)
+            </Typography>
         ) : undefined;
 
     return (
         <>
             <div className={classes.transfer}>
-                <ImportExport
-                    fontSize="small"
-                    style={{ visibility: tx.transfer ? undefined : "hidden" }}
-                    className={classes.disabledIcon}
-                />
+                {tx.transfer !== undefined ? (
+                    <ImportExport
+                        fontSize="small"
+                        style={{
+                            visibility: tx.transfer ? undefined : "hidden",
+                        }}
+                        className={classes.disabledIcon}
+                    />
+                ) : (
+                    <Help fontSize="small" className={classes.disabledIcon} />
+                )}
             </div>
             <div className={classes.date}>
                 {tx.date ? (
@@ -57,17 +67,29 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                             {parseDate(tx.date).year}
                         </Typography>
                     </div>
-                ) : undefined}
+                ) : (
+                    <Typography variant="body1" noWrap={true} className={classes.mixed}>
+                        (mixed)
+                    </Typography>
+                )}
             </div>
             <div className={classes.text}>
-                <Typography variant="body1" noWrap={true} className={classes.summary}>
-                    {tx.summary || tx.reference}
-                </Typography>
-                {tx.description ? (
-                    <Typography variant="caption" className={classes.description} component="div">
-                        {tx.description}
+                {(tx.summary || tx.reference) !== undefined ? (
+                    <>
+                        <Typography variant="body1" noWrap={true} className={classes.summary}>
+                            {tx.summary || tx.reference}
+                        </Typography>
+                        {tx.description ? (
+                            <Typography variant="caption" className={classes.description} component="div">
+                                {tx.description}
+                            </Typography>
+                        ) : undefined}
+                    </>
+                ) : (
+                    <Typography variant="body1" noWrap={true} className={classes.mixed}>
+                        (mixed)
                     </Typography>
-                ) : undefined}
+                )}
             </div>
             <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
             <div className={classes.category}>
@@ -76,17 +98,25 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                         {getCategoryIcon(category, classes.categoryIcon)}
                         {category.name}
                     </div>
+                ) : category === undefined ? (
+                    <Typography variant="body1" noWrap={true} className={classes.mixed}>
+                        (mixed)
+                    </Typography>
                 ) : undefined}
             </div>
             <div className={classes.balance}>
                 {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
             </div>
             <div className={classes.statement}>
-                <Description
-                    fontSize="small"
-                    style={{ visibility: tx.statement ? undefined : "hidden" }}
-                    className={classes.disabledIcon}
-                />
+                {tx.statement !== undefined ? (
+                    <Description
+                        fontSize="small"
+                        style={{ visibility: tx.statement ? undefined : "hidden" }}
+                        className={classes.disabledIcon}
+                    />
+                ) : (
+                    <Help fontSize="small" className={classes.disabledIcon} />
+                )}
             </div>
             <div className={classes.account}>
                 {account ? (
@@ -96,7 +126,11 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                         </Avatar>
                         {account.name}
                     </>
-                ) : undefined}
+                ) : (
+                    <Typography variant="body1" noWrap={true} className={classes.mixed}>
+                        (mixed)
+                    </Typography>
+                )}
             </div>
             <div className={classes.actions}>
                 <IconButton size="small" onClick={handleStartEdit}>

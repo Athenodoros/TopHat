@@ -27,7 +27,7 @@ export type AccountsPageState = {
     filterInactive: boolean;
 };
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
-export type PartialTransaction = { [K in keyof Transaction]: Transaction[K] | undefined };
+export type PartialTransaction = { [K in keyof Transaction]?: Transaction[K] };
 export type TransactionsPageState = {
     // Page ID
     id: "transactions";

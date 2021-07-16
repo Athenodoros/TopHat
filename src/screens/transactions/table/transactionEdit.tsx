@@ -1,18 +1,25 @@
-import { Button, IconButton, makeStyles, TextField, Tooltip } from "@material-ui/core";
+import { IconButton, makeStyles, Tooltip } from "@material-ui/core";
 import { CancelTwoTone, DeleteTwoTone, Description, ImportExport, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { noop } from "lodash";
+import { DateTime } from "luxon";
 import React from "react";
 import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { TransactionsPageState } from "../../../state/app/types";
+import { useTransactionsPageState } from "../../../state/app/hooks";
+import { PartialTransaction, TransactionsPageState } from "../../../state/app/types";
 import { Transaction } from "../../../state/data";
-import { useAllAccounts, useAllCategories, useCurrencyByID } from "../../../state/data/hooks";
+import { useAllAccounts, useAllCategories } from "../../../state/data/hooks";
+import { formatDate } from "../../../state/utilities/values";
 import { Intents } from "../../../styles/colours";
-import { useFirstValue } from "../../../utilities/hooks";
-import { EditableCurrencyValue, TransactionsTableObjectDropdown } from "./inputs";
+import {
+    EditableBooleanValue,
+    EditableCurrencyValue,
+    EditableTextValue,
+    TransactionsTableObjectDropdown,
+} from "./inputs";
 import { useTransactionsTableStyles } from "./styles";
 
 const useEditStyles = makeStyles({
@@ -58,103 +65,101 @@ const useEditStyles = makeStyles({
     },
 });
 
-export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> = ({ transaction: tx }) => {
-    // const edit = useTransactionsPageState(state => state.edit);
+export const TransactionsTableEditEntry: React.FC<{ transaction: PartialTransaction }> = ({ transaction: tx }) => {
+    const edit = useTransactionsPageState((state) => state.edit!);
 
     const classes = useTransactionsTableStyles();
     const editClasses = useEditStyles();
-    const currency = useCurrencyByID(tx.currency);
 
     const categories = useAllCategories();
     const accounts = useAllAccounts();
     const getAccountIcon = useGetAccountIcon();
-    const summaryDefault = useFirstValue(tx.summary);
 
     return (
         <>
             <div className={classes.transfer}>
-                <Button
-                    variant="outlined"
-                    endIcon={
-                        <ImportExport
-                            fontSize="small"
-                            style={{ color: tx.transfer ? Intents.primary.main : "transparent" }}
-                        />
-                    }
-                    onClick={toggleTransfer}
+                <EditableBooleanValue
+                    value={edit.transfer}
+                    allowUndefined={tx.transfer === undefined}
+                    Icon={ImportExport}
+                    onSelect={onChangeTransfer}
                 />
             </div>
             <div className={classes.date}>
                 <DatePicker
-                    value={tx.date}
-                    onChange={noop}
+                    value={edit.date || null}
+                    onChange={onDateChange}
                     format="yyyy-MM-dd"
                     inputVariant="outlined"
                     className={editClasses.centeredInput}
                     size="small"
                     color="primary"
                     disableFuture={true}
+                    clearable={tx.date === undefined}
+                    emptyLabel="(mixed)"
+                    inputProps={edit.date ? undefined : { className: classes.mixed }}
                 />
             </div>
             <div className={clsx(classes.text, editClasses.editText)}>
-                <TextField
-                    size="small"
-                    variant="outlined"
+                <EditableTextValue
+                    value={edit.summary}
                     placeholder={tx.reference}
-                    defaultValue={summaryDefault}
-                    onChange={noop}
+                    allowUndefined={tx.summary === undefined}
+                    onChange={updateSummary}
                 />
-                <TextField
-                    size="small"
-                    variant="outlined"
-                    multiline={true}
-                    defaultValue={summaryDefault}
-                    onChange={noop}
+                <EditableTextValue
+                    value={edit.description}
+                    allowUndefined={tx.description === undefined}
+                    onChange={updateDescription}
                 />
             </div>
             <div className={classes.value}>
                 <EditableCurrencyValue
-                    currency={currency}
-                    value={tx.value}
-                    onChange={(...args: any[]) => console.log(...args)}
+                    currency={edit.currency}
+                    value={edit.value}
+                    onChangeValue={onChangeValue}
+                    onChangeCurrency={onChangeCurrency}
+                    allowUndefinedCurrency={tx.currency === undefined}
+                    allowUndefinedValue={tx.value === undefined}
                 />
             </div>
             <div className={classes.category}>
                 <TransactionsTableObjectDropdown
                     options={categories}
-                    selected={tx.category}
-                    select={(...args: any[]) => console.log(...args)}
+                    selected={edit.category}
+                    select={onChangeCategory}
                     getIcon={getCategoryIcon}
                     iconClass={editClasses.categoryDropdownIcon}
+                    allowUndefined={tx.category === undefined}
                 />
             </div>
             <div className={classes.balance}>
                 <EditableCurrencyValue
-                    currency={currency}
-                    value={tx.recordedBalance}
-                    placeholder={tx.balance}
-                    onChange={(...args: any[]) => console.log(...args)}
+                    currency={edit.currency}
+                    value={edit.recordedBalance}
+                    placeholder={edit.balance}
+                    onChangeValue={onChangeBalance}
+                    onChangeCurrency={onChangeCurrency}
+                    allowUndefinedCurrency={tx.currency === undefined}
+                    allowUndefinedValue={tx.recordedBalance === undefined}
                 />
             </div>
             <div className={classes.statement}>
-                <Button
-                    variant="outlined"
-                    endIcon={
-                        <Description
-                            fontSize="small"
-                            style={{ color: tx.statement ? Intents.primary.main : "transparent" }}
-                        />
-                    }
-                    onClick={noop}
+                <EditableBooleanValue
+                    value={edit.statement}
+                    allowUndefined={tx.statement === undefined}
+                    Icon={Description}
+                    onSelect={onChangeStatement}
                 />
             </div>
             <div className={classes.account}>
                 <TransactionsTableObjectDropdown
                     options={accounts}
-                    selected={tx.account}
-                    select={(...args: any[]) => console.log(...args)}
+                    selected={edit.account}
+                    select={onChangeAccount}
                     getIcon={getAccountIcon}
                     iconClass={editClasses.accountDropdownIcon}
+                    allowUndefined={tx.account === undefined}
                 />
             </div>
             <div className={clsx(classes.actions, editClasses.editActions)}>
@@ -178,14 +183,24 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: Transaction }> 
     );
 };
 
-const getCurrentEdit = () => (TopHatStore.getState().app.page as TransactionsPageState).edit!;
-const setEditPartial = <Key extends keyof Transaction>(key: Key, value?: Transaction[Key]) =>
-    TopHatDispatch(
-        AppSlice.actions.setTransactionsPagePartial({
-            edit: { ...getCurrentEdit(), [key]: value },
-        })
-    );
-
-const toggleTransfer = () => setEditPartial("transfer", !getCurrentEdit()?.transfer);
-
 const onDiscardChanges = () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: undefined }));
+
+const setEditPartial =
+    <Key extends keyof Transaction>(key: Key) =>
+    (value?: Transaction[Key]) =>
+        TopHatDispatch(
+            AppSlice.actions.setTransactionsPagePartial({
+                edit: { ...(TopHatStore.getState().app.page as TransactionsPageState).edit!, [key]: value },
+            })
+        );
+
+const onChangeTransfer = setEditPartial("transfer");
+const onDateChange = (date: DateTime | null) => setEditPartial("date")(date ? formatDate(date) : undefined);
+const updateSummary = setEditPartial("summary");
+const updateDescription = setEditPartial("description");
+const onChangeCurrency = setEditPartial("currency");
+const onChangeValue = setEditPartial("value");
+const onChangeBalance = setEditPartial("recordedBalance");
+const onChangeCategory = setEditPartial("category");
+const onChangeStatement = setEditPartial("statement");
+const onChangeAccount = setEditPartial("account");
