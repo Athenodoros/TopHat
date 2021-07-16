@@ -35,6 +35,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         alignItems: "flex-start",
         padding: "0 5px",
         ...theme.typography.body1,
+        transition: theme.transitions.create(["transform", "box-shadow"]),
 
         borderBottom: "1px solid " + Greys[200],
         "&:last-child": {
@@ -45,7 +46,10 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
             lineHeight: "1 !important",
         },
     },
-    headerContainer: {},
+    selectedHeaderContainer: {
+        transform: "scale(1.02)",
+        boxShadow: theme.shadows[5],
+    },
     rowGroupContainer: {
         marginTop: 20,
         borderRadius: 10,
@@ -70,14 +74,11 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         ...ICON_BUTTON,
     },
     date: {
-        width: 110,
-        marginLeft: 5,
-        flexGrow: 1,
+        width: 120,
+        paddingLeft: 5,
+        marginRight: 10,
+        flexGrow: 0,
         ...CENTERED_CONTAINER,
-
-        "& > *": {
-            width: 110,
-        },
     },
     text: {
         width: 150,
@@ -91,8 +92,9 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         color: Greys[700],
     },
     value: {
-        width: 105,
+        width: 110,
         marginRight: 20,
+        flexGrow: 1,
         ...CENTERED_CONTAINER,
         justifyContent: "flex-end",
     },

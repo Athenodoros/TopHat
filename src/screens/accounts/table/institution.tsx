@@ -32,8 +32,8 @@ const useStyles = makeStyles({
         width: "100%",
     },
     placeholder: {
-        fontStyle: "italics",
-        color: Greys[700],
+        fontStyle: "italic",
+        color: Greys[500],
     },
     institutionEditAction: {
         color: Greys[600],

@@ -1,20 +1,27 @@
 import { Avatar, IconButton, Typography } from "@material-ui/core";
 import { AccountBalance, Description, Edit, ImportExport } from "@material-ui/icons";
 import clsx from "clsx";
-import React from "react";
+import React, { useCallback } from "react";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
-import { PLACEHOLDER_CATEGORY_ID, Transaction } from "../../../state/data";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
+import { PartialTransaction } from "../../../state/app/types";
+import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import { useAccountByID, useCategoryByID, useCurrencyByID, useInstitutionByID } from "../../../state/data/hooks";
 import { parseDate } from "../../../state/utilities/values";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
 
-export type PartialTransaction = { [K in keyof Omit<Transaction, "id">]: Transaction[K] | undefined };
 export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransaction }> = ({ transaction: tx }) => {
     const classes = useTransactionsTableStyles();
     const currency = useCurrencyByID(tx.currency);
     const category = useCategoryByID(tx.category);
     const account = useAccountByID(tx.account);
     const institution = useInstitutionByID(account?.institution);
+
+    const handleStartEdit = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: tx })),
+        [tx]
+    );
 
     const getCurrencyDisplay = (value: number | undefined, missing?: boolean) =>
         value !== undefined ? (
@@ -92,7 +99,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: PartialTransact
                 ) : undefined}
             </div>
             <div className={classes.actions}>
-                <IconButton size="small">
+                <IconButton size="small" onClick={handleStartEdit}>
                     <Edit fontSize="small" />
                 </IconButton>
             </div>

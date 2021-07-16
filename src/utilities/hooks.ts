@@ -23,13 +23,13 @@ import { LegacyRef, useCallback, useEffect, useMemo, useRef, useState } from "re
 //     return [state, setState] as [T, (t: T) => void];
 // };
 
-export const useDivBoundingRect = () => {
+export const useDivBoundingRect = <T extends Element = HTMLDivElement>() => {
     const [rect, setRect] = useState<DOMRectReadOnly>(new DOMRectReadOnly(0, 0, 0, 0));
 
     const observer = useMemo(() => new ResizeObserver((entries) => setRect(entries[0].contentRect)), [setRect]);
     useEffect(() => () => observer.disconnect(), [observer]);
 
-    const ref = useMemo<LegacyRef<HTMLDivElement>>(
+    const ref = useMemo<LegacyRef<T>>(
         () => (node) => {
             if (node) {
                 setRect(node.getBoundingClientRect());
@@ -39,7 +39,7 @@ export const useDivBoundingRect = () => {
         [observer, setRect]
     );
 
-    return [rect, ref] as [DOMRectReadOnly, LegacyRef<HTMLDivElement>];
+    return [rect, ref] as [DOMRectReadOnly, LegacyRef<T>];
 };
 
 export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {

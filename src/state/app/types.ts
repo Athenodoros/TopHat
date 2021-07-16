@@ -1,3 +1,4 @@
+import { Transaction } from "../data";
 import { ID, SDate } from "../utilities/values";
 
 export type ChartSign = "all" | "credits" | "debits";
@@ -26,6 +27,7 @@ export type AccountsPageState = {
     filterInactive: boolean;
 };
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
+export type PartialTransaction = { [K in keyof Transaction]: Transaction[K] | undefined };
 export type TransactionsPageState = {
     // Page ID
     id: "transactions";
@@ -48,6 +50,9 @@ export type TransactionsPageState = {
     search: string;
     searchRegex: boolean;
     tableLimit: number;
+
+    // Edit State - if "id" is undefined, then it's the header
+    edit?: PartialTransaction;
 };
 export type CategoriesPageState = {
     id: "categories";

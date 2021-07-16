@@ -18,7 +18,7 @@ import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
 import { FilterIcon, FilterMenuOption } from "../../../components/table/";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { useTransactionsPageState } from "../../../state/app/hooks";
+import { useTransactionsPageFilters } from "../../../state/app/hooks";
 import { BooleanFilters, TransactionsPageState } from "../../../state/app/types";
 import { useAllAccounts, useAllCategories, useFormatValue } from "../../../state/data/hooks";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
@@ -85,7 +85,7 @@ const useHeaderStyles = makeStyles({
 export const TransactionsTableHeaderView: React.FC = () => {
     const classes = useTransactionsTableStyles();
     const headerClasses = useHeaderStyles();
-    const filters = useTransactionsPageState();
+    const filters = useTransactionsPageFilters();
 
     const accounts = useAllAccounts();
     const categories = useAllCategories();

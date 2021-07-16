@@ -1,14 +1,14 @@
 import { groupBy, toPairs } from "lodash";
 import { useMemo } from "react";
 import { filterListByID } from "../../../components/table";
-import { useTransactionsPageState } from "../../../state/app/hooks";
+import { useTransactionsPageFilters } from "../../../state/app/hooks";
 import { useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
 import { takeWithFilter } from "../../../utilities/data";
 
 export const useTransactionsTableData = () => {
     const transactions = useTransactionIDs();
     const metadata = useTransactionMap();
-    const filters = useTransactionsPageState();
+    const filters = useTransactionsPageFilters();
 
     return useMemo(() => {
         const regex = new RegExp(filters.search);
