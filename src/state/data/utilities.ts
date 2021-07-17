@@ -1,6 +1,6 @@
 import { Greys } from "../../styles/colours";
 import { BaseTransactionHistory } from "../utilities/values";
-import { Category, Institution } from "./types";
+import { Category, Currency, Institution } from "./types";
 
 export const PLACEHOLDER_CATEGORY_ID = 0;
 export const PLACEHOLDER_CATEGORY: Category = {
@@ -13,3 +13,6 @@ export const PLACEHOLDER_CATEGORY: Category = {
 
 export const PLACEHOLDER_INSTITUTION_ID = 0;
 export const PLACEHOLDER_INSTITUTION: Institution = { id: 0, index: -1, name: "No Institution", colour: Greys[600] };
+
+export const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
+    (value * from.exchangeRate) / to.exchangeRate;

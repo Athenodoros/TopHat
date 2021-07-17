@@ -1,5 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimStart } from "lodash";
+import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { AccountsPageState, PageStateType, TransactionsPageState } from "./types";
 
 export const DefaultPages = {
@@ -28,6 +29,7 @@ export const DefaultPages = {
         tableLimit: 50,
         search: "",
         searchRegex: false,
+        selection: [],
     },
     categories: { id: "categories" as const },
     analysis: { id: "analysis" as const },
@@ -71,6 +73,16 @@ export const AppSlice = createSlice({
                 ...payload,
             };
         },
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(SaveTransactionSelectionState, (state) => {
+                (state.page as TransactionsPageState).edit = undefined;
+            })
+            .addCase(DeleteTransactionSelectionState, (state) => {
+                (state.page as TransactionsPageState).selection = [];
+                (state.page as TransactionsPageState).edit = undefined;
+            });
     },
 });
 const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion

@@ -1,6 +1,7 @@
 import { createEntityAdapter, createSlice, Dictionary, EntityId, EntityState, PayloadAction } from "@reduxjs/toolkit";
-import { clone, cloneDeep, fromPairs, reverse, round, toPairs } from "lodash";
+import { clone, fromPairs, isEqual, reverse, round, toPairs, uniqWith } from "lodash";
 import { takeWithDefault, zipObject } from "../../utilities/data";
+import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import {
     BalanceHistory,
     BaseBalanceValues,
@@ -12,9 +13,9 @@ import {
 } from "../utilities/values";
 import { DemoObjects } from "./demo";
 import { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
-import { PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION } from "./utilities";
+import { changeCurrencyValue, PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION } from "./utilities";
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
-export { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
+export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter();
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
@@ -45,6 +46,9 @@ const defaults = {
     notifications: BaseAdapter.getInitialState() as EntityState<Notification>,
 } as DataState;
 
+type TransactionSummary = "category" | "currency" | "account";
+const TransactionSummaries = ["category", "currency", "account"] as TransactionSummary[];
+
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
@@ -54,17 +58,19 @@ export const DataSlice = createSlice({
         reset: () => defaults,
         set: (_, action: PayloadAction<DataState>) => action.payload,
         setUpDemo: () => {
-            let transactions = DateAdapter.addMany(defaults.transaction, DemoObjects.transactions);
-            transactions = markAllBalances(transactions);
+            const transactions = DateAdapter.addMany(defaults.transaction, DemoObjects.transactions);
+            updateBalancesInPlace(transactions);
 
-            const { accountLastTransactionDates, accountBalances, transactionSummaries } = getTransactionSummaries(
+            const currencies = zipObject(
+                DemoObjects.currencies.map(({ id }) => id),
+                DemoObjects.currencies
+            );
+            const { accountLastTransactionDates, transactionSummaries } = getTransactionSummaries(
                 transactions,
                 defaults.user.currency,
-                zipObject(
-                    DemoObjects.currencies.map(({ id }) => id),
-                    DemoObjects.currencies
-                )
+                currencies
             );
+            const accountBalances = getBalanceSummaries(transactions, defaults.user.currency, currencies);
 
             return {
                 account: IndexedAdapter.addMany(
@@ -104,93 +110,6 @@ export const DataSlice = createSlice({
             };
         },
 
-        // Accounts
-        // CreateAccount: (state, action: PayloadAction<Account>) => ({
-        //     ...state,
-        //     account: IndexedAdapter.addOne(state.account, action),
-        // }),
-        // DeleteAccount: (state, { payload }: PayloadAction<ID>) => ({
-        //     ...state,
-        //     account: IndexedAdapter.removeOne(state.account, payload),
-        //     transaction: BaseAdapter.removeMany(state.transaction,
-        //         values(state.transaction.entities).filter(t => t?.account === payload).map(t => t!.id)
-        //     ),
-        // }),
-        // UpdateAccount: (state, action: PayloadAction<Update<Account>>) => ({
-        //     ...state,
-        //     account: IndexedAdapter.updateOne(state.account, action),
-        // }),
-
-        // Categories
-        // CreateCategory: (state, action: PayloadAction<Category>) => ({
-        //     ...state,
-        //     category: IndexedAdapter.addOne(state.category, action),
-        // }),
-        // DeleteCategory: (state, action: PayloadAction<ID>) => ({
-        //     ...state,
-        //     category: IndexedAdapter.removeOne(state.category, action),
-        // }),
-        // UpdateCategory: (state, action: PayloadAction<Update<Category>>) => ({
-        //     ...state,
-        //     category: IndexedAdapter.updateOne(state.category, action),
-        // }),
-
-        // Currencies
-        // CreateCurrency: (state, action: PayloadAction<Currency>) => ({
-        //     ...state,
-        //     currency: IndexedAdapter.addOne(state.currency, action),
-        // }),
-        // DeleteCurrency: (state, action: PayloadAction<ID>) => ({
-        //     ...state,
-        //     currency: IndexedAdapter.removeOne(state.currency, action),
-        // }),
-        // UpdateCurrency: (state, action: PayloadAction<Update<Currency>>) => ({
-        //     ...state,
-        //     currency: IndexedAdapter.updateOne(state.currency, action),
-        // }),
-
-        // Institution
-        // CreateInstitution: (state, action: PayloadAction<Institution>) => ({
-        //     ...state,
-        //     institution: IndexedAdapter.addOne(state.institution, action),
-        // }),
-        // DeleteInstitution: (state, action: PayloadAction<ID>) => ({
-        //     ...state,
-        //     institution: IndexedAdapter.removeOne(state.institution, action),
-        // }),
-        // UpdateInstitution: (state, action: PayloadAction<Update<Institution>>) => ({
-        //     ...state,
-        //     institution: IndexedAdapter.updateOne(state.institution, action),
-        // }),
-
-        // Rules
-        // CreateRule: (state, action: PayloadAction<Rule>) => ({
-        //     ...state,
-        //     rule: IndexedAdapter.addOne(state.rule, action),
-        // }),
-        // DeleteRule: (state, action: PayloadAction<ID>) => ({
-        //     ...state,
-        //     rule: IndexedAdapter.removeOne(state.rule, action),
-        // }),
-        // UpdateRule: (state, action: PayloadAction<Update<Rule>>) => ({
-        //     ...state,
-        //     rule: IndexedAdapter.updateOne(state.rule, action),
-        // }),
-
-        // Transactions
-        // CreateTransaction: (state, action: PayloadAction<Transaction>) => ({
-        //     ...state,
-        //     transaction: BaseAdapter.addOne(state.transaction, action),
-        // }),
-        // DeleteTransaction: (state, action: PayloadAction<ID>) => ({
-        //     ...state,
-        //     transaction: BaseAdapter.removeOne(state.transaction, action),
-        // }),
-        // UpdateTransaction: (state, action: PayloadAction<Update<Transaction>>) => ({
-        //     ...state,
-        //     transaction: BaseAdapter.updateOne(state.transaction, action),
-        // }),
-
         // User
         updateUserCurrency: (state, { payload }: PayloadAction<number>) => {
             state.user.currency = payload;
@@ -200,25 +119,148 @@ export const DataSlice = createSlice({
         deleteNotification: (state, { payload }: PayloadAction<ID>) =>
             void BaseAdapter.removeOne(state.notifications, payload),
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(SaveTransactionSelectionState, (state, { payload: { ids, edits } }) => {
+                // Update transaction summaries
+                // ids.forEach(id => {
+                //     const tx = state.transaction.entities[id]!;
+                //     if (edits.date) {
+                //         changeTransactionHistory(state, tx.date, -tx.value, )
+                //     }
+                // })
+
+                // Update transactions
+                DateAdapter.updateMany(
+                    state.transaction,
+                    ids.map((id) => ({
+                        id,
+                        changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
+                    }))
+                );
+
+                // Update balances and summaries
+            })
+            .addCase(DeleteTransactionSelectionState, (state, { payload: ids }) => {
+                const transactions = ids.map((id) => state.transaction.entities[id]!);
+
+                // Update transaction summaries
+                transactions.forEach((tx) => changeTransactionHistory(state, tx, true));
+
+                // Delete transactions
+                DateAdapter.removeMany(state.transaction, ids);
+
+                // Update balances and summaries
+                const subset = uniqWith(
+                    // Can't use _.pick, because it doesn't work with WritableDraft
+                    transactions.map(({ currency, account }) => ({ currency, account })),
+                    isEqual
+                );
+                updateBalancesInPlace(state.transaction, subset);
+                toPairs(
+                    getBalanceSummaries(state.transaction, state.user.currency, state.currency.entities, subset)
+                ).forEach(([account, balances]) => {
+                    const current = state.account.entities[Number(account)]!.balances;
+                    toPairs(balances).forEach(([currency, history]) => {
+                        current[Number(currency)] = history;
+                    });
+                });
+            });
+    },
 });
+
+const changeTransactionHistory = (
+    state: DataState,
+    tx: Pick<Transaction, "value" | "date" | TransactionSummary>,
+    remove?: boolean
+) => {
+    if (!tx.value) return;
+
+    TransactionSummaries.forEach((summary) => {
+        const history = state[summary].entities[tx[summary]]!.transactions;
+        const bucket = getDateBucket(tx.date, history.start);
+        const value = changeCurrencyValue(
+            state.currency.entities[state.user.currency]!,
+            state.currency.entities[tx.currency]!,
+            (remove ? -1 : 1) * tx.value!
+        );
+        history[tx.value! > 0 ? "credits" : "debits"][bucket] += value;
+    });
+};
+
+// const updateTransactionSummary = (history: TransactionHistory) => {
+//     const difference = getCurrentMonth().diff(parseDate(history.start), "months").months;
+//     if (difference !== 0) {
+//         history.start = getCurrentMonthString();
+//         history.credits = range(difference)
+//             .map((_) => 0)
+//             .concat(history.credits);
+//         history.debits = range(difference)
+//             .map((_) => 0)
+//             .concat(history.debits);
+//     }
+// };
+
+// const updateBalanceHistory = (history: BalanceHistory) => {
+//     const difference = getCurrentMonth().diff(parseDate(history.start), "months").months;
+//     if (difference !== 0) {
+//         history.start = getCurrentMonthString();
+//         history.localised = range(difference)
+//             .map((_) => 0)
+//             .concat(history.localised);
+//         history.original = range(difference)
+//             .map((_) => 0)
+//             .concat(history.original);
+//     }
+// };
+
+const getDateBucket = (date: string, start: string) =>
+    parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
+
+const getBalanceSummaries = (
+    transactionState: EntityState<Transaction>,
+    defaultCurrency: ID,
+    currencies: Dictionary<Currency>,
+    subset?: { currency: ID; account: ID }[]
+) => {
+    const balances: Record<ID, Record<ID, BalanceHistory>> = {}; // Account -> Currency -> Balances
+
+    transactionState.ids.forEach((id) => {
+        const tx = transactionState.entities[id]!;
+        if (tx.balance === null) return;
+        if (subset && !subset.some(({ currency, account }) => tx.currency === currency && tx.account === account))
+            return;
+
+        if (!balances[tx.account]) balances[tx.account] = {};
+        if (!balances[tx.account][tx.currency]) balances[tx.account][tx.currency] = BaseBalanceValues();
+
+        const history = balances[tx.account][tx.currency];
+        const bucket = getDateBucket(tx.date, history.start);
+
+        if (bucket >= history.localised.length) {
+            history.localised = takeWithDefault(
+                history.localised,
+                bucket + 1,
+                changeCurrencyValue(currencies[defaultCurrency]!, currencies[tx.currency]!, tx.balance)
+            );
+            history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
+        }
+    });
+    return balances;
+};
 
 const getTransactionSummaries = (
     transactionState: EntityState<Transaction>,
     defaultCurrency: ID,
     currencies: Dictionary<Currency>
 ) => {
-    const balances: Record<ID, Record<ID, BalanceHistory>> = {}; // Account -> Currency -> Balances
-    const totals: ["category" | "currency" | "account", Record<ID, TransactionHistory>][] = [
-        ["category", {}],
-        ["currency", {}],
-        ["account", {}],
-    ];
+    const totals: [typeof TransactionSummaries[number], Record<ID, TransactionHistory>][] = TransactionSummaries.map(
+        (key) => [key, {}]
+    );
     const transactionDates: Record<ID, SDate> = {};
 
     transactionState.ids.forEach((id) => {
         const tx = transactionState.entities[id]!;
-
-        const date = parseDate(tx.date).startOf("month");
 
         if (!transactionDates[tx.account] && tx.value) transactionDates[tx.account] = tx.date;
 
@@ -228,7 +270,7 @@ const getTransactionSummaries = (
                 if (histories[tx[type]!] === undefined) histories[tx[type]!] = BaseTransactionHistory();
 
                 const history = histories[tx[type]!];
-                const bucket = parseDate(history.start).diff(date, "months")["months"];
+                const bucket = getDateBucket(tx.date, history.start);
 
                 if (bucket >= history.credits.length) {
                     history.credits = takeWithDefault(history.credits, bucket + 1, 0);
@@ -242,37 +284,26 @@ const getTransactionSummaries = (
                 );
             });
         }
-
-        if (tx.balance !== null) {
-            if (!balances[tx.account]) balances[tx.account] = {};
-            if (!balances[tx.account][tx.currency]) balances[tx.account][tx.currency] = BaseBalanceValues();
-
-            const history = balances[tx.account][tx.currency];
-            const bucket = parseDate(history.start).diff(date, "months")["months"];
-
-            if (bucket >= history.localised.length) {
-                history.localised = takeWithDefault(
-                    history.localised,
-                    bucket + 1,
-                    changeCurrencyValue(currencies[defaultCurrency]!, currencies[tx.currency]!, tx.balance)
-                );
-                history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
-            }
-        }
     });
 
     return {
         accountLastTransactionDates: transactionDates,
-        accountBalances: balances,
         transactionSummaries: fromPairs(totals) as Record<typeof totals[0][0], Record<ID, TransactionHistory>>,
     };
 };
-export const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
-    (value * from.exchangeRate) / to.exchangeRate;
 
-const markAllBalances = (transactionState: EntityState<Transaction>) => {
-    const ids = transactionState.ids;
-    const entities = cloneDeep(transactionState.entities);
+const updateBalancesInPlace = (
+    { ids, entities }: EntityState<Transaction>,
+    subset?: { currency: ID; account: ID }[]
+) => {
+    if (subset)
+        ids = ids.filter((id) =>
+            subset.some(
+                ({ currency, account }) => entities[id]!.currency === currency && entities[id]!.account === account
+            )
+        );
+    // entities = cloneDeep(entities);
+
     ids.forEach((id) => {
         entities[id]!.balance = null;
     });
@@ -314,6 +345,4 @@ const markAllBalances = (transactionState: EntityState<Transaction>) => {
     statefullyUpdateBalances(reverse(clone(ids)), 0, (tx, acc) =>
         tx?.balance !== null ? tx.balance : acc.balance === null ? null : acc.balance + (tx.value || 0)
     );
-
-    return { ids, entities };
 };

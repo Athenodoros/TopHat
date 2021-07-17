@@ -18,7 +18,7 @@ export interface BalanceHistory {
 }
 export const BaseBalanceValues = () =>
     ({
-        start: formatDate(getToday().startOf("month")),
+        start: getCurrentMonthString(),
         original: [],
         localised: [],
     } as BalanceHistory);
@@ -30,7 +30,7 @@ export interface TransactionHistory {
 }
 export const BaseTransactionHistory = () =>
     ({
-        start: formatDate(getToday().startOf("month")),
+        start: getCurrentMonthString(),
         credits: [],
         debits: [],
     } as TransactionHistory);
@@ -44,6 +44,8 @@ export type SDate = string; // YYYY-MM-DD
 
 export const getToday = () => DateTime.local();
 export const getTodayString = () => formatDate(getToday());
+export const getCurrentMonth = () => getToday().startOf("month");
+export const getCurrentMonthString = () => formatDate(getCurrentMonth());
 
 export function formatJSDate(date: Date): string;
 export function formatJSDate(date: Date | null): string | null;

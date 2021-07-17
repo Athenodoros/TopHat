@@ -9,10 +9,10 @@ import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
-import { PartialTransaction, TransactionsPageState } from "../../../state/app/types";
+import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
 import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories } from "../../../state/data/hooks";
-import { formatDate } from "../../../state/utilities/values";
+import { formatDate, ID } from "../../../state/utilities/values";
 import { Intents } from "../../../styles/colours";
 import {
     EditableBooleanValue,
@@ -65,7 +65,10 @@ const useEditStyles = makeStyles({
     },
 });
 
-export const TransactionsTableEditEntry: React.FC<{ transaction: PartialTransaction }> = ({ transaction: tx }) => {
+export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransactionState; ids: ID[] }> = ({
+    transaction: tx,
+    ids,
+}) => {
     const edit = useTransactionsPageState((state) => state.edit!);
 
     const classes = useTransactionsTableStyles();

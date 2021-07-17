@@ -27,7 +27,7 @@ export type AccountsPageState = {
     filterInactive: boolean;
 };
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
-export type PartialTransaction = { [K in keyof Transaction]?: Transaction[K] };
+export type EditTransactionState = { [K in keyof Transaction]?: Transaction[K] };
 export type TransactionsPageState = {
     // Page ID
     id: "transactions";
@@ -51,8 +51,9 @@ export type TransactionsPageState = {
     searchRegex: boolean;
     tableLimit: number;
 
-    // Edit State - if "id" is undefined, then it's the header
-    edit?: PartialTransaction;
+    // Table State
+    selection: ID[];
+    edit?: EditTransactionState; // if "id" is undefined, then it's the header
 };
 export type CategoriesPageState = {
     id: "categories";

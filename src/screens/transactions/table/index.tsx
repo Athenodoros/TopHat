@@ -1,10 +1,12 @@
 import { Card, Checkbox } from "@material-ui/core";
 import clsx from "clsx";
 import { keys, uniqBy } from "lodash";
-import React, { useState } from "react";
+import React from "react";
 import { TableContainer, TableHeaderContainer } from "../../../components/table";
+import { TopHatDispatch, TopHatStore } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
-import { PartialTransaction } from "../../../state/app/types";
+import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
 import { Transaction } from "../../../state/data";
 import { ID } from "../../../state/utilities/values";
 import { flipListIncludes, zipObject } from "../../../utilities/data";
@@ -18,10 +20,7 @@ export const TransactionsTable: React.FC = () => {
     const classes = useTransactionsTableStyles();
     const { ids, groups, metadata } = useTransactionsTableData();
 
-    const [selection, setSelection] = useState([] as ID[]);
-    const toggleSelection = (id: ID) => () => setSelection(flipListIncludes(id, selection));
-    const toggleSelectionHeader = () => setSelection(selection.length > 0 ? [] : ids);
-
+    const selection = useTransactionsPageState((state) => state.selection);
     const edit = useTransactionsPageState((state) => state.edit);
 
     return (
@@ -33,7 +32,7 @@ export const TransactionsTable: React.FC = () => {
                     <Checkbox
                         indeterminate={!!selection.length && selection.length !== ids.length}
                         checked={!!selection.length}
-                        onChange={toggleSelectionHeader}
+                        onChange={toggleSelectionHeader(ids)}
                         color="primary"
                         disabled={!!edit}
                     />
@@ -41,6 +40,7 @@ export const TransactionsTable: React.FC = () => {
                 {edit && edit.id === undefined ? (
                     <TransactionsTableEditEntry
                         transaction={getAllCommonValues(selection.map((id) => metadata[id]!))}
+                        ids={selection}
                     />
                 ) : selection.length ? (
                     <TransactionsTableViewEntry
@@ -63,7 +63,7 @@ export const TransactionsTable: React.FC = () => {
                                 />
                             </div>
                             {edit?.id === id ? (
-                                <TransactionsTableEditEntry transaction={metadata[id]!} />
+                                <TransactionsTableEditEntry transaction={metadata[id]!} ids={[id]} />
                             ) : (
                                 <TransactionsTableViewEntry transaction={metadata[id]!} />
                             )}
@@ -84,5 +84,10 @@ const getAllCommonValues = (transactions: Transaction[]) => {
             const values = uniqBy(transactions, (tx) => tx[key]);
             return values.length === 1 ? values[0][key] : undefined;
         })
-    ) as PartialTransaction;
+    ) as EditTransactionState;
 };
+
+const getSelection = () => (TopHatStore.getState().app.page as TransactionsPageState).selection;
+const setSelection = (selection: ID[]) => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ selection }));
+const toggleSelection = (id: ID) => () => setSelection(flipListIncludes(id, getSelection()));
+const toggleSelectionHeader = (ids: ID[]) => () => setSelection(getSelection().length > 0 ? [] : ids);
