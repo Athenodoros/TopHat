@@ -2,7 +2,7 @@ import chroma from "chroma-js";
 import { random as randomInt, range } from "lodash";
 import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
-import { getToday, getTodayString } from "../utilities/values";
+import { BaseTransactionHistory, getToday, getTodayString } from "../utilities/values";
 import { Account, Category, Condition, Currency, Institution, Rule, Transaction } from "./types";
 import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
@@ -16,18 +16,15 @@ type CurrencyArgs = [string, string, number, string];
 const currencyFields = ["symbol", "longName", "exchangeRate", "name"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
-        id: id + 1,
-        index: id,
-        colour: currencyColourScale(id + 1).hex(),
-        transactions: {
-            credits: [] as number[],
-            debits: [] as number[],
-        },
+        id: id + 2,
+        index: id + 1,
+        colour: currencyColourScale(id + 2).hex(),
+        transactions: BaseTransactionHistory(),
         ...zipObject(currencyFields, args),
     } as Currency);
+export const DEFAULT_CURRENCY = makeCurrency(["AU$", "Australian Dollars", 0.5, "AUD"], -1);
 const currencies = (
     [
-        ["AU$", "Australian Dollars", 0.5, "AUD"],
         ["£", "Pounds Sterling", 0.92, "GBP"],
         ["€", "Euros", 0.83, "EUR"],
         ["US$", "US Dollars", 0.73, "USD"],
@@ -42,10 +39,7 @@ const makeCategory = (name: string, id: number) =>
         budget: 0,
         name,
         colour: cateogryColourScale(id).hex(),
-        transactions: {
-            credits: [] as number[],
-            debits: [] as number[],
-        },
+        transactions: BaseTransactionHistory(),
     } as Category);
 const categories = ["Social", "Groceries", "Transport", "Travel", "Mortgage", "Income"].map(makeCategory);
 
@@ -84,17 +78,14 @@ const institutions = rawInstitutions.map(makeInstitution);
 
 type AccountArgs = [string, boolean, Account["category"], number | undefined, boolean];
 const accountFields = ["name", "isActive", "category", "institution", "usesStatements"] as const;
-const makeAccount = (args: AccountArgs, id: number) =>
+const makeAccount = (args: AccountArgs, id: number): Account =>
     ({
         id: id + 1,
         index: id,
         // colour: args[3] !== undefined ? rawInstitutions[args[3]][2] : greys[500],
         lastUpdate,
-        currencies: [] as number[],
-        transactions: {
-            credits: [] as number[],
-            debits: [] as number[],
-        },
+        transactions: BaseTransactionHistory(),
+        balances: {},
         ...zipObject(accountFields, args),
     } as Account);
 const accounts = (
@@ -336,11 +327,11 @@ const notifications = [
 
 // Initialise Demo
 export const DemoObjects = {
-    accounts,
-    institutions,
-    categories,
-    currencies,
-    rules,
-    transactions,
-    notifications,
+    account: accounts,
+    institution: institutions,
+    category: categories,
+    currency: currencies,
+    rule: rules,
+    transaction: transactions,
+    notification: notifications,
 };

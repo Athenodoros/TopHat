@@ -10,7 +10,7 @@ export const formatEmpty = () => "";
 export const updateListSelection = <T>(t: T, ts: T[]) => (ts.includes(t) ? ts.filter((x) => x !== t) : ts.concat([t]));
 
 export const takeWithDefault = <T>(array: T[], length: number, fallback: T) =>
-    range(length).map((i) => array[i] || fallback);
+    range(length).map((i) => array[i] ?? fallback);
 
 export const takeWithFilter = <T>(array: T[], count: number, filter: (t: T) => boolean) => {
     let values = [];

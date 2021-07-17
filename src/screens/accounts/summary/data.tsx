@@ -42,6 +42,8 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
                     debit: currencyTotal.debit + (original[0] < 0 ? original[0] : 0),
                 },
             } as HistorySummary;
+
+            if (account.id === 6) console.log(account);
         });
     });
 

@@ -26,7 +26,6 @@ export type Account = {
     institution: ID;
 
     lastTransactionDate?: SDate;
-    currencies: ID[];
     balances: {
         [currency: number]: BalanceHistory; // Monthly balances, in reverse order from current date
     };

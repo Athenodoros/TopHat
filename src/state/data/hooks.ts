@@ -49,10 +49,10 @@ export const useInstitutionMap = () => useSelector((state) => state.data.institu
 export const useAllInstitutions = () =>
     useSelector((state) => state.data.institution.ids.map((id) => state.data.institution.entities[id]!), shallowEqual);
 
-export const useNotificationCount = () => useSelector((state) => state.data.notifications.ids.length);
+export const useNotificationCount = () => useSelector((state) => state.data.notification.ids.length);
 export const useAllNotifications = () =>
     useSelector(
-        (state) => state.data.notifications.ids.map((id) => state.data.notifications.entities[id]!),
+        (state) => state.data.notification.ids.map((id) => state.data.notification.entities[id]!),
         shallowEqual
     );
 

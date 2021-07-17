@@ -2,7 +2,6 @@ import { IconButton, makeStyles, Tooltip } from "@material-ui/core";
 import { CancelTwoTone, DeleteTwoTone, Description, ImportExport, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
-import { noop } from "lodash";
 import { DateTime } from "luxon";
 import React from "react";
 import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
@@ -12,6 +11,7 @@ import { useTransactionsPageState } from "../../../state/app/hooks";
 import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
 import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories } from "../../../state/data/hooks";
+import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
 import { Intents } from "../../../styles/colours";
 import {
@@ -167,7 +167,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
             </div>
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
-                    <IconButton size="small" onClick={noop}>
+                    <IconButton size="small" onClick={onSaveChanges(ids, edit)}>
                         <SaveTwoTone fontSize="small" style={{ color: Intents.success.main }} />
                     </IconButton>
                 </Tooltip>
@@ -177,7 +177,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete Transaction">
-                    <IconButton size="small" onClick={noop}>
+                    <IconButton size="small" onClick={onDeleteChanges(ids)}>
                         <CancelTwoTone fontSize="small" color="error" />
                     </IconButton>
                 </Tooltip>
@@ -186,7 +186,10 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
     );
 };
 
+const onSaveChanges = (ids: ID[], edits: EditTransactionState) => () =>
+    TopHatDispatch(SaveTransactionSelectionState({ ids, edits }));
 const onDiscardChanges = () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: undefined }));
+const onDeleteChanges = (ids: ID[]) => () => TopHatDispatch(DeleteTransactionSelectionState(ids));
 
 const setEditPartial =
     <Key extends keyof Transaction>(key: Key) =>

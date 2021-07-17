@@ -1,4 +1,4 @@
-import { groupBy, sortBy, toPairs, values } from "lodash";
+import { groupBy, keys, sortBy, toPairs, values } from "lodash";
 import { filterListByID, filterListByIDs } from "../../../components/table";
 import { useAccountsPageState } from "../../../state/app/hooks";
 import { Account, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
@@ -21,7 +21,7 @@ export const useAccountsTableData = () => {
             filterListByID(filters.account, account.id) &&
             filterListByID(filters.institution, account.institution) &&
             filterListByID(filters.type, account.category) &&
-            filterListByIDs(filters.currency, account.currencies) &&
+            filterListByIDs(filters.currency, keys(account.balances).map(Number)) &&
             (filters.balances === "all" ||
                 values(account.balances).some(({ localised: [balance] }) => {
                     // prettier-ignore
