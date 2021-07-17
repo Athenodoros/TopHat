@@ -1,7 +1,7 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimStart } from "lodash";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
-import { AccountsPageState, PageStateType, TransactionsPageState } from "./types";
+import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./types";
 
 export const DefaultPages = {
     summary: { id: "summary" as const },
@@ -15,6 +15,10 @@ export const DefaultPages = {
         type: [],
         filterInactive: true,
         balances: "all" as const,
+    },
+    account: {
+        id: "account" as const,
+        account: 0,
     },
     transactions: {
         id: "transactions" as const,
@@ -42,9 +46,18 @@ interface AppState {
     page: PageStateType;
 }
 
-export const getPagePathForPageState = ({ id }: PageStateType) => "/" + id;
-export const getPageStateFromPagePath = (path: string) =>
-    get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
+const ObjectIDRegex = /^\d+$/;
+export const getPagePathForPageState = (state: PageStateType) => {
+    return "/" + state.id + (state.id === "account" ? "/" + state.account : "");
+};
+export const getPageStateFromPagePath = (path: string) => {
+    const [_, page, id] = path.split("/");
+
+    if (page === "account")
+        return ObjectIDRegex.test(id) ? ({ id: page, account: Number(id) } as AccountPageState) : null;
+
+    return get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
+};
 
 export const AppSlice = createSlice({
     name: "app",

@@ -61,7 +61,8 @@
           "**/*.ts"
         ],
         "rules": {
-          "react-hooks/rules-of-hooks": "off"
+          "react-hooks/rules-of-hooks": "off",
+          "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
         }
       }
     ]

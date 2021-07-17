@@ -41,7 +41,7 @@ const useSectionStyles = makeStyles((theme) => ({
 
 export interface SectionProps {
     className?: string;
-    title: string;
+    title?: string;
     headers?: React.ReactNode | React.ReactNode[];
     emptyBody?: boolean;
     onClick?: () => void;
@@ -51,10 +51,12 @@ export const Section: React.FC<SectionProps> = ({ className, title, headers, chi
 
     return (
         <div className={clsx(className, classes.section)}>
-            <div className={classes.sectionHeader}>
-                <Typography variant="h6">{title}</Typography>
-                <div>{headers}</div>
-            </div>
+            {title || headers ? (
+                <div className={classes.sectionHeader}>
+                    <Typography variant="h6">{title}</Typography>
+                    <div>{headers}</div>
+                </div>
+            ) : undefined}
             {emptyBody ? (
                 children
             ) : (

@@ -4,10 +4,12 @@ import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";
 import numeral from "numeral";
-import React from "react";
+import React, { useCallback } from "react";
 import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
 import { BalanceHistory, parseDate } from "../../../state/utilities/values";
@@ -113,11 +115,15 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
 
     const currencies = useCurrencyMap();
     const defaultCurrency = useDefaultCurrency();
+    const onClick = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "account", account: account.id })),
+        [account.id]
+    );
 
     const { value, summary, charts, domain } = getAccountSummaries(account, currencies, defaultCurrency);
 
     return (
-        <ButtonBase key={account.id} className={classes.container} component="div">
+        <ButtonBase key={account.id} className={classes.container} component="div" onClick={onClick}>
             <div className={classes.accountNameContainer}>
                 <Typography variant="h6" noWrap={true}>
                     {account.name}

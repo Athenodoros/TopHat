@@ -26,7 +26,7 @@ const getInitialState = <T extends { id: ID }>(initial?: T) =>
 interface UserState {
     currency: number;
 }
-interface DataState {
+export interface DataState {
     account: EntityState<Account>;
     category: EntityState<Category>;
     currency: EntityState<Currency>;

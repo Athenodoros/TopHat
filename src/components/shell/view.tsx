@@ -1,6 +1,8 @@
 import { makeStyles } from "@material-ui/core";
 import React from "react";
+import { AccountPage } from "../../screens/account";
 import { AccountsPage } from "../../screens/accounts";
+import { DataPage } from "../../screens/data";
 import { SummaryPage } from "../../screens/summary";
 import { TransactionsPage } from "../../screens/transactions";
 import { useSelector } from "../../state/utilities/hooks";
@@ -27,7 +29,9 @@ export const View: React.FC = () => {
             <NavBar />
             {page === "summary" ? <SummaryPage /> : undefined}
             {page === "accounts" ? <AccountsPage /> : undefined}
+            {page === "account" ? <AccountPage /> : undefined}
             {page === "transactions" ? <TransactionsPage /> : undefined}
+            {page === "data" ? <DataPage /> : undefined}
         </div>
     );
 };

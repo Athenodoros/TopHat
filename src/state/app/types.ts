@@ -6,11 +6,11 @@ export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];
 export type BooleanFilter = "all" | "include" | "exclude";
 export const BooleanFilters = ["all", "include", "exclude"] as BooleanFilter[];
 
-export type SummaryPageState = {
+export interface SummaryPageState {
     id: "summary";
-};
+}
 export const AccountsPageAggregations = ["account", "currency", "institution", "type"] as const;
-export type AccountsPageState = {
+export interface AccountsPageState {
     // Page ID
     id: "accounts";
 
@@ -25,10 +25,15 @@ export type AccountsPageState = {
     currency: ID[];
     balances: ChartSign;
     filterInactive: boolean;
-};
+}
+export interface AccountPageState {
+    id: "account";
+    account: ID;
+}
+
 export const TransactionsPageAggregations = ["category", "currency", "account"] as const;
 export type EditTransactionState = { [K in keyof Transaction]?: Transaction[K] };
-export type TransactionsPageState = {
+export interface TransactionsPageState {
     // Page ID
     id: "transactions";
 
@@ -54,26 +59,27 @@ export type TransactionsPageState = {
     // Table State
     selection: ID[];
     edit?: EditTransactionState; // if "id" is undefined, then it's the header
-};
-export type CategoriesPageState = {
+}
+export interface CategoriesPageState {
     id: "categories";
-};
-export type AnalysisPageState = {
+}
+export interface AnalysisPageState {
     id: "analysis";
-};
-export type ForecastsPageState = {
+}
+export interface ForecastsPageState {
     id: "forecasts";
-};
-export type DataPageState = {
+}
+export interface DataPageState {
     id: "data";
-};
-export type SettingsPageState = {
+}
+export interface SettingsPageState {
     id: "settings";
-};
+}
 
 export type PageStateType =
     | SummaryPageState
     | AccountsPageState
+    | AccountPageState
     | TransactionsPageState
     | CategoriesPageState
     | AnalysisPageState

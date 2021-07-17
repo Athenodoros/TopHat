@@ -10,8 +10,9 @@ import {
 } from "@material-ui/icons";
 import chroma from "chroma-js";
 import clsx from "clsx";
-import { get } from "lodash-es";
+import { get, mapValues } from "lodash-es";
 import React from "react";
+import { DefaultPages } from "../../state/app";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/types";
 import { useSelector } from "../../state/utilities/hooks";
@@ -88,12 +89,17 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
+const SelectionEquivalents = {
+    ...mapValues(DefaultPages, (page) => page.id),
+    account: "accounts",
+};
+
 export const NavBar: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
     const classes = useStyles();
 
     const getTab = (id: PageStateType["id"], Icon: IconType, logo: boolean = false) => {
-        const selected = id === page;
+        const selected = SelectionEquivalents[page] === id;
         const { main } = get(AppColours, id, { light: Greys[700], main: Greys[800], dark: Greys[900] });
 
         return (
