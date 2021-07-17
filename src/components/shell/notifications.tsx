@@ -1,6 +1,6 @@
-import { Button, IconButton, makeStyles, Typography } from "@material-ui/core";
+import { Button, Collapse, Fade, IconButton, makeStyles, Typography } from "@material-ui/core";
 import { Clear } from "@material-ui/icons";
-import React from "react";
+import React, { useState } from "react";
 import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
 
@@ -61,30 +61,35 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     children,
 }) => {
     const classes = useStyles();
+    const [grow, setGrow] = useState(true);
 
     return (
-        <div className={classes.notification} style={{ borderColor: colour }}>
-            <div className={classes.backdrop} style={{ backgroundColor: colour }} />
-            <div className={classes.header}>
-                <Icon className={classes.headerIcon} />
-                <Typography variant="subtitle2" className={classes.headerTitle}>
-                    {title}
-                </Typography>
-                <IconButton onClick={dismiss} size="small">
-                    <Clear fontSize="inherit" />
-                </IconButton>
-            </div>
-            {children}
-            {buttons && (
-                <div className={classes.buttons}>
-                    {buttons.map(({ text, onClick }, idx) => (
-                        <Button onClick={onClick} size="small" key={idx}>
-                            {text}
-                        </Button>
-                    ))}
+        <Collapse in={grow} onExited={dismiss}>
+            <Fade in={grow}>
+                <div className={classes.notification} style={{ borderColor: colour }}>
+                    <div className={classes.backdrop} style={{ backgroundColor: colour }} />
+                    <div className={classes.header}>
+                        <Icon className={classes.headerIcon} />
+                        <Typography variant="subtitle2" className={classes.headerTitle}>
+                            {title}
+                        </Typography>
+                        <IconButton onClick={() => setGrow(false)} size="small">
+                            <Clear fontSize="inherit" />
+                        </IconButton>
+                    </div>
+                    {children}
+                    {buttons && (
+                        <div className={classes.buttons}>
+                            {buttons.map(({ text, onClick }, idx) => (
+                                <Button onClick={onClick} size="small" key={idx}>
+                                    {text}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
+            </Fade>
+        </Collapse>
     );
 };
 
