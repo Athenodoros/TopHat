@@ -9,7 +9,7 @@ const useStyles = makeStyles({
         display: "flex",
     },
     left: {
-        flex: "1 0 300px",
+        flex: "1 0 400px",
         paddingRight: SECTION_MARGIN,
     },
     right: {

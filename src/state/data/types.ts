@@ -136,7 +136,8 @@ export interface Transaction {
  * User-specific data persisted between sessions
  */
 export interface UserState {
-    defaultCurrency: ID;
+    currency: ID;
+    isDemo: boolean;
 }
 
 export interface NotificationRuleDefinitions {

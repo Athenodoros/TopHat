@@ -12,7 +12,7 @@ import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { BaseBalanceValues, getCurrentMonth, getCurrentMonthString, ID, parseDate } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
-import { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
+import { Account, Category, Currency, Institution, Notification, Rule, Transaction, UserState } from "./types";
 import { changeCurrencyValue, PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION } from "./utilities";
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
@@ -23,9 +23,6 @@ const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: (a, b) => -
 const getInitialState = <T extends { id: ID }>(initial?: T) =>
     initial ? { ids: [initial.id], entities: { [initial.id]: initial } } : { ids: [], entities: {} };
 
-interface UserState {
-    currency: number;
-}
 export interface DataState {
     account: EntityState<Account>;
     category: EntityState<Category>;
@@ -44,7 +41,7 @@ const defaults = {
     institution: getInitialState<Institution>(PLACEHOLDER_INSTITUTION),
     rule: getInitialState<Rule>(),
     transaction: getInitialState<Transaction>(),
-    user: { currency: 1 },
+    user: { currency: 1, isDemo: false },
     notification: getInitialState<Notification>(),
 } as DataState;
 
@@ -68,7 +65,7 @@ export const DataSlice = createSlice({
                 institution: IndexedAdapter.addMany(defaults.institution, DemoObjects.institution),
                 rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rule),
                 transaction: DateAdapter.addMany(defaults.transaction, DemoObjects.transaction),
-                user: defaults.user,
+                user: { ...defaults.user, isDemo: true },
                 notification: BaseAdapter.addMany(defaults.notification, DemoObjects.notification),
             };
 

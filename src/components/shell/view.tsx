@@ -2,7 +2,9 @@ import { makeStyles } from "@material-ui/core";
 import React from "react";
 import { AccountPage } from "../../screens/account";
 import { AccountsPage } from "../../screens/accounts";
+import { AnalysisPage } from "../../screens/analysis";
 import { DataPage } from "../../screens/data";
+import { ForecastPage } from "../../screens/forecasts";
 import { SummaryPage } from "../../screens/summary";
 import { TransactionsPage } from "../../screens/transactions";
 import { useSelector } from "../../state/utilities/hooks";
@@ -32,6 +34,8 @@ export const View: React.FC = () => {
             {page === "account" ? <AccountPage /> : undefined}
             {page === "transactions" ? <TransactionsPage /> : undefined}
             {page === "data" ? <DataPage /> : undefined}
+            {page === "analysis" ? <AnalysisPage /> : undefined}
+            {page === "forecasts" ? <ForecastPage /> : undefined}
         </div>
     );
 };

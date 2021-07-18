@@ -1,11 +1,11 @@
-import { makeStyles, Typography } from "@material-ui/core";
+import { Button, makeStyles, Typography } from "@material-ui/core";
 import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@material-ui/icons";
 import React from "react";
 import { shallowEqual } from "react-redux";
 import { Section } from "../../components/layout";
 import { useSelector } from "../../state/utilities/hooks";
-import { AppColours } from "../../styles/colours";
-import { zipObject } from "../../utilities/data";
+import { AppColours, Greys } from "../../styles/colours";
+import { createAndDownloadFile, zipObject } from "../../utilities/data";
 
 const useMainStyles = makeStyles({
     storedDataEntry: {
@@ -16,12 +16,26 @@ const useMainStyles = makeStyles({
             marginTop: 3,
         },
     },
+    divider: {
+        background: Greys[300],
+        height: 1,
+        width: "60%",
+        margin: "10px auto 20px auto",
+    },
+    button: {
+        float: "right",
+        marginBottom: 10,
+    },
+    demo2: {
+        margin: "15px 0",
+    },
 });
 
 const fields = ["account", "institution", "category", "currency", "rule", "transaction"] as const;
 
 export const DataCountsDisplay: React.FC = () => {
     const classes = useMainStyles();
+    const isDemo = useSelector((state) => state.data.user.isDemo);
 
     const counts = useSelector(
         (state) =>
@@ -57,9 +71,31 @@ export const DataCountsDisplay: React.FC = () => {
                 <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
                 <Table points={[["Categories", counts.category - 1]]} />
             </div>
+            {isDemo ? (
+                <>
+                    <div className={classes.divider} />
+                    <Typography variant="body2">
+                        This is a demo instance of TopHat. To start again from scratch, hit "Wipe Data" below.
+                    </Typography>
+                    <Typography variant="body2" className={classes.demo2}>
+                        One thing you might want to try in the demo is the statement upload functionality: you can click
+                        the button to download a test statement which the demo can import.
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        className={classes.button}
+                        color="primary"
+                        onClick={createStatementDownload}
+                    >
+                        Download Statement
+                    </Button>
+                </>
+            ) : undefined}
         </Section>
     );
 };
+
+const createStatementDownload = () => createAndDownloadFile("statement.csv", "a,b,c\n1,2,3");
 
 const useTableStyles = makeStyles({
     container: {

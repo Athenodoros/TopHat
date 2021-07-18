@@ -11,17 +11,16 @@ import {
 } from "@material-ui/core";
 import { Clear, Help } from "@material-ui/icons";
 import clsx from "clsx";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { getCurrencyIcon } from "../../../components/display/ObjectDisplay";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { onTextFieldChange, suppressEvent } from "../../../utilities/events";
-import { useDivBoundingRect, usePopoverProps } from "../../../utilities/hooks";
+import { useDivBoundingRect, useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
 import { IconType } from "../../../utilities/types";
 import { useTransactionsTableStyles } from "./styles";
 
-const NumberRegex = /^-?\d*\.?\d?\d?$/;
 const useEditableCurrencyValueStyles = makeStyles({
     container: {
         display: "flex",
@@ -82,30 +81,18 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     const currencies = useAllCurrencies();
     const symbol = currencies.find((c) => c.id === currency)?.symbol;
 
-    const [text, setText] = useState("" + (value || ""));
-    const handleChange = useMemo(
-        () =>
-            onTextFieldChange((value) => {
-                if (NumberRegex.test(value)) {
-                    setText(value);
-
-                    if (value === "") onChangeValue(null);
-                    else if (value === (+value).toString()) onChangeValue(+value);
-                }
-            }),
-        [setText, onChangeValue]
-    );
+    const { text, setText, onTextChange } = useNumericInputHandler(value || null, onChangeValue);
     const setValueToUndefined = useCallback(() => {
         setText("");
         onChangeValue();
-    }, [onChangeValue]);
+    }, [setText, onChangeValue]);
 
     return (
         <div className={classes.container}>
             <FormControl size="small" className={classes.input}>
                 <OutlinedInput
                     value={text}
-                    onChange={handleChange}
+                    onChange={onTextChange}
                     placeholder={
                         allowUndefinedValue ? (value === undefined ? "(mixed)" : "(empty)") : "" + (placeholder || "")
                     }

@@ -7,6 +7,7 @@ import {
     PaymentTwoTone,
     SettingsTwoTone,
     ShoppingBasketTwoTone,
+    TrendingUpTwoTone,
 } from "@material-ui/icons";
 import chroma from "chroma-js";
 import clsx from "clsx";
@@ -128,7 +129,7 @@ export const NavBar: React.FC = () => {
                 {getTab("transactions", PaymentTwoTone)}
                 {getTab("categories", ShoppingBasketTwoTone)}
                 {getTab("analysis", InsertChartTwoTone)}
-                {/* {getTab("forecasts", TrendingUpTwoTone)} */}
+                {getTab("forecasts", TrendingUpTwoTone)}
             </div>
             <div className={classes.admin}>
                 {getTab("data", ListTwoTone)}

@@ -1,10 +1,11 @@
 import { Button, makeStyles, TextField, Typography } from "@material-ui/core";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Section } from "../../components/layout";
 import { TopHatDispatch } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { useSelector } from "../../state/utilities/hooks";
 import { Greys } from "../../styles/colours";
+import { createAndDownloadFile } from "../../utilities/data";
 import { onTextFieldChange } from "../../utilities/events";
 
 const useStyles = makeStyles({
@@ -23,6 +24,7 @@ const useStyles = makeStyles({
     },
     button: {
         alignSelf: "flex-end",
+        marginTop: 10,
         marginBottom: 40,
 
         "&:last-child": {
@@ -32,17 +34,12 @@ const useStyles = makeStyles({
 });
 export const DataExports: React.FC = () => {
     const classes = useStyles();
+
     const data = useSelector((state) => state.data);
-
-    const createJSONDownload = () => {
-        const blob = new Blob([JSON.stringify(data)], { type: "text/plain" });
-
-        const link = document.createElement("a");
-        link.download = "TopHat Data.json";
-        link.href = URL.createObjectURL(blob);
-        link.click();
-        URL.revokeObjectURL(link.href);
-    };
+    const createJSONDownload = useCallback(
+        () => createAndDownloadFile("TopHat Data.json", JSON.stringify(data)),
+        [data]
+    );
 
     // TODO: This
     return (

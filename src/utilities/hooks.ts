@@ -1,4 +1,6 @@
+import numeral from "numeral";
 import { LegacyRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { onTextFieldChange } from "./events";
 
 // export const useStateWithRef = <T>(initial: T) => {
 //     const [state, setState] = useState(initial);
@@ -71,3 +73,25 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
 export const useFirstValue = <T>(value: T) => useMemo(() => value, []);
+
+const NumberRegex = /^-?\d*\.?\d?\d?$/;
+export const useNumericInputHandler = (initial: number | null, onChange: (value: number | null) => void) => {
+    const [text, setText] = useState(initial !== undefined ? numeral(initial).format("-0.00") : "");
+    const onTextChange = useMemo(
+        () =>
+            onTextFieldChange((value) => {
+                if (NumberRegex.test(value)) {
+                    setText(value);
+
+                    if (value === "") onChange(null);
+                    else if (value === (+value).toString()) onChange(+value);
+                }
+            }),
+        [setText, onChange]
+    );
+    return { text, setText, onTextChange };
+};
+export const useNumericInputHandlerState = () => {
+    const [value, setValue] = useState<number | null>(null);
+    return { value, onTextChange: useNumericInputHandler(value, setValue).onTextChange };
+};
