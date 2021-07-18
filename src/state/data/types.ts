@@ -18,14 +18,18 @@ export type Account = {
     id: ID;
     index: number;
     name: string;
+    website?: string;
     // colour: string;
 
     isActive: boolean;
     category: 1 | 2 | 3;
-    lastUpdate: SDate;
     institution: ID;
 
+    openDate: SDate;
+    firstTransactionDate?: SDate;
     lastTransactionDate?: SDate;
+    lastUpdate: SDate;
+
     balances: {
         [currency: number]: BalanceHistory; // Monthly balances, in reverse order from current date
     };

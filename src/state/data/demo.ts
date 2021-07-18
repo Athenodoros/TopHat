@@ -2,12 +2,11 @@ import chroma from "chroma-js";
 import { random as randomInt, range } from "lodash";
 import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
-import { BaseTransactionHistory, getToday, getTodayString } from "../utilities/values";
+import { BaseTransactionHistory, formatDate, getToday } from "../utilities/values";
 import { Account, Category, Condition, Currency, Institution, Rule, Transaction } from "./types";
 import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const today = getToday();
-const lastUpdate = getTodayString();
 
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
@@ -76,29 +75,30 @@ const rawInstitutions: InstitutionArgs[] = [
 ];
 const institutions = rawInstitutions.map(makeInstitution);
 
-type AccountArgs = [string, boolean, Account["category"], number | undefined, boolean];
-const accountFields = ["name", "isActive", "category", "institution", "usesStatements"] as const;
+type AccountArgs = [string, boolean, Account["category"], number | undefined, boolean, string | undefined];
+const accountFields = ["name", "isActive", "category", "institution", "usesStatements", "website"] as const;
 const makeAccount = (args: AccountArgs, id: number): Account =>
     ({
         id: id + 1,
         index: id,
         // colour: args[3] !== undefined ? rawInstitutions[args[3]][2] : greys[500],
-        lastUpdate,
+        openDate: formatDate(today.minus({ months: 6 })),
+        lastUpdate: formatDate(today.minus({ months: 6 })),
         transactions: BaseTransactionHistory(),
         balances: {},
         ...zipObject(accountFields, args),
     } as Account);
 const accounts = (
     [
-        ["Orange Everyday", true, 1, 1, true],
-        ["Super", true, 3, 1, false],
-        ["Transaction Account", true, 1, 2, true],
-        ["Investment Account", true, 3, 2, false],
-        ["International Account", true, 1, 3, true],
-        ["Transaction Account", false, 1, 4, true],
-        ["Mortgage", true, 1, 4, true],
+        ["Orange Everyday", true, 1, 1, true, "https://www.ing.com.au/securebanking/"],
+        ["Super", true, 3, 1, false, "https://www.ing.com.au/securebanking/"],
+        ["Transaction Account", true, 1, 2, true, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
+        ["Investment Account", true, 3, 2, false, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
+        ["International Account", true, 1, 3, true, "https://wise.com/user/account"],
+        ["Transaction Account", false, 1, 4, true, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
+        ["Mortgage", true, 1, 4, true, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
         ["Apartment", true, 2, PLACEHOLDER_INSTITUTION_ID, false],
-        ["Euro Account", true, 1, 2, true],
+        ["Euro Account", true, 1, 2, true, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
     ] as AccountArgs[]
 ).map(makeAccount);
 

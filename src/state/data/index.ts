@@ -75,7 +75,7 @@ export const DataSlice = createSlice({
             return createNextState(state, (state) => {
                 updateTransactionSummariesWithTransactions(state, state.transaction.ids);
                 fillTransactionBalances(state.transaction);
-                updateAccountLastTransactionDates(state);
+                updateAccountTransactionDates(state);
                 updateBalanceSummaries(state);
             });
         },
@@ -101,7 +101,7 @@ export const DataSlice = createSlice({
 
                 updateTransactionSummariesWithTransactions(state, ids);
                 fillTransactionBalances(state.transaction, balanceSubset);
-                updateAccountLastTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
+                updateAccountTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
                 updateBalanceSummaries(state, balanceSubset);
             })
             .addCase(DeleteTransactionSelectionState, (state, { payload: ids }) => {
@@ -111,7 +111,7 @@ export const DataSlice = createSlice({
                 updateTransactionSummariesWithTransactions(state, ids, true);
                 DateAdapter.removeMany(state.transaction, ids);
                 fillTransactionBalances(state.transaction, balanceSubset);
-                updateAccountLastTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
+                updateAccountTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
                 updateBalanceSummaries(state, balanceSubset);
             });
     },
@@ -244,8 +244,9 @@ const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, su
     );
 };
 
-const updateAccountLastTransactionDates = (data: DataState, subset?: EntityId[]) => {
+const updateAccountTransactionDates = (data: DataState, subset?: EntityId[]) => {
     (subset || data.account.ids).forEach((id) => {
+        data.account.entities[id]!.firstTransactionDate = undefined;
         data.account.entities[id]!.lastTransactionDate = undefined;
     });
 
@@ -253,6 +254,9 @@ const updateAccountLastTransactionDates = (data: DataState, subset?: EntityId[])
         const tx = data.transaction.entities[id]!;
         if (subset && !subset.includes(tx.account)) return;
         const account = data.account.entities[tx.account]!;
+
+        if (!account.firstTransactionDate || account.firstTransactionDate > tx.date)
+            account.firstTransactionDate = tx.date;
         if (!account.lastTransactionDate || account.lastTransactionDate < tx.date)
             account.lastTransactionDate = tx.date;
     });

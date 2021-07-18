@@ -8,6 +8,8 @@ export const useAccountsPageState = <T = AccountsPageState>(selector: (state: Ac
 
 export const useAccountPageState = <T = AccountPageState>(selector: (state: AccountPageState) => T = identity) =>
     useSelector((state) => selector(state.app.page as AccountPageState));
+export const useAccountPageAccount = () =>
+    useSelector((state) => state.data.account.entities[(state.app.page as AccountPageState).account]!);
 
 export const useTransactionsPageState = <T = TransactionsPageState>(
     selector: (state: TransactionsPageState) => T = identity,
