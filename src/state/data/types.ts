@@ -120,7 +120,6 @@ export interface Transaction {
     reference: string;
     summary: string | null;
     description: string | null;
-    transfer: boolean;
 
     value: number | null;
     recordedBalance: number | null;

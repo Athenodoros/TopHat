@@ -4,7 +4,7 @@ import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
 import { BaseTransactionHistory, formatDate, getToday } from "../utilities/values";
 import { Account, Category, Condition, Currency, Institution, Rule, Transaction } from "./types";
-import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
+import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID, TRANSFER_CATEGORY_ID } from "./utilities";
 
 const today = getToday();
 
@@ -149,12 +149,11 @@ const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
         date: date.toISODate(),
         reference: args[1] || "",
         summary: null,
-        transfer: !!args[6],
         value: args[7] ? null : args[2],
         recordedBalance: args[7] ? args[2] : null,
         balance: null,
         account: args[3] + 1,
-        category: args[5] !== undefined ? args[5] + 1 : PLACEHOLDER_CATEGORY_ID,
+        category: args[6] ? TRANSFER_CATEGORY_ID : args[5] !== undefined ? args[5] + 1 : PLACEHOLDER_CATEGORY_ID,
         currency: args[4] + 1,
         description: args[8] || null,
         statement: args[9] || false, // && statementMap[makeStatement(date)],

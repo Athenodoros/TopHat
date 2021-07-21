@@ -3,10 +3,13 @@ import { TransactionsPageState } from "../../../state/app/types";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import { useAllObjects, useInstitutionMap } from "../../../state/data/hooks";
 import { Account } from "../../../state/data/types";
+import { TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
 import { takeWithDefault } from "../../../utilities/data";
 
 export const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
-    const objects = useAllObjects(aggregation);
+    let objects = useAllObjects(aggregation);
+    if (aggregation === "category") objects = objects.filter((object) => object.id !== TRANSFER_CATEGORY_ID);
+
     const institutions = useInstitutionMap();
 
     const length = Math.min(

@@ -38,6 +38,7 @@ export interface TransactionsPageState {
     id: "transactions";
 
     // Summary
+    transfers: boolean;
     chartSign: ChartSign;
     chartAggregation: typeof TransactionsPageAggregations[number];
 
@@ -50,7 +51,6 @@ export interface TransactionsPageState {
     category: ID[];
     currency: ID[];
     statement: BooleanFilter;
-    transfers: BooleanFilter;
     hideStubs: boolean;
     search: string;
     searchRegex: boolean;

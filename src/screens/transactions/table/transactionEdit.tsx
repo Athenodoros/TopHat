@@ -1,5 +1,5 @@
 import { IconButton, makeStyles, Tooltip } from "@material-ui/core";
-import { CancelTwoTone, DeleteTwoTone, Description, ImportExport, SaveTwoTone } from "@material-ui/icons";
+import { CancelTwoTone, DeleteTwoTone, Description, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { DateTime } from "luxon";
@@ -80,14 +80,6 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
 
     return (
         <>
-            <div className={classes.transfer}>
-                <EditableBooleanValue
-                    value={edit.transfer}
-                    allowUndefined={tx.transfer === undefined}
-                    Icon={ImportExport}
-                    onSelect={onChangeTransfer}
-                />
-            </div>
             <div className={classes.date}>
                 <DatePicker
                     value={edit.date || null}
@@ -200,7 +192,6 @@ const setEditPartial =
             })
         );
 
-const onChangeTransfer = setEditPartial("transfer");
 const onDateChange = (date: DateTime | null) => setEditPartial("date")(date ? formatDate(date) : undefined);
 const updateSummary = setEditPartial("summary");
 const updateDescription = setEditPartial("description");

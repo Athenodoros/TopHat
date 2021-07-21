@@ -31,7 +31,6 @@ export const useTransactionsTableData = () => {
                     (!filters.fromDate || tx.date >= filters.fromDate) &&
                     (!filters.toDate || tx.date <= filters.toDate) &&
                     (!filters.hideStubs || tx.value) &&
-                    (filters.transfers === "all" || (filters.transfers === "include") === tx.transfer) &&
                     (filters.statement === "all" || (filters.statement === "include") === tx.statement) &&
                     (filters.valueTo === undefined || tx.value! <= filters.valueTo) &&
                     (filters.valueFrom === undefined || tx.value! >= filters.valueFrom) &&

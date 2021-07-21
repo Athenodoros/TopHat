@@ -10,7 +10,7 @@ import {
     TextField,
     Typography,
 } from "@material-ui/core";
-import { AddCircleOutline, Description, ImportExport } from "@material-ui/icons";
+import { AddCircleOutline, Description } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
 import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
@@ -115,14 +115,6 @@ export const TransactionsTableHeaderView: React.FC = () => {
 
     return (
         <>
-            <div className={classes.transfer}>
-                <Button
-                    endIcon={<ImportExport fontSize="small" color={BooleanFilterColours[filters.transfers]} />}
-                    onClick={onTransferToggle}
-                    className={headerClasses.icon}
-                    variant="outlined"
-                />
-            </div>
             <div className={classes.date}>
                 <div className={classes.compound}>
                     DATE
@@ -266,10 +258,11 @@ const getCurrentState = () => TopHatStore.getState().app.page as TransactionsPag
 const setFilterPartial = <Key extends keyof TransactionsPageState>(key: Key, value: TransactionsPageState[Key]) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [key]: value }));
 
-const onBooleanFilterToggle = (key: "transfers" | "statement") => () =>
-    setFilterPartial(key, BooleanFilters[(BooleanFilters.indexOf(getCurrentState()[key]) + 1) % BooleanFilters.length]);
-const onTransferToggle = onBooleanFilterToggle("transfers");
-const onStatementToggle = onBooleanFilterToggle("statement");
+const onStatementToggle = () =>
+    setFilterPartial(
+        "statement",
+        BooleanFilters[(BooleanFilters.indexOf(getCurrentState().statement) + 1) % BooleanFilters.length]
+    );
 
 const setDateRange = (fromDate?: string, toDate?: string) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate, toDate }));

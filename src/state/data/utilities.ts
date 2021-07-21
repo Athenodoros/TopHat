@@ -7,7 +7,15 @@ export const PLACEHOLDER_CATEGORY: Category = {
     id: PLACEHOLDER_CATEGORY_ID,
     index: -1,
     name: "No Category",
-    colour: Greys[600],
+    colour: Greys[500],
+    transactions: BaseTransactionHistory(),
+};
+export const TRANSFER_CATEGORY_ID = -1;
+export const TRANSFER_CATEGORY: Category = {
+    id: TRANSFER_CATEGORY_ID,
+    index: -2,
+    name: "Transfer",
+    colour: Greys[500],
     transactions: BaseTransactionHistory(),
 };
 

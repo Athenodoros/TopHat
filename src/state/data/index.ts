@@ -7,21 +7,25 @@ import {
     EntityState,
     PayloadAction,
 } from "@reduxjs/toolkit";
-import { clone, fromPairs, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
+import { clone, fromPairs, isEqual, range, reverse, round, toPairs, uniq, uniqWith, zipObject } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { BaseBalanceValues, getCurrentMonth, getCurrentMonthString, ID, parseDate } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
 import { Account, Category, Currency, Institution, Notification, Rule, Transaction, UserState } from "./types";
-import { changeCurrencyValue, PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION } from "./utilities";
+import { changeCurrencyValue, PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION, TRANSFER_CATEGORY } from "./utilities";
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter();
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: (a, b) => -a.date.localeCompare(b.date) });
-const getInitialState = <T extends { id: ID }>(initial?: T) =>
-    initial ? { ids: [initial.id], entities: { [initial.id]: initial } } : { ids: [], entities: {} };
+const getInitialState = <T extends { id: ID }>(initial?: T[]) => {
+    if (!initial) return { ids: [], entities: {} };
+
+    const ids = initial.map(({ id }) => id);
+    return { ids, entities: zipObject(ids, initial) };
+};
 
 export interface DataState {
     account: EntityState<Account>;
@@ -36,9 +40,9 @@ export interface DataState {
 
 const defaults = {
     account: getInitialState<Account>(),
-    category: getInitialState<Category>(PLACEHOLDER_CATEGORY),
-    currency: getInitialState<Currency>(DEFAULT_CURRENCY),
-    institution: getInitialState<Institution>(PLACEHOLDER_INSTITUTION),
+    category: getInitialState<Category>([PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY]),
+    currency: getInitialState<Currency>([DEFAULT_CURRENCY]),
+    institution: getInitialState<Institution>([PLACEHOLDER_INSTITUTION]),
     rule: getInitialState<Rule>(),
     transaction: getInitialState<Transaction>(),
     user: { currency: 1, isDemo: false },
@@ -166,7 +170,7 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
 
     (ids || state.transaction.ids).forEach((id) => {
         const tx = state.transaction.entities[id]!;
-        if (!tx.value || tx.transfer) return;
+        if (!tx.value) return;
 
         TransactionSummaries.forEach((summary) => {
             if (tx[summary] === null) return;

@@ -8,25 +8,6 @@ const CENTERED_CONTAINER = {
     display: "flex",
     alignItems: "center",
 };
-const ICON_BUTTON = {
-    "& > svg": {
-        margin: 3,
-    },
-
-    "& > button": {
-        minWidth: "auto",
-        padding: 2,
-        // color: Greys[600],
-
-        // "&:not(.MuiButton-outlinedPrimary)": {
-        //     border: "1px solid transparent",
-        // },
-
-        "& .MuiButton-endIcon": {
-            margin: 0,
-        },
-    },
-};
 const MIXED_PLACEHOLDER = {
     opacity: 1,
     fontStyle: "italic",
@@ -74,14 +55,9 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     checkbox: {
         ...CENTERED_CONTAINER,
     },
-    transfer: {
-        margin: "0 5px",
-        ...CENTERED_CONTAINER,
-        ...ICON_BUTTON,
-    },
     date: {
         width: 120,
-        paddingLeft: 5,
+        marginLeft: 30,
         marginRight: 10,
         flexGrow: 0,
         ...CENTERED_CONTAINER,
@@ -110,7 +86,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         ...CENTERED_CONTAINER,
 
         "& > div > div > svg": {
-            visibility: "hidden",
+            // visibility: "hidden",
         },
     },
     categoryIcon: {
@@ -130,7 +106,24 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     statement: {
         margin: "0 15px",
         ...CENTERED_CONTAINER,
-        ...ICON_BUTTON,
+
+        "& > svg": {
+            margin: 3,
+        },
+
+        "& > button": {
+            minWidth: "auto",
+            padding: 2,
+            // color: Greys[600],
+
+            // "&:not(.MuiButton-outlinedPrimary)": {
+            //     border: "1px solid transparent",
+            // },
+
+            "& .MuiButton-endIcon": {
+                margin: 0,
+            },
+        },
     },
     account: {
         width: 170,
@@ -182,6 +175,12 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     },
     mixed: MIXED_PLACEHOLDER,
     mixedPlaceholder: { "&::placeholder": MIXED_PLACEHOLDER },
+    transfer: {
+        fontStyle: "italic",
+        color: Greys[600],
+        overflow: "visible",
+        // fontWeight: 300,
+    },
 }));
 
 export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");

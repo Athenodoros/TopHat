@@ -1,5 +1,5 @@
 import { IconButton, Typography } from "@material-ui/core";
-import { Description, Edit, Help, ImportExport } from "@material-ui/icons";
+import { Description, Edit, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback } from "react";
 import { getCategoryIcon, getInstitutionIcon } from "../../../components/display/ObjectDisplay";
@@ -8,8 +8,8 @@ import { AppSlice } from "../../../state/app";
 import { EditTransactionState } from "../../../state/app/types";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import { useAccountByID, useCategoryByID, useCurrencyByID, useInstitutionByID } from "../../../state/data/hooks";
+import { TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
 import { parseDate } from "../../../state/utilities/values";
-import { IconType } from "../../../utilities/types";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
 
 export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransactionState }> = ({ transaction: tx }) => {
@@ -45,19 +45,6 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
             </Typography>
         ) : undefined;
 
-    const getIcon = (value: boolean | undefined, Icon: IconType) =>
-        value !== undefined ? (
-            <Icon
-                fontSize="small"
-                style={{
-                    visibility: value ? undefined : "hidden",
-                }}
-                className={classes.disabledIcon}
-            />
-        ) : (
-            <Help fontSize="small" className={classes.disabledIcon} />
-        );
-
     const MissingText = (
         <Typography variant="body1" noWrap={true} className={classes.mixed}>
             (mixed)
@@ -66,7 +53,6 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
 
     return (
         <>
-            <div className={classes.transfer}>{getIcon(tx.transfer, ImportExport)}</div>
             <div className={classes.date}>
                 {tx.date ? (
                     <div className={classes.compound}>
@@ -98,7 +84,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
             <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
             <div className={classes.category}>
                 {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
-                    <div className={classes.compound}>
+                    <div className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}>
                         {getCategoryIcon(category, classes.categoryIcon)}
                         {category.name}
                     </div>
@@ -109,7 +95,19 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
             <div className={classes.balance}>
                 {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
             </div>
-            <div className={classes.statement}>{getIcon(tx.statement, Description)}</div>
+            <div className={classes.statement}>
+                {tx.statement !== undefined ? (
+                    <Description
+                        fontSize="small"
+                        style={{
+                            visibility: tx.statement ? undefined : "hidden",
+                        }}
+                        className={classes.disabledIcon}
+                    />
+                ) : (
+                    <Help fontSize="small" className={classes.disabledIcon} />
+                )}
+            </div>
             <div className={classes.account}>
                 {account && institution ? (
                     <>
