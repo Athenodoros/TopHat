@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@date-io/luxon": "1.x",
+    "@fontsource/roboto": "^4.5.0",
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.60",
@@ -62,7 +63,13 @@
         ],
         "rules": {
           "react-hooks/rules-of-hooks": "off",
-          "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
+          "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+              "argsIgnorePattern": "^_",
+              "varsIgnorePattern": "^_"
+            }
+          ]
         }
       }
     ]

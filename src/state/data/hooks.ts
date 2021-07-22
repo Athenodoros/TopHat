@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
 import { useSelector } from "../utilities/hooks";
 import { ID } from "../utilities/values";
-import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution } from "./types";
+import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution, Statement } from "./types";
 
 export const useDefaultCurrency = () =>
     useSelector(({ data }) => data.currency.entities[data.user.currency]!, shallowEqual);
@@ -59,6 +59,15 @@ export const useAllNotifications = () =>
 export const useTransactionIDs = () => useSelector((state) => state.data.transaction.ids);
 export const useTransactionMap = () => useSelector((state) => state.data.transaction.entities);
 export const useTransactionByID = (id: ID) => useSelector((state) => state.data.transaction.entities[id]!);
+
+export function useStatementByID(id: ID): Statement;
+export function useStatementByID(id: ID | undefined): Statement | undefined;
+export function useStatementByID(id: ID | undefined): Statement | undefined {
+    return useSelector((state) => state.data.statement.entities[id as ID]);
+}
+
+export const useAllStatements = () =>
+    useSelector((state) => state.data.statement.ids.map((id) => state.data.statement.entities[id]!), shallowEqual);
 
 export const useObjectIDs = <T extends BasicObjectName>(type: T) => useSelector((state) => state.data[type].ids);
 export const useObjectMap = <T extends BasicObjectName>(type: T) =>

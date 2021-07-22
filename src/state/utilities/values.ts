@@ -78,3 +78,8 @@ export function parseDate(date: string | null | undefined): DateTime | null | un
 export function parseDate(date: string | null | undefined): DateTime | null | undefined {
     return date == null ? (date as null | undefined) : DateTime.fromISO(date);
 }
+
+/**
+ * Statement Parse Options
+ */
+export interface StatementParseOptions {}

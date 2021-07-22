@@ -5,6 +5,13 @@ import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
 
 const useStyles = makeStyles({
+    container: {
+        marginBottom: 20,
+        "&:first-child": {
+            marginTop: 20,
+        },
+    },
+
     notification: {
         display: "flex",
         flexDirection: "column",
@@ -14,11 +21,6 @@ const useStyles = makeStyles({
         padding: "0 17px",
         fontSize: 20,
         width: 350,
-
-        marginBottom: 20,
-        "&:first-child": {
-            marginTop: 20,
-        },
     },
 
     backdrop: {
@@ -64,7 +66,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     const [grow, setGrow] = useState(true);
 
     return (
-        <Collapse in={grow} onExited={dismiss}>
+        <Collapse in={grow} onExited={dismiss} className={classes.container}>
             <Fade in={grow}>
                 <div className={classes.notification} style={{ borderColor: colour }}>
                     <div className={classes.backdrop} style={{ backgroundColor: colour }} />

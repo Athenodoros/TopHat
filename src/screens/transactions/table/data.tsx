@@ -28,10 +28,10 @@ export const useTransactionsTableData = () => {
                 filterListByID(filters.account, tx.account) &&
                     filterListByID(filters.category, tx.category) &&
                     filterListByID(filters.currency, tx.currency) &&
+                    filterListByID(filters.statement, tx.statement) &&
                     (!filters.fromDate || tx.date >= filters.fromDate) &&
                     (!filters.toDate || tx.date <= filters.toDate) &&
                     (!filters.hideStubs || tx.value) &&
-                    (filters.statement === "all" || (filters.statement === "include") === tx.statement) &&
                     (filters.valueTo === undefined || tx.value! <= filters.valueTo) &&
                     (filters.valueFrom === undefined || tx.value! >= filters.valueFrom) &&
                     search

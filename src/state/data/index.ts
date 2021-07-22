@@ -12,14 +12,32 @@ import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { BaseBalanceValues, getCurrentMonth, getCurrentMonthString, ID, parseDate } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
-import { Account, Category, Currency, Institution, Notification, Rule, Transaction, UserState } from "./types";
-import { changeCurrencyValue, PLACEHOLDER_CATEGORY, PLACEHOLDER_INSTITUTION, TRANSFER_CATEGORY } from "./utilities";
+import {
+    Account,
+    Category,
+    Currency,
+    Institution,
+    Notification,
+    Rule,
+    Statement,
+    Transaction,
+    UserState,
+} from "./types";
+import {
+    changeCurrencyValue,
+    compareTransactionsDescendingDates,
+    PLACEHOLDER_CATEGORY,
+    PLACEHOLDER_INSTITUTION,
+    PLACEHOLDER_STATEMENT,
+    TRANSFER_CATEGORY,
+    TRANSFER_CATEGORY_ID,
+} from "./utilities";
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter();
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
-const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: (a, b) => -a.date.localeCompare(b.date) });
+const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
 const getInitialState = <T extends { id: ID }>(initial?: T[]) => {
     if (!initial) return { ids: [], entities: {} };
 
@@ -34,6 +52,7 @@ export interface DataState {
     institution: EntityState<Institution>;
     rule: EntityState<Rule>;
     transaction: EntityState<Transaction>;
+    statement: EntityState<Statement>;
     user: UserState;
     notification: EntityState<Notification>;
 }
@@ -46,6 +65,7 @@ const defaults = {
     rule: getInitialState<Rule>(),
     transaction: getInitialState<Transaction>(),
     user: { currency: 1, isDemo: false },
+    statement: getInitialState<Statement>([PLACEHOLDER_STATEMENT]),
     notification: getInitialState<Notification>(),
 } as DataState;
 
@@ -69,6 +89,7 @@ export const DataSlice = createSlice({
                 institution: IndexedAdapter.addMany(defaults.institution, DemoObjects.institution),
                 rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rule),
                 transaction: DateAdapter.addMany(defaults.transaction, DemoObjects.transaction),
+                statement: BaseAdapter.addMany(defaults.statement, DemoObjects.statement),
                 user: { ...defaults.user, isDemo: true },
                 notification: BaseAdapter.addMany(defaults.notification, DemoObjects.notification),
             };
@@ -170,7 +191,7 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
 
     (ids || state.transaction.ids).forEach((id) => {
         const tx = state.transaction.entities[id]!;
-        if (!tx.value) return;
+        if (!tx.value || tx.category === TRANSFER_CATEGORY_ID) return;
 
         TransactionSummaries.forEach((summary) => {
             if (tx[summary] === null) return;

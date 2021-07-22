@@ -15,10 +15,9 @@ import React, { useCallback, useMemo } from "react";
 import { getCurrencyIcon } from "../../../components/display/ObjectDisplay";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
-import { Greys, Intents } from "../../../styles/colours";
+import { Greys } from "../../../styles/colours";
 import { onTextFieldChange, suppressEvent } from "../../../utilities/events";
 import { useDivBoundingRect, useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
-import { IconType } from "../../../utilities/types";
 import { useTransactionsTableStyles } from "./styles";
 
 const useEditableCurrencyValueStyles = makeStyles({
@@ -175,42 +174,42 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     );
 };
 
-interface EditableBooleanValueProps {
-    Icon: IconType;
-    value: boolean | undefined;
-    allowUndefined: boolean;
-    onSelect: (value?: boolean) => void;
-}
-export const EditableBooleanValue: React.FC<EditableBooleanValueProps> = ({
-    Icon,
-    value,
-    allowUndefined,
-    onSelect,
-}) => {
-    const onClick = useCallback(
-        () =>
-            onSelect(
-                allowUndefined
-                    ? { true: false, false: undefined, undefined: true }[("" + value) as "true" | "false" | "undefined"]
-                    : !value
-            ),
-        [value, allowUndefined, onSelect]
-    );
+// interface EditableBooleanValueProps {
+//     Icon: IconType;
+//     value: boolean | undefined;
+//     allowUndefined: boolean;
+//     onSelect: (value?: boolean) => void;
+// }
+// export const EditableBooleanValue: React.FC<EditableBooleanValueProps> = ({
+//     Icon,
+//     value,
+//     allowUndefined,
+//     onSelect,
+// }) => {
+//     const onClick = useCallback(
+//         () =>
+//             onSelect(
+//                 allowUndefined
+//                     ? { true: false, false: undefined, undefined: true }[("" + value) as "true" | "false" | "undefined"]
+//                     : !value
+//             ),
+//         [value, allowUndefined, onSelect]
+//     );
 
-    return (
-        <Button
-            onClick={onClick}
-            variant="outlined"
-            endIcon={
-                value !== undefined ? (
-                    <Icon fontSize="small" style={{ color: value ? Intents.primary.main : Intents.danger.main }} />
-                ) : (
-                    <Help fontSize="small" style={{ color: Greys[500] }} />
-                )
-            }
-        />
-    );
-};
+//     return (
+//         <Button
+//             onClick={onClick}
+//             variant="outlined"
+//             endIcon={
+//                 value !== undefined ? (
+//                     <Icon fontSize="small" style={{ color: value ? Intents.primary.main : Intents.danger.main }} />
+//                 ) : (
+//                     <Help fontSize="small" style={{ color: Greys[500] }} />
+//                 )
+//             }
+//         />
+//     );
+// };
 
 const useTransactionsTableObjectDropdownStyles = makeStyles({
     container: {
@@ -230,6 +229,8 @@ const useTransactionsTableObjectDropdownStyles = makeStyles({
         textAlign: "left",
     },
 });
+
+type ButtonProps = { ref: React.RefObject<HTMLButtonElement>; onClick: () => void };
 interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string }> {
     options: T[];
     selected: ID | undefined;
@@ -237,6 +238,7 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     getIcon: (option: T, className: string) => React.ReactNode;
     iconClass: string;
     allowUndefined?: boolean;
+    getButton?: (props: ButtonProps) => React.ReactNode;
 }
 export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string }>({
     options,
@@ -245,6 +247,7 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     getIcon,
     iconClass,
     allowUndefined,
+    getButton,
 }: TransactionsTableObjectDropdownProps<T>) => {
     const popover = usePopoverProps<HTMLDivElement>();
     const classes = useTransactionsTableObjectDropdownStyles();
@@ -262,22 +265,26 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
 
     return (
         <div ref={ref} className={classes.container}>
-            <Button variant="outlined" {...popover.buttonProps} className={classes.button} component="div">
-                {option && getIcon(option, iconClass)}
-                <Typography
-                    variant="body1"
-                    className={clsx(classes.label, option ? undefined : MixedClass)}
-                    noWrap={true}
-                >
-                    {option?.name || "(mixed)"}
-                </Typography>
-                {allowUndefined ? (
-                    <IconButton disabled={selected === undefined} size="small" onClick={clearSelection}>
-                        <Clear fontSize="small" />
-                    </IconButton>
-                ) : undefined}
-            </Button>
-            <Menu {...popover.popoverProps} PaperProps={{ style: { maxHeight: 170, width } }}>
+            {getButton ? (
+                getButton(popover.buttonProps as unknown as ButtonProps)
+            ) : (
+                <Button variant="outlined" {...popover.buttonProps} className={classes.button} component="div">
+                    {option && getIcon(option, iconClass)}
+                    <Typography
+                        variant="body1"
+                        className={clsx(classes.label, option ? undefined : MixedClass)}
+                        noWrap={true}
+                    >
+                        {option?.name || "(mixed)"}
+                    </Typography>
+                    {allowUndefined ? (
+                        <IconButton disabled={selected === undefined} size="small" onClick={clearSelection}>
+                            <Clear fontSize="small" />
+                        </IconButton>
+                    ) : undefined}
+                </Button>
+            )}
+            <Menu {...popover.popoverProps} PaperProps={{ style: { maxHeight: 170, width: Math.max(width, 200) } }}>
                 {allowUndefined ? (
                     <MenuItem onClick={() => select(undefined)}>
                         <Typography variant="body1" noWrap={true} className={MixedClass}>

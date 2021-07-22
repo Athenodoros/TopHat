@@ -1,5 +1,4 @@
 import {
-    Button,
     Checkbox,
     CheckboxProps,
     FormControlLabel,
@@ -10,17 +9,17 @@ import {
     TextField,
     Typography,
 } from "@material-ui/core";
-import { AddCircleOutline, Description } from "@material-ui/icons";
+import { AddCircleOutline } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
-import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
+import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
 import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
 import { FilterIcon, FilterMenuOption } from "../../../components/table/";
-import { TopHatDispatch, TopHatStore } from "../../../state";
+import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageFilters } from "../../../state/app/hooks";
-import { BooleanFilters, TransactionsPageState } from "../../../state/app/types";
-import { useAllAccounts, useAllCategories, useFormatValue } from "../../../state/data/hooks";
+import { TransactionsPageState } from "../../../state/app/types";
+import { useAllAccounts, useAllCategories, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
@@ -90,6 +89,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
     const accounts = useAllAccounts();
     const categories = useAllCategories();
     const getAccountIcon = useGetAccountIcon();
+    const statements = useAllStatements();
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();
@@ -97,6 +97,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
 
     const DateRangePopoverState = usePopoverProps();
     const DescriptionPopoverState = usePopoverProps();
+    const StatementPopoverState = usePopoverProps();
     const AccountPopoverState = usePopoverProps();
     const CategoryPopoverState = usePopoverProps();
     const ValuePopoverState = usePopoverProps();
@@ -223,12 +224,23 @@ export const TransactionsTableHeaderView: React.FC = () => {
             </div>
             <div className={classes.balance}>BALANCE</div>
             <div className={classes.statement}>
-                <Button
-                    endIcon={<Description fontSize="small" color={BooleanFilterColours[filters.statement]} />}
-                    onClick={onStatementToggle}
-                    className={headerClasses.icon}
-                    variant="outlined"
+                <FilterIcon
+                    badgeContent={filters.account.length}
+                    ButtonProps={StatementPopoverState.buttonProps}
+                    margin="none"
                 />
+                <Menu {...StatementPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
+                    {statements.map((option) => (
+                        <FilterMenuOption
+                            key={option.id}
+                            option={option}
+                            select={onSelectIDs["statement"]}
+                            selected={filters.statement}
+                            getOptionIcon={getStatementIcon}
+                            getSecondary={(option) => option.date}
+                        />
+                    ))}
+                </Menu>
             </div>
             <div className={classes.account}>
                 ACCOUNT
@@ -254,15 +266,8 @@ export const TransactionsTableHeaderView: React.FC = () => {
     );
 };
 
-const getCurrentState = () => TopHatStore.getState().app.page as TransactionsPageState;
 const setFilterPartial = <Key extends keyof TransactionsPageState>(key: Key, value: TransactionsPageState[Key]) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [key]: value }));
-
-const onStatementToggle = () =>
-    setFilterPartial(
-        "statement",
-        BooleanFilters[(BooleanFilters.indexOf(getCurrentState().statement) + 1) % BooleanFilters.length]
-    );
 
 const setDateRange = (fromDate?: string, toDate?: string) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate, toDate }));
@@ -274,17 +279,11 @@ const setValueRange = (valueFrom: number | undefined, valueTo: number | undefine
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom, valueTo }));
 const setHideStubs = (_: any, checked: boolean) => setFilterPartial("hideStubs", checked);
 
-const filters = ["account", "category"] as const;
+const filters = ["account", "category", "statement"] as const;
 const onSelectIDs = zipObject(
     filters,
     filters.map((f) => (ids: ID[]) => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [f]: ids })))
 );
-
-const BooleanFilterColours = {
-    all: "inherit",
-    include: "primary",
-    exclude: "error",
-} as const;
 
 const useTransactionValueRange = () => {
     const localiseCurrencyValue = useLocaliseCurrencies();

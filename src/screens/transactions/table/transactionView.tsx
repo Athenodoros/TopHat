@@ -1,4 +1,4 @@
-import { IconButton, Typography } from "@material-ui/core";
+import { IconButton, Tooltip, Typography } from "@material-ui/core";
 import { Description, Edit, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback } from "react";
@@ -7,8 +7,14 @@ import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { EditTransactionState } from "../../../state/app/types";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
-import { useAccountByID, useCategoryByID, useCurrencyByID, useInstitutionByID } from "../../../state/data/hooks";
-import { TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
+import {
+    useAccountByID,
+    useCategoryByID,
+    useCurrencyByID,
+    useInstitutionByID,
+    useStatementByID,
+} from "../../../state/data/hooks";
+import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
 import { parseDate } from "../../../state/utilities/values";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
 
@@ -18,6 +24,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
     const category = useCategoryByID(tx.category);
     const account = useAccountByID(tx.account);
     const institution = useInstitutionByID(account?.institution);
+    const statement = useStatementByID(tx.statement);
 
     const handleStartEdit = useCallback(
         () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: tx })),
@@ -96,16 +103,20 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
                 {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
             </div>
             <div className={classes.statement}>
-                {tx.statement !== undefined ? (
-                    <Description
-                        fontSize="small"
-                        style={{
-                            visibility: tx.statement ? undefined : "hidden",
-                        }}
-                        className={classes.disabledIcon}
-                    />
+                {statement ? (
+                    <Tooltip title={statement.name}>
+                        <Description
+                            fontSize="small"
+                            style={{
+                                visibility: statement.id !== PLACEHOLDER_STATEMENT_ID ? undefined : "hidden",
+                            }}
+                            className={classes.disabledIcon}
+                        />
+                    </Tooltip>
                 ) : (
-                    <Help fontSize="small" className={classes.disabledIcon} />
+                    <Tooltip title="(mixed)">
+                        <Help fontSize="small" className={classes.disabledIcon} />
+                    </Tooltip>
                 )}
             </div>
             <div className={classes.account}>

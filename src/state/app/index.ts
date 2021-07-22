@@ -28,7 +28,7 @@ export const DefaultPages = {
         account: [],
         category: [],
         currency: [],
-        statement: "all" as const,
+        statement: [],
         hideStubs: false,
         tableLimit: 50,
         search: "",

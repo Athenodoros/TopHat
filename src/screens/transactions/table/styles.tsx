@@ -111,7 +111,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
             margin: 3,
         },
 
-        "& > button": {
+        "& button": {
             minWidth: "auto",
             padding: 2,
             // color: Greys[600],

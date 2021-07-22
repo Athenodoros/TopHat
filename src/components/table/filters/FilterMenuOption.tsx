@@ -11,6 +11,13 @@ const useStyles = makeStyles({
         borderRadius: 4,
         marginRight: 10,
     },
+    text: {
+        "& span": {
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+        },
+    },
 });
 
 interface FilterMenuOptionProps<T extends { id: ID; name: string }> {
@@ -18,9 +25,10 @@ interface FilterMenuOptionProps<T extends { id: ID; name: string }> {
     select: (ids: ID[]) => void;
     selected: ID[];
     getOptionIcon: (option: T, className: string) => React.ReactNode;
+    getSecondary?: (option: T) => string;
 }
 const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
-    { option, select, selected, getOptionIcon }: FilterMenuOptionProps<T>,
+    { option, select, selected, getOptionIcon, getSecondary }: FilterMenuOptionProps<T>,
     ref: React.ForwardedRef<HTMLDivElement>
 ) => {
     const classes = useStyles();
@@ -32,7 +40,11 @@ const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
                 onClick={() => select(updateListSelection(option.id, selected))}
             >
                 {getOptionIcon(option, classes.icon)}
-                <ListItemText>{option.name}</ListItemText>
+                <ListItemText
+                    className={classes.text}
+                    primary={option.name}
+                    secondary={getSecondary && getSecondary(option)}
+                />
                 <Checkbox
                     icon={<CheckBoxOutlineBlank fontSize="small" />}
                     checkedIcon={<CheckBox fontSize="small" />}

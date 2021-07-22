@@ -50,7 +50,7 @@ export interface TransactionsPageState {
     account: ID[];
     category: ID[];
     currency: ID[];
-    statement: BooleanFilter;
+    statement: ID[];
     hideStubs: boolean;
     search: string;
     searchRegex: boolean;

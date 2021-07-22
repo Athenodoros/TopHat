@@ -1,6 +1,6 @@
 import { Greys } from "../../styles/colours";
-import { BaseTransactionHistory } from "../utilities/values";
-import { Category, Currency, Institution } from "./types";
+import { BaseTransactionHistory, StatementParseOptions } from "../utilities/values";
+import { Category, Currency, Institution, Statement, Transaction } from "./types";
 
 export const PLACEHOLDER_CATEGORY_ID = 0;
 export const PLACEHOLDER_CATEGORY: Category = {
@@ -20,7 +20,24 @@ export const TRANSFER_CATEGORY: Category = {
 };
 
 export const PLACEHOLDER_INSTITUTION_ID = 0;
-export const PLACEHOLDER_INSTITUTION: Institution = { id: 0, index: -1, name: "No Institution", colour: Greys[600] };
+export const PLACEHOLDER_INSTITUTION: Institution = {
+    id: PLACEHOLDER_INSTITUTION_ID,
+    index: -1,
+    name: "No Institution",
+    colour: Greys[600],
+};
+
+export const PLACEHOLDER_STATEMENT_ID = 0;
+export const PLACEHOLDER_STATEMENT: Statement = {
+    id: PLACEHOLDER_STATEMENT_ID,
+    name: "No Statement",
+    contents: "",
+    date: "",
+    parsing: null as unknown as StatementParseOptions,
+    account: -1,
+};
 
 export const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
     (value * from.exchangeRate) / to.exchangeRate;
+
+export const compareTransactionsDescendingDates = (a: Transaction, b: Transaction) => -a.date.localeCompare(b.date);

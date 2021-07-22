@@ -1,5 +1,5 @@
 import { Button, ButtonBase, makeStyles, Tooltip, Typography } from "@material-ui/core";
-import { Add, Description, Edit, PostAdd, Update } from "@material-ui/icons";
+import { Add, Description, Edit, NoteAdd, Update } from "@material-ui/icons";
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";
@@ -148,7 +148,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                 <div className={classes.accountValueSummary}>{summary}</div>
                 <Typography variant="body2">{value}</Typography>
             </div>
-            {account.usesStatements ? (
+            {account.lastStatementFormat ? (
                 <Description className={classes.accountIcon} />
             ) : (
                 <Edit className={classes.accountIcon} />
@@ -157,13 +157,13 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                 {getAccountAgeDescription(account.lastTransactionDate)}
                 <div className={classes.accountUpdateActions} onMouseDown={suppressEvent}>
                     <Tooltip title="Mark Up-To-Date">
-                        <Button size="small" startIcon={<Update />} />
+                        <Button size="small" startIcon={<Update htmlColor={Greys[700]} />} />
                     </Tooltip>
                     <Tooltip title="Upload Statement">
-                        <Button size="small" startIcon={<PostAdd />} />
+                        <Button size="small" startIcon={<NoteAdd htmlColor={Greys[700]} />} />
                     </Tooltip>
                     <Tooltip title="Create Transaction">
-                        <Button size="small" startIcon={<Add />} />
+                        <Button size="small" startIcon={<Add htmlColor={Greys[700]} />} />
                     </Tooltip>
                 </div>
             </div>

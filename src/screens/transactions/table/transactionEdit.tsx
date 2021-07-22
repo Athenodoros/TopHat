@@ -1,25 +1,20 @@
-import { IconButton, makeStyles, Tooltip } from "@material-ui/core";
-import { CancelTwoTone, DeleteTwoTone, Description, SaveTwoTone } from "@material-ui/icons";
+import { Button, IconButton, makeStyles, Tooltip } from "@material-ui/core";
+import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { DateTime } from "luxon";
 import React from "react";
-import { getCategoryIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
+import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
 import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
 import { Transaction } from "../../../state/data";
-import { useAllAccounts, useAllCategories } from "../../../state/data/hooks";
+import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
-import { Intents } from "../../../styles/colours";
-import {
-    EditableBooleanValue,
-    EditableCurrencyValue,
-    EditableTextValue,
-    TransactionsTableObjectDropdown,
-} from "./inputs";
+import { Greys, Intents } from "../../../styles/colours";
+import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import { useTransactionsTableStyles } from "./styles";
 
 const useEditStyles = makeStyles({
@@ -77,6 +72,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
     const categories = useAllCategories();
     const accounts = useAllAccounts();
     const getAccountIcon = useGetAccountIcon();
+    const statements = useAllStatements();
 
     return (
         <>
@@ -140,11 +136,29 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                 />
             </div>
             <div className={classes.statement}>
-                <EditableBooleanValue
-                    value={edit.statement}
+                <TransactionsTableObjectDropdown
+                    options={statements}
+                    selected={edit.statement}
+                    select={onChangeStatement}
+                    getIcon={getStatementIcon}
+                    iconClass={editClasses.accountDropdownIcon}
                     allowUndefined={tx.statement === undefined}
-                    Icon={Description}
-                    onSelect={onChangeStatement}
+                    getButton={(props) => (
+                        <Button
+                            variant="outlined"
+                            {...props}
+                            endIcon={
+                                edit.statement !== undefined ? (
+                                    <Description
+                                        fontSize="small"
+                                        style={{ color: edit.statement ? Intents.primary.main : Intents.danger.main }}
+                                    />
+                                ) : (
+                                    <Help fontSize="small" style={{ color: Greys[500] }} />
+                                )
+                            }
+                        />
+                    )}
                 />
             </div>
             <div className={classes.account}>

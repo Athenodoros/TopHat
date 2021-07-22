@@ -1,11 +1,13 @@
 import { IconButton, Link, makeStyles, Typography } from "@material-ui/core";
-import { Description, Edit, OpenInNew } from "@material-ui/icons";
+import { Edit, OpenInNew } from "@material-ui/icons";
 import { max, min } from "lodash";
+import { DateTime } from "luxon";
 import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
 import { Section } from "../../components/layout";
 import { useAccountPageAccount } from "../../state/app/hooks";
 import { useInstitutionByID } from "../../state/data/hooks";
 import { AccountTypeMap } from "../../state/data/types";
+import { parseDate } from "../../state/utilities/values";
 import { Greys } from "../../styles/colours";
 
 const useStyles = makeStyles({
@@ -47,11 +49,6 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         alignItems: "flex-start",
         padding: "25px 25px 25px 0",
-
-        "& > div:last-child": {
-            display: "flex",
-            "& > *": { marginLeft: 10 },
-        },
     },
     accountType: { color: Greys[600] },
     accountSecondary: {
@@ -100,9 +97,6 @@ export const AccountPageHeader: React.FC = () => {
                         </div>
                         <div>
                             <IconButton>
-                                <Description />
-                            </IconButton>
-                            <IconButton>
                                 <Edit />
                             </IconButton>
                         </div>
@@ -111,13 +105,17 @@ export const AccountPageHeader: React.FC = () => {
                         <div>
                             <Typography variant="h6">Open Date</Typography>
                             <Typography variant="body1">
-                                {min([account.openDate, account.firstTransactionDate])}
+                                {parseDate(min([account.openDate, account.firstTransactionDate])!).toLocaleString(
+                                    DateTime.DATETIME_FULL
+                                )}
                             </Typography>
                         </div>
                         <div>
                             <Typography variant="h6">{account.isActive ? "Last Update" : "Inactive Since"}</Typography>
                             <Typography variant="body1">
-                                {max([account.lastUpdate, account.lastTransactionDate])}
+                                {parseDate(max([account.lastUpdate, account.lastTransactionDate])!).toLocaleString(
+                                    DateTime.DATETIME_FULL
+                                )}
                             </Typography>
                         </div>
                         <div>

@@ -1,5 +1,5 @@
 import { Avatar, makeStyles, styled, Typography } from "@material-ui/core";
-import { AccountBalance, Payment, PostAdd, TrendingUp } from "@material-ui/icons";
+import { AccountBalance, NoteAdd, Payment, TrendingUp } from "@material-ui/icons";
 import { noop } from "lodash";
 import numeral from "numeral";
 import React from "react";
@@ -118,7 +118,7 @@ const RuleDefinitions: {
         id: "statement-ready",
         surfaceAlerts: () => [],
         display: (alert) => ({
-            icon: PostAdd,
+            icon: NoteAdd,
             title: "Statement Ready",
             dismiss: defaultDismissNotification(alert.id),
             colour: Intents.primary.main,

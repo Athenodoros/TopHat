@@ -1,6 +1,6 @@
 import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
 import { zipObject } from "../../utilities/data";
-import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
+import { BalanceHistory, ColourScale, ID, SDate, StatementParseOptions, TransactionHistory } from "../utilities/values";
 
 /**
  * A bank account or asset, possibly held at a financial institution
@@ -34,7 +34,10 @@ export type Account = {
         [currency: number]: BalanceHistory; // Monthly balances, in reverse order from current date
     };
     transactions: TransactionHistory;
-    usesStatements: boolean;
+
+    statementFilePattern?: string;
+    statementFilePatternIsManual?: boolean;
+    lastStatementFormat?: StatementParseOptions;
 };
 
 /**
@@ -128,7 +131,19 @@ export interface Transaction {
     account: ID;
     category: ID;
     currency: ID;
-    statement: boolean;
+    statement: ID;
+}
+
+/**
+ * An imported statement of transactions
+ */
+export interface Statement {
+    id: ID;
+    name: string;
+    date: SDate;
+    contents: string;
+    parsing: StatementParseOptions;
+    account: ID;
 }
 
 /**
