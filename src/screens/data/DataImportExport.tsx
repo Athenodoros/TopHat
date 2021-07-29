@@ -6,7 +6,7 @@ import { DataSlice, DataState } from "../../state/data";
 import { useSelector } from "../../state/utilities/hooks";
 import { Greys } from "../../styles/colours";
 import { createAndDownloadFile } from "../../utilities/data";
-import { onTextFieldChange } from "../../utilities/events";
+import { handleTextFieldChange } from "../../utilities/events";
 
 const useStyles = makeStyles({
     container: {
@@ -95,7 +95,7 @@ export const DataImports: React.FC = () => {
                     size="small"
                     placeholder="Warning: Dangerous!"
                     className={classes.input}
-                    onChange={onTextFieldChange(setText)}
+                    onChange={handleTextFieldChange(setText)}
                 />
                 <div className={classes.divider} />
                 <Typography variant="body1">

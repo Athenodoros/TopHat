@@ -36,6 +36,7 @@ export type { Account, Category, Currency, Institution, Notification, Rule, Tran
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter();
+const NameAdapter = createEntityAdapter<{ name: string }>({ sortComparer: (a, b) => a.name.localeCompare(b.name) });
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
 const getInitialState = <T extends { id: ID }>(initial?: T[]) => {
@@ -83,10 +84,10 @@ export const DataSlice = createSlice({
         // resetToDefaultState: () => defaults,
         setUpDemo: () => {
             const state: DataState = {
-                account: IndexedAdapter.addMany(defaults.account, DemoObjects.account),
-                category: IndexedAdapter.addMany(defaults.category, DemoObjects.category),
-                currency: IndexedAdapter.addMany(defaults.currency, DemoObjects.currency),
-                institution: IndexedAdapter.addMany(defaults.institution, DemoObjects.institution),
+                account: BaseAdapter.addMany(defaults.account, DemoObjects.account),
+                category: NameAdapter.addMany(defaults.category, DemoObjects.category),
+                currency: NameAdapter.addMany(defaults.currency, DemoObjects.currency),
+                institution: NameAdapter.addMany(defaults.institution, DemoObjects.institution),
                 rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rule),
                 transaction: DateAdapter.addMany(defaults.transaction, DemoObjects.transaction),
                 statement: BaseAdapter.addMany(defaults.statement, DemoObjects.statement),

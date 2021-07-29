@@ -16,7 +16,7 @@ import { getCurrencyIcon } from "../../../components/display/ObjectDisplay";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
-import { onTextFieldChange, suppressEvent } from "../../../utilities/events";
+import { handleTextFieldChange, suppressEvent } from "../../../utilities/events";
 import { useDivBoundingRect, useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
 import { useTransactionsTableStyles } from "./styles";
 
@@ -150,7 +150,7 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     onChange,
 }) => {
     const classes = useTransactionsTableStyles();
-    const updateValue = useMemo(() => onTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
+    const updateValue = useMemo(() => handleTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
     const clearValue = useCallback(() => onChange(), [onChange]);
 
     return (

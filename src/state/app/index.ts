@@ -1,5 +1,7 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Rule } from "jss";
 import { get, trimStart } from "lodash";
+import { Account, Category, Currency, Institution } from "../data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./types";
 
@@ -42,7 +44,20 @@ export const DefaultPages = {
     settings: { id: "settings" as const },
 };
 
+const defaultValues = {
+    account: undefined as Account | undefined,
+    institution: undefined as Institution | undefined,
+    category: undefined as Category | undefined,
+    currency: undefined as Currency | undefined,
+    statement: undefined,
+    rule: undefined as Rule | undefined,
+    settings: undefined,
+};
+const DefaultDialogs = { id: "account" as "closed" | keyof typeof defaultValues, ...defaultValues };
+export type DialogState = typeof DefaultDialogs;
+
 interface AppState {
+    dialog: DialogState;
     page: PageStateType;
 }
 
@@ -62,6 +77,7 @@ export const getPageStateFromPagePath = (path: string) => {
 export const AppSlice = createSlice({
     name: "app",
     initialState: {
+        dialog: DefaultDialogs,
         page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
     } as AppState,
     reducers: {
@@ -86,6 +102,13 @@ export const AppSlice = createSlice({
                 ...payload,
             };
         },
+
+        setDialogPage: (state, { payload }: PayloadAction<DialogState["id"]>) => {
+            if (state.dialog.id !== "closed") state.dialog[state.dialog.id] = undefined;
+            state.dialog.id = payload;
+        },
+        setDialogPartial: (state, { payload }: PayloadAction<Partial<DialogState>>) =>
+            void Object.assign(state.dialog, payload),
     },
     extraReducers: (builder) => {
         builder

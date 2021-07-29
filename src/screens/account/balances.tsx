@@ -5,14 +5,14 @@ import { Section } from "../../components/layout";
 import { useAccountPageAccount } from "../../state/app/hooks";
 import { useCurrencyMap } from "../../state/data/hooks";
 import { ID } from "../../state/utilities/values";
-import { onSelectChange } from "../../utilities/events";
+import { handleSelectChange } from "../../utilities/events";
 
 export const AccountPageBalances: React.FC = () => {
     const account = useAccountPageAccount();
     const currencies = useCurrencyMap();
 
     const [currency, setCurrency] = useState<ID | "all">("all");
-    const onChangeCurrency = onSelectChange((value: ID | "all") => setCurrency(value));
+    const onChangeCurrency = handleSelectChange((value: ID | "all") => setCurrency(value));
 
     return (
         <Section

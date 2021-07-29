@@ -1,5 +1,7 @@
 import { Badge, IconButton, makeStyles, Popover, Typography } from "@material-ui/core";
 import { AddTwoTone, Notifications as NotificationsIcon } from "@material-ui/icons";
+import { TopHatDispatch } from "../../state";
+import { AppSlice } from "../../state/app";
 import { useNotificationCount } from "../../state/data/hooks";
 import { usePopoverProps } from "../../utilities/hooks";
 import { NAVBAR_LOGO_HEIGHT } from "../shell/navbar";
@@ -55,7 +57,7 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
                     >
                         <Notifications />
                     </Popover>
-                    <IconButton>
+                    <IconButton onClick={openDialog}>
                         <AddTwoTone />
                     </IconButton>
                 </div>
@@ -64,3 +66,5 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
         </div>
     );
 };
+
+const openDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("account"));

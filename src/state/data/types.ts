@@ -16,7 +16,6 @@ export const AccountTypeMap = zipObject(
 );
 export type Account = {
     id: ID;
-    index: number;
     name: string;
     website?: string;
     // colour: string;
@@ -36,7 +35,7 @@ export type Account = {
     transactions: TransactionHistory;
 
     statementFilePattern?: string;
-    statementFilePatternIsManual?: boolean;
+    statementFilePatternManual?: string;
     lastStatementFormat?: StatementParseOptions;
 };
 
@@ -45,7 +44,6 @@ export type Account = {
  */
 export interface Category {
     id: ID;
-    index: number;
     name: string;
     colour: string;
 
@@ -60,7 +58,6 @@ export interface Category {
  */
 export interface Currency {
     id: ID;
-    index: number;
     name: string;
     longName: string;
     symbol: string;
@@ -76,7 +73,6 @@ export interface Currency {
  */
 export interface Institution {
     id: ID;
-    index: number;
     name: string;
     colour: string;
     icon?: string;

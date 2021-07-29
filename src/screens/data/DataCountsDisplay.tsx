@@ -3,6 +3,7 @@ import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } fr
 import React from "react";
 import { shallowEqual } from "react-redux";
 import { Section } from "../../components/layout";
+import { DemoStatementFile } from "../../state/data/demo";
 import { useSelector } from "../../state/utilities/hooks";
 import { AppColours, Greys } from "../../styles/colours";
 import { createAndDownloadFile, zipObject } from "../../utilities/data";
@@ -95,7 +96,7 @@ export const DataCountsDisplay: React.FC = () => {
     );
 };
 
-const createStatementDownload = () => createAndDownloadFile("statement.csv", "a,b,c\n1,2,3");
+const createStatementDownload = () => createAndDownloadFile(DemoStatementFile.name, DemoStatementFile.contents);
 
 const useTableStyles = makeStyles({
     container: {

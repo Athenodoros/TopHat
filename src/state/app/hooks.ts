@@ -1,5 +1,6 @@
 import { identity, pick } from "lodash";
 import { shallowEqual } from "react-redux";
+import { DialogState } from ".";
 import { useSelector } from "../utilities/hooks";
 import { AccountPageState, AccountsPageState, TransactionsPageState } from "./types";
 
@@ -37,3 +38,7 @@ export const useTransactionsPageFilters = () =>
             ),
         shallowEqual
     );
+
+export const useDialogPage = () => useSelector((state) => state.app.dialog.id);
+export const useDialogState = <ID extends Exclude<DialogState["id"], "closed">>(id: ID) =>
+    useSelector((state) => state.app.dialog[id] as DialogState[ID]);

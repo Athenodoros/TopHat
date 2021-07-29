@@ -1,6 +1,6 @@
 import numeral from "numeral";
 import { LegacyRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { onTextFieldChange } from "./events";
+import { handleTextFieldChange } from "./events";
 
 // export const useStateWithRef = <T>(initial: T) => {
 //     const [state, setState] = useState(initial);
@@ -79,7 +79,7 @@ export const useNumericInputHandler = (initial: number | null, onChange: (value:
     const [text, setText] = useState(initial !== undefined ? numeral(initial).format("-0.00") : "");
     const onTextChange = useMemo(
         () =>
-            onTextFieldChange((value) => {
+            handleTextFieldChange((value) => {
                 if (NumberRegex.test(value)) {
                     setText(value);
 

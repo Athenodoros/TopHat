@@ -7,7 +7,7 @@ import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
 import { TransactionsPageAggregations, TransactionsPageState } from "../../../state/app/types";
 import { zipObject } from "../../../utilities/data";
-import { onSelectChange } from "../../../utilities/events";
+import { handleSelectChange } from "../../../utilities/events";
 import { useTransactionsSummaryData } from "./data";
 
 export const TransactionsPageSummary: React.FC = () => {
@@ -57,11 +57,11 @@ export const TransactionsPageSummary: React.FC = () => {
     );
 };
 
-const setAggregation = onSelectChange((chartAggregation: TransactionsPageState["chartAggregation"]) =>
+const setAggregation = handleSelectChange((chartAggregation: TransactionsPageState["chartAggregation"]) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartAggregation }))
 );
 
-const setChartSign = onSelectChange((chartSign: TransactionsPageState["chartSign"]) =>
+const setChartSign = handleSelectChange((chartSign: TransactionsPageState["chartSign"]) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartSign }))
 );
 

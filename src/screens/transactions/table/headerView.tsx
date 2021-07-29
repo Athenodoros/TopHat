@@ -24,7 +24,7 @@ import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hoo
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
-import { onTextFieldChange } from "../../../utilities/events";
+import { handleTextFieldChange } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
 import { useTransactionsTableStyles } from "./styles";
 
@@ -272,7 +272,7 @@ const setFilterPartial = <Key extends keyof TransactionsPageState>(key: Key, val
 const setDateRange = (fromDate?: string, toDate?: string) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate, toDate }));
 
-const setSearch = onTextFieldChange((value) => setFilterPartial("search", value));
+const setSearch = handleTextFieldChange((value) => setFilterPartial("search", value));
 const setSearchRegex = (_: any, checked: boolean) => setFilterPartial("searchRegex", checked);
 
 const setValueRange = (valueFrom: number | undefined, valueTo: number | undefined) =>

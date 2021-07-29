@@ -8,19 +8,20 @@ import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
 import { TopHatStore } from "../../state";
 import { theme } from "../../styles/theme";
+import { TopHatDialog } from "../dialog";
 
 export const FileHandlerContext = React.createContext<{
     openFileDialog: () => void;
     acceptedFiles: File[];
     fileRejections: FileRejection[];
     isDragActive: boolean;
-    dropzoneRef: React.RefObject<HTMLElement>;
+    dropzoneRef: React.RefObject<HTMLElement> | null;
 }>({
     openFileDialog: noop,
     acceptedFiles: [],
     fileRejections: [],
     isDragActive: false,
-    dropzoneRef: null as unknown as React.RefObject<HTMLElement>,
+    dropzoneRef: null,
 });
 
 export const Workspace: React.FC = ({ children }) => {
@@ -47,6 +48,7 @@ export const Workspace: React.FC = ({ children }) => {
                             value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
                         >
                             <Provider store={TopHatStore}>
+                                <TopHatDialog />
                                 <div {...omit(getRootProps(), ["onClick"])}>
                                     <input
                                         id="file-upload-dropzone"

@@ -1,4 +1,4 @@
-import { SelectProps, TextFieldProps } from "@material-ui/core";
+import { CheckboxProps, SelectProps, TextFieldProps } from "@material-ui/core";
 import React from "react";
 
 export const suppressEvent = (event: React.MouseEvent | React.SyntheticEvent) => {
@@ -12,12 +12,17 @@ export const withSuppressEvent =
         callback(event);
     };
 
-export const onSelectChange =
+export const handleSelectChange =
     <T>(onChange: (t: T) => void): SelectProps["onChange"] =>
     (event) =>
         onChange(event.target.value as T);
 
-export const onTextFieldChange =
+export const handleTextFieldChange =
     (onChange: (value: string) => void): TextFieldProps["onChange"] =>
     (event) =>
         onChange(event.target.value);
+
+export const handleCheckboxChange =
+    (onChange: (value: boolean) => void): CheckboxProps["onChange"] =>
+    (_, value) =>
+        onChange(value);

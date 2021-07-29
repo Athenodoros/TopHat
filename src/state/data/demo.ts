@@ -29,7 +29,6 @@ const currencyFields = ["symbol", "longName", "exchangeRate", "name"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
         id: id + 2,
-        index: id + 1,
         colour: currencyColourScale(id + 2).hex(),
         transactions: BaseTransactionHistory(),
         ...zipObject(currencyFields, args),
@@ -47,7 +46,6 @@ let cateogryColourScale = chroma.scale("set1").domain([0, 6]);
 const makeCategory = (name: string, id: number) =>
     ({
         id: id + 1,
-        index: id,
         budget: 0,
         name,
         colour: cateogryColourScale(id).hex(),
@@ -59,7 +57,6 @@ type InstitutionArgs = [string, string, string];
 const makeInstitution = (args: InstitutionArgs, id: number) =>
     ({
         id: id + 1,
-        index: id,
         name: args[0],
         icon: "data:image/jpeg;base64," + args[1],
         colour: args[2],
@@ -93,7 +90,6 @@ const accountFields = ["name", "isActive", "category", "institution", "website",
 const makeAccount = (args: AccountArgs, id: number): Account =>
     ({
         id: id + 1,
-        index: id,
         // colour: args[3] !== undefined ? rawInstitutions[args[3]][2] : greys[500],
         openDate: formatDate(today.minus({ months: 6 })),
         lastUpdate: formatDate(today.minus({ months: 6 })),
@@ -183,7 +179,7 @@ const descriptions = [
     "The Parkside",
 ];
 const types = ["Thai", "Italian", "Restaurant", "Bar", "Chinese", "Burgers"];
-const transactions = (
+let transactions = (
     [
         // Regular Payments
         ...range(24).map((i) => [{ months: i, days: 8 }, "SALARY-EMPLOYER-INC.", i > 15 ? 3020 : 3680, 0, 0, 5]),
@@ -358,6 +354,7 @@ const statementMap = {
 };
 let mortgageBalance = 0;
 let statementID = 2;
+let lastEverydayStatement = -1;
 transactions.forEach((tx) => {
     // "Orange Everyday"
     if (tx.account === 1) {
@@ -372,6 +369,7 @@ transactions.forEach((tx) => {
                 parsing: {},
                 account: 1,
             };
+            lastEverydayStatement = statementID;
         }
 
         tx.statement = statementMap.everyday[date].id;
@@ -413,8 +411,11 @@ transactions.forEach((tx) => {
     }
 });
 const statements = values(statementMap.everyday)
+    .filter(({ id }) => id !== lastEverydayStatement)
     .concat(statementMap.international)
     .concat(values(statementMap.mortgage));
+transactions = transactions.filter((tx) => tx.statement !== lastEverydayStatement);
+export const DemoStatementFile = values(statementMap.everyday).find(({ id }) => id === lastEverydayStatement)!;
 
 const notifications = [
     { id: 1, type: "new-milestone", contents: 200000 },
