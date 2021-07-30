@@ -13,11 +13,12 @@ import { Clear, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
 import { getCurrencyIcon } from "../../../components/display/ObjectDisplay";
+import { ObjectSelector, ObjectSelectorCommonProps } from "../../../components/inputs";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { handleTextFieldChange, suppressEvent } from "../../../utilities/events";
-import { useDivBoundingRect, useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
+import { useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
 import { useTransactionsTableStyles } from "./styles";
 
 const useEditableCurrencyValueStyles = makeStyles({
@@ -212,9 +213,6 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
 // };
 
 const useTransactionsTableObjectDropdownStyles = makeStyles({
-    container: {
-        width: "100%",
-    },
     button: {
         width: "100%",
         height: 40,
@@ -227,10 +225,10 @@ const useTransactionsTableObjectDropdownStyles = makeStyles({
     label: {
         flexGrow: 1,
         textAlign: "left",
+        overflow: "visible",
     },
 });
 
-type ButtonProps = { ref: React.RefObject<HTMLButtonElement>; onClick: () => void };
 interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string }> {
     options: T[];
     selected: ID | undefined;
@@ -238,7 +236,7 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     getIcon: (option: T, className: string) => React.ReactNode;
     iconClass: string;
     allowUndefined?: boolean;
-    getButton?: (props: ButtonProps) => React.ReactNode;
+    button?: ObjectSelectorCommonProps<T>["children"];
 }
 export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string }>({
     options,
@@ -247,13 +245,11 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     getIcon,
     iconClass,
     allowUndefined,
-    getButton,
+    button,
 }: TransactionsTableObjectDropdownProps<T>) => {
-    const popover = usePopoverProps<HTMLDivElement>();
     const classes = useTransactionsTableObjectDropdownStyles();
     const MixedClass = useTransactionsTableStyles().mixed;
     const option = options.find(({ id }) => id === selected);
-    const [{ width }, ref] = useDivBoundingRect();
 
     const clearSelection = useCallback<React.MouseEventHandler>(
         (event) => {
@@ -264,11 +260,24 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     );
 
     return (
-        <div ref={ref} className={classes.container}>
-            {getButton ? (
-                getButton(popover.buttonProps as unknown as ButtonProps)
-            ) : (
-                <Button variant="outlined" {...popover.buttonProps} className={classes.button} component="div">
+        <ObjectSelector
+            options={options}
+            render={(option) => getIcon(option, iconClass)}
+            MenuProps={{ PaperProps: { style: { maxHeight: 170 } } }}
+            selected={selected}
+            setSelected={select}
+            placeholder={
+                allowUndefined ? (
+                    <MenuItem onClick={() => select(undefined)}>
+                        <Typography variant="body1" noWrap={true} className={MixedClass}>
+                            (mixed)
+                        </Typography>
+                    </MenuItem>
+                ) : undefined
+            }
+        >
+            {button || (
+                <Button variant="outlined" className={classes.button} component="div">
                     {option && getIcon(option, iconClass)}
                     <Typography
                         variant="body1"
@@ -284,29 +293,6 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
                     ) : undefined}
                 </Button>
             )}
-            <Menu {...popover.popoverProps} PaperProps={{ style: { maxHeight: 170, width: Math.max(width, 200) } }}>
-                {allowUndefined ? (
-                    <MenuItem onClick={() => select(undefined)}>
-                        <Typography variant="body1" noWrap={true} className={MixedClass}>
-                            (mixed)
-                        </Typography>
-                    </MenuItem>
-                ) : undefined}
-                {options.map((option) => (
-                    <MenuItem
-                        key={option.id}
-                        onClick={() => {
-                            select(option.id);
-                            popover.setIsOpen(false);
-                        }}
-                    >
-                        {getIcon(option, iconClass)}
-                        <Typography variant="body1" noWrap={true}>
-                            {option.name}
-                        </Typography>
-                    </MenuItem>
-                ))}
-            </Menu>
-        </div>
+        </ObjectSelector>
     );
 };

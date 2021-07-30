@@ -111,7 +111,9 @@ export const AccountPageHeader: React.FC = () => {
                             </Typography>
                         </div>
                         <div>
-                            <Typography variant="h6">{account.isActive ? "Last Update" : "Inactive Since"}</Typography>
+                            <Typography variant="h6">
+                                {account.isInactive ? "Inactive Since" : "Last Update"}
+                            </Typography>
                             <Typography variant="body1">
                                 {parseDate(max([account.lastUpdate, account.lastTransactionDate])!).toLocaleString(
                                     DateTime.DATETIME_FULL

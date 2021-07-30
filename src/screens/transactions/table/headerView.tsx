@@ -1,18 +1,9 @@
-import {
-    Checkbox,
-    CheckboxProps,
-    FormControlLabel,
-    IconButton,
-    makeStyles,
-    Menu,
-    Popover,
-    TextField,
-    Typography,
-} from "@material-ui/core";
+import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@material-ui/core";
 import { AddCircleOutline } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
+import { SubItemCheckbox } from "../../../components/inputs";
 import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
 import { FilterIcon, FilterMenuOption } from "../../../components/table/";
 import { TopHatDispatch } from "../../../state";
@@ -62,15 +53,6 @@ const useHeaderStyles = makeStyles({
         fontStyle: "italic",
         color: Greys[500],
     },
-    subItemCheckbox: {
-        alignSelf: "flex-end",
-        transform: "scale(0.8)",
-        transformOrigin: "top right",
-
-        "&:hover": {
-            opacity: "1 !important",
-        },
-    },
     icon: {
         // This is to ensure the icons line up with the transaction table
         borderColor: "transparent",
@@ -78,6 +60,9 @@ const useHeaderStyles = makeStyles({
         "& svg:not(.MuiSvgIcon-colorPrimary):not(.MuiSvgIcon-colorError)": {
             color: Greys[500],
         },
+    },
+    subitem: {
+        alignSelf: "flex-end",
     },
 });
 
@@ -101,18 +86,6 @@ export const TransactionsTableHeaderView: React.FC = () => {
     const AccountPopoverState = usePopoverProps();
     const CategoryPopoverState = usePopoverProps();
     const ValuePopoverState = usePopoverProps();
-
-    const getSubItemCheckbox = (label: string, checked: boolean, setChecked: CheckboxProps["onChange"]) => (
-        <FormControlLabel
-            className={headerClasses.subItemCheckbox}
-            control={<Checkbox color="primary" size="small" value={checked} onChange={setChecked} />}
-            label={label}
-            labelPlacement="start"
-            style={{
-                opacity: checked ? undefined : 0.5,
-            }}
-        />
-    );
 
     return (
         <>
@@ -167,7 +140,12 @@ export const TransactionsTableHeaderView: React.FC = () => {
                                 onChange={setSearch}
                             />
                         </div>
-                        {getSubItemCheckbox("Regex Search", filters.searchRegex, setSearchRegex)}
+                        <SubItemCheckbox
+                            label="Regex Search"
+                            checked={filters.searchRegex}
+                            setChecked={setSearchRegex}
+                            className={headerClasses.subitem}
+                        />
                     </Popover>
                 </div>
             </div>
@@ -201,7 +179,12 @@ export const TransactionsTableHeaderView: React.FC = () => {
                             to={filters.valueTo}
                             setRange={setValueRange}
                         />
-                        {getSubItemCheckbox("Hide Stubs", filters.hideStubs, setHideStubs)}
+                        <SubItemCheckbox
+                            label="Hide Stubs"
+                            checked={filters.hideStubs}
+                            setChecked={setHideStubs}
+                            className={headerClasses.subitem}
+                        />
                     </Popover>
                 </div>
             </div>
@@ -273,11 +256,11 @@ const setDateRange = (fromDate?: string, toDate?: string) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate, toDate }));
 
 const setSearch = handleTextFieldChange((value) => setFilterPartial("search", value));
-const setSearchRegex = (_: any, checked: boolean) => setFilterPartial("searchRegex", checked);
+const setSearchRegex = (checked: boolean) => setFilterPartial("searchRegex", checked);
 
 const setValueRange = (valueFrom: number | undefined, valueTo: number | undefined) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom, valueTo }));
-const setHideStubs = (_: any, checked: boolean) => setFilterPartial("hideStubs", checked);
+const setHideStubs = (checked: boolean) => setFilterPartial("hideStubs", checked);
 
 const filters = ["account", "category", "statement"] as const;
 const onSelectIDs = zipObject(

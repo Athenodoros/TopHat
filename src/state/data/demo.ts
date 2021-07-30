@@ -86,12 +86,12 @@ const rawInstitutions: InstitutionArgs[] = [
 const institutions = rawInstitutions.map(makeInstitution);
 
 type AccountArgs = [string, boolean, Account["category"], number | undefined, string | undefined, string | undefined];
-const accountFields = ["name", "isActive", "category", "institution", "website", "statementFilePattern"] as const;
+const accountFields = ["name", "isInactive", "category", "institution", "website", "statementFilePattern"] as const;
 const makeAccount = (args: AccountArgs, id: number): Account =>
     ({
         id: id + 1,
         // colour: args[3] !== undefined ? rawInstitutions[args[3]][2] : greys[500],
-        openDate: formatDate(today.minus({ months: 6 })),
+        openDate: formatDate(today.minus({ months: 7 })),
         lastUpdate: formatDate(today.minus({ months: 6 })),
         transactions: BaseTransactionHistory(),
         balances: {},
@@ -100,15 +100,15 @@ const makeAccount = (args: AccountArgs, id: number): Account =>
     } as Account);
 const accounts = (
     [
-        ["Orange Everyday", true, 1, 1, "https://www.ing.com.au/securebanking/", "Orange Everyday - .*.csv"],
-        ["Super", true, 3, 1, "https://www.ing.com.au/securebanking/"],
-        ["Transaction Account", true, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
-        ["Investment Account", true, 3, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
-        ["International Account", true, 1, 3, "https://wise.com/user/account", "transactions.csv"],
-        ["Transaction Account", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
-        ["Mortgage", true, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action", "Mortgage Statement.csv"],
-        ["Apartment", true, 2, PLACEHOLDER_INSTITUTION_ID],
-        ["Euro Account", true, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
+        ["Orange Everyday", false, 1, 1, "https://www.ing.com.au/securebanking/", "Orange Everyday - .*.csv"],
+        ["Super", false, 3, 1, "https://www.ing.com.au/securebanking/"],
+        ["Transaction Account", false, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
+        ["Investment Account", false, 3, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
+        ["International Account", false, 1, 3, "https://wise.com/user/account", "transactions.csv"],
+        ["Transaction Account", true, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
+        ["Mortgage", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action", "Mortgage Statement.csv"],
+        ["Apartment", false, 2, PLACEHOLDER_INSTITUTION_ID],
+        ["Euro Account", false, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
     ] as AccountArgs[]
 ).map(makeAccount);
 

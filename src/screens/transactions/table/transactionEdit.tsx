@@ -143,10 +143,9 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     getIcon={getStatementIcon}
                     iconClass={editClasses.accountDropdownIcon}
                     allowUndefined={tx.statement === undefined}
-                    getButton={(props) => (
+                    button={
                         <Button
                             variant="outlined"
-                            {...props}
                             endIcon={
                                 edit.statement !== undefined ? (
                                     <Description
@@ -158,7 +157,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                                 )
                             }
                         />
-                    )}
+                    }
                 />
             </div>
             <div className={classes.account}>

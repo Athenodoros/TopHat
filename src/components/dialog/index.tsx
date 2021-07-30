@@ -70,7 +70,7 @@ export const TopHatDialog: React.FC = () => {
         <Dialog open={state !== "closed" || isDragActive} onClose={onClose} PaperProps={{ className: classes.paper }}>
             <div className={classes.header}>
                 <FormControl variant="outlined" size="small">
-                    <Select value={state} onChange={changeDialogScreen}>
+                    <Select value={state !== "closed" ? state : "settings"} onChange={changeDialogScreen}>
                         {MenuItems}
                     </Select>
                 </FormControl>

@@ -6,21 +6,21 @@ import { BalanceHistory, ColourScale, ID, SDate, StatementParseOptions, Transact
  * A bank account or asset, possibly held at a financial institution
  */
 export const AccountTypes = [
-    { id: 1, name: "Transaction Account", icon: AccountBalance, colour: ColourScale(0).hex() },
-    { id: 2, name: "Asset", icon: Home, colour: ColourScale(0.15).hex() },
-    { id: 3, name: "Investment Account", icon: TrendingUp, colour: ColourScale(0.6).hex() },
+    { id: 1, name: "Transaction Account", icon: AccountBalance, colour: ColourScale(0).hex(), short: "Transaction" },
+    { id: 2, name: "Asset", icon: Home, colour: ColourScale(0.15).hex(), short: "Asset" },
+    { id: 3, name: "Investment Account", icon: TrendingUp, colour: ColourScale(0.6).hex(), short: "Investment" },
 ] as const;
 export const AccountTypeMap = zipObject(
     AccountTypes.map(({ id }) => id),
     AccountTypes
 );
-export type Account = {
+export interface Account {
     id: ID;
     name: string;
     website?: string;
     // colour: string;
 
-    isActive: boolean;
+    isInactive: boolean;
     category: 1 | 2 | 3;
     institution: ID;
 
@@ -37,7 +37,7 @@ export type Account = {
     statementFilePattern?: string;
     statementFilePatternManual?: string;
     lastStatementFormat?: StatementParseOptions;
-};
+}
 
 /**
  * A category of transaction, possibly with a budget

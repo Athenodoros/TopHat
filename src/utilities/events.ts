@@ -1,4 +1,5 @@
 import { CheckboxProps, SelectProps, TextFieldProps } from "@material-ui/core";
+import { ToggleButtonGroupProps } from "@material-ui/lab";
 import React from "react";
 
 export const suppressEvent = (event: React.MouseEvent | React.SyntheticEvent) => {
@@ -11,6 +12,11 @@ export const withSuppressEvent =
         suppressEvent(event);
         callback(event);
     };
+
+export const handleButtonGroupChange =
+    <T>(onChange: (t: T) => void): ToggleButtonGroupProps["onChange"] =>
+    (event, value) =>
+        onChange(value as T);
 
 export const handleSelectChange =
     <T>(onChange: (t: T) => void): SelectProps["onChange"] =>

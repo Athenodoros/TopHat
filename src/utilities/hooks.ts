@@ -1,5 +1,5 @@
 import numeral from "numeral";
-import { LegacyRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { handleTextFieldChange } from "./events";
 
 // export const useStateWithRef = <T>(initial: T) => {
@@ -25,23 +25,33 @@ import { handleTextFieldChange } from "./events";
 //     return [state, setState] as [T, (t: T) => void];
 // };
 
-export const useDivBoundingRect = <T extends Element = HTMLDivElement>() => {
+export const useDivBoundingRect = <T extends Element = HTMLDivElement>(
+    inputRef?: React.MutableRefObject<T> | React.LegacyRef<T>
+) => {
     const [rect, setRect] = useState<DOMRectReadOnly>(new DOMRectReadOnly(0, 0, 0, 0));
 
     const observer = useMemo(() => new ResizeObserver((entries) => setRect(entries[0].contentRect)), [setRect]);
     useEffect(() => () => observer.disconnect(), [observer]);
 
-    const ref = useMemo<LegacyRef<T>>(
+    const ref = useMemo<React.Ref<T>>(
         () => (node) => {
             if (node) {
                 setRect(node.getBoundingClientRect());
                 observer.observe(node);
             }
+
+            if (inputRef) {
+                if (typeof inputRef === "function") {
+                    inputRef(node);
+                } else {
+                    (inputRef as React.MutableRefObject<T | null>).current = node;
+                }
+            }
         },
-        [observer, setRect]
+        [observer, setRect, inputRef]
     );
 
-    return [rect, ref] as [DOMRectReadOnly, LegacyRef<T>];
+    return [rect, ref] as [DOMRectReadOnly, React.Ref<T>];
 };
 
 export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {

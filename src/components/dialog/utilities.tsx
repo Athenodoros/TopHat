@@ -4,6 +4,9 @@ import { Greys } from "../../styles/colours";
 import { suppressEvent } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
 
+/**
+ * Dialog Layout Components
+ */
 const useMainStyles = makeStyles({
     main: {
         display: "flex",
@@ -34,7 +37,6 @@ const useContentStyles = makeStyles({
         justifyContent: "stretch",
         flexDirection: "column",
         margin: "12px 12px 12px 0",
-        padding: 24,
         backgroundColor: Greys[100],
         borderRadius: 5,
         flexGrow: 1,
@@ -78,3 +80,46 @@ export const DialogPlaceholderDisplay: React.FC<{ icon: IconType; title: string;
         </div>
     );
 };
+
+/**
+ * Dialog Page Components
+ */
+const useEditContainerStyles = makeStyles({
+    container: {
+        display: "flex",
+        alignItems: "center",
+        margin: "10px 0",
+    },
+    label: {
+        flex: "0 0 150px",
+        textAlign: "right",
+        paddingRight: 30,
+        color: Greys[600],
+        textTransform: "uppercase",
+    },
+    title: {
+        color: Greys[600],
+        textTransform: "uppercase",
+        marginTop: 20,
+    },
+});
+export const EditValueContainer: React.FC<{ label: string }> = ({ label, children }) => {
+    const classes = useEditContainerStyles();
+
+    return (
+        <div className={classes.container}>
+            <Typography variant="subtitle2" noWrap={true} className={classes.label}>
+                {label}
+            </Typography>
+            {children}
+        </div>
+    );
+};
+
+export const EditTitleContainer: React.FC<{ title: string }> = ({ title }) => (
+    <EditValueContainer label="">
+        <Typography variant="overline" className={useEditContainerStyles().title}>
+            {title}
+        </Typography>
+    </EditValueContainer>
+);

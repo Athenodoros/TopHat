@@ -17,7 +17,7 @@ export const useAccountsTableData = () => {
     const filters = useAccountsPageState();
     const accounts = useAllAccounts().filter(
         (account) =>
-            (filters.filterInactive === false || account.isActive) &&
+            (filters.filterInactive === false || !account.isInactive) &&
             filterListByID(filters.account, account.id) &&
             filterListByID(filters.institution, account.institution) &&
             filterListByID(filters.type, account.category) &&

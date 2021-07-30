@@ -1,41 +1,33 @@
+import { alpha, Button, List, ListItemText, makeStyles, MenuItem, TextField, Typography } from "@material-ui/core";
 import {
-    Button,
-    Checkbox,
-    FormControl,
-    FormControlLabel,
-    List,
-    ListItemText,
-    makeStyles,
-    Menu,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-} from "@material-ui/core";
-import { AccountBalanceWallet, AddCircleOutline } from "@material-ui/icons";
+    AccountBalanceWallet,
+    AddCircleOutline,
+    DeleteForeverTwoTone,
+    DeleteTwoTone,
+    Event,
+    KeyboardArrowDown,
+    SaveTwoTone,
+} from "@material-ui/icons";
+import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import { KeyboardDatePicker } from "@material-ui/pickers";
 import { MaterialUiPickersDate } from "@material-ui/pickers/typings/date";
 import clsx from "clsx";
+import { isEqual } from "lodash";
 import { DateTime } from "luxon";
 import React from "react";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useDialogState } from "../../../state/app/hooks";
 import { Account } from "../../../state/data";
-import { useAllAccounts, useAllInstitutions, useInstitutionByID } from "../../../state/data/hooks";
+import { useAccountByID, useAllAccounts, useAllInstitutions, useInstitutionByID } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, formatDate, getTodayString } from "../../../state/utilities/values";
-import { Greys } from "../../../styles/colours";
-import {
-    handleCheckboxChange,
-    handleSelectChange,
-    handleTextFieldChange,
-    withSuppressEvent,
-} from "../../../utilities/events";
-import { useDivBoundingRect, usePopoverProps } from "../../../utilities/hooks";
+import { Greys, Intents } from "../../../styles/colours";
+import { handleButtonGroupChange, handleTextFieldChange, withSuppressEvent } from "../../../utilities/events";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { DialogContents, DialogMain, DialogOptions, DialogPlaceholderDisplay } from "../utilities";
+import { ObjectSelector, SubItemCheckbox } from "../../inputs";
+import { DialogContents, DialogMain, DialogOptions, DialogPlaceholderDisplay, EditValueContainer } from "../utilities";
 
 const useStyles = makeStyles((theme) => ({
     options: {
@@ -49,11 +41,24 @@ const useStyles = makeStyles((theme) => ({
         transition: theme.transitions.create("opacity"),
         "&:hover": { opacity: 1 },
     },
+    institution: {
+        textTransform: "inherit",
+        height: 40,
+
+        "& .MuiButton-label > svg:last-child": {
+            marginLeft: 15,
+        },
+    },
+    smallIcon: {
+        height: 16,
+        width: 16,
+        marginRight: 10,
+        borderRadius: 3,
+    },
     icon: {
         height: 24,
         width: 24,
-        marginLeft: 5,
-        marginRight: 16,
+        marginRight: 15,
         borderRadius: 5,
     },
     button: {
@@ -63,45 +68,85 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
+        minHeight: 0,
+        padding: "20px 20px 8px 20px",
+        flexGrow: 1,
     },
-    editRight: {
-        alignSelf: "flex-end",
+    editContainer: {
+        flexGrow: 1,
+        flexShrink: 1,
+        overflowY: "scroll",
     },
     divider: {
         height: 1,
-        width: "50%",
-        background: Greys[500],
-        alignSelf: "center",
-        margin: "20px 0",
+        width: "80%",
+        background: Greys[400],
+        alignSelf: "left",
+        margin: "10px 25px",
     },
-    editContainer: {
-        marginTop: 20,
-        display: "flex",
-        alignItems: "stretch",
-        justifyContent: "space-between",
-
-        "& > div": {
+    toggles: {
+        flexGrow: 1,
+        "& > button": {
             flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
         },
+    },
+    toggle: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        width: 85,
+    },
+    dates: {
+        display: "flex",
+        flexGrow: 1,
+        justifyContent: "space-between",
+        marginTop: 5,
 
-        "& > div:nth-child(2)": {
-            alignItems: "flex-end",
+        "& > :first-child": {
+            marginRight: 30,
+        },
+    },
+    inactive: {
+        alignSelf: "flex-end",
+    },
+    actions: {
+        display: "flex",
+        alignSelf: "flex-end",
+        "& > *": {
+            marginLeft: 10,
+        },
+    },
+    warningButton: {
+        color: Intents.warning.main,
+        "&:hover": {
+            backgroundColor: alpha(Intents.warning.main, theme.palette.action.hoverOpacity),
+        },
+    },
+    dangerButton: {
+        color: Intents.danger.main,
+        "&:hover": {
+            backgroundColor: alpha(Intents.danger.main, theme.palette.action.hoverOpacity),
+        },
+    },
+    primaryButtonOutlined: {
+        color: Intents.primary.main,
+        border: `1px solid ${alpha(Intents.primary.main, 0.5)}`,
+        "&:hover": {
+            border: `1px solid ${Intents.primary.main}`,
+            backgroundColor: alpha(Intents.primary.main, theme.palette.action.hoverOpacity),
         },
     },
 }));
 
 export const DialogAccountsView: React.FC = () => {
     const classes = useStyles();
-    const popover = usePopoverProps<HTMLDivElement>();
-    const [{ width }, dropdown] = useDivBoundingRect();
 
     const working = useDialogState("account");
 
     const getAccountIcon = useGetAccountIcon();
     const institution = useInstitutionByID(working?.institution);
 
+    const account = useAccountByID(working?.id);
     const accounts = useAllAccounts();
     const institutions = useAllInstitutions();
 
@@ -115,7 +160,7 @@ export const DialogAccountsView: React.FC = () => {
                                 key={account.id}
                                 selected={account.id === working?.id}
                                 onClick={selectWorkingAccount(account)}
-                                className={clsx(account.isActive || classes.disabled)}
+                                className={clsx(account.isInactive && classes.disabled)}
                             >
                                 {getAccountIcon(account, classes.icon)}
                                 <ListItemText>{account.name}</ListItemText>
@@ -142,96 +187,47 @@ export const DialogAccountsView: React.FC = () => {
                             value={working.name}
                             onChange={updateWorkingName}
                         />
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    color="primary"
-                                    size="small"
-                                    value={working.isActive}
-                                    onChange={updateWorkingIsActive}
-                                />
-                            }
-                            label="Is Active"
-                            labelPlacement="start"
-                            className={classes.editRight}
+                        <SubItemCheckbox
+                            label="Inactive Account"
+                            checked={working.isInactive}
+                            setChecked={updateWorkingIsInactive}
+                            className={classes.inactive}
                         />
                         <div className={classes.divider} />
                         <div className={classes.editContainer}>
-                            <div ref={dropdown}>
-                                <Typography variant="subtitle2">Institution</Typography>
-                                <Button
-                                    variant="outlined"
-                                    component="div"
-                                    {...popover.buttonProps}
-                                    style={{ flexGrow: 1 }}
+                            <EditValueContainer label="Institution">
+                                <ObjectSelector
+                                    options={institutions}
+                                    render={(institution) => getInstitutionIcon(institution, classes.icon)}
+                                    selected={working.institution}
+                                    setSelected={updateWorkingInstitution}
                                 >
-                                    {getInstitutionIcon(institution!, classes.icon)}
-                                    <ListItemText>{institution!.name}</ListItemText>
-                                </Button>
-                                <Menu
-                                    {...popover.popoverProps}
-                                    anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                                    transformOrigin={{ vertical: "top", horizontal: "left" }}
-                                    PaperProps={{ style: { maxHeight: 300, width: Math.max(width, 200) } }}
+                                    <Button variant="outlined" className={classes.institution}>
+                                        {getInstitutionIcon(institution!, classes.icon)}
+                                        <Typography variant="body1" noWrap={true}>
+                                            {institution!.name}
+                                        </Typography>
+                                        <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
+                                    </Button>
+                                </ObjectSelector>
+                            </EditValueContainer>
+                            <EditValueContainer label="Account Type">
+                                <ToggleButtonGroup
+                                    size="small"
+                                    value={working.category}
+                                    exclusive={true}
+                                    onChange={updateWorkingCategory}
+                                    className={classes.toggles}
                                 >
-                                    {institutions.map((option) => (
-                                        <MenuItem
-                                            key={option.id}
-                                            selected={option.id === institution!.id}
-                                            onClick={() => updateWorkingInstitution(option.id)}
-                                        >
-                                            {getInstitutionIcon(option, classes.icon)}
-                                            <ListItemText>{option.name}</ListItemText>
-                                        </MenuItem>
+                                    {AccountTypes.map((typ) => (
+                                        <ToggleButton key={typ.id} value={typ.id} classes={{ label: classes.toggle }}>
+                                            {React.createElement(typ.icon, { fontSize: "small" })}
+                                            <Typography variant="caption">{typ.short}</Typography>
+                                        </ToggleButton>
                                     ))}
-                                </Menu>
-                            </div>
-                            <div>
-                                <Typography variant="subtitle2">Account Type</Typography>
-                                <FormControl variant="outlined" size="small">
-                                    <Select
-                                        value={working.category}
-                                        onChange={updateWorkingCategory}
-                                        style={{ width: 220 }}
-                                    >
-                                        {AccountTypes.map((type) => (
-                                            <MenuItem value={type.id} key={type.id}>
-                                                <ListItemText>{type.name}</ListItemText>
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </div>
-                        </div>
-                        <div className={classes.editContainer}>
-                            <div>
-                                <Typography variant="subtitle2">Open Date</Typography>
-                                <KeyboardDatePicker
-                                    value={working.openDate}
-                                    onChange={updateWorkingOpenDate}
-                                    disableFuture={true}
-                                    format="yyyy-MM-dd"
-                                    inputVariant="outlined"
-                                    size="small"
-                                    style={{ width: 200 }}
-                                />
-                            </div>
-                            <div>
-                                <Typography variant="subtitle2">Last Update Date</Typography>
-                                <KeyboardDatePicker
-                                    value={working.lastUpdate}
-                                    onChange={updateWorkingUpdateDate}
-                                    disableFuture={true}
-                                    format="yyyy-MM-dd"
-                                    inputVariant="outlined"
-                                    size="small"
-                                    style={{ width: 200 }}
-                                />
-                            </div>
-                        </div>
-                        <div className={classes.editContainer}>
-                            <div>
-                                <Typography variant="subtitle2">Website?</Typography>
+                                </ToggleButtonGroup>
+                            </EditValueContainer>
+                            <EditValueContainer label="Website">
                                 <TextField
                                     variant="outlined"
                                     value={working.website}
@@ -239,7 +235,57 @@ export const DialogAccountsView: React.FC = () => {
                                     size="small"
                                     style={{ width: "100%" }}
                                 />
-                            </div>
+                            </EditValueContainer>
+                            <EditValueContainer label="Dates">
+                                <div className={classes.dates}>
+                                    <KeyboardDatePicker
+                                        value={working.openDate}
+                                        onChange={updateWorkingOpenDate}
+                                        disableFuture={true}
+                                        format="yyyy-MM-dd"
+                                        inputVariant="outlined"
+                                        size="small"
+                                        label="Open Date"
+                                        KeyboardButtonProps={{ size: "small" }}
+                                        keyboardIcon={<Event fontSize="small" />}
+                                        clearable={true}
+                                    />
+                                    <KeyboardDatePicker
+                                        value={working.lastUpdate}
+                                        onChange={updateWorkingUpdateDate}
+                                        format="yyyy-MM-dd"
+                                        inputVariant="outlined"
+                                        size="small"
+                                        label={working.isInactive ? "Inactive Since" : "Last Update"}
+                                        KeyboardButtonProps={{ size: "small" }}
+                                        keyboardIcon={<Event fontSize="small" />}
+                                        clearable={true}
+                                    />
+                                </div>
+                            </EditValueContainer>
+                        </div>
+                        <div className={classes.actions}>
+                            <Button
+                                className={classes.warningButton}
+                                disabled={isEqual(working, account)}
+                                startIcon={<DeleteTwoTone fontSize="small" />}
+                            >
+                                Reset
+                            </Button>
+                            <Button
+                                className={classes.dangerButton}
+                                startIcon={<DeleteForeverTwoTone fontSize="small" />}
+                            >
+                                Delete
+                            </Button>
+                            <Button
+                                className={classes.primaryButtonOutlined}
+                                disabled={isEqual(working, account)}
+                                variant="outlined"
+                                startIcon={<SaveTwoTone fontSize="small" />}
+                            >
+                                Save
+                            </Button>
                         </div>
                     </div>
                 ) : (
@@ -270,7 +316,7 @@ const createNewAccount = withSuppressEvent(() =>
     setWorkingAccount({
         id: getNextID(TopHatStore.getState().data.account.ids),
         name: "New Account",
-        isActive: true,
+        isInactive: false,
         category: 1,
         institution: PLACEHOLDER_INSTITUTION_ID,
         openDate: getTodayString(),
@@ -285,10 +331,10 @@ const updateAccountPartial =
     (value: Account[K]) =>
         setWorkingAccountPartial({ [key]: value });
 const updateWorkingName = handleTextFieldChange(updateAccountPartial("name"));
-const updateWorkingIsActive = handleCheckboxChange(updateAccountPartial("isActive"));
+const updateWorkingIsInactive = updateAccountPartial("isInactive");
 const updateWorkingInstitution = updateAccountPartial("institution");
 const updateWorkingWebsite = handleTextFieldChange(updateAccountPartial("website"));
-const updateWorkingCategory = handleSelectChange(updateAccountPartial("category"));
+const updateWorkingCategory = handleButtonGroupChange(updateAccountPartial("category"));
 const updateWorkingOpenDate = (date: MaterialUiPickersDate) =>
     updateAccountPartial("openDate")(formatDate(date as DateTime));
 const updateWorkingUpdateDate = (date: MaterialUiPickersDate) =>
