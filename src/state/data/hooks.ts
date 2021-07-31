@@ -69,6 +69,12 @@ export function useStatementByID(id: ID | undefined): Statement | undefined {
 export const useAllStatements = () =>
     useSelector((state) => state.data.statement.ids.map((id) => state.data.statement.entities[id]!), shallowEqual);
 
+export function useObjectByID<Type extends BasicObjectName>(type: Type, id: ID): BasicObjectType[Type];
+export function useObjectByID<Type extends BasicObjectName>(type: Type, id?: ID): BasicObjectType[Type] | undefined;
+export function useObjectByID<Type extends BasicObjectName>(type: Type, id?: ID): BasicObjectType[Type] | undefined {
+    return useSelector((state) => state.data[type].entities[id as ID] as BasicObjectType[Type] | undefined);
+}
+
 export const useObjectIDs = <T extends BasicObjectName>(type: T) => useSelector((state) => state.data[type].ids);
 export const useObjectMap = <T extends BasicObjectName>(type: T) =>
     useSelector((state) => state.data[type].entities as Dictionary<BasicObjectType[T]>);

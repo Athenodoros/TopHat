@@ -40,5 +40,7 @@ export const useTransactionsPageFilters = () =>
     );
 
 export const useDialogPage = () => useSelector((state) => state.app.dialog.id);
-export const useDialogState = <ID extends Exclude<DialogState["id"], "closed">>(id: ID) =>
-    useSelector((state) => state.app.dialog[id] as DialogState[ID]);
+export const useDialogState = <ID extends Exclude<DialogState["id"], "closed">, T = DialogState[ID]>(
+    id: ID,
+    callback: (state: DialogState[ID]) => T = identity
+) => useSelector((state) => callback(state.app.dialog[id]));

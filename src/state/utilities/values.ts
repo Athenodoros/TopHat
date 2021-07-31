@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
  */
 export const ColourScale = chroma.scale("set1");
 ColourScale.cache(false);
-// export const getRandomColour = () => ColourScale(Math.random()).hex();
+export const getRandomColour = () => ColourScale(Math.random()).hex();
 
 /**
  * Value histories, monthly and in reverse order from current date

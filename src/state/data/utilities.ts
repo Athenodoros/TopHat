@@ -1,6 +1,7 @@
 import { EntityId } from "@reduxjs/toolkit";
-import { max } from "lodash";
-import { Greys } from "../../styles/colours";
+import chroma from "chroma-js";
+import { chunk, countBy, max, maxBy, toPairs } from "lodash";
+import { BLACK, Greys } from "../../styles/colours";
 import { BaseTransactionHistory, StatementParseOptions } from "../utilities/values";
 import { Category, Currency, Institution, Statement, Transaction } from "./types";
 
@@ -44,4 +45,31 @@ export const compareTransactionsDescendingDates = (a: Transaction, b: Transactio
 export const getNextID = (ids: EntityId[]) => {
     const maximum = max(ids.map((i) => Number(i)));
     return (maximum ?? 0) + 1;
+};
+
+const coarse = (value: number, grain: number = 16) => Math.floor(value / grain) * grain;
+export const getColourFromIcon = (icon: string, current?: string): Promise<string> => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return new Promise((resolve) => resolve(BLACK));
+
+    return new Promise((resolve) => {
+        if (!context) return resolve(BLACK);
+
+        const image = new Image();
+        image.onload = () => {
+            context.drawImage(image, 0, 0);
+            const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+            const colours = chunk(data, 4).map(([r, g, b]) => chroma(coarse(r), coarse(g), coarse(b)).hex());
+            const mode = maxBy(
+                toPairs(countBy(colours)).filter(
+                    ([colour, _]) => colour !== "#000000" && colour !== "#FFFFFF" && colour !== current
+                ),
+                ([_, count]) => count
+            );
+
+            resolve(mode ? mode[0] : BLACK);
+        };
+        image.src = icon;
+    });
 };
