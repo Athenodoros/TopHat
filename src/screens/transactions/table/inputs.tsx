@@ -130,7 +130,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                 {currencies.map((currency) => (
                     <MenuItem key={currency.id} onClick={() => onChangeCurrency(currency.id)}>
                         {getCurrencyIcon(currency, classes.icon)}
-                        <Typography variant="body1">{currency.longName}</Typography>
+                        <Typography variant="body1">{currency.name}</Typography>
                     </MenuItem>
                 ))}
             </Menu>

@@ -47,7 +47,7 @@ export interface Category {
     name: string;
     colour: string;
 
-    budget?: number;
+    // budget?: number;
 
     // TODO: This should be by currency
     transactions: TransactionHistory;
@@ -58,8 +58,8 @@ export interface Category {
  */
 export interface Currency {
     id: ID;
+    ticker: string;
     name: string;
-    longName: string;
     symbol: string;
     colour: string;
 

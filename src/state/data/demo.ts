@@ -25,7 +25,7 @@ const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
 const currencyColourScale = chroma.scale("set1").domain([0, 4]);
 type CurrencyArgs = [string, string, number, string];
-const currencyFields = ["symbol", "longName", "exchangeRate", "name"] as const;
+const currencyFields = ["symbol", "name", "exchangeRate", "ticker"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
         id: id + 2,

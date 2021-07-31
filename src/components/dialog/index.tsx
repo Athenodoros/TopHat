@@ -28,7 +28,9 @@ import { handleSelectChange } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
 import { FileHandlerContext } from "../shell/workspace";
 import { DialogAccountsView } from "./objects/accounts";
-import { DialogInstitutionsView } from "./objects/institution";
+import { DialogCategoriesView } from "./objects/categories";
+import { DialogCurrenciesView } from "./objects/currencies";
+import { DialogInstitutionsView } from "./objects/institutions";
 import { DialogMain } from "./utilities";
 
 const useStyles = makeStyles((theme) => ({
@@ -112,4 +114,6 @@ const MenuItems = [
 const DialogPages = {
     account: <DialogAccountsView />,
     institution: <DialogInstitutionsView />,
+    category: <DialogCategoriesView />,
+    currency: <DialogCurrenciesView />,
 } as const;

@@ -19,7 +19,7 @@ import {
     ObjectEditContainer,
 } from "../utilities";
 
-const useMainStyles = makeStyles((theme) => ({
+const useMainStyles = makeStyles({
     base: {
         display: "flex",
         alignItems: "center",
@@ -30,7 +30,7 @@ const useMainStyles = makeStyles((theme) => ({
         marginRight: 15,
         borderRadius: 5,
     },
-}));
+});
 
 export const DialogInstitutionsView: React.FC = () => {
     const classes = useMainStyles();
@@ -75,7 +75,7 @@ const createNewInstitution = (): Institution => ({
     colour: getRandomColour(),
 });
 
-const useEditViewStyles = makeStyles((theme) => ({
+const useEditViewStyles = makeStyles({
     container: {
         display: "flex",
         alignItems: "center",
@@ -133,7 +133,7 @@ const useEditViewStyles = makeStyles((theme) => ({
 
         "& input": { width: 50, height: 50 },
     },
-}));
+});
 const EditInstitutionView: React.FC<{ working: Institution }> = ({ working }) => {
     const classes = useEditViewStyles();
 

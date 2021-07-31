@@ -75,9 +75,9 @@ export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggr
         if (aggregation === "currency") {
             const currency = currencies[id]!;
             return {
-                name: currency.name,
+                name: currency.ticker,
                 colour: currency.colour,
-                subtitle: currency.longName,
+                subtitle: currency.name,
                 subValue: { symbol: currency.symbol, ...trend.totals },
                 ...common,
             };

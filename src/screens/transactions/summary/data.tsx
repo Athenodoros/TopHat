@@ -2,7 +2,7 @@ import { max, mean } from "lodash";
 import { TransactionsPageState } from "../../../state/app/types";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import { useAllObjects, useInstitutionMap } from "../../../state/data/hooks";
-import { Account } from "../../../state/data/types";
+import { Account, Currency } from "../../../state/data/types";
 import { takeWithDefault } from "../../../utilities/data";
 
 export const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
@@ -25,7 +25,7 @@ export const useTransactionsSummaryData = (aggregation: TransactionsPageState["c
 
         return {
             id: object.id,
-            name: object.name,
+            name: aggregation === "currency" ? (object as Currency).ticker : object.name,
             colour,
             trend: { credits, debits },
             value: { credit: mean(credits), debit: mean(debits) },
