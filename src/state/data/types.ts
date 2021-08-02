@@ -102,11 +102,21 @@ export interface Rule {
     id: ID;
     name: string;
     index: number;
-    isActive: boolean;
-    conditions: Condition[];
-    newSummary?: string;
-    newDescription?: string;
-    newCategory?: ID;
+    isInactive: boolean;
+
+    // Conditions
+    reference?: string[];
+    regex: boolean;
+
+    min: number | null;
+    max: number | null;
+
+    accounts: ID[];
+
+    // Outputs
+    summary?: string;
+    description?: string;
+    category: ID;
 }
 
 /**
@@ -169,5 +179,6 @@ export interface BasicObjectType {
     category: Category;
     currency: Currency;
     institution: Institution;
+    rule: Rule;
 }
 export type BasicObjectName = keyof BasicObjectType;

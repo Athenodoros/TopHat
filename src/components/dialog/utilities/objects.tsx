@@ -1,62 +1,127 @@
 import { Button, List, makeStyles, MenuItem, TextField } from "@material-ui/core";
-import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, SaveTwoTone } from "@material-ui/icons";
-import { isEqual, upperFirst } from "lodash";
+import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@material-ui/icons";
+import { inRange, isEqual, upperFirst } from "lodash";
 import React, { useMemo } from "react";
+import {
+    DragDropContext,
+    Draggable,
+    DraggableProvided,
+    DraggableStateSnapshot,
+    Droppable,
+    DroppableProvided,
+    DropResult,
+} from "react-beautiful-dnd";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useDialogState } from "../../../state/app/hooks";
-import { useObjectByID } from "../../../state/data/hooks";
+import { DataSlice } from "../../../state/data";
+import { useAllObjects, useObjectByID } from "../../../state/data/hooks";
 import { BasicObjectName, BasicObjectType } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
+import { Greys } from "../../../styles/colours";
 import { useButtonStyles } from "../../../styles/components";
 import { handleTextFieldChange, withSuppressEvent } from "../../../utilities/events";
 import { EditDivider } from "./edits";
-import { DialogOptions } from "./layout";
+import {
+    DialogContents,
+    DialogMain,
+    DialogOptions,
+    DialogPlaceholderDisplay,
+    DialogPlaceholderDisplayProps,
+} from "./layout";
 
 const useStyles = makeStyles({
     options: {
-        overflow: "scroll",
+        overflowY: "scroll",
         flexGrow: 1,
         marginTop: 5,
     },
     button: {
         margin: 20,
     },
+    handle: {
+        display: "flex",
+        alignItems: "center",
+        marginRight: 5,
+    },
 });
 
-interface DialogObjectSelectorProps<Name extends BasicObjectName> {
+interface DialogObjectSelectorProps<
+    Name extends BasicObjectName,
+    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
+> {
     type: Name;
-    options: BasicObjectType[Name][];
+    exclude?: ID[];
     createDefaultOption: () => BasicObjectType[Name];
     render: (option: BasicObjectType[Name]) => React.ReactNode;
+    draggable?: Drag;
 }
-export const DialogObjectSelector = <Name extends BasicObjectName>({
+export const DialogObjectSelector = <
+    Name extends BasicObjectName,
+    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
+>({
     type,
-    options,
+    exclude,
     createDefaultOption,
     render,
-}: DialogObjectSelectorProps<Name>) => {
+    draggable,
+}: DialogObjectSelectorProps<Name, Drag>) => {
     const classes = useStyles();
     const selected = useDialogState(type, (object) => object?.id);
 
+    let options = useAllObjects(type);
+    if (exclude) options = options.filter(({ id }) => !exclude.includes(id));
+
     const functions = getUpdateFunctions(type);
+
+    const getItem =
+        (option: BasicObjectType[Name]) => (provided?: DraggableProvided, snapshot?: DraggableStateSnapshot) =>
+            (
+                <MenuItem
+                    key={option.id}
+                    selected={option.id === selected || snapshot?.isDragging}
+                    onClick={withSuppressEvent(() => functions.set(option.id === selected ? undefined : option))}
+                    {...provided?.draggableProps}
+                    ref={provided?.innerRef}
+                >
+                    {render(option)}
+                    {provided && (
+                        <div {...provided.dragHandleProps} className={classes.handle}>
+                            <Menu fontSize="small" htmlColor={Greys[500]} />
+                        </div>
+                    )}
+                </MenuItem>
+            );
+    const getList = (provided?: DroppableProvided) => (
+        <List {...provided?.droppableProps} ref={provided?.innerRef}>
+            {options.map((option) =>
+                draggable ? (
+                    <Draggable
+                        draggableId={String(option.id)}
+                        index={(option as { index: number }).index}
+                        key={option.id}
+                        isDragDisabled={false}
+                    >
+                        {getItem(option)}
+                    </Draggable>
+                ) : (
+                    getItem(option)()
+                )
+            )}
+            {provided?.placeholder}
+        </List>
+    );
 
     return (
         <DialogOptions>
             <div className={classes.options}>
-                <List>
-                    {options.map((option) => (
-                        <MenuItem
-                            key={option.id}
-                            selected={option.id === selected}
-                            onClick={withSuppressEvent(() =>
-                                functions.set(option.id === selected ? undefined : option)
-                            )}
-                        >
-                            {render(option)}
-                        </MenuItem>
-                    ))}
-                </List>
+                {draggable ? (
+                    <DragDropContext onDragEnd={onDragEndForRule}>
+                        <Droppable droppableId="object-list">{getList}</Droppable>
+                    </DragDropContext>
+                ) : (
+                    getList()
+                )}
             </div>
             <Button
                 className={classes.button}
@@ -71,6 +136,26 @@ export const DialogObjectSelector = <Name extends BasicObjectName>({
     );
 };
 
+const onDragEndForRule = ({ source, destination, reason, draggableId }: DropResult) => {
+    if (reason !== "DROP" || destination === undefined) return;
+
+    const { ids, entities } = TopHatStore.getState().data.rule;
+
+    const rangeMin = Math.min(source.index, destination.index);
+    const rangeMax = Math.max(source.index, destination.index);
+    const updates = ids
+        .filter((id) => inRange(entities[id]!.index, rangeMin, rangeMax + 1) && entities[id]!.index !== source.index)
+        .map((id) => ({
+            id,
+            changes: {
+                index: entities[id]!.index + (source.index > destination.index ? 1 : -1),
+            },
+        }))
+        .concat([{ id: Number(draggableId), changes: { index: destination.index } }]);
+
+    TopHatDispatch(DataSlice.actions.updateObjects({ type: "rule", updates }));
+};
+
 const useObjectContainerStyles = makeStyles({
     edit: {
         display: "flex",
@@ -82,7 +167,9 @@ const useObjectContainerStyles = makeStyles({
     },
     editContainer: {
         flexShrink: 1,
+        flexGrow: 1,
         overflowY: "scroll",
+        paddingRight: 30,
     },
     actions: {
         marginTop: "auto",
@@ -96,7 +183,8 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     type,
     children,
     subtitle,
-}: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode }>) => {
+    onReset,
+}: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode; onReset?: () => void }>) => {
     const classes = useObjectContainerStyles();
     const buttonClasses = useButtonStyles();
 
@@ -107,9 +195,13 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
         const functions = getUpdateFunctions(type);
         return {
             handleNameChange: handleTextFieldChange(functions.update("name")),
-            reset: () => functions.set(functions.get(working.id)),
+            reset: () => {
+                const actual = functions.get(working.id);
+                functions.set(actual);
+                if (actual && onReset) onReset();
+            },
         };
-    }, [type, working.id]);
+    }, [type, working.id, onReset]);
 
     return (
         <div className={classes.edit}>
@@ -165,4 +257,24 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
             setPartial({ [key]: value } as any);
 
     return { get, set, setPartial, remove, update };
+};
+
+export const DialogObjectEditWrapper = <
+    Name extends BasicObjectName,
+    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
+>({
+    type,
+    placeholder,
+    children,
+    ...SelectorProps
+}: React.PropsWithChildren<DialogObjectSelectorProps<Name, Drag> & { placeholder: DialogPlaceholderDisplayProps }>) => {
+    const working = useDialogState(type, (working) => !!working);
+    const remove = useMemo(() => getUpdateFunctions(type).remove, [type]);
+
+    return (
+        <DialogMain onClick={remove}>
+            <DialogObjectSelector type={type} {...SelectorProps} />
+            <DialogContents>{working ? children : <DialogPlaceholderDisplay {...placeholder} />}</DialogContents>
+        </DialogMain>
+    );
 };

@@ -1,4 +1,5 @@
 import { makeStyles, Typography } from "@material-ui/core";
+import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../../styles/colours";
 
@@ -24,11 +25,11 @@ const useEditValueContainerStyles = makeStyles({
         marginTop: 20,
     },
 });
-export const EditValueContainer: React.FC<{ label: string }> = ({ label, children }) => {
+export const EditValueContainer: React.FC<{ label: string; className?: string }> = ({ label, children, className }) => {
     const classes = useEditValueContainerStyles();
 
     return (
-        <div className={classes.container}>
+        <div className={clsx(classes.container, className)}>
             <Typography variant="subtitle2" noWrap={true} className={classes.label}>
                 {label}
             </Typography>
@@ -38,10 +39,8 @@ export const EditValueContainer: React.FC<{ label: string }> = ({ label, childre
 };
 
 export const EditTitleContainer: React.FC<{ title: string }> = ({ title }) => (
-    <EditValueContainer label="">
-        <Typography variant="overline" className={useEditValueContainerStyles().title}>
-            {title}
-        </Typography>
+    <EditValueContainer label="" className={useEditValueContainerStyles().title}>
+        <Typography variant="overline">{title}</Typography>
     </EditValueContainer>
 );
 

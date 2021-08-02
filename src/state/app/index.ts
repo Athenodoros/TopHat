@@ -1,7 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Rule } from "jss";
 import { get, trimStart } from "lodash";
-import { Account, Category, Currency, Institution } from "../data";
+import { Account, Category, Currency, Institution, Rule } from "../data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./types";
 

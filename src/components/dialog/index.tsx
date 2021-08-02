@@ -31,6 +31,7 @@ import { DialogAccountsView } from "./objects/accounts";
 import { DialogCategoriesView } from "./objects/categories";
 import { DialogCurrenciesView } from "./objects/currencies";
 import { DialogInstitutionsView } from "./objects/institutions";
+import { DialogRulesView } from "./objects/rules";
 import { DialogMain } from "./utilities";
 
 const useStyles = makeStyles((theme) => ({
@@ -38,6 +39,7 @@ const useStyles = makeStyles((theme) => ({
         width: 900,
         maxWidth: "inherit",
         height: 600,
+        overflow: "hidden",
     },
     header: {
         height: 60,
@@ -116,4 +118,5 @@ const DialogPages = {
     institution: <DialogInstitutionsView />,
     category: <DialogCategoriesView />,
     currency: <DialogCurrenciesView />,
+    rule: <DialogRulesView />,
 } as const;

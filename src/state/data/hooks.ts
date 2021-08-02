@@ -75,6 +75,9 @@ export function useObjectByID<Type extends BasicObjectName>(type: Type, id?: ID)
     return useSelector((state) => state.data[type].entities[id as ID] as BasicObjectType[Type] | undefined);
 }
 
+export const useAllRules = () =>
+    useSelector((state) => state.data.rule.ids.map((id) => state.data.rule.entities[id]!), shallowEqual);
+
 export const useObjectIDs = <T extends BasicObjectName>(type: T) => useSelector((state) => state.data[type].ids);
 export const useObjectMap = <T extends BasicObjectName>(type: T) =>
     useSelector((state) => state.data[type].entities as Dictionary<BasicObjectType[T]>);

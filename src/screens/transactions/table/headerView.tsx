@@ -208,7 +208,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
             <div className={classes.balance}>BALANCE</div>
             <div className={classes.statement}>
                 <FilterIcon
-                    badgeContent={filters.account.length}
+                    badgeContent={filters.statement.length}
                     ButtonProps={StatementPopoverState.buttonProps}
                     margin="none"
                 />

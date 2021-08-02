@@ -5,11 +5,11 @@ import { KeyboardDatePicker } from "@material-ui/pickers";
 import { MaterialUiPickersDate } from "@material-ui/pickers/typings/date";
 import clsx from "clsx";
 import { DateTime } from "luxon";
-import React from "react";
+import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
 import { useDialogState } from "../../../state/app/hooks";
 import { Account } from "../../../state/data";
-import { useAllAccounts, useAllInstitutions, useInstitutionByID } from "../../../state/data/hooks";
+import { useAllInstitutions, useInstitutionByID } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, formatDate, getTodayString } from "../../../state/utilities/values";
@@ -17,15 +17,7 @@ import { Greys } from "../../../styles/colours";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../../utilities/events";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
-import {
-    DialogContents,
-    DialogMain,
-    DialogObjectSelector,
-    DialogPlaceholderDisplay,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../utilities";
+import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
 
 const useMainStyles = makeStyles((theme) => ({
     base: {
@@ -48,44 +40,34 @@ const useMainStyles = makeStyles((theme) => ({
 
 export const DialogAccountsView: React.FC = () => {
     const classes = useMainStyles();
-
     const getAccountIcon = useGetAccountIcon();
-
-    const working = useDialogState("account");
-    const accounts = useAllAccounts();
-
-    const render = (account: Account) => (
-        <div className={clsx(classes.base, account.isInactive && classes.disabled)}>
-            {getAccountIcon(account, classes.icon)}
-            <ListItemText>{account.name}</ListItemText>
-        </div>
+    const render = useCallback(
+        (account: Account) => (
+            <div className={clsx(classes.base, account.isInactive && classes.disabled)}>
+                {getAccountIcon(account, classes.icon)}
+                <ListItemText>{account.name}</ListItemText>
+            </div>
+        ),
+        [classes, getAccountIcon]
     );
 
     return (
-        <DialogMain onClick={removeWorkingAccount}>
-            <DialogObjectSelector
-                type="account"
-                options={accounts}
-                createDefaultOption={createNewAccount}
-                render={render}
-            />
-            <DialogContents>
-                {working ? (
-                    <EditAccountView working={working} />
-                ) : (
-                    <DialogPlaceholderDisplay
-                        icon={AccountBalanceWallet}
-                        title="Accounts"
-                        subtext="Accounts are transaction or investment accounts, or assets to be tracked. They can have
-                    multiple currencies, and will track their balances in each."
-                    />
-                )}
-            </DialogContents>
-        </DialogMain>
+        <DialogObjectEditWrapper
+            type="account"
+            createDefaultOption={createNewAccount}
+            render={render}
+            placeholder={Placeholder}
+        >
+            <EditAccountView />
+        </DialogObjectEditWrapper>
     );
 };
-
-const { remove: removeWorkingAccount, update: updateAccountPartial } = getUpdateFunctions("account");
+const Placeholder = {
+    icon: AccountBalanceWallet,
+    title: "Accounts",
+    subtext:
+        "Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each.",
+};
 const createNewAccount = () => ({
     id: getNextID(TopHatStore.getState().data.account.ids),
     name: "New Account",
@@ -140,8 +122,9 @@ const useEditViewStyles = makeStyles({
     },
 });
 
-const EditAccountView: React.FC<{ working: Account }> = ({ working }) => {
+const EditAccountView: React.FC = () => {
     const classes = useEditViewStyles();
+    const working = useDialogState("account")!;
     const institution = useInstitutionByID(working.institution);
     const institutions = useAllInstitutions();
 
@@ -230,11 +213,10 @@ const EditAccountView: React.FC<{ working: Account }> = ({ working }) => {
     );
 };
 
-const updateWorkingIsInactive = updateAccountPartial("isInactive");
-const updateWorkingInstitution = updateAccountPartial("institution");
-const updateWorkingWebsite = handleTextFieldChange(updateAccountPartial("website"));
-const updateWorkingCategory = handleButtonGroupChange(updateAccountPartial("category"));
-const updateWorkingOpenDate = (date: MaterialUiPickersDate) =>
-    updateAccountPartial("openDate")(formatDate(date as DateTime));
-const updateWorkingUpdateDate = (date: MaterialUiPickersDate) =>
-    updateAccountPartial("lastUpdate")(formatDate(date as DateTime));
+const { update } = getUpdateFunctions("account");
+const updateWorkingIsInactive = update("isInactive");
+const updateWorkingInstitution = update("institution");
+const updateWorkingWebsite = handleTextFieldChange(update("website"));
+const updateWorkingCategory = handleButtonGroupChange(update("category"));
+const updateWorkingOpenDate = (date: MaterialUiPickersDate) => update("openDate")(formatDate(date as DateTime));
+const updateWorkingUpdateDate = (date: MaterialUiPickersDate) => update("lastUpdate")(formatDate(date as DateTime));

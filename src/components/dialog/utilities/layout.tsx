@@ -63,11 +63,12 @@ const usePlaceholderStyles = makeStyles({
         marginTop: 10,
     },
 });
-export const DialogPlaceholderDisplay: React.FC<{ icon: IconType; title: string; subtext: string }> = ({
-    icon: Icon,
-    title,
-    subtext,
-}) => {
+export interface DialogPlaceholderDisplayProps {
+    icon: IconType;
+    title: string;
+    subtext: string;
+}
+export const DialogPlaceholderDisplay: React.FC<DialogPlaceholderDisplayProps> = ({ icon: Icon, title, subtext }) => {
     const classes = usePlaceholderStyles();
 
     return (

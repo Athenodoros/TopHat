@@ -33,3 +33,8 @@ export const handleCheckboxChange =
     (onChange: (value: boolean) => void): CheckboxProps["onChange"] =>
     (_, value) =>
         onChange(value);
+
+export const handleAutoCompleteChange =
+    <T>(onChange: (value: T[]) => void) =>
+    (_: any, value: T[]) =>
+        onChange(value);

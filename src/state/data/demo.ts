@@ -8,15 +8,15 @@ import {
     getToday,
     parseDate,
     SDate,
-    StatementParseOptions,
+    StatementParseOptions
 } from "../utilities/values";
-import { Account, Category, Condition, Currency, Institution, Rule, Statement, Transaction } from "./types";
+import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 import {
     compareTransactionsDescendingDates,
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
-    TRANSFER_CATEGORY_ID,
+    TRANSFER_CATEGORY_ID
 } from "./utilities";
 
 const today = getToday();
@@ -112,23 +112,19 @@ const accounts = (
     ] as AccountArgs[]
 ).map(makeAccount);
 
-type RuleArgs = [string, Condition[], string | undefined, string | undefined, number | undefined];
-const ruleFields = ["name", "conditions", "newSummary", "newDescription", "newCategory"];
-const makeRule = (args: RuleArgs, id: number) =>
-    ({ id: id + 1, index: id, isActive: true, ...zipObject(ruleFields, args) } as Rule);
-const rules = (
-    [
-        ["Weekly Shop", [{ type: "reference", values: ["WOOLWORTHS"], regex: false }], "Weekly Shop", undefined, 1],
-        ["State Transit", [{ type: "reference", values: ["State\\sTransit.*"], regex: true }], undefined, undefined, 2],
-        [
-            "Income",
-            [{ type: "reference", values: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], regex: false }],
-            undefined,
-            undefined,
-            5,
-        ],
-    ] as RuleArgs[]
-).map(makeRule);
+const RuleDefaults = { regex: false, isInactive: false, accounts: [], category: PLACEHOLDER_CATEGORY_ID, min: null, max: null };
+const makeRule = (input: Omit<Rule, keyof typeof RuleDefaults | "id" | "index"> & Partial<Rule>, id: number) => ({
+    id: id + 1,
+    index: id + 1,
+    ...RuleDefaults,
+    ...input,
+});
+const rules: Rule[] = [
+    { name: "Weekly Shop", reference: ["WOOLWORTHS"], min: -100, max: 0 },
+    { name: "State Transit", reference: ["State\\sTransit.*"], regex: true, category: 2 },
+    { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 5 },
+    { name: "Travel", accounts: [2, 4, 8], category: 4 },
+].map(makeRule);
 
 // const makeStatement = (date: DateTime) => "Everyday - " + date.startOf("month").toISODate().substring(0, 7) + ".csv";
 // const statements: Statement[] = uniq(range(1, 730).map((i) => makeStatement(today.minus({ days: i })))).map(

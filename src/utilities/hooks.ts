@@ -85,11 +85,16 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
 export const useFirstValue = <T>(value: T) => useMemo(() => value, []);
 
 const NumberRegex = /^-?\d*\.?\d?\d?$/;
-export const useNumericInputHandler = (initial: number | null, onChange: (value: number | null) => void) => {
-    const [text, setText] = useState(initial !== undefined ? numeral(initial).format("-0.00") : "");
-    const onTextChange = useMemo(
-        () =>
-            handleTextFieldChange((value) => {
+const FormatNumber = (value: number | null) => (value !== null ? numeral(value).format("-0.00") : "");
+export const useNumericInputHandler = (
+    initial: number | null,
+    onChange: (value: number | null) => void,
+    id: any = ""
+) => {
+    const [text, setText] = useState(FormatNumber(initial));
+    const { onTextChange, setValue } = useMemo(
+        () => ({
+            onTextChange: handleTextFieldChange((value) => {
                 if (NumberRegex.test(value)) {
                     setText(value);
 
@@ -97,9 +102,15 @@ export const useNumericInputHandler = (initial: number | null, onChange: (value:
                     else if (value === (+value).toString()) onChange(+value);
                 }
             }),
+            setValue: (value: number | null) => setText(FormatNumber(value)),
+        }),
         [setText, onChange]
     );
-    return { text, setText, onTextChange };
+    useEffect(() => {
+        if (FormatNumber(initial) !== text) setText(FormatNumber(initial));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
+    return { text, setText, setValue, onTextChange };
 };
 export const useNumericInputHandlerState = () => {
     const [value, setValue] = useState<number | null>(null);

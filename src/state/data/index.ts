@@ -3,17 +3,20 @@ import {
     createNextState,
     createSlice,
     Dictionary,
+    EntityAdapter,
     EntityId,
     EntityState,
     PayloadAction,
+    Update,
 } from "@reduxjs/toolkit";
-import { clone, fromPairs, isEqual, range, reverse, round, toPairs, uniq, uniqWith, zipObject } from "lodash";
+import { clone, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { BaseBalanceValues, getCurrentMonth, getCurrentMonthString, ID, parseDate } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
 import {
     Account,
+    BasicObjectType,
     Category,
     Currency,
     Institution,
@@ -35,16 +38,10 @@ import {
 export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
-const BaseAdapter = createEntityAdapter();
+const BaseAdapter = createEntityAdapter<object>();
 const NameAdapter = createEntityAdapter<{ name: string }>({ sortComparer: (a, b) => a.name.localeCompare(b.name) });
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
-const getInitialState = <T extends { id: ID }>(initial?: T[]) => {
-    if (!initial) return { ids: [], entities: {} };
-
-    const ids = initial.map(({ id }) => id);
-    return { ids, entities: zipObject(ids, initial) };
-};
 
 export interface DataState {
     account: EntityState<Account>;
@@ -58,16 +55,32 @@ export interface DataState {
     notification: EntityState<Notification>;
 }
 
+const BaseObjects = {
+    category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
+    currency: [DEFAULT_CURRENCY],
+    institution: [PLACEHOLDER_INSTITUTION],
+    statement: [PLACEHOLDER_STATEMENT],
+};
+
+const adapters: Record<keyof Omit<DataState, "user">, EntityAdapter<any>> = {
+    account: BaseAdapter,
+    category: NameAdapter,
+    currency: NameAdapter,
+    institution: NameAdapter,
+    rule: IndexedAdapter,
+    transaction: DateAdapter,
+    statement: BaseAdapter,
+    notification: BaseAdapter,
+};
+
 const defaults = {
-    account: getInitialState<Account>(),
-    category: getInitialState<Category>([PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY]),
-    currency: getInitialState<Currency>([DEFAULT_CURRENCY]),
-    institution: getInitialState<Institution>([PLACEHOLDER_INSTITUTION]),
-    rule: getInitialState<Rule>(),
-    transaction: getInitialState<Transaction>(),
+    ...fromPairs(
+        toPairs(adapters).map(([name, adapter]) => [
+            name,
+            adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, [])),
+        ])
+    ),
     user: { currency: 1, isDemo: false },
-    statement: getInitialState<Statement>([PLACEHOLDER_STATEMENT]),
-    notification: getInitialState<Notification>(),
 } as DataState;
 
 type TransactionSummary = "category" | "currency" | "account";
@@ -81,26 +94,31 @@ export const DataSlice = createSlice({
     reducers: {
         reset: () => defaults,
         set: (_, action: PayloadAction<DataState>) => action.payload,
-        // resetToDefaultState: () => defaults,
         setUpDemo: () => {
-            const state: DataState = {
-                account: BaseAdapter.addMany(defaults.account, DemoObjects.account),
-                category: NameAdapter.addMany(defaults.category, DemoObjects.category),
-                currency: NameAdapter.addMany(defaults.currency, DemoObjects.currency),
-                institution: NameAdapter.addMany(defaults.institution, DemoObjects.institution),
-                rule: IndexedAdapter.addMany(defaults.rule, DemoObjects.rule),
-                transaction: DateAdapter.addMany(defaults.transaction, DemoObjects.transaction),
-                statement: BaseAdapter.addMany(defaults.statement, DemoObjects.statement),
+            const state = {
+                ...fromPairs(
+                    toPairs(adapters).map(([name, adapter]) => [
+                        name,
+                        adapter.addMany(
+                            defaults[name as keyof typeof adapters],
+                            DemoObjects[name as keyof typeof adapters]
+                        ),
+                    ])
+                ),
                 user: { ...defaults.user, isDemo: true },
-                notification: BaseAdapter.addMany(defaults.notification, DemoObjects.notification),
-            };
+            } as DataState;
 
             return createNextState(state, (state) => {
                 updateTransactionSummariesWithTransactions(state, state.transaction.ids);
-                fillTransactionBalances(state.transaction);
-                updateAccountTransactionDates(state);
-                updateBalanceSummaries(state);
+
+                updateBalancesAndAccountSummaries(state);
             });
+        },
+        updateObjects: <Name extends "rule">(
+            state: DataState,
+            { payload }: PayloadAction<{ type: Name; updates: readonly Update<BasicObjectType[Name]>[] }>
+        ) => {
+            adapters[payload.type].updateMany(state[payload.type], payload.updates);
         },
 
         // Notifications
@@ -110,9 +128,10 @@ export const DataSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(SaveTransactionSelectionState, (state, { payload: { ids, edits } }) => {
+                const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
+
                 updateTransactionSummaryStartDates(state);
                 updateTransactionSummariesWithTransactions(state, ids, true);
-
                 DateAdapter.updateMany(
                     state.transaction,
                     ids.map((id) => ({
@@ -120,12 +139,9 @@ export const DataSlice = createSlice({
                         changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
                     }))
                 );
-                const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
-
                 updateTransactionSummariesWithTransactions(state, ids);
-                fillTransactionBalances(state.transaction, balanceSubset);
-                updateAccountTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
-                updateBalanceSummaries(state, balanceSubset);
+
+                updateBalancesAndAccountSummaries(state, balanceSubset);
             })
             .addCase(DeleteTransactionSelectionState, (state, { payload: ids }) => {
                 const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
@@ -133,9 +149,8 @@ export const DataSlice = createSlice({
                 updateTransactionSummaryStartDates(state);
                 updateTransactionSummariesWithTransactions(state, ids, true);
                 DateAdapter.removeMany(state.transaction, ids);
-                fillTransactionBalances(state.transaction, balanceSubset);
-                updateAccountTransactionDates(state, uniq(balanceSubset.map(({ account }) => account)));
-                updateBalanceSummaries(state, balanceSubset);
+
+                updateBalancesAndAccountSummaries(state, balanceSubset);
             });
     },
 });
@@ -213,6 +228,12 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
             );
         });
     });
+};
+
+const updateBalancesAndAccountSummaries = (state: DataState, subset?: BalanceSubset) => {
+    fillTransactionBalances(state.transaction, subset);
+    updateAccountTransactionDates(state, subset && uniq(subset.map(({ account }) => account)));
+    updateBalanceSummaries(state, subset);
 };
 
 const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, subset?: BalanceSubset) => {

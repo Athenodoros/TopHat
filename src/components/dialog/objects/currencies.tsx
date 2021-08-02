@@ -1,24 +1,15 @@
 import { IconButton, ListItemText, makeStyles, TextField, Tooltip } from "@material-ui/core";
 import { Euro, Sync } from "@material-ui/icons";
-import React from "react";
+import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
 import { useDialogState } from "../../../state/app/hooks";
 import { Currency } from "../../../state/data";
-import { useAllCurrencies } from "../../../state/data/hooks";
 import { getNextID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, getRandomColour } from "../../../state/utilities/values";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
 import { getCurrencyIcon } from "../../display/ObjectDisplay";
-import {
-    DialogContents,
-    DialogMain,
-    DialogObjectSelector,
-    DialogPlaceholderDisplay,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../utilities";
+import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
 
 const useMainStyles = makeStyles({
     base: {
@@ -35,41 +26,33 @@ const useMainStyles = makeStyles({
 
 export const DialogCurrenciesView: React.FC = () => {
     const classes = useMainStyles();
-
-    const working = useDialogState("currency");
-    const Currencies = useAllCurrencies();
-
-    const render = (currency: Currency) => (
-        <div className={classes.base}>
-            {getCurrencyIcon(currency, classes.icon)}
-            <ListItemText>{currency.name}</ListItemText>
-        </div>
+    const render = useCallback(
+        (currency: Currency) => (
+            <div className={classes.base}>
+                {getCurrencyIcon(currency, classes.icon)}
+                <ListItemText>{currency.name}</ListItemText>
+            </div>
+        ),
+        [classes]
     );
 
     return (
-        <DialogMain onClick={removeWorkingCurrency}>
-            <DialogObjectSelector
-                type="currency"
-                options={Currencies}
-                createDefaultOption={createNewCurrency}
-                render={render}
-            />
-            <DialogContents>
-                {working ? (
-                    <EditCurrencyView working={working} />
-                ) : (
-                    <DialogPlaceholderDisplay
-                        icon={Euro}
-                        title="Currencies"
-                        subtext="Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds."
-                    />
-                )}
-            </DialogContents>
-        </DialogMain>
+        <DialogObjectEditWrapper
+            type="currency"
+            createDefaultOption={createNewCurrency}
+            render={render}
+            placeholder={Placeholder}
+        >
+            <EditCurrencyView />
+        </DialogObjectEditWrapper>
     );
 };
-
-const { remove: removeWorkingCurrency, update: updateCurrencyPartial } = getUpdateFunctions("currency");
+const Placeholder = {
+    icon: Euro,
+    title: "Currencies",
+    subtext:
+        "Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds.",
+};
 const createNewCurrency = (): Currency => ({
     id: getNextID(TopHatStore.getState().data.currency.ids),
     ticker: "NCD",
@@ -90,8 +73,9 @@ const useEditViewStyles = makeStyles({
         "& input": { width: 50, height: 50 },
     },
 });
-const EditCurrencyView: React.FC<{ working: Currency }> = ({ working }) => {
+const EditCurrencyView: React.FC = () => {
     const classes = useEditViewStyles();
+    const working = useDialogState("currency")!;
     const exchange = useNumericInputHandler(working.exchangeRate, updateWorkingExchangeRate);
 
     return (
@@ -138,10 +122,11 @@ const EditCurrencyView: React.FC<{ working: Currency }> = ({ working }) => {
     );
 };
 
-const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) =>
-    updateCurrencyPartial("colour")(event.target.value);
-const generateRandomColour = () => updateCurrencyPartial("colour")(getRandomColour());
+const { update } = getUpdateFunctions("currency");
 
-const updateWorkingSymbol = handleTextFieldChange(updateCurrencyPartial("symbol"));
-const updateWorkingTicker = handleTextFieldChange(updateCurrencyPartial("ticker"));
-const updateWorkingExchangeRate = (value: number | null) => updateCurrencyPartial("exchangeRate")(value || 1);
+const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) => update("colour")(event.target.value);
+const generateRandomColour = () => update("colour")(getRandomColour());
+
+const updateWorkingSymbol = handleTextFieldChange(update("symbol"));
+const updateWorkingTicker = handleTextFieldChange(update("ticker"));
+const updateWorkingExchangeRate = (value: number | null) => update("exchangeRate")(value || 1);
