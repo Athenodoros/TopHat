@@ -1,14 +1,19 @@
-import { Button, makeStyles, Typography } from "@material-ui/core";
+import { Button, Link, makeStyles, Typography } from "@material-ui/core";
 import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@material-ui/icons";
 import React from "react";
 import { shallowEqual } from "react-redux";
-import { Section } from "../../components/layout";
-import { DemoStatementFile } from "../../state/data/demo";
-import { useSelector } from "../../state/utilities/hooks";
-import { AppColours, Greys } from "../../styles/colours";
-import { createAndDownloadFile, zipObject } from "../../utilities/data";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
+import { DemoStatementFile } from "../../../state/data/demo";
+import { useSelector } from "../../../state/utilities/hooks";
+import { AppColours, Greys } from "../../../styles/colours";
+import { createAndDownloadFile, zipObject } from "../../../utilities/data";
 
-const useMainStyles = makeStyles({
+const useStyles = makeStyles({
+    container: {
+        width: 450,
+        margin: "auto",
+    },
     storedDataEntry: {
         display: "flex",
         padding: 10,
@@ -21,7 +26,7 @@ const useMainStyles = makeStyles({
         background: Greys[300],
         height: 1,
         width: "60%",
-        margin: "10px auto 20px auto",
+        margin: "20px auto 30px auto",
     },
     button: {
         float: "right",
@@ -31,11 +36,9 @@ const useMainStyles = makeStyles({
         margin: "15px 0",
     },
 });
-
 const fields = ["account", "institution", "category", "currency", "rule", "transaction"] as const;
-
-export const DataCountsDisplay: React.FC = () => {
-    const classes = useMainStyles();
+export const DialogSummaryContents: React.FC = () => {
+    const classes = useStyles();
     const isDemo = useSelector((state) => state.data.user.isDemo);
 
     const counts = useSelector(
@@ -48,7 +51,7 @@ export const DataCountsDisplay: React.FC = () => {
     );
 
     return (
-        <Section title="Stored Data">
+        <div className={classes.container}>
             <div className={classes.storedDataEntry}>
                 <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
                 <Table
@@ -76,7 +79,11 @@ export const DataCountsDisplay: React.FC = () => {
                 <>
                     <div className={classes.divider} />
                     <Typography variant="body2">
-                        This is a demo instance of TopHat. To start again from scratch, hit "Wipe Data" below.
+                        This is a demo instance of TopHat. To start again from scratch, go to{" "}
+                        <Link onClick={goToImportDataPage} href="#">
+                            Import and Wipe Data
+                        </Link>
+                        .
                     </Typography>
                     <Typography variant="body2" className={classes.demo2}>
                         One thing you might want to try in the demo is the statement upload functionality: you can click
@@ -92,11 +99,12 @@ export const DataCountsDisplay: React.FC = () => {
                     </Button>
                 </>
             ) : undefined}
-        </Section>
+        </div>
     );
 };
 
 const createStatementDownload = () => createAndDownloadFile(DemoStatementFile.name, DemoStatementFile.contents);
+const goToImportDataPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: "import" }));
 
 const useTableStyles = makeStyles({
     container: {

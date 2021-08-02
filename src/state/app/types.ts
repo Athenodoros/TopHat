@@ -69,12 +69,6 @@ export interface AnalysisPageState {
 export interface ForecastsPageState {
     id: "forecasts";
 }
-export interface DataPageState {
-    id: "data";
-}
-export interface SettingsPageState {
-    id: "settings";
-}
 
 export type PageStateType =
     | SummaryPageState
@@ -83,6 +77,4 @@ export type PageStateType =
     | TransactionsPageState
     | CategoriesPageState
     | AnalysisPageState
-    | ForecastsPageState
-    | DataPageState
-    | SettingsPageState;
+    | ForecastsPageState;

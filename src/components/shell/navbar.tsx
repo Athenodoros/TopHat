@@ -3,7 +3,6 @@ import {
     AccountBalanceWalletTwoTone,
     Camera,
     InsertChartTwoTone,
-    ListTwoTone,
     PaymentTwoTone,
     SettingsTwoTone,
     ShoppingBasketTwoTone,
@@ -11,9 +10,10 @@ import {
 } from "@material-ui/icons";
 import chroma from "chroma-js";
 import clsx from "clsx";
-import { get, mapValues } from "lodash-es";
+import { mapValues } from "lodash-es";
 import React from "react";
-import { DefaultPages } from "../../state/app";
+import { TopHatDispatch } from "../../state";
+import { AppSlice, DefaultPages } from "../../state/app";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/types";
 import { useSelector } from "../../state/utilities/hooks";
@@ -91,34 +91,35 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const SelectionEquivalents = {
-    ...mapValues(DefaultPages, (page) => page.id),
-    account: "accounts",
+    ...mapValues(DefaultPages, (page) => page.id as "summary"),
+    account: "accounts" as const,
 };
 
 export const NavBar: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
     const classes = useStyles();
 
+    const getIcon = (colour: string, Icon: IconType, onClick: () => void, selected?: boolean, logo?: boolean) => (
+        <IconButton
+            className={clsx(classes.button, selected && classes.selected)}
+            style={{
+                // stroke: logo ? WHITE : undefined,
+                color: selected ? WHITE : colour,
+                background: chroma(colour)
+                    .alpha(selected ? 1 : 0.1)
+                    .hex(),
+                // borderColor: selected ? dark : light,
+            }}
+            onClick={onClick}
+        >
+            <Icon style={{ fontSize: logo ? "2rem" : "1.7rem" }} />
+        </IconButton>
+    );
     const getTab = (id: PageStateType["id"], Icon: IconType, logo: boolean = false) => {
         const selected = SelectionEquivalents[page] === id;
-        const { main } = get(AppColours, id, { light: Greys[700], main: Greys[800], dark: Greys[900] });
+        const { main } = AppColours[SelectionEquivalents[id]];
 
-        return (
-            <IconButton
-                className={clsx(classes.button, selected && classes.selected)}
-                style={{
-                    // stroke: logo ? WHITE : undefined,
-                    color: selected ? WHITE : main,
-                    background: chroma(main)
-                        .alpha(selected ? 1 : 0.1)
-                        .hex(),
-                    // borderColor: selected ? dark : light,
-                }}
-                onClick={OpenPageCache[id]}
-            >
-                <Icon style={{ fontSize: logo ? "2rem" : "1.7rem" }} />
-            </IconButton>
-        );
+        return getIcon(main, Icon, OpenPageCache[id], selected, logo);
     };
 
     return (
@@ -131,10 +132,9 @@ export const NavBar: React.FC = () => {
                 {getTab("analysis", InsertChartTwoTone)}
                 {getTab("forecasts", TrendingUpTwoTone)}
             </div>
-            <div className={classes.admin}>
-                {getTab("data", ListTwoTone)}
-                {getTab("settings", SettingsTwoTone)}
-            </div>
+            <div className={classes.admin}>{getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}</div>
         </Paper>
     );
 };
+
+const openSettingsDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("settings"));

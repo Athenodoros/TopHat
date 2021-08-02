@@ -1,5 +1,5 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { get, trimStart } from "lodash";
+import { get, trimEnd, trimStart } from "lodash";
 import { Account, Category, Currency, Institution, Rule } from "../data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
 import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./types";
@@ -39,8 +39,6 @@ export const DefaultPages = {
     categories: { id: "categories" as const },
     analysis: { id: "analysis" as const },
     forecasts: { id: "forecasts" as const },
-    data: { id: "data" as const },
-    settings: { id: "settings" as const },
 };
 
 const defaultValues = {
@@ -50,9 +48,9 @@ const defaultValues = {
     currency: undefined as Currency | undefined,
     statement: undefined,
     rule: undefined as Rule | undefined,
-    settings: undefined,
+    settings: undefined as "import" | "export" | "storage" | "budgeting" | undefined,
 };
-const DefaultDialogs = { id: "account" as "closed" | keyof typeof defaultValues, ...defaultValues };
+const DefaultDialogs = { id: "closed" as "closed" | keyof typeof defaultValues, ...defaultValues };
 export type DialogState = typeof DefaultDialogs;
 
 interface AppState {
@@ -65,7 +63,7 @@ export const getPagePathForPageState = (state: PageStateType) => {
     return "/" + state.id + (state.id === "account" ? "/" + state.account : "");
 };
 export const getPageStateFromPagePath = (path: string) => {
-    const [_, page, id] = path.split("/");
+    const [_, page, id] = trimEnd(path, "#").split("/");
 
     if (page === "account")
         return ObjectIDRegex.test(id) ? ({ id: page, account: Number(id) } as AccountPageState) : null;

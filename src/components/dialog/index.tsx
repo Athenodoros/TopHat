@@ -32,6 +32,7 @@ import { DialogCategoriesView } from "./objects/categories";
 import { DialogCurrenciesView } from "./objects/currencies";
 import { DialogInstitutionsView } from "./objects/institutions";
 import { DialogRulesView } from "./objects/rules";
+import { DialogSettingsView } from "./settings";
 import { DialogMain } from "./utilities";
 
 const useStyles = makeStyles((theme) => ({
@@ -119,4 +120,5 @@ const DialogPages = {
     category: <DialogCategoriesView />,
     currency: <DialogCurrenciesView />,
     rule: <DialogRulesView />,
+    settings: <DialogSettingsView />,
 } as const;
