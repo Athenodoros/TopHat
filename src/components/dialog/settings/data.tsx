@@ -1,35 +1,34 @@
 import { Button, makeStyles, TextField, Typography } from "@material-ui/core";
+import clsx from "clsx";
 import React, { useCallback, useState } from "react";
 import { TopHatDispatch } from "../../../state";
 import { DataSlice, DataState } from "../../../state/data";
 import { useSelector } from "../../../state/utilities/hooks";
 import { Greys } from "../../../styles/colours";
+import { useButtonStyles } from "../../../styles/components";
 import { createAndDownloadFile } from "../../../utilities/data";
 import { handleTextFieldChange } from "../../../utilities/events";
+import { EditValueContainer } from "../utilities";
 
 const useStyles = makeStyles({
     container: {
         display: "flex",
         flexDirection: "column",
         width: 450,
-        margin: "auto",
+        margin: "40px auto",
     },
     input: {
-        margin: "25px 40px 25px 40px",
+        margin: "10px 50px 30px 50px",
     },
     divider: {
         background: Greys[300],
         height: 1,
         width: "60%",
-        margin: "30px auto",
+        margin: "20px auto 20px auto",
     },
     button: {
-        alignSelf: "flex-end",
-        marginBottom: 20,
-
-        "&:last-child": {
-            marginBottom: 0,
-        },
+        textAlign: "center",
+        width: 100,
     },
     largeButton: {
         alignSelf: "flex-end",
@@ -54,45 +53,61 @@ export const DialogExportContents: React.FC = () => {
     // TODO: This
     return (
         <div className={classes.container}>
-            <Typography variant="body1">
-                All data in TopHat can be exported in standard data formats: after all, it's all your data! Click one of
-                the formats below.
+            <Typography variant="body2">
+                All data in TopHat can be exported in standard data formats: after all, it's all your data! Choose
+                between the formats below - the buttons will download all data to your computer.
             </Typography>
             <div className={classes.divider} />
-            <Typography variant="body1">
-                <strong>CSV</strong> - Good for Excel analysis or uploads to other personal finance applications.
-                Exports as a ZIP file of CSVs.
-            </Typography>
-            <Button variant="outlined" className={classes.largeButton} color="primary" disabled={true}>
-                Export CSV
-            </Button>
-            <Typography variant="body1">
-                <strong>JSON</strong> - Useful to restore information to TopHat, or for usage in some analytical tools
-                and programming languages.
-            </Typography>
-            <Button variant="outlined" className={classes.largeButton} color="primary" onClick={createJSONDownload}>
-                Export JSON
-            </Button>
+            <EditValueContainer
+                label={
+                    <Button variant="outlined" className={classes.largeButton} color="primary" disabled={true}>
+                        Export CSV
+                    </Button>
+                }
+            >
+                <Typography variant="body1">
+                    Good for Excel analysis or uploads to other personal finance applications. Exports as a ZIP file of
+                    CSVs.
+                </Typography>
+            </EditValueContainer>
+            <EditValueContainer
+                label={
+                    <Button
+                        variant="outlined"
+                        className={classes.largeButton}
+                        color="primary"
+                        onClick={createJSONDownload}
+                    >
+                        Export JSON
+                    </Button>
+                }
+            >
+                <Typography variant="body1">
+                    Used to restore information to TopHat, and useful for some analytical tools and programming
+                    languages.
+                </Typography>
+            </EditValueContainer>
         </div>
     );
 };
 
 export const DialogImportContents: React.FC = () => {
     const classes = useStyles();
+    const buttonStyles = useButtonStyles();
+
     const [text, setText] = useState("");
     const ButtonProps = {
         variant: "outlined",
-        className: classes.button,
-        color: "secondary",
+        className: clsx(classes.button, buttonStyles.dangerOutlined),
         disabled: text.toUpperCase() !== "PERMANENTLY DELETE ALL DATA",
     } as const;
 
     // TODO: This
     return (
         <div className={classes.container}>
-            <Typography variant="body1">
+            <Typography variant="body2">
                 These actions will <strong>permanently</strong> remove all data stored in TopHat. To enable them, type
-                "PERMANENTLY DELETE ALL DATA" in the box below:
+                "PERMANENTLY DELETE ALL DATA" in the box:
             </Typography>
             <TextField
                 variant="outlined"
@@ -102,25 +117,40 @@ export const DialogImportContents: React.FC = () => {
                 className={classes.input}
                 onChange={handleTextFieldChange(setText)}
             />
-            <Typography variant="body1">
-                <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
-            </Typography>
-            <Button {...ButtonProps} component="label">
-                Import JSON
-                <input hidden={true} type="file" ref={onCreateFileInput} />
-            </Button>
-            <Typography variant="body1">
-                <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
-            </Typography>
-            <Button {...ButtonProps} onClick={resetDemoData}>
-                Restart Demo
-            </Button>
-            <Typography variant="body1">
-                <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty state.
-            </Typography>
-            <Button {...ButtonProps} onClick={deleteAllData}>
-                Wipe Data
-            </Button>
+            <EditValueContainer
+                label={
+                    <Button {...ButtonProps} component="label">
+                        Import JSON
+                        <input hidden={true} type="file" ref={onCreateFileInput} />
+                    </Button>
+                }
+            >
+                <Typography variant="body1">
+                    <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
+                </Typography>
+            </EditValueContainer>
+            <EditValueContainer
+                label={
+                    <Button {...ButtonProps} onClick={resetDemoData}>
+                        Restart Demo
+                    </Button>
+                }
+            >
+                <Typography variant="body1">
+                    <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
+                </Typography>
+            </EditValueContainer>
+            <EditValueContainer
+                label={
+                    <Button {...ButtonProps} onClick={deleteAllData}>
+                        Wipe Data
+                    </Button>
+                }
+            >
+                <Typography variant="body1">
+                    <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty state.
+                </Typography>
+            </EditValueContainer>
         </div>
     );
 };

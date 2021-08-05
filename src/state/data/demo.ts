@@ -8,7 +8,7 @@ import {
     getToday,
     parseDate,
     SDate,
-    StatementParseOptions
+    StatementParseOptions,
 } from "../utilities/values";
 import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 import {
@@ -16,7 +16,7 @@ import {
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
-    TRANSFER_CATEGORY_ID
+    TRANSFER_CATEGORY_ID,
 } from "./utilities";
 
 const today = getToday();
@@ -112,7 +112,14 @@ const accounts = (
     ] as AccountArgs[]
 ).map(makeAccount);
 
-const RuleDefaults = { regex: false, isInactive: false, accounts: [], category: PLACEHOLDER_CATEGORY_ID, min: null, max: null };
+const RuleDefaults = {
+    regex: false,
+    isInactive: false,
+    accounts: [],
+    category: PLACEHOLDER_CATEGORY_ID,
+    min: null,
+    max: null,
+};
 const makeRule = (input: Omit<Rule, keyof typeof RuleDefaults | "id" | "index"> & Partial<Rule>, id: number) => ({
     id: id + 1,
     index: id + 1,
@@ -122,7 +129,7 @@ const makeRule = (input: Omit<Rule, keyof typeof RuleDefaults | "id" | "index"> 
 const rules: Rule[] = [
     { name: "Weekly Shop", reference: ["WOOLWORTHS"], min: -100, max: 0 },
     { name: "State Transit", reference: ["State\\sTransit.*"], regex: true, category: 2 },
-    { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 5 },
+    { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 5, isInactive: true },
     { name: "Travel", accounts: [2, 4, 8], category: 4 },
 ].map(makeRule);
 

@@ -27,11 +27,11 @@ import { useDialogPage } from "../../state/app/hooks";
 import { handleSelectChange } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
 import { FileHandlerContext } from "../shell/workspace";
-import { DialogAccountsView } from "./objects/accounts";
-import { DialogCategoriesView } from "./objects/categories";
-import { DialogCurrenciesView } from "./objects/currencies";
-import { DialogInstitutionsView } from "./objects/institutions";
-import { DialogRulesView } from "./objects/rules";
+import { DialogAccountsView } from "./pages/accounts";
+import { DialogCategoriesView } from "./pages/categories";
+import { DialogCurrenciesView } from "./pages/currencies";
+import { DialogInstitutionsView } from "./pages/institutions";
+import { DialogRulesView } from "./pages/rules";
 import { DialogSettingsView } from "./settings";
 import { DialogMain } from "./utilities";
 

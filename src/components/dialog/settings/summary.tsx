@@ -1,18 +1,22 @@
-import { Button, Link, makeStyles, Typography } from "@material-ui/core";
+import { Link, makeStyles, Typography } from "@material-ui/core";
 import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@material-ui/icons";
+import { DateTime } from "luxon";
 import React from "react";
 import { shallowEqual } from "react-redux";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { DemoStatementFile } from "../../../state/data/demo";
 import { useSelector } from "../../../state/utilities/hooks";
+import { parseDate } from "../../../state/utilities/values";
 import { AppColours, Greys } from "../../../styles/colours";
-import { createAndDownloadFile, zipObject } from "../../../utilities/data";
+import { zipObject } from "../../../utilities/data";
 
 const useStyles = makeStyles({
     container: {
         width: 450,
-        margin: "auto",
+        margin: "40px auto",
+    },
+    text: {
+        marginBottom: 30,
     },
     storedDataEntry: {
         display: "flex",
@@ -36,9 +40,10 @@ const useStyles = makeStyles({
         margin: "15px 0",
     },
 });
-const fields = ["account", "institution", "category", "currency", "rule", "transaction"] as const;
+const fields = ["account", "institution", "category", "currency", "rule", "transaction", "statement"] as const;
 export const DialogSummaryContents: React.FC = () => {
     const classes = useStyles();
+    const start = parseDate(useSelector((state) => state.data.user.start)).toLocaleString(DateTime.DATE_FULL);
     const isDemo = useSelector((state) => state.data.user.isDemo);
 
     const counts = useSelector(
@@ -50,14 +55,31 @@ export const DialogSummaryContents: React.FC = () => {
         shallowEqual
     );
 
+    const intro = isDemo ? (
+        <>
+            This is a demo instance of TopHat, initialised on {start}. To start a real instance or restart the demo, go
+            to{" "}
+            <Link onClick={goToImportDataPage} href="#">
+                Import and Wipe Data
+            </Link>
+            . Currently, it contains the following data:
+        </>
+    ) : (
+        `This instance of TopHat was initialised on ${start}. It contains the following data:`
+    );
+
     return (
         <div className={classes.container}>
+            <Typography variant="body2" className={classes.text}>
+                {intro}
+            </Typography>
             <div className={classes.storedDataEntry}>
                 <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
                 <Table
                     points={[
                         ["Accounts", counts.account],
                         ["Institutions", counts.institution - 1],
+                        ["Statements", counts.statement - 1],
                     ]}
                 />
             </div>
@@ -73,37 +95,12 @@ export const DialogSummaryContents: React.FC = () => {
             </div>
             <div className={classes.storedDataEntry}>
                 <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
-                <Table points={[["Categories", counts.category - 1]]} />
+                <Table points={[["Categories", counts.category - 2]]} />
             </div>
-            {isDemo ? (
-                <>
-                    <div className={classes.divider} />
-                    <Typography variant="body2">
-                        This is a demo instance of TopHat. To start again from scratch, go to{" "}
-                        <Link onClick={goToImportDataPage} href="#">
-                            Import and Wipe Data
-                        </Link>
-                        .
-                    </Typography>
-                    <Typography variant="body2" className={classes.demo2}>
-                        One thing you might want to try in the demo is the statement upload functionality: you can click
-                        the button to download a test statement which the demo can import.
-                    </Typography>
-                    <Button
-                        variant="outlined"
-                        className={classes.button}
-                        color="primary"
-                        onClick={createStatementDownload}
-                    >
-                        Download Statement
-                    </Button>
-                </>
-            ) : undefined}
         </div>
     );
 };
 
-const createStatementDownload = () => createAndDownloadFile(DemoStatementFile.name, DemoStatementFile.contents);
 const goToImportDataPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: "import" }));
 
 const useTableStyles = makeStyles({

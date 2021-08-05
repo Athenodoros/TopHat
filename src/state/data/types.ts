@@ -158,6 +158,7 @@ export interface Statement {
 export interface UserState {
     currency: ID;
     isDemo: boolean;
+    start: SDate;
 }
 
 export interface NotificationRuleDefinitions {

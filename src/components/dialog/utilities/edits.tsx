@@ -19,20 +19,31 @@ const useEditValueContainerStyles = makeStyles({
         color: Greys[600],
         textTransform: "uppercase",
     },
+    labelWrapper: {
+        paddingRight: 30,
+    },
     title: {
         color: Greys[600],
         textTransform: "uppercase",
         marginTop: 20,
     },
 });
-export const EditValueContainer: React.FC<{ label: string; className?: string }> = ({ label, children, className }) => {
+export const EditValueContainer: React.FC<{ label: React.ReactNode; className?: string }> = ({
+    label,
+    children,
+    className,
+}) => {
     const classes = useEditValueContainerStyles();
 
     return (
         <div className={clsx(classes.container, className)}>
-            <Typography variant="subtitle2" noWrap={true} className={classes.label}>
-                {label}
-            </Typography>
+            {typeof label === "string" ? (
+                <Typography variant="subtitle2" noWrap={true} className={classes.label}>
+                    {label}
+                </Typography>
+            ) : (
+                <div className={classes.labelWrapper}>{label}</div>
+            )}
             {children}
         </div>
     );

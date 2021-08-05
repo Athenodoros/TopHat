@@ -12,7 +12,14 @@ import {
 import { clone, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
-import { BaseBalanceValues, getCurrentMonth, getCurrentMonthString, ID, parseDate } from "../utilities/values";
+import {
+    BaseBalanceValues,
+    getCurrentMonth,
+    getCurrentMonthString,
+    getTodayString,
+    ID,
+    parseDate,
+} from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
 import {
     Account,
@@ -80,7 +87,7 @@ const defaults = {
             adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, [])),
         ])
     ),
-    user: { currency: 1, isDemo: false },
+    user: { currency: 1, isDemo: false, start: getTodayString() },
 } as DataState;
 
 type TransactionSummary = "category" | "currency" | "account";

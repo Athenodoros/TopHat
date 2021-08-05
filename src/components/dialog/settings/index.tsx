@@ -1,5 +1,5 @@
 import { List, ListItemIcon, ListItemText, ListSubheader, makeStyles, MenuItem } from "@material-ui/core";
-import { GetApp, ListAlt, SaveAlt, Timeline } from "@material-ui/icons";
+import { CloudDone, Edit, GetApp, ListAlt, Timeline } from "@material-ui/icons";
 import { get } from "lodash";
 import React from "react";
 import { TopHatDispatch, TopHatStore } from "../../../state";
@@ -23,33 +23,35 @@ const useStyles = makeStyles({
 export const DialogSettingsView: React.FC = () => {
     const classes = useStyles();
     const page = useDialogState("settings");
-    console.log(
-        page,
-        useSelector((state) => state.app.dialog),
-        "budgeting"
-    );
+    const isDemo = useSelector((state) => state.data.user.isDemo);
 
     return (
-        <DialogMain onClick={setEmptyPage}>
+        <DialogMain>
             <DialogOptions>
                 <List className={classes.list}>
                     <ListSubheader>Data</ListSubheader>
-                    <MenuItem onClick={setPage["import"]} selected={page === "import"}>
+                    <MenuItem onClick={setEmptyPage} selected={page === undefined}>
                         <ListItemIcon>
                             <ListAlt fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Import and Wipe Data</ListItemText>
+                        <ListItemText>{isDemo ? "Demo" : "Summary"}</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={setPage["import"]} selected={page === "import"}>
+                        <ListItemIcon>
+                            <Edit fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Manage Data</ListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["export"]} selected={page === "export"}>
                         <ListItemIcon>
                             <GetApp fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Export Data</ListItemText>
+                        <ListItemText>Export</ListItemText>
                     </MenuItem>
                     <ListSubheader>Settings</ListSubheader>
                     <MenuItem onClick={setPage["storage"]} selected={page === "storage"}>
                         <ListItemIcon>
-                            <SaveAlt fontSize="small" />
+                            <CloudDone fontSize="small" />
                         </ListItemIcon>
                         <ListItemText>Storage and Services</ListItemText>
                     </MenuItem>
