@@ -5,7 +5,7 @@ import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../../components/display/PerformantCharts";
 import { OpenPageCache } from "../../state/app/actions";
-import { PageStateType } from "../../state/app/types";
+import { PageStateType } from "../../state/app/pageTypes";
 import { useFormatValue } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
 

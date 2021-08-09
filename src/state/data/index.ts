@@ -42,7 +42,7 @@ import {
     TRANSFER_CATEGORY,
     TRANSFER_CATEGORY_ID,
 } from "./utilities";
-export type { Account, Category, Currency, Institution, Notification, Rule, Transaction } from "./types";
+export type { Account, Category, Currency, Institution, Notification, Rule, Statement, Transaction } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter<object>();
@@ -71,7 +71,7 @@ const BaseObjects = {
 
 const adapters: Record<keyof Omit<DataState, "user">, EntityAdapter<any>> = {
     account: BaseAdapter,
-    category: NameAdapter,
+    category: BaseAdapter,
     currency: NameAdapter,
     institution: NameAdapter,
     rule: IndexedAdapter,

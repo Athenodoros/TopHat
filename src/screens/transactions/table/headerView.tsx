@@ -9,7 +9,7 @@ import { FilterIcon, FilterMenuOption } from "../../../components/table/";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageFilters } from "../../../state/app/hooks";
-import { TransactionsPageState } from "../../../state/app/types";
+import { TransactionsPageState } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCategories, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
 import { ID } from "../../../state/utilities/values";

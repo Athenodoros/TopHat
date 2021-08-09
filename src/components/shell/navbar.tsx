@@ -15,7 +15,7 @@ import React from "react";
 import { TopHatDispatch } from "../../state";
 import { AppSlice, DefaultPages } from "../../state/app";
 import { OpenPageCache } from "../../state/app/actions";
-import { PageStateType } from "../../state/app/types";
+import { PageStateType } from "../../state/app/pageTypes";
 import { useSelector } from "../../state/utilities/hooks";
 import { AppColours, Greys, WHITE } from "../../styles/colours";
 import { IconType } from "../../utilities/types";

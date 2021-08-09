@@ -5,7 +5,7 @@ import React, { useCallback } from "react";
 import { getCategoryIcon, getInstitutionIcon } from "../../../components/display/ObjectDisplay";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { EditTransactionState } from "../../../state/app/types";
+import { EditTransactionState } from "../../../state/app/pageTypes";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import {
     useAccountByID,

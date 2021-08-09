@@ -52,7 +52,8 @@ interface DialogObjectSelectorProps<
 > {
     type: Name;
     exclude?: ID[];
-    createDefaultOption: () => BasicObjectType[Name];
+    createDefaultOption?: () => BasicObjectType[Name];
+    onAddNew?: () => void;
     render: (option: BasicObjectType[Name]) => React.ReactNode;
     draggable?: Drag;
 }
@@ -63,6 +64,7 @@ export const DialogObjectSelector = <
     type,
     exclude,
     createDefaultOption,
+    onAddNew,
     render,
     draggable,
 }: DialogObjectSelectorProps<Name, Drag>) => {
@@ -123,15 +125,19 @@ export const DialogObjectSelector = <
                     getList()
                 )}
             </div>
-            <Button
-                className={classes.button}
-                variant="outlined"
-                color="primary"
-                startIcon={<AddCircleOutline />}
-                onClick={withSuppressEvent<HTMLButtonElement>(() => functions.set(createDefaultOption()))}
-            >
-                New {upperFirst(type)}
-            </Button>
+            {(createDefaultOption || onAddNew) && (
+                <Button
+                    className={classes.button}
+                    variant="outlined"
+                    color="primary"
+                    startIcon={<AddCircleOutline />}
+                    onClick={withSuppressEvent<HTMLButtonElement>(() =>
+                        onAddNew ? onAddNew() : functions.set(createDefaultOption!())
+                    )}
+                >
+                    New {upperFirst(type)}
+                </Button>
+            )}
         </DialogOptions>
     );
 };

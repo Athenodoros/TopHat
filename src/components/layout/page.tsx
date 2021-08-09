@@ -1,8 +1,8 @@
 import { Badge, IconButton, makeStyles, Popover, Typography } from "@material-ui/core";
-import { AddTwoTone, Notifications as NotificationsIcon } from "@material-ui/icons";
-import { TopHatDispatch } from "../../state";
-import { AppSlice } from "../../state/app";
+import { Camera, Notifications as NotificationsIcon } from "@material-ui/icons";
+import { DemoStatementFiles } from "../../state/data/demo";
 import { useNotificationCount } from "../../state/data/hooks";
+import { createAndDownloadFile } from "../../utilities/data";
 import { usePopoverProps } from "../../utilities/hooks";
 import { NAVBAR_LOGO_HEIGHT } from "../shell/navbar";
 import { Notifications } from "../shell/notifications";
@@ -57,8 +57,8 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
                     >
                         <Notifications />
                     </Popover>
-                    <IconButton onClick={openDialog}>
-                        <AddTwoTone />
+                    <IconButton onClick={downloadExampleStatements}>
+                        <Camera />
                     </IconButton>
                 </div>
             </div>
@@ -67,4 +67,6 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
     );
 };
 
-const openDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("account"));
+// const openDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("account"));
+const downloadExampleStatements = () =>
+    DemoStatementFiles.forEach(({ name, contents }) => createAndDownloadFile(name, contents));

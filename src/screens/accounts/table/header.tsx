@@ -19,7 +19,7 @@ import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContai
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
-import { ChartSign } from "../../../state/app/types";
+import { ChartSign } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCurrencies, useAllInstitutions } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";

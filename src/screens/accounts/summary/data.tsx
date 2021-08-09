@@ -1,5 +1,5 @@
 import { omit, toPairs, unzip, zip } from "lodash-es";
-import { AccountsPageState } from "../../../state/app/types";
+import { AccountsPageState } from "../../../state/app/pageTypes";
 import { PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
 import { useAccountIDs, useAccountMap, useCurrencyMap, useInstitutionMap } from "../../../state/data/hooks";
 import { AccountTypeMap } from "../../../state/data/types";

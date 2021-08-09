@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
-import { ChartSign } from "../../state/app/types";
+import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/utilities/values";
 import { BLACK } from "../../styles/colours";

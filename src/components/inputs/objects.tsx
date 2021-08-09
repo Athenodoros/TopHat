@@ -47,12 +47,25 @@ export const ObjectSelector = <Nullable extends boolean, Option extends { id: ID
                 }}
             >
                 {placeholder && (
-                    <MenuItem selected={selected === undefined} onClick={() => (setSelected as () => void)()}>
+                    <MenuItem
+                        selected={selected === undefined}
+                        onClick={() => {
+                            popover.setIsOpen(false);
+                            (setSelected as () => void)();
+                        }}
+                    >
                         {placeholder}
                     </MenuItem>
                 )}
                 {options.map((option) => (
-                    <MenuItem key={option.id} selected={option.id === selected} onClick={() => setSelected(option.id)}>
+                    <MenuItem
+                        key={option.id}
+                        selected={option.id === selected}
+                        onClick={() => {
+                            popover.setIsOpen(false);
+                            setSelected(option.id);
+                        }}
+                    >
                         {render(option)}
                         <Typography variant="body1" noWrap={true}>
                             {option.name}

@@ -1,6 +1,7 @@
 import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
 import { zipObject } from "../../utilities/data";
-import { BalanceHistory, ColourScale, ID, SDate, StatementParseOptions, TransactionHistory } from "../utilities/values";
+import { DialogColumnParseResult, DialogColumnValueMapping, DialogParseSpecification } from "../logic/statement";
+import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
 
 /**
  * A bank account or asset, possibly held at a financial institution
@@ -36,7 +37,12 @@ export interface Account {
 
     statementFilePattern?: string;
     statementFilePatternManual?: string;
-    lastStatementFormat?: StatementParseOptions;
+    lastStatementFormat?: {
+        parse: DialogParseSpecification;
+        columns: DialogColumnParseResult["common"];
+        mapping: DialogColumnValueMapping;
+        date: SDate;
+    };
 }
 
 /**
@@ -146,10 +152,9 @@ export interface Transaction {
 export interface Statement {
     id: ID;
     name: string;
+    account: ID;
     date: SDate;
     contents: string;
-    parsing: StatementParseOptions;
-    account: ID;
 }
 
 /**
@@ -181,5 +186,6 @@ export interface BasicObjectType {
     currency: Currency;
     institution: Institution;
     rule: Rule;
+    statement: Statement;
 }
 export type BasicObjectName = keyof BasicObjectType;

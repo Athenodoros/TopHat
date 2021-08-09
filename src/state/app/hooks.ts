@@ -2,7 +2,7 @@ import { identity, pick } from "lodash";
 import { shallowEqual } from "react-redux";
 import { DialogState } from ".";
 import { useSelector } from "../utilities/hooks";
-import { AccountPageState, AccountsPageState, TransactionsPageState } from "./types";
+import { AccountPageState, AccountsPageState, TransactionsPageState } from "./pageTypes";
 
 export const useAccountsPageState = <T = AccountsPageState>(selector: (state: AccountsPageState) => T = identity) =>
     useSelector((state) => selector(state.app.page as AccountsPageState));

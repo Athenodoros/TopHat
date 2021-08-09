@@ -1,5 +1,5 @@
 import { max, mean } from "lodash";
-import { TransactionsPageState } from "../../../state/app/types";
+import { TransactionsPageState } from "../../../state/app/pageTypes";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import { useAllObjects, useInstitutionMap } from "../../../state/data/hooks";
 import { Account, Currency } from "../../../state/data/types";

@@ -1,5 +1,5 @@
 import { createAction } from "@reduxjs/toolkit";
-import { EditTransactionState } from "../app/types";
+import { EditTransactionState } from "../app/pageTypes";
 import { ID } from "./values";
 
 export const SaveTransactionSelectionState = createAction<{ ids: ID[]; edits: EditTransactionState }>(

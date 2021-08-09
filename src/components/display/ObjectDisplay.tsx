@@ -19,8 +19,8 @@ export const useGetAccountIcon = () => {
     const institutions = useInstitutionMap();
 
     return useCallback(
-        (account: Account, className: string) => (
-            <Avatar src={institutions[account.institution!]!.icon} className={className}>
+        (account: Account | undefined, className: string) => (
+            <Avatar src={institutions[account?.institution!]?.icon} className={className}>
                 <AccountBalance style={{ height: "60%" }} />
             </Avatar>
         ),

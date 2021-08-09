@@ -8,7 +8,7 @@ import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../c
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
-import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
+import { EditTransactionState, TransactionsPageState } from "../../../state/app/pageTypes";
 import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../../../state/utilities/actions";

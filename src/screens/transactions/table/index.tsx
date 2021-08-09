@@ -6,7 +6,7 @@ import { TableContainer, TableHeaderContainer } from "../../../components/table"
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useTransactionsPageState } from "../../../state/app/hooks";
-import { EditTransactionState, TransactionsPageState } from "../../../state/app/types";
+import { EditTransactionState, TransactionsPageState } from "../../../state/app/pageTypes";
 import { Transaction } from "../../../state/data";
 import { ID } from "../../../state/utilities/values";
 import { flipListIncludes, zipObject } from "../../../utilities/data";

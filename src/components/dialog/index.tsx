@@ -16,6 +16,7 @@ import {
     Clear,
     Description,
     Euro,
+    NoteAdd,
     Settings,
     ShoppingBasket,
 } from "@material-ui/icons";
@@ -27,15 +28,17 @@ import { useDialogPage } from "../../state/app/hooks";
 import { handleSelectChange } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
 import { FileHandlerContext } from "../shell/workspace";
+import { DialogImportView } from "./import";
 import { DialogAccountsView } from "./pages/accounts";
 import { DialogCategoriesView } from "./pages/categories";
 import { DialogCurrenciesView } from "./pages/currencies";
 import { DialogInstitutionsView } from "./pages/institutions";
 import { DialogRulesView } from "./pages/rules";
+import { DialogStatementView } from "./pages/statements";
 import { DialogSettingsView } from "./settings";
-import { DialogMain } from "./utilities";
+import { DialogMain, DIALOG_OPTIONS_WIDTH } from "./utilities";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles({
     paper: {
         width: 900,
         maxWidth: "inherit",
@@ -50,8 +53,12 @@ const useStyles = makeStyles((theme) => ({
         justifyContent: "space-between",
         flexShrink: 0,
 
+        "& .MuiOutlinedInput-root:not(:hover):not(:focus-within) .MuiOutlinedInput-notchedOutline": {
+            border: "none",
+        },
+
         "& .MuiSelect-root": {
-            width: 230,
+            width: DIALOG_OPTIONS_WIDTH - 32 - 18 - 20 * 2,
             display: "flex",
             alignItems: "center",
             padding: "5px 32px 5px 18px",
@@ -61,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
             },
         },
     },
-}));
+});
 
 export const TopHatDialog: React.FC = () => {
     const state = useDialogPage();
@@ -73,7 +80,12 @@ export const TopHatDialog: React.FC = () => {
     if (!dropzoneRef?.current) return null;
 
     return (
-        <Dialog open={state !== "closed" || isDragActive} onClose={onClose} PaperProps={{ className: classes.paper }}>
+        <Dialog
+            open={state !== "closed" || isDragActive}
+            onClose={onClose}
+            PaperProps={{ className: classes.paper }}
+            disablePortal={true} // This enables file dragover to still hit the dropzone with a full-page dialog
+        >
             <div className={classes.header}>
                 <FormControl variant="outlined" size="small">
                     <Select value={state !== "closed" ? state : "settings"} onChange={changeDialogScreen}>
@@ -84,7 +96,7 @@ export const TopHatDialog: React.FC = () => {
                     <Clear fontSize="small" />
                 </IconButton>
             </div>
-            {get(DialogPages, state, <DialogMain />)}
+            {isDragActive ? DialogPages.import : get(DialogPages, state, <DialogMain />)}
         </Dialog>
     );
 };
@@ -109,6 +121,7 @@ const MenuItems = [
     getMenuItem(Euro, "currency", "Currencies"),
     <Divider key={1} />,
     getMenuItem(Description, "statement", "Statements"),
+    getMenuItem(NoteAdd, "import", "Statement Import"),
     getMenuItem(CallSplit, "rule", "Rules"),
     <Divider key={2} />,
     getMenuItem(Settings, "settings", "Settings"),
@@ -120,5 +133,7 @@ const DialogPages = {
     category: <DialogCategoriesView />,
     currency: <DialogCurrenciesView />,
     rule: <DialogRulesView />,
+    statement: <DialogStatementView />,
+    import: <DialogImportView />,
     settings: <DialogSettingsView />,
 } as const;

@@ -7,6 +7,7 @@ import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
 import { TopHatStore } from "../../state";
+import { handleStatementFileUpload } from "../../state/logic/statement";
 import { theme } from "../../styles/theme";
 import { TopHatDialog } from "../dialog";
 
@@ -35,7 +36,7 @@ export const Workspace: React.FC = ({ children }) => {
         rootRef: dropzoneRef,
     } = useDropzone({
         accept: "text/csv",
-        multiple: false,
+        onDrop: handleStatementFileUpload,
     });
 
     return (
@@ -48,8 +49,8 @@ export const Workspace: React.FC = ({ children }) => {
                             value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
                         >
                             <Provider store={TopHatStore}>
-                                <TopHatDialog />
                                 <div {...omit(getRootProps(), ["onClick"])}>
+                                    <TopHatDialog />
                                     <input
                                         id="file-upload-dropzone"
                                         {...getInputProps({ style: { display: "none" } })}

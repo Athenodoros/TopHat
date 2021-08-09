@@ -2,7 +2,7 @@ import { EntityId } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { chunk, countBy, max, maxBy, toPairs } from "lodash";
 import { BLACK, Greys } from "../../styles/colours";
-import { BaseTransactionHistory, StatementParseOptions } from "../utilities/values";
+import { BaseTransactionHistory } from "../utilities/values";
 import { Category, Currency, Institution, Statement, Transaction } from "./types";
 
 export const PLACEHOLDER_CATEGORY_ID = 0;
@@ -33,7 +33,6 @@ export const PLACEHOLDER_STATEMENT: Statement = {
     name: "No Statement",
     contents: "",
     date: "",
-    parsing: null as unknown as StatementParseOptions,
     account: -1,
 };
 

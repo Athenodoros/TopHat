@@ -5,7 +5,7 @@ import { SummaryChartSign } from "../../../components/summary/utilities";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
-import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/types";
+import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/pageTypes";
 import { zipObject } from "../../../utilities/data";
 import { handleSelectChange } from "../../../utilities/events";
 import { useAccountsSummaryData } from "./data";

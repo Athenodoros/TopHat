@@ -2,14 +2,7 @@ import chroma from "chroma-js";
 import { random as randomInt, range, values } from "lodash";
 import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
-import {
-    BaseTransactionHistory,
-    formatDate,
-    getToday,
-    parseDate,
-    SDate,
-    StatementParseOptions,
-} from "../utilities/values";
+import { BaseTransactionHistory, formatDate, getToday, parseDate, SDate } from "../utilities/values";
 import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 import {
     compareTransactionsDescendingDates,
@@ -85,8 +78,24 @@ const rawInstitutions: InstitutionArgs[] = [
 ];
 const institutions = rawInstitutions.map(makeInstitution);
 
-type AccountArgs = [string, boolean, Account["category"], number | undefined, string | undefined, string | undefined];
-const accountFields = ["name", "isInactive", "category", "institution", "website", "statementFilePattern"] as const;
+type AccountArgs = [
+    string,
+    boolean,
+    Account["category"],
+    number | undefined,
+    string | undefined,
+    string | undefined,
+    Account["lastStatementFormat"]
+];
+const accountFields = [
+    "name",
+    "isInactive",
+    "category",
+    "institution",
+    "website",
+    "statementFilePattern",
+    "lastStatementFormat",
+] as const;
 const makeAccount = (args: AccountArgs, id: number): Account =>
     ({
         id: id + 1,
@@ -95,7 +104,6 @@ const makeAccount = (args: AccountArgs, id: number): Account =>
         lastUpdate: formatDate(today.minus({ months: 6 })),
         transactions: BaseTransactionHistory(),
         balances: {},
-        lastStatementFormat: args[5] ? ({} as StatementParseOptions) : undefined,
         ...zipObject(accountFields, args),
     } as Account);
 const accounts = (
@@ -104,7 +112,37 @@ const accounts = (
         ["Super", false, 3, 1, "https://www.ing.com.au/securebanking/"],
         ["Transaction Account", false, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
         ["Investment Account", false, 3, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],
-        ["International Account", false, 1, 3, "https://wise.com/user/account", "transactions.csv"],
+        [
+            "International Account",
+            false,
+            1,
+            3,
+            "https://wise.com/user/account",
+            "transactions.csv",
+            {
+                parse: { header: true },
+                columns: [
+                    { id: "0", name: "date", type: "date" },
+                    { id: "1", name: "reference", type: "string" },
+                    { id: "2", name: "value", type: "number" },
+                    { id: "3", name: "currency", type: "string" },
+                ],
+                mapping: {
+                    date: "0",
+                    reference: "1",
+                    value: {
+                        type: "value",
+                        value: "2",
+                        flip: false,
+                    },
+                    currency: {
+                        type: "column",
+                        column: "3",
+                        field: "ticker",
+                    },
+                },
+            } as Account["lastStatementFormat"],
+        ],
         ["Transaction Account", true, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
         ["Mortgage", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action", "Mortgage Statement.csv"],
         ["Apartment", false, 2, PLACEHOLDER_INSTITUTION_ID],
@@ -316,10 +354,10 @@ let transactions = (
         [{ months: 18, days: 15 }, "Buy Apartment", 450000, 7, 0, undefined, true],
         [{ months: 4, days: 25 }, "Apartment Valuation", 460000, 7, 0, undefined, undefined, true],
 
-        ...range(18).map((i) => [{ months: i, days: 5 }, "Mortgage Transfer", -1712.76, 0, 0, undefined, true]),
         ...range(18).map((i) => [{ months: i, days: 5 }, "Mortgage Transfer", 1712.76, 5, 0, undefined, true]),
-        ...range(18).map((i) => [{ months: i, days: 3 }, "Mortgage Payment", -1712.76, 5, 0, undefined, true]),
+        ...range(18).map((i) => [{ months: i, days: 5 }, "Mortgage Transfer", -1712.76, 0, 0, undefined, true]),
         ...range(18).map((i) => [{ months: i, days: 3 }, "Mortgage Payment", 1712.76, 6, 0, undefined, true]),
+        ...range(18).map((i) => [{ months: i, days: 3 }, "Mortgage Payment", -1712.76, 5, 0, undefined, true]),
         ...range(18).map((i) => [
             { months: i, days: 3 },
             "Mortgage Interest",
@@ -341,7 +379,6 @@ const statementMap = {
             name: "transactions.csv",
             contents: "date,reference,value,currency\n",
             date: formatDate(getToday().minus({ months: 8 })),
-            parsing: {},
             account: 5,
         },
         {
@@ -349,7 +386,6 @@ const statementMap = {
             name: "transactions.csv",
             contents: "date,reference,value,currency\n",
             date: formatDate(getToday().minus({ month: 1 })),
-            parsing: {},
             account: 5,
         },
     ],
@@ -357,7 +393,7 @@ const statementMap = {
 };
 let mortgageBalance = 0;
 let statementID = 2;
-let lastEverydayStatement = -1;
+let lastEverydayStatements = [-1, -1];
 transactions.forEach((tx) => {
     // "Orange Everyday"
     if (tx.account === 1) {
@@ -369,10 +405,9 @@ transactions.forEach((tx) => {
                 name: `Orange Everyday - ${date}.csv`,
                 contents: "",
                 date: formatDate(parseDate(tx.date).endOf("quarter")),
-                parsing: {},
                 account: 1,
             };
-            lastEverydayStatement = statementID;
+            lastEverydayStatements = [lastEverydayStatements[1], statementID];
         }
 
         tx.statement = statementMap.everyday[date].id;
@@ -389,7 +424,6 @@ transactions.forEach((tx) => {
                 name: `Mortgage Statement.csv`,
                 contents: "Transaction Date\tTransaction Value\tDescription\tBalance\n",
                 date: formatDate(parseDate(tx.date).endOf("quarter")),
-                parsing: {},
                 account: 7,
             };
         }
@@ -403,7 +437,9 @@ transactions.forEach((tx) => {
 
     // "International Account"
     if (tx.account === 5) {
-        const line = `${tx.date},${tx.reference},${tx.value},${tx.currency}\n`;
+        const line = `${tx.date},${tx.reference},${tx.value},${
+            [DEFAULT_CURRENCY].concat(currencies)[tx.currency - 1].ticker
+        }\n`;
         if (formatDate(getToday().minus({ months: 8 })) > tx.date) {
             tx.statement = statementMap.international[0].id;
             statementMap.international[0].contents += line;
@@ -414,11 +450,15 @@ transactions.forEach((tx) => {
     }
 });
 const statements = values(statementMap.everyday)
-    .filter(({ id }) => id !== lastEverydayStatement)
+    .filter(({ id }) => !lastEverydayStatements.includes(id))
     .concat(statementMap.international)
     .concat(values(statementMap.mortgage));
-transactions = transactions.filter((tx) => tx.statement !== lastEverydayStatement);
-export const DemoStatementFile = values(statementMap.everyday).find(({ id }) => id === lastEverydayStatement)!;
+transactions = transactions.filter(
+    (tx) => !lastEverydayStatements.includes(tx.statement) && tx.statement !== statementMap.international[1].id
+);
+export const DemoStatementFiles = values(statementMap.everyday)
+    .filter(({ id }) => lastEverydayStatements.includes(id))
+    .concat([statementMap.international[1]]);
 
 const notifications = [
     { id: 1, type: "new-milestone", contents: 200000 },

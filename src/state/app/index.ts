@@ -1,57 +1,10 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd, trimStart } from "lodash";
-import { Account, Category, Currency, Institution, Rule } from "../data";
 import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
-import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./types";
-
-export const DefaultPages = {
-    summary: { id: "summary" as const },
-    accounts: {
-        id: "accounts" as const,
-        chartSign: "all" as const,
-        chartAggregation: "type" as const,
-        account: [],
-        institution: [],
-        currency: [],
-        type: [],
-        filterInactive: true,
-        balances: "all" as const,
-    },
-    account: {
-        id: "account" as const,
-        account: 0,
-    },
-    transactions: {
-        id: "transactions" as const,
-        transfers: false,
-        chartSign: "debits" as const,
-        chartAggregation: "category" as const,
-        account: [],
-        category: [],
-        currency: [],
-        statement: [],
-        hideStubs: false,
-        tableLimit: 50,
-        search: "",
-        searchRegex: false,
-        selection: [],
-    },
-    categories: { id: "categories" as const },
-    analysis: { id: "analysis" as const },
-    forecasts: { id: "forecasts" as const },
-};
-
-const defaultValues = {
-    account: undefined as Account | undefined,
-    institution: undefined as Institution | undefined,
-    category: undefined as Category | undefined,
-    currency: undefined as Currency | undefined,
-    statement: undefined,
-    rule: undefined as Rule | undefined,
-    settings: undefined as "import" | "export" | "storage" | "budgeting" | undefined,
-};
-const DefaultDialogs = { id: "closed" as "closed" | keyof typeof defaultValues, ...defaultValues };
-export type DialogState = typeof DefaultDialogs;
+import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
+import { AccountPageState, AccountsPageState, PageStateType, TransactionsPageState } from "./pageTypes";
+export { DefaultPages } from "./defaults";
+export type { DialogState } from "./defaults";
 
 interface AppState {
     dialog: DialogState;
@@ -101,11 +54,17 @@ export const AppSlice = createSlice({
         },
 
         setDialogPage: (state, { payload }: PayloadAction<DialogState["id"]>) => {
-            if (state.dialog.id !== "closed") state.dialog[state.dialog.id] = undefined;
+            if (state.dialog.id === payload) return;
+
+            if (state.dialog.id !== "closed") state.dialog[state.dialog.id] = DefaultDialogs[state.dialog.id] as any;
             state.dialog.id = payload;
         },
         setDialogPartial: (state, { payload }: PayloadAction<Partial<DialogState>>) =>
             void Object.assign(state.dialog, payload),
+        closeDialogAndGoToPage: (_, { payload: page }: PayloadAction<PageStateType>) => ({
+            dialog: DefaultDialogs,
+            page,
+        }),
     },
     extraReducers: (builder) => {
         builder

@@ -21,11 +21,12 @@ export const DialogMain: React.FC<{ onClick?: () => void }> = ({ children, onCli
     </div>
 );
 
+export const DIALOG_OPTIONS_WIDTH = 312;
 const useOptionStyles = makeStyles({
     options: {
         display: "flex",
         flexDirection: "column",
-        width: 312,
+        width: DIALOG_OPTIONS_WIDTH,
         flexShrink: 0,
     },
 });
@@ -66,7 +67,7 @@ const usePlaceholderStyles = makeStyles({
 export interface DialogPlaceholderDisplayProps {
     icon: IconType;
     title: string;
-    subtext: string;
+    subtext?: string;
 }
 export const DialogPlaceholderDisplay: React.FC<DialogPlaceholderDisplayProps> = ({ icon: Icon, title, subtext }) => {
     const classes = usePlaceholderStyles();
@@ -75,9 +76,11 @@ export const DialogPlaceholderDisplay: React.FC<DialogPlaceholderDisplayProps> =
         <div className={classes.placeholder}>
             <Icon fontSize="large" htmlColor={Greys[600]} />
             <Typography variant="h6">{title}</Typography>
-            <Typography variant="body2" className={classes.subtext}>
-                {subtext}
-            </Typography>
+            {subtext !== undefined ? (
+                <Typography variant="body2" className={classes.subtext}>
+                    {subtext}
+                </Typography>
+            ) : undefined}
         </div>
     );
 };
