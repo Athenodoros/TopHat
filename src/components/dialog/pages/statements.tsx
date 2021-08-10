@@ -19,7 +19,7 @@ const useMainStyles = makeStyles({
     base: {
         display: "flex",
         alignItems: "center",
-        paddingRight: 10,
+        paddingRight: 20,
         minWidth: 0,
 
         "& .MuiTypography-root": {
@@ -29,8 +29,8 @@ const useMainStyles = makeStyles({
         },
     },
     icon: {
-        height: 24,
-        width: 24,
+        height: 34,
+        width: 34,
         marginRight: 15,
     },
 });
@@ -40,7 +40,7 @@ export const DialogStatementView: React.FC = () => {
     const render = useCallback(
         (statement: Statement) => (
             <div className={classes.base}>
-                {getStatementIcon(statement, classes.icon)}
+                {getStatementIcon(statement, classes.icon, true)}
                 <ListItemText secondary={parseDate(statement.date).toLocaleString(DateTime.DATE_MED)}>
                     {statement.name}
                 </ListItemText>
@@ -68,7 +68,7 @@ const Placeholder = {
     icon: Description,
     title: "Statements",
     subtext:
-        "Statements are export files, containing one row for each transaction or balance readings. Each is associated with one Account.",
+        "Statements are export files, usually from an Institution, containing one row for each transaction or balance readings. Each is associated with one Account.",
 };
 
 const useEditViewStyles = makeStyles((theme) => ({

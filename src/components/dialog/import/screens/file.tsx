@@ -9,21 +9,9 @@ import { DialogStatementFileState } from "../../../../state/app/statementTypes";
 import { Greys, Intents } from "../../../../styles/colours";
 import { FileHandlerContext } from "../../../shell/workspace";
 import { DialogContents, DialogMain, DialogOptions } from "../../utilities";
-import { DialogImportAccountSelector } from "../utilities";
+import { DialogImportAccountSelector, DialogImportTitle } from "../utilities";
 
 const useStyles = makeStyles((theme) => ({
-    title: {
-        color: Greys[800],
-        margin: "10px 20px 6px 40px",
-        fontWeight: 500,
-    },
-    divider: {
-        height: 1,
-        width: "70%",
-        marginLeft: 30,
-        marginBottom: 10,
-        background: Greys[400],
-    },
     body: {
         margin: "6px 30px",
     },
@@ -64,10 +52,7 @@ export const DialogImportFileScreen: React.FC = () => {
         <DialogMain>
             <DialogOptions>
                 <DialogImportAccountSelector />
-                <Typography variant="h6" className={classes.title}>
-                    File Upload
-                </Typography>
-                <div className={classes.divider} />
+                <DialogImportTitle title="File Upload" />
                 <Typography variant="body2" className={classes.body}>
                     Drag and Drop statements, or upload using the button below, from the same account.
                 </Typography>

@@ -1,12 +1,7 @@
-import { cloneDeep, get, isEqual, keys, omit, set, uniqBy, values } from "lodash";
+import { cloneDeep, debounce, get, isEqual, keys, set, uniqBy, values } from "lodash";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { AppSlice } from "../../app";
-import {
-    DialogFileState,
-    DialogStatementFileState,
-    DialogStatementMappingState,
-    DialogStatementParseState,
-} from "../../app/statementTypes";
+import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
 import { ID } from "../../utilities/values";
 import {
     getCombinedColumnProperties,
@@ -29,6 +24,11 @@ const getDataState = () => TopHatStore.getState().data;
 
 // TODO: All of these should almost certainly just be async actions
 
+export const changeFileSelection = (file: string) => {
+    const dialog = getDialogState();
+    if (dialog.id === "import" && dialog.import.page !== "file") setStatementState({ ...dialog.import, file });
+};
+
 export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
     const dialog = getDialogState();
     const data = getDataState();
@@ -50,13 +50,13 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
         });
     } else {
         let account = dialog.import.account;
-        if (account === undefined && (dialog.import as DialogStatementFileState).detectAccount) {
+        if (account === undefined) {
             account = data.account.ids
                 .map((id) => data.account.entities[id]!)
                 .find(({ statementFilePattern, statementFilePatternManual }) => {
-                    if (!statementFilePatternManual && !statementFilePatternManual) return false;
+                    if (!(statementFilePatternManual || statementFilePattern)) return false;
                     const regex = new RegExp(statementFilePatternManual || statementFilePattern!);
-                    return files.every(({ name }) => regex.test(name));
+                    return files.filter(({ name }) => regex.test(name)).length > files.length / 2;
                 });
         }
 
@@ -71,7 +71,7 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
             }))
         );
 
-        setStatementState({ page: "parse", account, parse, files, columns });
+        setStatementState({ page: "parse", account, parse, files, columns, file: files[0].id });
     }
 };
 
@@ -82,39 +82,42 @@ export const removeStatementFileFromDialog = (id: string) => {
 
     const current = dialog.import as DialogStatementParseState;
     if (current.files.length === 1 && current.files[0].id === id) {
-        setStatementState({ page: "file", account: current.account, rejections: [], detectAccount: true });
+        setStatementState({ page: "file", account: current.account, rejections: [] });
     } else {
+        const files = current.files.filter((file) => file.id !== id);
         setStatementState({
-            ...dialog.import,
-            files: current.files.filter((file) => file.id !== id),
-            columns:
-                current.columns.common === undefined
-                    ? getCombinedColumnProperties(
-                          current.files.map((file) => ({
-                              id: file.id,
-                              columns: current.columns.all[file.id].columns,
-                          }))
-                      )
-                    : {
-                          common: current.columns.all,
-                          all: omit(current.columns.all, id),
-                      },
+            ...current,
+            files,
+            columns: getCombinedColumnProperties(
+                files.map((file) => ({
+                    id: file.id,
+                    columns: current.columns.all[file.id].columns,
+                }))
+            ),
+            file: current.file === id ? files[0].id : current.file,
         } as DialogStatementParseState);
     }
 };
 
-export const changeStatementParsing = (parse: DialogParseSpecification) => {
+export const changeStatementParsing = (parse: Partial<DialogParseSpecification>) => {
     const current = getDialogState().import as DialogStatementParseState;
-    if (current.page !== "parse" || isEqual(parse, current.parse)) return;
+    if (current.page !== "parse" || isEqual({ ...current.parse, ...parse }, current.parse)) return;
+
+    setStatementState({ ...current, parse: { ...current.parse, ...parse } });
+    recalculateStatementParsing();
+};
+const recalculateStatementParsing = debounce(() => {
+    const current = getDialogState().import as DialogStatementParseState;
+    if (current.page !== "parse") return;
 
     const columns = getCombinedColumnProperties(
         current.files.map((file) => ({
             id: file.id,
-            columns: getFileColumnProperties(file.contents, parse),
+            columns: getFileColumnProperties(file.contents, current.parse),
         }))
     );
-    setStatementState({ ...current, parse, columns });
-};
+    setStatementState({ ...current, columns });
+}, 500);
 
 export const canGoToStatementMappingScreen = (current: DialogStatementParseState) => {
     if (current.page !== "parse") return false; // Wrong page
@@ -228,6 +231,7 @@ export const changeStatementDialogAccount = (id?: ID) => {
                     columns: getFileColumnProperties(file.contents, account.lastStatementFormat!.parse),
                 }))
             ),
+            file: current.file,
         });
 
     if (current.page === "import" && account)

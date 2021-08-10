@@ -61,12 +61,12 @@ export const getCurrencyIcon = (currency: Currency, className: string) => (
         <Typography variant="button">{last(currency.symbol)}</Typography>
     </Avatar>
 );
-export const getStatementIcon = (statement: Statement, className: string) => (
-    <Avatar className={className} style={{ backgroundColor: "transparent" }}>
+export const getStatementIcon = (statement: Statement, className: string, invert?: boolean) => (
+    <Avatar className={className} style={{ backgroundColor: invert ? Greys[500] : "transparent" }}>
         {statement.id !== PLACEHOLDER_STATEMENT_ID ? (
-            <Description style={{ height: "90%", color: Greys[500] }} />
+            <Description style={{ height: invert ? "60%" : "90%", color: Greys[invert ? 100 : 500] }} />
         ) : (
-            <Block style={{ height: "90%", color: Greys[500] }} />
+            <Block style={{ height: invert ? "60%" : "90%", color: Greys[invert ? 100 : 500] }} />
         )}
     </Avatar>
 );

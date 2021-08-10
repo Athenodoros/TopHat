@@ -11,13 +11,13 @@ export * from "./types";
 
 export const handleStatementFileUpload = (rawFiles: File[], rejections: FileRejection[]) => {
     const { import: state, id } = TopHatStore.getState().app.dialog;
-    const { account, detectAccount } = state as DialogStatementFileState;
+    const { account } = state as DialogStatementFileState;
 
     if (rejections.length) {
         TopHatDispatch(
             AppSlice.actions.setDialogPartial({
                 id: "import",
-                import: { page: "file", account, rejections, detectAccount: detectAccount || false },
+                import: { page: "file", account, rejections },
             })
         );
     } else if (rawFiles.length) {

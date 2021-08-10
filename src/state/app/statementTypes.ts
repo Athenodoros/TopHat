@@ -15,21 +15,23 @@ interface DialogStatementPageState<Page extends string> {
     account?: Account;
 }
 export interface DialogStatementFileState extends DialogStatementPageState<"file"> {
-    detectAccount: boolean;
     rejections: FileRejection[];
 }
 export interface DialogStatementParseState extends DialogStatementPageState<"parse"> {
+    file: string;
     parse: DialogParseSpecification;
     files: DialogFileDescription[];
     columns: DialogColumnParseResult<true>;
 }
 export interface DialogStatementMappingState extends DialogStatementPageState<"mapping"> {
+    file: string;
     parse: DialogParseSpecification;
     files: DialogFileDescription[];
     columns: DialogColumnParseResult;
     mapping: DialogColumnValueMapping;
 }
 export interface DialogStatementImportState extends DialogStatementPageState<"import"> {
+    file: string;
     parse: DialogParseSpecification;
     files: DialogFileDescription[];
     columns: DialogColumnParseResult;

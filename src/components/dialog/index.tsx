@@ -102,9 +102,10 @@ export const TopHatDialog: React.FC = () => {
 };
 
 const closeDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("closed"));
-const changeDialogScreen = handleSelectChange((id: DialogState["id"]) =>
-    TopHatDispatch(AppSlice.actions.setDialogPage(id))
-);
+const changeDialogScreen = handleSelectChange((id: DialogState["id"]) => {
+    TopHatDispatch(AppSlice.actions.setDialogPage(id));
+    setTimeout(() => (document.activeElement as HTMLElement | undefined)?.blur());
+});
 
 const getMenuItem = (Icon: IconType, name: string, display: string) => (
     <MenuItem value={name} key={name}>

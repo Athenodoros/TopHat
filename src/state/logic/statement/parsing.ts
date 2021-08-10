@@ -63,7 +63,7 @@ export const getFileColumnProperties = (
     { delimiter, header, dateFormat }: DialogParseSpecification
 ): ColumnProperties[] | undefined => {
     const parsed = Papa.parse(contents, { delimiter, header, skipEmptyLines: "greedy" });
-    if (parsed.errors) return undefined;
+    if (parsed.errors.length) return undefined;
 
     const raw = parsed.meta.fields
         ? parsed.meta.fields.map((name, idx) => ({
@@ -90,7 +90,10 @@ export const getCombinedColumnProperties = (
             JSON.stringify(file.columns?.map((column) => [column.id, column.name, column.type, column.nullable]))
         );
         const max = maxBy(toPairs(counts), ([_, count]) => count)![0];
-        common = max && counts[max] >= files.length / 2 ? JSON.parse(max) : undefined;
+        common =
+            max !== "undefined" && counts[max] >= files.length / 2
+                ? JSON.parse(max).map((column: any) => zipObject(["id", "name", "type", "nullable"], column))
+                : undefined;
     }
 
     return {

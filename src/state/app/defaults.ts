@@ -44,9 +44,9 @@ const defaultValues = {
     category: undefined as Category | undefined,
     currency: undefined as Currency | undefined,
     statement: undefined as Statement | undefined,
-    import: { page: "file", rejections: [], detectAccount: true } as DialogFileState,
+    import: { page: "file", rejections: [] } as DialogFileState,
     rule: undefined as Rule | undefined,
     settings: undefined as "import" | "export" | "storage" | "budgeting" | undefined,
 };
-export const DefaultDialogs = { id: "import" as "closed" | keyof typeof defaultValues, ...defaultValues };
+export const DefaultDialogs = { id: "closed" as "closed" | keyof typeof defaultValues, ...defaultValues };
 export type DialogState = typeof DefaultDialogs;
