@@ -38,7 +38,7 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
         const newColumns = getCombinedColumnProperties(
             files.map(({ id, contents }) => ({ id, columns: getFileColumnProperties(contents, current.parse) })),
             current.columns.common
-        ).all;
+        ).columns.all;
 
         setStatementState({
             ...current,
@@ -64,14 +64,31 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
             header: uniqBy(files, (file) => file.contents.split("\n")[0]).length <= 1,
         };
 
-        const columns = getCombinedColumnProperties(
+        const { columns, allMatch } = getCombinedColumnProperties(
             files.map((file) => ({
                 id: file.id,
                 columns: getFileColumnProperties(file.contents, parse),
             }))
         );
 
-        setStatementState({ page: "parse", account, parse, files, columns, file: files[0].id });
+        if (allMatch && account?.lastStatementFormat) {
+            const newState = {
+                page: "import" as const,
+                account,
+                parse,
+                files,
+                columns: columns as unknown as DialogColumnParseResult,
+                file: files[0].id,
+                mapping: account.lastStatementFormat.mapping,
+            };
+            setStatementState({
+                ...newState,
+                exclude: getStatementExclusions(newState),
+                transfers: guessStatementTransfers(newState),
+            });
+        } else {
+            setStatementState({ page: "parse", account, parse, files, columns, file: files[0].id });
+        }
     }
 };
 
@@ -93,12 +110,14 @@ export const removeStatementFileFromDialog = (id: string) => {
                     id: file.id,
                     columns: current.columns.all[file.id].columns,
                 }))
-            ),
+            ).columns,
             file: current.file === id ? files[0].id : current.file,
         } as DialogStatementParseState);
     }
 };
 
+export const toggleStatementHasHeader = () =>
+    changeStatementParsing({ header: !(getDialogState().import as DialogStatementParseState).parse.header });
 export const changeStatementParsing = (parse: Partial<DialogParseSpecification>) => {
     const current = getDialogState().import as DialogStatementParseState;
     if (current.page !== "parse" || isEqual({ ...current.parse, ...parse }, current.parse)) return;
@@ -110,7 +129,7 @@ const recalculateStatementParsing = debounce(() => {
     const current = getDialogState().import as DialogStatementParseState;
     if (current.page !== "parse") return;
 
-    const columns = getCombinedColumnProperties(
+    const { columns } = getCombinedColumnProperties(
         current.files.map((file) => ({
             id: file.id,
             columns: getFileColumnProperties(file.contents, current.parse),
@@ -141,7 +160,7 @@ export const goToStatementMappingScreen = () => {
     });
 };
 
-const columns = {
+export const StatementMappingColumns = {
     date: "date",
     reference: "reference",
     balance: "balance",
@@ -150,7 +169,7 @@ const columns = {
     debit: "value.debit",
     currency: "currency.column",
 } as const;
-export const changeStatementMappingValue = (key: keyof typeof columns, value: string) => {
+export const changeStatementMappingValue = (key: keyof typeof StatementMappingColumns, value: string | undefined) => {
     const state = getDialogState();
     if (state.id !== "import" || state.import.page !== "mapping") return;
 
@@ -161,8 +180,10 @@ export const changeStatementMappingValue = (key: keyof typeof columns, value: st
         return;
 
     const current = cloneDeep(state.import.mapping);
-    if (get(current, columns[key]) === value) return;
-    values(columns).forEach((column) => get(current, column) === value && set(current, column, undefined));
+    if (get(current, StatementMappingColumns[key]) === value) return;
+    values(StatementMappingColumns).forEach(
+        (column) => get(current, column) === value && set(current, column, undefined)
+    );
 
     if (["date", "reference", "balance"].includes(key)) {
         set(current, key, value);
@@ -175,7 +196,7 @@ export const changeStatementMappingValue = (key: keyof typeof columns, value: st
                 ? { ...current.value, [key]: value }
                 : { type: "split", [key]: value, flip: false };
     } else {
-        current.currency = { type: "column", column: value, field: "ticker" };
+        current.currency = { type: "column", column: value!, field: "ticker" };
     }
 
     setStatementState({ ...state.import, mapping: current });
@@ -230,7 +251,7 @@ export const changeStatementDialogAccount = (id?: ID) => {
                     id: file.id,
                     columns: getFileColumnProperties(file.contents, account.lastStatementFormat!.parse),
                 }))
-            ),
+            ).columns,
             file: current.file,
         });
 

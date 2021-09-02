@@ -83,7 +83,7 @@ export const getFileColumnProperties = (
 export const getCombinedColumnProperties = (
     files: { id: string; columns?: ColumnProperties[] }[],
     common?: DialogColumnParseResult<true>["common"]
-): DialogColumnParseResult<true> => {
+): { columns: DialogColumnParseResult<true>; allMatch: boolean } => {
     // Ideally this might coerce types to supertypes (dates -> strings etc.) and similarly deal with nullability at some point
     if (common === undefined) {
         const counts = countBy(files, (file) =>
@@ -96,25 +96,30 @@ export const getCombinedColumnProperties = (
                 : undefined;
     }
 
-    return {
-        common,
-        all: zipObject(
-            files.map(({ id }) => id),
-            files.map(({ id, columns }) => {
-                const matches =
-                    common !== undefined &&
-                    columns !== undefined &&
-                    zip(common, columns).every(
-                        ([reference, column]) =>
-                            reference?.id === column?.id &&
-                            reference?.name === column?.name &&
-                            (reference?.type === "string" || reference?.type === column?.type) &&
-                            (reference?.nullable || column?.nullable === false)
-                    );
+    const matches = files.map(({ id, columns }) => {
+        const matches =
+            common !== undefined &&
+            columns !== undefined &&
+            zip(common, columns).every(
+                ([reference, column]) =>
+                    reference?.id === column?.id &&
+                    reference?.name === column?.name &&
+                    (reference?.type === "string" || reference?.type === column?.type) &&
+                    (reference?.nullable || column?.nullable === false)
+            );
 
-                return { file: id, columns, matches };
-            })
-        ),
+        return { file: id, columns, matches };
+    });
+
+    return {
+        columns: {
+            common,
+            all: zipObject(
+                files.map(({ id }) => id),
+                matches
+            ),
+        },
+        allMatch: matches.every(({ matches }) => matches),
     };
 };
 
@@ -122,6 +127,12 @@ export const guessStatementColumnMapping = (
     { all, common }: DialogColumnParseResult,
     defaultCurrency: ID
 ): DialogColumnValueMapping => {
+    const mapping: DialogColumnValueMapping = {
+        date: "",
+        value: { type: "value", flip: false },
+        currency: { type: "constant", currency: defaultCurrency },
+    };
+
     const findColumn = (fieldType: ColumnProperties["type"], options: string[] = [""], nonnull: boolean = false) =>
         common.find(
             ({ id, name, type, nullable }) =>
@@ -133,11 +144,7 @@ export const guessStatementColumnMapping = (
                 )
         )?.id;
 
-    const mapping: DialogColumnValueMapping = {
-        date: findColumn("date", ["DATE"], true) || findColumn("date", [""], true)!,
-        value: { type: "value", flip: false },
-        currency: { type: "constant", currency: defaultCurrency },
-    };
+    mapping.date = findColumn("date", ["DATE"], true) || findColumn("date", [""], true)!;
     mapping.balance = findColumn("number", ["BALANCE"]);
 
     // Ideally this section would check the values against any balance column

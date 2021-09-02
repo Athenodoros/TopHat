@@ -377,14 +377,14 @@ const statementMap = {
         {
             id: 1,
             name: "transactions.csv",
-            contents: "date,reference,value,currency\n",
+            contents: "date\treference\tvalue\tcurrency\n",
             date: formatDate(getToday().minus({ months: 8 })),
             account: 5,
         },
         {
             id: 2,
             name: "transactions.csv",
-            contents: "date,reference,value,currency\n",
+            contents: "date\treference\tvalue\tcurrency\n",
             date: formatDate(getToday().minus({ month: 1 })),
             account: 5,
         },
@@ -437,7 +437,7 @@ transactions.forEach((tx) => {
 
     // "International Account"
     if (tx.account === 5) {
-        const line = `${tx.date},${tx.reference},${tx.value},${
+        const line = `${tx.date}\t${tx.reference}\t${tx.value}\t${
             [DEFAULT_CURRENCY].concat(currencies)[tx.currency - 1].ticker
         }\n`;
         if (formatDate(getToday().minus({ months: 8 })) > tx.date) {

@@ -41,6 +41,7 @@ const useContentStyles = makeStyles({
         backgroundColor: Greys[100],
         borderRadius: 5,
         flexGrow: 1,
+        overflow: "hidden",
     },
 });
 export const DialogContents: React.FC = ({ children }) => (

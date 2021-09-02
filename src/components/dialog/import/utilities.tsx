@@ -5,7 +5,7 @@ import React from "react";
 import { useDialogState } from "../../../state/app/hooks";
 import { useAllAccounts } from "../../../state/data/hooks";
 import { changeStatementDialogAccount } from "../../../state/logic/statement";
-import { Greys, WHITE } from "../../../styles/colours";
+import { Greys } from "../../../styles/colours";
 import { useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector } from "../../inputs";
 
@@ -17,13 +17,12 @@ const useSelectorStyles = makeStyles({
         marginRight: 15,
     },
     accountContainer: {
-        margin: "12px 20px",
+        margin: "12px 15px",
     },
     account: {
         height: 40,
         width: "100%",
         textTransform: "inherit",
-        background: WHITE,
         color: "inherit",
 
         "& .MuiTypography-body1": {
@@ -64,7 +63,7 @@ export const DialogImportAccountSelector: React.FC = () => {
                 <Button
                     variant="outlined"
                     className={classes.account}
-                    color={account === undefined ? "secondary" : "primary"}
+                    color={account === undefined ? "secondary" : undefined}
                 >
                     {getAccountIcon(account, classes.icon)}
                     <Typography
@@ -83,7 +82,7 @@ export const DialogImportAccountSelector: React.FC = () => {
 
 const useTitleStyles = makeStyles({
     title: {
-        color: Greys[800],
+        color: Greys[900],
         margin: "10px 20px 6px 40px",
         fontWeight: 500,
     },
@@ -92,7 +91,7 @@ const useTitleStyles = makeStyles({
         width: "70%",
         marginLeft: 30,
         marginBottom: 10,
-        background: Greys[400],
+        background: Greys[500],
     },
 });
 export const DialogImportTitle: React.FC<{ title: string }> = ({ title }) => {
@@ -112,7 +111,7 @@ const useButtonStyles = makeStyles({
     container: {
         display: "flex",
         justifyContent: "stretch",
-        margin: "12px 20px",
+        margin: "auto 15px 12px 15px",
 
         "& button": { flexGrow: 1 },
         "& > *": {

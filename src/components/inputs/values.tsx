@@ -25,8 +25,16 @@ interface SubItemCheckboxProps {
     setChecked: (value: boolean) => void;
     left?: boolean;
     className?: string;
+    disabled?: boolean;
 }
-export const SubItemCheckbox: React.FC<SubItemCheckboxProps> = ({ label, checked, setChecked, left, className }) => {
+export const SubItemCheckbox: React.FC<SubItemCheckboxProps> = ({
+    label,
+    checked,
+    setChecked,
+    left,
+    className,
+    disabled,
+}) => {
     const classes = useStyles();
 
     return (
@@ -39,6 +47,7 @@ export const SubItemCheckbox: React.FC<SubItemCheckboxProps> = ({ label, checked
                 opacity: checked ? undefined : 0.5,
             }}
             onClick={() => setChecked(!checked)}
+            disabled={disabled}
         />
     );
 };
