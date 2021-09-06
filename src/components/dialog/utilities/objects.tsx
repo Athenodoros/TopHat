@@ -32,7 +32,7 @@ import {
 
 const useStyles = makeStyles({
     options: {
-        overflowY: "scroll",
+        overflowY: "auto",
         flexGrow: 1,
         marginTop: 5,
     },
@@ -174,7 +174,7 @@ const useObjectContainerStyles = makeStyles({
     editContainer: {
         flexShrink: 1,
         flexGrow: 1,
-        overflowY: "scroll",
+        overflowY: "auto",
         paddingRight: 30,
     },
     actions: {

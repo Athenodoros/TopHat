@@ -141,6 +141,7 @@ const accounts = (
                         field: "ticker",
                     },
                 },
+                date: formatDate(getToday().minus({ months: 8 })),
             } as Account["lastStatementFormat"],
         ],
         ["Transaction Account", true, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
@@ -440,13 +441,14 @@ transactions.forEach((tx) => {
         const line = `${tx.date}\t${tx.reference}\t${tx.value}\t${
             [DEFAULT_CURRENCY].concat(currencies)[tx.currency - 1].ticker
         }\n`;
-        if (formatDate(getToday().minus({ months: 8 })) > tx.date) {
+        if (formatDate(getToday().minus({ months: 8 })) < tx.date) {
             tx.statement = statementMap.international[0].id;
             statementMap.international[0].contents += line;
+            statementMap.international[1].contents += line;
         } else {
             tx.statement = statementMap.international[1].id;
+            statementMap.international[1].contents += line;
         }
-        statementMap.international[1].contents += line;
     }
 });
 const statements = values(statementMap.everyday)

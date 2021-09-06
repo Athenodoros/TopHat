@@ -60,7 +60,7 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
         flexShrink: 1,
         minHeight: 0,
-        overflowY: "scroll",
+        overflowY: "auto",
     },
 
     admin: {

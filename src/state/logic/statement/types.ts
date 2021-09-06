@@ -80,5 +80,5 @@ export interface DialogColumnValueMapping {
 export type DialogColumnExclusionConfig = Record<FILE_ID, ROW_ID[]>;
 export type DialogColumnTransferConfig = Record<
     FILE_ID,
-    Record<ROW_ID, { transaction?: Transaction; excluded?: boolean }>
+    Record<ROW_ID, { transaction?: Transaction; excluded?: boolean } | undefined>
 >;

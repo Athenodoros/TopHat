@@ -169,7 +169,7 @@ export const guessStatementColumnMapping = (
             flip: false,
         };
     }
-    mapping.reference = findColumn("string", ["DESCRIPTION", "REFERENCE", "SUMMARY"]);
+    mapping.reference = findColumn("string", ["DESCRIPTION", "REFERENCE", "SUMMARY"]) || findColumn("string");
     mapping.currency = findColumn("string", ["CURRENCY"], true)
         ? {
               type: "column",
@@ -185,6 +185,8 @@ export const guessStatementColumnMapping = (
 };
 
 interface TransferCandidateSummary {
+    file: string;
+
     value: number;
     currency: ID;
     reference?: string;
@@ -192,13 +194,16 @@ interface TransferCandidateSummary {
     transfer?: Transaction;
     excluded?: boolean;
 }
-export const guessStatementTransfers = ({
-    columns,
-    mapping,
-}: {
-    columns: DialogColumnParseResult;
-    mapping: DialogColumnValueMapping;
-}): DialogColumnTransferConfig => {
+export const guessStatementTransfers = (
+    {
+        columns,
+        mapping,
+    }: {
+        columns: DialogColumnParseResult;
+        mapping: DialogColumnValueMapping;
+    },
+    exclusions: DialogColumnExclusionConfig
+): DialogColumnTransferConfig => {
     const currencyState = TopHatStore.getState().data.currency;
     const getCurrency = (id: EntityId) => currencyState.entities[id]!;
 
@@ -233,25 +238,25 @@ export const guessStatementTransfers = ({
                 : getColumn<string>(mapping.currency.column).map((value) => currencyFieldLookup[value]);
         const references = getMaybeColumn<string | null>(mapping.reference);
 
-        const transfers: DialogColumnTransferConfig[string] = {};
+        const candidates: Record<number, TransferCandidateSummary | undefined> = {};
         dates.forEach((date, idx) => {
             const value = values[idx];
-            if (value === null || value === undefined) {
-                transfers[idx] = {};
-            } else {
-                const transfer: TransferCandidateSummary = {
+            if (value !== null && value !== undefined) {
+                const candidate: TransferCandidateSummary = {
+                    file: file.file,
                     value,
                     currency: currencies[idx],
                     reference: references[idx] || undefined,
+                    excluded: exclusions[file.file].includes(idx),
                 };
-                transfers[idx] = transfer;
+                candidates[idx] = candidate;
 
                 if (dailyTransactions[date] === undefined) dailyTransactions[date] = [];
-                dailyTransactions[date].push(transfer);
+                dailyTransactions[date].push(candidate);
             }
         });
 
-        return { file: file.file, transfers };
+        return { file: file.file, candidates };
     });
 
     // Loop through all transactions and update transfer candidates in place
@@ -305,7 +310,12 @@ export const guessStatementTransfers = ({
         5
     );
 
-    return results;
+    return mapValues(results, ({ candidates }) =>
+        mapValues(
+            candidates,
+            (candidate) => candidate && { transaction: candidate.transfer, excluded: candidate.excluded }
+        )
+    );
 };
 
 export const getStatementExclusions = ({
@@ -322,7 +332,7 @@ export const getStatementExclusions = ({
 
         return account?.lastStatementFormat
             ? (dates
-                  .map((value, idx) => (value > account.lastStatementFormat!.date ? idx : null))
+                  .map((value, idx) => (value < account.lastStatementFormat!.date ? idx : null))
                   .filter((x) => x !== null) as number[])
             : [];
     });

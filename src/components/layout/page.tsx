@@ -13,7 +13,7 @@ const usePageStyles = makeStyles((theme) => ({
         flexDirection: "column",
         alignItems: "stretch",
         flexGrow: 1,
-        overflowY: "scroll",
+        overflowY: "auto",
         padding: "0 60px 30px 60px",
     },
 

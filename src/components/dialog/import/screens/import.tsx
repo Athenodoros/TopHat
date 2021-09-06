@@ -27,13 +27,22 @@ import {
     DialogStatementMappingState,
     DialogStatementParseState,
 } from "../../../../state/app/statementTypes";
+import { useAllCurrencies } from "../../../../state/data/hooks";
 import {
+    canChangeStatementMappingCurrencyType,
     canGoToStatementMappingScreen,
     changeFileSelection,
+    changeStatementMappingCurrencyField,
+    changeStatementMappingCurrencyType,
+    changeStatementMappingCurrencyValue,
     changeStatementMappingFlipValue,
     changeStatementMappingValue,
     changeStatementParsing,
+    goBackToStatementMapping,
+    goBackToStatementParsing,
+    goToStatementImportScreen,
     goToStatementMappingScreen,
+    removeAllStatementFiles,
     removeStatementFileFromDialog,
     StatementMappingColumns,
     toggleStatementHasHeader,
@@ -42,17 +51,22 @@ import { Greys, Intents, WHITE } from "../../../../styles/colours";
 import { handleCheckboxChange, handleTextFieldChange, withSuppressEvent } from "../../../../utilities/events";
 import { SubItemCheckbox } from "../../../inputs";
 import { DialogContents, DialogMain, DialogOptions } from "../../utilities";
-import { FileImportTableView } from "../table";
 import { DialogImportAccountSelector } from "../utilities";
+import { FileImportTableViewGrid } from "./gridTable";
 
 const useStyles = makeStyles({
     stepper: {
-        padding: "20px 7px 20px 15px",
+        padding: "20px 0 20px 15px",
         background: "transparent",
+    },
+    optionsContainer: {
+        maxHeight: 220,
+        overflowY: "auto",
     },
     option: {
         height: 40,
         display: "flex",
+        marginRight: 19,
         // justifyContent: "space-between",
         alignItems: "center",
         "& p": { color: Greys[900] },
@@ -72,6 +86,7 @@ const useStyles = makeStyles({
 
     mappingColumn: {
         width: 220,
+        marginTop: 10,
     },
     nullColumn: {
         color: Greys[600],
@@ -80,11 +95,21 @@ const useStyles = makeStyles({
     mappingColumnHeader: {
         display: "flex",
         alignItems: "center",
+        justifyContent: "space-between",
+        marginTop: 15,
+        width: 220,
+    },
+    flipValuesCheckbox: {
+        margin: 0,
     },
 
-    nextButton: {
-        marginTop: 15,
+    actions: {
         float: "right",
+        marginTop: 15,
+        marginRight: 19,
+        "& > button": {
+            marginRight: 15,
+        },
     },
 
     // Contents
@@ -138,6 +163,10 @@ export const DialogImportScreen: React.FC = () => {
         [state.file]
     );
 
+    const [shouldRunRules, setShouldRunRules] = useState(true);
+
+    const currencies = useAllCurrencies();
+
     return (
         <DialogMain>
             <DialogOptions>
@@ -145,180 +174,127 @@ export const DialogImportScreen: React.FC = () => {
                 <Stepper activeStep={ScreenIDs.indexOf(state.page)} orientation="vertical" className={classes.stepper}>
                     <Step>
                         <StepLabel>File Parsing</StepLabel>
-                        <StepContent>
-                            <div className={classes.option}>
-                                <Typography variant="body2">Header Row</Typography>
-                                <Checkbox
-                                    checked={state.parse.header}
-                                    onClick={toggleStatementHasHeader}
-                                    size="small"
-                                    color="primary"
-                                />
-                            </div>
-                            <div className={classes.option}>
-                                <Typography variant="body2">Delimiter</Typography>
-                                <TextField
-                                    placeholder=","
-                                    size="small"
-                                    value={state.parse.delimiter || ""}
-                                    onChange={changeDelimiter}
-                                    className={clsx(classes.delimiter, classes.input)}
-                                />
-                            </div>
-                            <div className={classes.option}>
-                                <div className={classes.title}>
-                                    <Typography variant="body2">Date Format</Typography>
-                                    <Tooltip title="See format strings">
-                                        <IconButton
+                        {state.page === "parse" ? (
+                            <StepContent>
+                                <div className={classes.optionsContainer}>
+                                    <div className={classes.option}>
+                                        <Typography variant="body2">Header Row</Typography>
+                                        <Checkbox
+                                            checked={state.parse.header}
+                                            onClick={toggleStatementHasHeader}
                                             size="small"
-                                            href="https://github.com/moment/luxon/blob/master/docs/parsing.md#table-of-tokens"
-                                            target="_blank"
-                                        >
-                                            <Help fontSize="small" htmlColor={Greys[500]} />
-                                        </IconButton>
-                                    </Tooltip>
+                                            color="primary"
+                                        />
+                                    </div>
+                                    <div className={classes.option}>
+                                        <Typography variant="body2">Delimiter</Typography>
+                                        <TextField
+                                            placeholder=","
+                                            size="small"
+                                            value={state.parse.delimiter || ""}
+                                            onChange={changeDelimiter}
+                                            className={clsx(classes.delimiter, classes.input)}
+                                        />
+                                    </div>
+                                    <div className={classes.option}>
+                                        <div className={classes.title}>
+                                            <Typography variant="body2">Date Format</Typography>
+                                            <Tooltip title="See format strings">
+                                                <IconButton
+                                                    size="small"
+                                                    href="https://github.com/moment/luxon/blob/master/docs/parsing.md#table-of-tokens"
+                                                    target="_blank"
+                                                >
+                                                    <Help fontSize="small" htmlColor={Greys[500]} />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </div>
+                                        <TextField
+                                            placeholder="YYYY-MM-DD"
+                                            size="small"
+                                            value={state.parse.dateFormat || ""}
+                                            onChange={changeDateFormat}
+                                            className={clsx(classes.dateFormat, classes.input)}
+                                        />
+                                    </div>
                                 </div>
-                                <TextField
-                                    placeholder="YYYY-MM-DD"
-                                    size="small"
-                                    value={state.parse.dateFormat || ""}
-                                    onChange={changeDateFormat}
-                                    className={clsx(classes.dateFormat, classes.input)}
-                                />
-                            </div>
-                            <Button
-                                color="primary"
-                                variant="contained"
-                                size="small"
-                                className={classes.nextButton}
-                                disabled={!canGoToStatementMappingScreen(state as DialogStatementParseState)}
-                                onClick={goToStatementMappingScreen}
-                            >
-                                Map Columns
-                            </Button>
-                        </StepContent>
+                                <div className={classes.actions}>
+                                    <Button
+                                        color="secondary"
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={removeAllStatementFiles}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button
+                                        color="primary"
+                                        variant="contained"
+                                        size="small"
+                                        disabled={!canGoToStatementMappingScreen(state)}
+                                        onClick={goToStatementMappingScreen}
+                                    >
+                                        Map Columns
+                                    </Button>
+                                </div>
+                            </StepContent>
+                        ) : undefined}
                     </Step>
                     <Step>
                         <StepLabel>Column Mapping</StepLabel>
                         {state.page === "mapping" ? (
                             <StepContent>
-                                <TextField
-                                    select={true}
-                                    value={state.mapping.date}
-                                    onChange={onChangeMappingDate}
-                                    variant="outlined"
-                                    size="small"
-                                    className={classes.mappingColumn}
-                                    label="Transaction Date"
-                                >
-                                    {state.columns.common
-                                        .filter(({ type }) => type === "date")
-                                        .map(({ id, name }) => (
-                                            <MenuItem key={id} value={id}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                </TextField>
-                                <TextField
-                                    select={true}
-                                    value={state.mapping.reference}
-                                    onChange={onChangeMappingReference}
-                                    variant="outlined"
-                                    size="small"
-                                    className={classes.mappingColumn}
-                                    label="Transaction Reference"
-                                >
-                                    {state.columns.common
-                                        .filter(({ type }) => type === "string")
-                                        .map(({ id, name }) => (
-                                            <MenuItem key={id} value={id}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                    <MenuItem value={undefined} className={classes.nullColumn}>
-                                        None
-                                    </MenuItem>
-                                </TextField>
-                                <TextField
-                                    select={true}
-                                    value={state.mapping.balance}
-                                    onChange={onChangeMappingBalance}
-                                    variant="outlined"
-                                    size="small"
-                                    className={classes.mappingColumn}
-                                    label="Account Balance"
-                                >
-                                    {state.columns.common
-                                        .filter(({ type }) => type === "number")
-                                        .map(({ id, name }) => (
-                                            <MenuItem key={id} value={id}>
-                                                {name}
-                                            </MenuItem>
-                                        ))}
-                                    <MenuItem value={undefined} className={classes.nullColumn}>
-                                        None
-                                    </MenuItem>
-                                </TextField>
-                                <div className={classes.mappingColumnHeader}>
-                                    <Typography variant="subtitle2">Transaction Values</Typography>
-                                    <SubItemCheckbox
-                                        checked={state.mapping.value.type === "split"}
-                                        label="Split"
-                                        setChecked={changeMappingValueSplit}
-                                    />
-                                </div>
-                                {state.mapping.value.type === "split" ? (
-                                    <>
-                                        <TextField
-                                            select={true}
-                                            value={state.mapping.value.credit}
-                                            onChange={onChangeMappingCredit}
-                                            variant="outlined"
-                                            size="small"
-                                            className={classes.mappingColumn}
-                                            label="Transaction Credits"
-                                        >
-                                            {state.columns.common
-                                                .filter(({ type }) => type === "number")
-                                                .map(({ id, name }) => (
-                                                    <MenuItem key={id} value={id}>
-                                                        {name}
-                                                    </MenuItem>
-                                                ))}
-                                            <MenuItem value={undefined} className={classes.nullColumn}>
-                                                None
-                                            </MenuItem>
-                                        </TextField>
-                                        <TextField
-                                            select={true}
-                                            value={state.mapping.value.debit}
-                                            onChange={onChangeMappingDebit}
-                                            variant="outlined"
-                                            size="small"
-                                            className={classes.mappingColumn}
-                                            label="Transaction Debits"
-                                        >
-                                            {state.columns.common
-                                                .filter(({ type }) => type === "number")
-                                                .map(({ id, name }) => (
-                                                    <MenuItem key={id} value={id}>
-                                                        {name}
-                                                    </MenuItem>
-                                                ))}
-                                            <MenuItem value={undefined} className={classes.nullColumn}>
-                                                None
-                                            </MenuItem>
-                                        </TextField>
-                                    </>
-                                ) : (
+                                <div className={classes.optionsContainer}>
                                     <TextField
                                         select={true}
-                                        value={state.mapping.value.value}
-                                        onChange={onChangeMappingValue}
+                                        value={state.mapping.date}
+                                        onChange={onChangeMappingDate}
                                         variant="outlined"
                                         size="small"
                                         className={classes.mappingColumn}
-                                        label="Transaction Value"
+                                        label="Transaction Date"
+                                    >
+                                        {state.columns.common
+                                            .filter(
+                                                ({ type, nullable, id }) =>
+                                                    type === "date" &&
+                                                    !nullable &&
+                                                    id !== (state.mapping.currency as { column: string }).column
+                                            )
+                                            .map(({ id, name }) => (
+                                                <MenuItem key={id} value={id}>
+                                                    {name}
+                                                </MenuItem>
+                                            ))}
+                                    </TextField>
+                                    <TextField
+                                        select={true}
+                                        value={state.mapping.reference || ""}
+                                        onChange={onChangeMappingReference}
+                                        variant="outlined"
+                                        size="small"
+                                        className={classes.mappingColumn}
+                                        label="Transaction Reference"
+                                    >
+                                        {state.columns.common
+                                            .filter(({ type }) => type === "string")
+                                            .map(({ id, name }) => (
+                                                <MenuItem key={id} value={id}>
+                                                    {name}
+                                                </MenuItem>
+                                            ))}
+                                        <MenuItem value="" className={classes.nullColumn}>
+                                            None
+                                        </MenuItem>
+                                    </TextField>
+                                    <TextField
+                                        select={true}
+                                        value={state.mapping.balance || ""}
+                                        onChange={onChangeMappingBalance}
+                                        variant="outlined"
+                                        size="small"
+                                        className={classes.mappingColumn}
+                                        label="Account Balance"
                                     >
                                         {state.columns.common
                                             .filter(({ type }) => type === "number")
@@ -327,29 +303,223 @@ export const DialogImportScreen: React.FC = () => {
                                                     {name}
                                                 </MenuItem>
                                             ))}
-                                        <MenuItem value={undefined} className={classes.nullColumn}>
+                                        <MenuItem value="" className={classes.nullColumn}>
                                             None
                                         </MenuItem>
                                     </TextField>
-                                )}
-                                <SubItemCheckbox
-                                    checked={state.mapping.value.flip}
-                                    setChecked={changeStatementMappingFlipValue}
-                                    label={state.mapping.value.type === "value" ? "Flip Values" : "Flip Debits"}
-                                    disabled={
-                                        (state.mapping.value.type === "value"
-                                            ? state.mapping.value.value
-                                            : state.mapping.value.debit) === undefined
-                                    }
-                                />
+                                    <div className={classes.mappingColumnHeader}>
+                                        <Typography variant="subtitle2">Transaction Values</Typography>
+                                        <Tooltip title="Split Credit/Debit columns">
+                                            <div>
+                                                <SubItemCheckbox
+                                                    checked={state.mapping.value.type === "split"}
+                                                    label="Split"
+                                                    setChecked={changeMappingValueSplit}
+                                                />
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                    {state.mapping.value.type === "split" ? (
+                                        <>
+                                            <TextField
+                                                select={true}
+                                                value={state.mapping.value.credit || ""}
+                                                onChange={onChangeMappingCredit}
+                                                variant="outlined"
+                                                size="small"
+                                                className={classes.mappingColumn}
+                                                label="Transaction Credits"
+                                            >
+                                                {state.columns.common
+                                                    .filter(({ type }) => type === "number")
+                                                    .map(({ id, name }) => (
+                                                        <MenuItem key={id} value={id}>
+                                                            {name}
+                                                        </MenuItem>
+                                                    ))}
+                                                <MenuItem value="" className={classes.nullColumn}>
+                                                    None
+                                                </MenuItem>
+                                            </TextField>
+                                            <TextField
+                                                select={true}
+                                                value={state.mapping.value.debit || ""}
+                                                onChange={onChangeMappingDebit}
+                                                variant="outlined"
+                                                size="small"
+                                                className={classes.mappingColumn}
+                                                label="Transaction Debits"
+                                            >
+                                                {state.columns.common
+                                                    .filter(({ type }) => type === "number")
+                                                    .map(({ id, name }) => (
+                                                        <MenuItem key={id} value={id}>
+                                                            {name}
+                                                        </MenuItem>
+                                                    ))}
+                                                <MenuItem value="" className={classes.nullColumn}>
+                                                    None
+                                                </MenuItem>
+                                            </TextField>
+                                        </>
+                                    ) : (
+                                        <TextField
+                                            select={true}
+                                            value={state.mapping.value.value || ""}
+                                            onChange={onChangeMappingValue}
+                                            variant="outlined"
+                                            size="small"
+                                            className={classes.mappingColumn}
+                                            label="Transaction Value"
+                                        >
+                                            {state.columns.common
+                                                .filter(({ type }) => type === "number")
+                                                .map(({ id, name }) => (
+                                                    <MenuItem key={id} value={id}>
+                                                        {name}
+                                                    </MenuItem>
+                                                ))}
+                                            <MenuItem value="" className={classes.nullColumn}>
+                                                None
+                                            </MenuItem>
+                                        </TextField>
+                                    )}
+                                    <SubItemCheckbox
+                                        checked={state.mapping.value.flip}
+                                        setChecked={changeStatementMappingFlipValue}
+                                        label={state.mapping.value.type === "value" ? "Flip Values" : "Flip Debits"}
+                                        disabled={
+                                            (state.mapping.value.type === "value"
+                                                ? state.mapping.value.value
+                                                : state.mapping.value.debit) === undefined
+                                        }
+                                        className={classes.flipValuesCheckbox}
+                                        left={true}
+                                    />
+                                    <div className={classes.mappingColumnHeader}>
+                                        <Typography variant="subtitle2">Currencies</Typography>
+                                        <Tooltip
+                                            title={
+                                                canChangeStatementMappingCurrencyType()
+                                                    ? "Currency from statement column"
+                                                    : "No available string columns"
+                                            }
+                                        >
+                                            <div>
+                                                <SubItemCheckbox
+                                                    disabled={!canChangeStatementMappingCurrencyType()}
+                                                    checked={state.mapping.currency.type === "column"}
+                                                    label="Variable"
+                                                    setChecked={changeStatementMappingCurrencyType}
+                                                />
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                    {state.mapping.currency.type === "constant" ? (
+                                        <TextField
+                                            select={true}
+                                            value={state.mapping.currency.currency}
+                                            onChange={onChangeCurrencyValue}
+                                            variant="outlined"
+                                            size="small"
+                                            className={classes.mappingColumn}
+                                            label="Transaction Currency"
+                                        >
+                                            {currencies.map(({ id, ticker }) => (
+                                                <MenuItem key={id} value={id}>
+                                                    {ticker}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    ) : (
+                                        <>
+                                            <TextField
+                                                select={true}
+                                                value={state.mapping.currency.column}
+                                                onChange={onChangeCurrencyColumn}
+                                                variant="outlined"
+                                                size="small"
+                                                className={classes.mappingColumn}
+                                                label="Currency Column"
+                                            >
+                                                {state.columns.common
+                                                    .filter(({ type, nullable }) => type === "string" && !nullable)
+                                                    .map(({ id, name }) => (
+                                                        <MenuItem key={id} value={id}>
+                                                            {name}
+                                                        </MenuItem>
+                                                    ))}
+                                            </TextField>
+                                            <TextField
+                                                select={true}
+                                                value={state.mapping.currency.field}
+                                                onChange={onChangeCurrencyField}
+                                                variant="outlined"
+                                                size="small"
+                                                className={classes.mappingColumn}
+                                                label="Matching Currency Field"
+                                            >
+                                                <MenuItem value="ticker">Ticker</MenuItem>
+                                                <MenuItem value="symbol">Symbol</MenuItem>
+                                                <MenuItem value="name">Name</MenuItem>
+                                            </TextField>
+                                        </>
+                                    )}
+                                </div>
+                                <div className={classes.actions}>
+                                    <Button
+                                        color="secondary"
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={goBackToStatementParsing}
+                                    >
+                                        Back
+                                    </Button>
+                                    <Button
+                                        color="primary"
+                                        variant="contained"
+                                        size="small"
+                                        onClick={goToStatementImportScreen}
+                                    >
+                                        Filter Rows
+                                    </Button>
+                                </div>
                             </StepContent>
-                        ) : (
-                            state.page
-                        )}
+                        ) : undefined}
                     </Step>
                     <Step>
                         <StepLabel>Exclusions and Transfers</StepLabel>
-                        <StepContent>Something about exclusions and transfers...</StepContent>
+                        <StepContent>
+                            <div className={classes.optionsContainer}>
+                                <div className={classes.option}>
+                                    <Typography variant="body2">Run Import Rules</Typography>
+                                    <Checkbox
+                                        checked={shouldRunRules}
+                                        onChange={handleCheckboxChange(setShouldRunRules)}
+                                        size="small"
+                                        color="primary"
+                                    />
+                                </div>
+                            </div>
+                            <div className={classes.actions}>
+                                <Button
+                                    color="secondary"
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={goBackToStatementMapping}
+                                >
+                                    Back
+                                </Button>
+                                <Button
+                                    color="primary"
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => console.log(shouldRunRules)}
+                                >
+                                    Import Files
+                                </Button>
+                            </div>
+                        </StepContent>
                     </Step>
                 </Stepper>
             </DialogOptions>
@@ -389,7 +559,8 @@ export const DialogImportScreen: React.FC = () => {
                     </Tabs>
                 ) : undefined}
                 {showParsed && state.columns.all[state.file].columns ? (
-                    <FileImportTableView columns={state.columns.all[state.file].columns!} />
+                    // <FileImportTableView columns={state.columns.all[state.file].columns!} />
+                    <FileImportTableViewGrid />
                 ) : (
                     <FileDisplay contents={state.files.find((file) => file.id === state.file)!.contents} />
                 )}
@@ -416,7 +587,7 @@ const changeDateFormat = handleTextFieldChange((value) => changeStatementParsing
 const onFileChange = (_: React.ChangeEvent<{}>, id: string) => changeFileSelection(id);
 
 const getOnChangeMapping = (key: keyof typeof StatementMappingColumns) =>
-    handleTextFieldChange((value: string) => changeStatementMappingValue(key, value));
+    handleTextFieldChange((value: string) => changeStatementMappingValue(key, value || undefined));
 const onChangeMappingDate = getOnChangeMapping("date");
 const onChangeMappingReference = getOnChangeMapping("reference");
 const onChangeMappingBalance = getOnChangeMapping("balance");
@@ -424,12 +595,17 @@ const changeMappingValueSplit = (split: boolean) => changeStatementMappingValue(
 const onChangeMappingValue = getOnChangeMapping("value");
 const onChangeMappingCredit = getOnChangeMapping("credit");
 const onChangeMappingDebit = getOnChangeMapping("debit");
+const onChangeCurrencyValue = handleTextFieldChange((value: string) =>
+    changeStatementMappingCurrencyValue(Number(value))
+);
+const onChangeCurrencyColumn = getOnChangeMapping("currency");
+const onChangeCurrencyField = handleTextFieldChange(changeStatementMappingCurrencyField as (value: string) => void);
 
 const useFileDisplayStyles = makeStyles({
     card: {
         margin: "20px 20px 0 20px",
         padding: "10px 15px",
-        overflow: "scroll",
+        overflow: "auto",
 
         "& > pre": { margin: 0 },
     },

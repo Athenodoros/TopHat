@@ -21,7 +21,7 @@ const useStyles = makeStyles({
         backgroundColor: Greys[400],
     },
     points: {
-        overflowY: "scroll",
+        overflowY: "auto",
         display: "flex",
         flexDirection: "column",
         justifyContent: "stretch",

@@ -1,5 +1,6 @@
-import { cloneDeep, debounce, get, isEqual, keys, set, uniqBy, values } from "lodash";
+import { cloneDeep, debounce, get, isEqual, keys, max, range, set, uniqBy, values } from "lodash";
 import { TopHatDispatch, TopHatStore } from "../..";
+import { updateListSelection } from "../../../utilities/data";
 import { AppSlice } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
 import { ID } from "../../utilities/values";
@@ -23,6 +24,28 @@ const getDialogState = () => TopHatStore.getState().app.dialog;
 const getDataState = () => TopHatStore.getState().data;
 
 // TODO: All of these should almost certainly just be async actions
+
+export const removeAllStatementFiles = () => setStatementState({ page: "file", rejections: [] });
+export const goBackToStatementParsing = () => {
+    const dialog = getDialogState();
+    if (dialog.id === "import" && dialog.import.page === "mapping")
+        setStatementState({
+            page: "parse",
+            parse: dialog.import.parse,
+            files: dialog.import.files,
+            columns: {
+                // TS gets confused unless this is broken out
+                all: dialog.import.columns.all,
+                common: dialog.import.columns.common,
+            },
+            file: dialog.import.file,
+        });
+};
+export const goBackToStatementMapping = () => {
+    const dialog = getDialogState();
+    if (dialog.id === "import" && dialog.import.page === "import")
+        setStatementState({ ...dialog.import, page: "mapping" });
+};
 
 export const changeFileSelection = (file: string) => {
     const dialog = getDialogState();
@@ -81,10 +104,11 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
                 file: files[0].id,
                 mapping: account.lastStatementFormat.mapping,
             };
+            const exclude = getStatementExclusions(newState);
             setStatementState({
                 ...newState,
-                exclude: getStatementExclusions(newState),
-                transfers: guessStatementTransfers(newState),
+                exclude,
+                transfers: guessStatementTransfers(newState, exclude),
             });
         } else {
             setStatementState({ page: "parse", account, parse, files, columns, file: files[0].id });
@@ -173,6 +197,7 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
     const state = getDialogState();
     if (state.id !== "import" || state.import.page !== "mapping") return;
 
+    // Consistency checks, should be disallowed by UI
     if (
         ["date", "currency"].includes(key) &&
         state.import.columns.common.find((column) => column.id === value)!.nullable === true
@@ -180,10 +205,18 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
         return;
 
     const current = cloneDeep(state.import.mapping);
-    if (get(current, StatementMappingColumns[key]) === value) return;
+    if (value && get(current, StatementMappingColumns[key]) === value) return;
     values(StatementMappingColumns).forEach(
         (column) => get(current, column) === value && set(current, column, undefined)
     );
+
+    if (
+        value &&
+        key === "date" &&
+        state.import.mapping.currency.type === "column" &&
+        state.import.mapping.currency.column === value
+    )
+        current.currency = { type: "constant", currency: getDataState().user.currency };
 
     if (["date", "reference", "balance"].includes(key)) {
         set(current, key, value);
@@ -203,13 +236,25 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
 };
 export const changeStatementMappingCurrencyField = (field: DialogColumnCurrencyColumnMapping["field"]) => {
     const { id, import: state } = getDialogState();
-    if (id !== "import" || state.page !== "mapping") return;
+    if (id !== "import" || state.page !== "mapping" || state.mapping.currency.type !== "column") return;
 
     setStatementState({
         ...state,
         mapping: {
             ...state.mapping,
-            currency: { ...(state.mapping.currency as DialogColumnCurrencyColumnMapping), field },
+            currency: { ...state.mapping.currency, field },
+        },
+    });
+};
+export const changeStatementMappingCurrencyValue = (currency: number) => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "mapping" || state.mapping.currency.type !== "constant") return;
+
+    setStatementState({
+        ...state,
+        mapping: {
+            ...state.mapping,
+            currency: { ...state.mapping.currency, currency },
         },
     });
 };
@@ -219,15 +264,88 @@ export const changeStatementMappingFlipValue = (flip: boolean) => {
 
     setStatementState({ ...state, mapping: { ...state.mapping, value: { ...state.mapping.value, flip } } });
 };
+export const flipStatementMappingFlipValue = () => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "mapping") return;
 
+    setStatementState({
+        ...state,
+        mapping: { ...state.mapping, value: { ...state.mapping.value, flip: !state.mapping.value.flip } },
+    });
+};
+
+export const toggleStatementExclusion = (rowID: number) => () => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "import") return;
+
+    const { file, exclude } = state;
+    setStatementState({
+        ...state,
+        exclude: {
+            ...exclude,
+            [file]: updateListSelection(rowID, exclude[file]),
+        },
+    });
+};
+export const toggleAllStatementExclusions = () => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "import") return;
+
+    const { file, exclude } = state;
+    const rows = max(state.columns.all[file].columns!.map(({ values }) => values.length)) || 0;
+
+    setStatementState({
+        ...state,
+        exclude: {
+            ...exclude,
+            [file]: exclude[file].length === 0 ? range(rows) : [],
+        },
+    });
+};
+
+const getFirstAvailableStringColumn = (state: DialogStatementMappingState) =>
+    state.columns.common.find(
+        (col) =>
+            col.type === "string" &&
+            values(StatementMappingColumns).every((path) => get(state.mapping, path) !== col.id)
+    );
+export const canChangeStatementMappingCurrencyType = () => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "mapping") return false;
+    if (state.mapping.currency.type === "column") return true;
+
+    return !!getFirstAvailableStringColumn(state);
+};
+export const changeStatementMappingCurrencyType = (isColumn: boolean) => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "mapping") return;
+
+    setStatementState({
+        ...state,
+        mapping: {
+            ...state.mapping,
+            currency: isColumn
+                ? {
+                      type: "column",
+                      field: "ticker",
+                      column: getFirstAvailableStringColumn(state)!.id,
+                  }
+                : {
+                      type: "constant",
+                      currency: getDataState().user.currency,
+                  },
+        },
+    });
+};
 export const goToStatementImportScreen = () => {
     const current = getDialogState().import as DialogStatementMappingState;
+    const exclude = getStatementExclusions(current);
 
     setStatementState({
         ...current,
         page: "import",
-        exclude: getStatementExclusions(current),
-        transfers: guessStatementTransfers(current),
+        exclude,
+        transfers: guessStatementTransfers(current, exclude),
     });
 };
 
