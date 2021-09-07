@@ -1,22 +1,25 @@
-import { Button, Card, Checkbox, makeStyles, Menu, Typography } from "@material-ui/core";
-import { ArrowDropDown, Event, Exposure, Filter1, Translate } from "@material-ui/icons";
+import { Button, ButtonBase, Card, Checkbox, Collapse, makeStyles, Menu, Typography } from "@material-ui/core";
+import { ArrowDropDown, Event, Exposure, Filter1, ImportExport, Translate } from "@material-ui/icons";
 import clsx from "clsx";
-import { get, inRange, noop, toPairs, unzip, upperFirst } from "lodash";
-import React from "react";
+import { get, inRange, toPairs, unzip, upperFirst } from "lodash";
+import React, { useMemo } from "react";
 import { useDialogState } from "../../../../state/app/hooks";
 import {
     DialogStatementImportState,
     DialogStatementMappingState,
     DialogStatementParseState,
 } from "../../../../state/app/statementTypes";
+import { Transaction } from "../../../../state/data";
 import {
     ColumnProperties,
     flipStatementMappingFlipValue,
-    StatementMappingColumns,
     toggleAllStatementExclusions,
     toggleStatementExclusion,
+    toggleStatementRowTransfer,
 } from "../../../../state/logic/statement";
+import { StatementMappingColumns } from "../../../../state/logic/statement/parsing";
 import { Greys } from "../../../../styles/colours";
+import { withSuppressEvent } from "../../../../utilities/events";
 import { usePopoverProps } from "../../../../utilities/hooks";
 
 const HEADER_STYLES = {
@@ -29,6 +32,14 @@ const HEADER_STYLES = {
 } as const;
 const ROW_STYLES = {
     borderTop: "1px solid " + Greys[300],
+} as const;
+
+const ICON_BUTTON_STYLES = {
+    padding: 0,
+
+    "& .MuiButton-endIcon": {
+        marginLeft: "-1px !important",
+    },
 } as const;
 
 const useStyles = makeStyles({
@@ -45,6 +56,7 @@ const useStyles = makeStyles({
         maxHeight: "100%",
 
         display: "grid",
+        gridAutoRows: "min-content",
     },
     value: {
         maxWidth: 300,
@@ -76,14 +88,22 @@ const useStyles = makeStyles({
         },
     },
     excluded: {
-        color: Greys[500],
+        opacity: 0.5,
     },
     transfer: {
         gridColumnStart: "start",
         gridColumnEnd: "end",
     },
+    transferInner: {
+        "& .MuiIconButton-root": {
+            marginLeft: 15,
+            padding: 2,
+            transform: "scale(0.8)",
+            transformOrigin: "center center",
+        },
+    },
 });
-export const FileImportTableViewGrid: React.FC = () => {
+export const FileImportTableViewGrid: React.FC<{ transfers?: boolean }> = ({ transfers }) => {
     const classes = useStyles();
 
     const state = useDialogState("import") as
@@ -153,18 +173,96 @@ export const FileImportTableViewGrid: React.FC = () => {
                         </div>
                     )),
                     state.page === "import" && state.transfers[state.file][rowID]?.transaction ? (
-                        <div className={classes.transfer} key={rowID + "_transfer"}>
-                            <Checkbox
-                                checked={!state.transfers[state.file][rowID]!.excluded}
-                                onClick={noop}
-                                size="small"
-                                color="default"
-                            />
-                        </div>
+                        <TransferTransactionDisplay
+                            transfers={transfers}
+                            disabled={state.exclude[state.file].includes(rowID)}
+                            transfer={state.transfers[state.file][rowID]!}
+                            file={state.file}
+                            row={rowID}
+                            key={rowID + "_transfer"}
+                        />
                     ) : undefined,
                 ])}
             </div>
         </Card>
+    );
+};
+
+const useTransferStyles = makeStyles({
+    container: {
+        gridColumnStart: "start",
+        gridColumnEnd: "end",
+    },
+    transfer: {
+        display: "flex",
+        alignItems: "center",
+        marginBottom: 2,
+        width: "max-content",
+        padding: "0 5px",
+        borderRadius: 2,
+        marginLeft: 28,
+    },
+    disabled: { opacity: 0.5 },
+    excluded: {
+        "&:not(:hover)": { opacity: 0.5 },
+    },
+    button: {
+        ...ICON_BUTTON_STYLES,
+        minWidth: 14,
+
+        "& .MuiSvgIcon-root": {
+            fontSize: "14px !important",
+        },
+    },
+    text: {
+        marginLeft: 20,
+        maxWidth: 200,
+    },
+});
+const TransferTransactionDisplay: React.FC<{
+    transfer: {
+        transaction?: Transaction;
+        excluded?: boolean;
+    };
+    disabled: boolean;
+    transfers?: boolean;
+    file: string;
+    row: number;
+}> = ({ disabled, transfer: { transaction, excluded }, transfers, file, row }) => {
+    const classes = useTransferStyles();
+    const onClick = useMemo(() => withSuppressEvent(() => toggleStatementRowTransfer(file, row)), [file, row]);
+    if (!transaction) return null;
+
+    return (
+        <Collapse className={classes.container} in={transfers}>
+            <ButtonBase
+                className={clsx({
+                    [classes.transfer]: true,
+                    [classes.disabled]: disabled,
+                    [classes.excluded]: excluded,
+                })}
+                onClick={onClick}
+                disabled={disabled}
+                component="div"
+            >
+                <Button
+                    size="small"
+                    endIcon={<ImportExport />}
+                    color={excluded || disabled ? undefined : "primary"}
+                    className={classes.button}
+                    onClick={onClick}
+                />
+                <Typography variant="caption" className={classes.text}>
+                    {transaction.date}
+                </Typography>
+                <Typography variant="caption" className={classes.text} noWrap={true}>
+                    {transaction.summary || transaction.reference}
+                </Typography>
+                <Typography variant="caption" className={classes.text}>
+                    {transaction.value}
+                </Typography>
+            </ButtonBase>
+        </Collapse>
     );
 };
 
@@ -208,11 +306,7 @@ const useColumnHeaderStyles = makeStyles((theme) => ({
     },
     iconButton: {
         minWidth: 20,
-        padding: 0,
-
-        "& .MuiButton-endIcon": {
-            marginLeft: "-1px !important",
-        },
+        ...ICON_BUTTON_STYLES,
     },
     flipped: {
         "& .MuiButton-endIcon": {

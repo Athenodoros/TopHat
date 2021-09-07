@@ -209,6 +209,16 @@ const EditAccountView: React.FC = () => {
                     />
                 </div>
             </EditValueContainer>
+            <EditValueContainer label="Statements">
+                <TextField
+                    variant="outlined"
+                    value={working.statementFilePatternManual || ""}
+                    onChange={updateWorkingFilePattern}
+                    size="small"
+                    style={{ width: "100%" }}
+                    placeholder={working.statementFilePattern}
+                />
+            </EditValueContainer>
         </ObjectEditContainer>
     );
 };
@@ -220,3 +230,4 @@ const updateWorkingWebsite = handleTextFieldChange(update("website"));
 const updateWorkingCategory = handleButtonGroupChange(update("category"));
 const updateWorkingOpenDate = (date: MaterialUiPickersDate) => update("openDate")(formatDate(date as DateTime));
 const updateWorkingUpdateDate = (date: MaterialUiPickersDate) => update("lastUpdate")(formatDate(date as DateTime));
+const updateWorkingFilePattern = handleTextFieldChange(update("statementFilePatternManual"));

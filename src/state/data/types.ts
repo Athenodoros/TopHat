@@ -87,23 +87,6 @@ export interface Institution {
 /**
  * Rules for Transaction parsing
  */
-export interface ReferenceCondition {
-    type: "reference";
-    values: string[];
-    regex: boolean;
-}
-export interface ValueCondition {
-    type: "value";
-    max: number | undefined;
-    min: number | undefined;
-    currency: number;
-}
-export interface AccountCondition {
-    type: "account";
-    accounts: ID[];
-}
-export type Condition = ReferenceCondition | ValueCondition | AccountCondition;
-
 export interface Rule {
     id: ID;
     name: string;
@@ -111,7 +94,7 @@ export interface Rule {
     isInactive: boolean;
 
     // Conditions
-    reference?: string[];
+    reference: string[];
     regex: boolean;
 
     min: number | null;
@@ -132,7 +115,7 @@ export interface Transaction {
     id: ID;
 
     date: SDate;
-    reference: string;
+    reference?: string;
     summary: string | null;
     description: string | null;
 

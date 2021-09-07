@@ -80,6 +80,7 @@ const createNewRule = (): Rule => {
         name: "New Rule",
         index: id,
         isInactive: false,
+        reference: [],
         regex: false,
         accounts: [],
         min: null,
@@ -174,7 +175,7 @@ const EditRuleView: React.FC = () => {
                         multiple={true}
                         options={[] as string[]}
                         getOptionLabel={identity}
-                        value={working.reference || []}
+                        value={working.reference}
                         onChange={updateWorkingReferenceAuto}
                         renderInput={(params) => (
                             <TextField
@@ -185,7 +186,7 @@ const EditRuleView: React.FC = () => {
                                 onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
                                     if (event.key === "Enter") {
                                         updateWorkingReference(
-                                            (working.reference || []).concat([(event.target as HTMLInputElement).value])
+                                            working.reference.concat([(event.target as HTMLInputElement).value])
                                         );
                                         (event.target as HTMLInputElement).value = "";
                                     }

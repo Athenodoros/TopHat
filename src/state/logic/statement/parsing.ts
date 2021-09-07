@@ -123,6 +123,16 @@ export const getCombinedColumnProperties = (
     };
 };
 
+export const StatementMappingColumns = {
+    date: "date",
+    reference: "reference",
+    balance: "balance",
+    value: "value.value",
+    credit: "value.credit",
+    debit: "value.debit",
+    currency: "currency.column",
+} as const;
+
 export const guessStatementColumnMapping = (
     { all, common }: DialogColumnParseResult,
     defaultCurrency: ID
@@ -139,9 +149,7 @@ export const guessStatementColumnMapping = (
                 type === fieldType &&
                 options.some((option) => name.toUpperCase().includes(option)) &&
                 (!nonnull || nullable === false) &&
-                !["date", "reference", "balance", "value.value", "value.credit", "value.debit", "currency.column"].some(
-                    (path) => get(mapping, path) === id
-                )
+                !values(StatementMappingColumns).some((path) => get(mapping, path) === id)
         )?.id;
 
     mapping.date = findColumn("date", ["DATE"], true) || findColumn("date", [""], true)!;
@@ -286,24 +294,24 @@ export const guessStatementTransfers = (
     };
 
     assignTransferCandidates(
-        (c, t) => c.reference === t.reference && c.currency === t.currency && c.value === t.value,
+        (c, t) => c.reference === t.reference && c.currency === t.currency && -c.value === t.value,
         5
     );
     assignTransferCandidates(
         (c, t) =>
             c.reference === t.reference &&
             inRange(
-                c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!),
+                -c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!),
                 0.8,
                 1.2
             ),
         5
     );
-    assignTransferCandidates((c, t) => c.currency === t.currency && c.value === t.value, 5);
+    assignTransferCandidates((c, t) => c.currency === t.currency && -c.value === t.value, 5);
     assignTransferCandidates(
         (c, t) =>
             inRange(
-                c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!),
+                -c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!),
                 0.8,
                 1.2
             ),
@@ -332,7 +340,7 @@ export const getStatementExclusions = ({
 
         return account?.lastStatementFormat
             ? (dates
-                  .map((value, idx) => (value < account.lastStatementFormat!.date ? idx : null))
+                  .map((value, idx) => (value <= account.lastStatementFormat!.date ? idx : null))
                   .filter((x) => x !== null) as number[])
             : [];
     });

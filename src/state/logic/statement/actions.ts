@@ -1,15 +1,38 @@
-import { cloneDeep, debounce, get, isEqual, keys, max, range, set, uniqBy, values } from "lodash";
+import {
+    cloneDeep,
+    debounce,
+    escapeRegExp,
+    get,
+    isEqual,
+    keys,
+    max,
+    min,
+    pick,
+    range,
+    reverse,
+    set,
+    takeWhile,
+    uniq,
+    uniqBy,
+    unzip,
+    values,
+    zipObject,
+} from "lodash";
+import { batch } from "react-redux";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { updateListSelection } from "../../../utilities/data";
-import { AppSlice } from "../../app";
+import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
-import { ID } from "../../utilities/values";
+import { DataSlice, Statement, Transaction } from "../../data";
+import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/utilities";
+import { getTodayString, ID, SDate } from "../../utilities/values";
 import {
     getCombinedColumnProperties,
     getFileColumnProperties,
     getStatementExclusions,
     guessStatementColumnMapping,
     guessStatementTransfers,
+    StatementMappingColumns,
 } from "./parsing";
 import {
     DialogColumnCurrencyColumnMapping,
@@ -31,6 +54,7 @@ export const goBackToStatementParsing = () => {
     if (dialog.id === "import" && dialog.import.page === "mapping")
         setStatementState({
             page: "parse",
+            account: dialog.import.account,
             parse: dialog.import.parse,
             files: dialog.import.files,
             columns: {
@@ -163,16 +187,25 @@ const recalculateStatementParsing = debounce(() => {
 }, 500);
 
 export const canGoToStatementMappingScreen = (current: DialogStatementParseState) => {
-    if (current.page !== "parse") return false; // Wrong page
-    if (current.columns.common === undefined) return false; // Files don't have common columns
-    if (values(current.columns.all).some((file) => file.matches === false)) return false; // Some files don't match
+    if (current.page !== "parse") return "Wrong page";
+    if (current.columns.common === undefined) return "There are files without matching columns";
+    if (values(current.columns.all).some((file) => file.matches === false))
+        return "There are files without matching columns";
+    if (
+        values(current.columns.all).some(
+            (file) => !file.columns || uniqBy(file.columns, (column) => column.values.length).length !== 1
+        )
+    )
+        return "There are files with mismatched column lengths";
 
     // There must be a common non-null date column in each file
-    return current.columns.common.some((column) => column.type === "date" && column.nullable === false);
+    return current.columns.common.some((column) => column.type === "date" && column.nullable === false)
+        ? null
+        : "There is no valid date column";
 };
 export const goToStatementMappingScreen = () => {
     const current = getDialogState().import as DialogStatementParseState;
-    if (!canGoToStatementMappingScreen(current)) return;
+    if (canGoToStatementMappingScreen(current) !== null) return;
 
     const columns = current.columns as unknown as DialogColumnParseResult;
     const currency = (current.account && Number(keys(current.account.balances)[0])) || getDataState().user.currency;
@@ -184,15 +217,6 @@ export const goToStatementMappingScreen = () => {
     });
 };
 
-export const StatementMappingColumns = {
-    date: "date",
-    reference: "reference",
-    balance: "balance",
-    value: "value.value",
-    credit: "value.credit",
-    debit: "value.debit",
-    currency: "currency.column",
-} as const;
 export const changeStatementMappingValue = (key: keyof typeof StatementMappingColumns, value: string | undefined) => {
     const state = getDialogState();
     if (state.id !== "import" || state.import.page !== "mapping") return;
@@ -272,6 +296,18 @@ export const flipStatementMappingFlipValue = () => {
         ...state,
         mapping: { ...state.mapping, value: { ...state.mapping.value, flip: !state.mapping.value.flip } },
     });
+};
+export const toggleStatementRowTransfer = (file: string, row: number) => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "import") return;
+
+    const next = cloneDeep(state);
+    next.transfers[file][row] = {
+        transaction: state.transfers[file][row]?.transaction,
+        excluded: !state.transfers[file][row]?.excluded,
+    };
+
+    setStatementState(next);
 };
 
 export const toggleStatementExclusion = (rowID: number) => () => {
@@ -377,4 +413,202 @@ export const changeStatementDialogAccount = (id?: ID) => {
         return setStatementState({ ...current, exclude: getStatementExclusions({ ...current, account }) });
 
     setStatementState({ ...current, account });
+};
+
+export const canImportStatementsAndClearDialog = () => {
+    const state = getDialogState().import;
+    if (state.page !== "import") return "Wrong page";
+    if (state.account === undefined) return "No account selected";
+    if (state.files.some(({ id }) => state.exclude[id].length === state.columns.all[id].columns![0].values.length))
+        return state.files.length > 1
+            ? "All files must have included transactions"
+            : "No transactions included for import";
+
+    return null;
+};
+export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDetectTransfers: boolean) =>
+    batch(() => {
+        const state = getDialogState().import;
+        const data = getDataState();
+        if (state.page !== "import" || state.account === undefined || canImportStatementsAndClearDialog() !== null)
+            return;
+
+        // Create statement objects and add them
+        const nextStatementID = getNextID(data.statement.ids);
+        const statements: Statement[] = state.files.map((file, idx) => ({
+            id: nextStatementID + idx,
+            name: file.name,
+            contents: file.contents,
+            date: getTodayString(),
+            account: state.account!.id,
+        }));
+        TopHatDispatch(DataSlice.actions.createSimpleObjects({ type: "statement", objects: statements }));
+
+        // Create transaction objects
+        let nextTransactionID = getNextID(data.transaction.ids);
+        const flipValue = (value?: number) =>
+            value !== undefined ? (state.mapping.value.flip ? -1 : 1) * value : undefined;
+        const getColumnValue = <T extends number | string | undefined>(
+            field: keyof typeof StatementMappingColumns,
+            rowID: number,
+            fileID: string
+        ) => {
+            const column = state.columns.all[fileID].columns?.find(
+                ({ id }) => id === get(state.mapping, StatementMappingColumns[field])
+            );
+            return (column ? column.values[rowID] : undefined) as T;
+        };
+        const currencies = zipObject(
+            data.currency.ids.map(
+                (id) => data.currency.entities[id]![(state.mapping.currency as DialogColumnCurrencyColumnMapping).field]
+            ),
+            data.currency.ids as ID[]
+        );
+
+        const transferTransactionUpdates: ID[] = [];
+        const transactions = state.files.flatMap(({ id: fileID }, fileIndex) =>
+            ((state.columns.all[fileID].columns || [])[0].values as (string | null | null)[])
+                .map((_, rowID) => rowID)
+                .filter((rowID) => !state.exclude[fileID].includes(rowID))
+                .map((rowID) => {
+                    let category = PLACEHOLDER_CATEGORY_ID;
+                    if (
+                        shouldDetectTransfers &&
+                        state.transfers[fileID][rowID]?.transaction &&
+                        !state.transfers[fileID][rowID]!.excluded
+                    ) {
+                        category = TRANSFER_CATEGORY_ID;
+                        transferTransactionUpdates.push(state.transfers[fileID][rowID]!.transaction!.id);
+                    }
+
+                    const transaction: Transaction = {
+                        id: nextTransactionID,
+                        account: state.account!.id,
+                        statement: statements[fileIndex].id,
+                        category,
+
+                        summary: null,
+                        description: null,
+                        balance: null,
+
+                        date: getColumnValue<SDate>("date", rowID, fileID),
+                        reference: getColumnValue<string | undefined>("reference", rowID, fileID),
+                        recordedBalance: getColumnValue<number | undefined>("balance", rowID, fileID) ?? null,
+                        value:
+                            flipValue(getColumnValue<number | undefined>("value", rowID, fileID)) ??
+                            getColumnValue<number | undefined>("credit", rowID, fileID) ??
+                            flipValue(getColumnValue<number | undefined>("debit", rowID, fileID)) ??
+                            null,
+                        currency:
+                            state.mapping.currency.type === "constant"
+                                ? state.mapping.currency.currency
+                                : currencies[getColumnValue<string>("currency", rowID, fileID)],
+                    };
+                    nextTransactionID++;
+
+                    return transaction;
+                })
+        );
+
+        // Run import rules
+        if (shouldRunRules) {
+            data.rule.ids.forEach((id) => {
+                const rule = data.rule.entities[id]!;
+                if (rule.isInactive) return;
+
+                const testReference = !rule.reference.length
+                    ? (_: string) => true
+                    : rule.regex
+                    ? getTestRegex(rule.reference)
+                    : (reference: string) => rule.reference.some((option) => reference.includes(option));
+
+                transactions
+                    .filter(({ category }) => category === PLACEHOLDER_CATEGORY_ID)
+                    .forEach((transaction) => {
+                        if (
+                            (!rule.accounts.length || rule.accounts.includes(transaction.account)) &&
+                            (rule.min === null || rule.min <= transaction.value!) &&
+                            (rule.max === null || rule.max >= transaction.value!) &&
+                            (!rule.reference.length || testReference(transaction.reference || ""))
+                        ) {
+                            if (rule.summary !== undefined) transaction.summary = rule.summary;
+                            if (rule.description !== undefined) transaction.description = rule.description;
+                            if (rule.category !== PLACEHOLDER_CATEGORY_ID) transaction.category = rule.category;
+                        }
+                    });
+            });
+        }
+
+        // Add transactions to data store (Including category & balance updates)
+        TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions, transfers: transferTransactionUpdates }));
+
+        // Update account statement fields
+        TopHatDispatch(
+            DataSlice.actions.updateAccount({
+                id: state.account!.id,
+                changes: {
+                    statementFilePattern: combineStatementFileNamesToEstimateRegex(
+                        statements
+                            .map(({ name }) => name)
+                            .concat(
+                                values(data.statement.entities)
+                                    .filter((statement) => statement!.account === state.account!.id)
+                                    .map((statement) => statement!.name)
+                            )
+                    ),
+                    lastStatementFormat: {
+                        parse: state.parse,
+                        columns: state.columns.common,
+                        mapping: state.mapping,
+                        date: max(transactions.map(({ date }) => date)) || getTodayString(),
+                    },
+                },
+            })
+        );
+
+        // Close dialog and go to Transactions page with filter
+        const page = TopHatStore.getState().app.page;
+        TopHatDispatch(
+            AppSlice.actions.closeDialogAndGoToPage({
+                ...DefaultPages.transactions,
+                ...(page.id === "transactions" ? pick(page, "chartSign", "chartAggregation") : {}),
+                statement: statements.map(({ id }) => id),
+            })
+        );
+    });
+
+const NumberRegex = /\d/;
+const LowerCharRegex = /[a-z]/;
+const UpperCharRegex = /[A-Z]/;
+const OverallCharRegex = /[a-zA-Z\d]/g;
+const combineStatementFileNamesToEstimateRegex = (names: string[]) => {
+    const start = takeWhile(unzip(names.map((name) => name.split(""))), (row) => uniq(row).length === 1)
+        .map((row) => row[0])
+        .join("");
+
+    const end = reverse(
+        takeWhile(
+            unzip(names.map((name) => reverse(name.slice(start.length).split("")))),
+            (row) => uniq(row).length === 1
+        ).map((row) => row[0])
+    ).join("");
+
+    const middles = names.map((name) => name.slice(start.length, name.length - end.length));
+    const minLength = min(middles.map((middle) => middle.length));
+    const maxLength = max(middles.map((middle) => middle.length));
+    const characters = `${middles.some((middle) => middle.match(NumberRegex)) ? "\\d" : ""}${
+        middles.some((middle) => middle.match(LowerCharRegex)) ? "a-z" : ""
+    }${middles.some((middle) => middle.match(UpperCharRegex)) ? "A-Z" : ""}${escapeRegExp(
+        uniq(middles.flatMap((middle) => middle.replaceAll(OverallCharRegex, "").split(""))).join("")
+    ).replace("-", "\\-")}`;
+
+    const final = `${escapeRegExp(start)}[${characters}]{${minLength},${maxLength}}${escapeRegExp(end)}`;
+
+    // Rough benchmark for adequate "specificity", to stop ".*"-style stub regexes being returned
+    if (start.length + end.length > 5 || characters.length <= 3) return final;
+};
+
+const getTestRegex = (regexes: string[]) => {
+    const master = new RegExp(regexes.join("|"));
+    return (reference: string) => reference.match(master) !== null;
 };

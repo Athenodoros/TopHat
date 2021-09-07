@@ -121,11 +121,50 @@ export const DataSlice = createSlice({
                 updateBalancesAndAccountSummaries(state);
             });
         },
-        updateObjects: <Name extends "rule">(
+        updateSimpleObjects: <Name extends "rule">(
             state: DataState,
             { payload }: PayloadAction<{ type: Name; updates: readonly Update<BasicObjectType[Name]>[] }>
         ) => {
             adapters[payload.type].updateMany(state[payload.type], payload.updates);
+        },
+        createSimpleObjects: <Name extends "rule" | "statement">(
+            state: DataState,
+            { payload }: PayloadAction<{ type: Name; objects: readonly BasicObjectType[Name][] }>
+        ) => {
+            adapters[payload.type].addMany(state[payload.type], payload.objects);
+        },
+
+        // Custom updates for objects with flow-on effects or calculated fields
+        updateAccount: (
+            state,
+            {
+                payload,
+            }: PayloadAction<{
+                id: ID;
+                changes: Omit<
+                    Partial<Account>,
+                    "id" | "firstTransactionDate" | "lastTransactionDate" | "balances" | "transactions"
+                >;
+            }>
+        ) => {
+            adapters.account.updateOne(state.account, payload);
+        },
+        addNewTransactions: (
+            state,
+            { payload: { transactions, transfers } }: PayloadAction<{ transactions: Transaction[]; transfers: ID[] }>
+        ) => {
+            updateTransactionSummaryStartDates(state);
+            updateTransactionSummariesWithTransactions(state, transfers, true);
+
+            adapters.transaction.updateMany(
+                state.transaction,
+                transfers.map((id) => ({ id, changes: { category: TRANSFER_CATEGORY_ID } }))
+            );
+            adapters.transaction.addMany(state.transaction, transactions);
+
+            const transactionIDs = transactions.map(({ id }) => id);
+            updateTransactionSummariesWithTransactions(state, transfers.concat(transactionIDs));
+            updateBalancesAndAccountSummaries(state, getBalanceSubset(transactionIDs, state.transaction.entities));
         },
 
         // Notifications
@@ -135,27 +174,29 @@ export const DataSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(SaveTransactionSelectionState, (state, { payload: { ids, edits } }) => {
-                const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
+                const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
 
                 updateTransactionSummaryStartDates(state);
                 updateTransactionSummariesWithTransactions(state, ids, true);
-                DateAdapter.updateMany(
+
+                adapters.transaction.updateMany(
                     state.transaction,
                     ids.map((id) => ({
                         id,
                         changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
                     }))
                 );
-                updateTransactionSummariesWithTransactions(state, ids);
 
-                updateBalancesAndAccountSummaries(state, balanceSubset);
+                const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
+                updateTransactionSummariesWithTransactions(state, ids);
+                updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
             })
             .addCase(DeleteTransactionSelectionState, (state, { payload: ids }) => {
                 const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
 
                 updateTransactionSummaryStartDates(state);
                 updateTransactionSummariesWithTransactions(state, ids, true);
-                DateAdapter.removeMany(state.transaction, ids);
+                adapters.transaction.removeMany(state.transaction, ids);
 
                 updateBalancesAndAccountSummaries(state, balanceSubset);
             });
@@ -208,7 +249,7 @@ const updateTransactionSummaryStartDates = (state: DataState) => {
     });
 };
 
-// This assumes that no transactions will exist before the relevant transaction; history.start dates
+// This extends history into the past, but assumes that `history.start` is up-to-date
 const updateTransactionSummariesWithTransactions = (state: DataState, ids?: EntityId[], remove?: boolean) => {
     const userDefaultCurrency = state.currency.entities[state.user.currency]!;
 

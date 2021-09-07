@@ -159,7 +159,7 @@ const onDragEndForRule = ({ source, destination, reason, draggableId }: DropResu
         }))
         .concat([{ id: Number(draggableId), changes: { index: destination.index } }]);
 
-    TopHatDispatch(DataSlice.actions.updateObjects({ type: "rule", updates }));
+    TopHatDispatch(DataSlice.actions.updateSimpleObjects({ type: "rule", updates }));
 };
 
 const useObjectContainerStyles = makeStyles({

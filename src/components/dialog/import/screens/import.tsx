@@ -31,6 +31,7 @@ import { useAllCurrencies } from "../../../../state/data/hooks";
 import {
     canChangeStatementMappingCurrencyType,
     canGoToStatementMappingScreen,
+    canImportStatementsAndClearDialog,
     changeFileSelection,
     changeStatementMappingCurrencyField,
     changeStatementMappingCurrencyType,
@@ -42,17 +43,18 @@ import {
     goBackToStatementParsing,
     goToStatementImportScreen,
     goToStatementMappingScreen,
+    importStatementsAndClearDialog,
     removeAllStatementFiles,
     removeStatementFileFromDialog,
-    StatementMappingColumns,
     toggleStatementHasHeader,
 } from "../../../../state/logic/statement";
+import { StatementMappingColumns } from "../../../../state/logic/statement/parsing";
 import { Greys, Intents, WHITE } from "../../../../styles/colours";
 import { handleCheckboxChange, handleTextFieldChange, withSuppressEvent } from "../../../../utilities/events";
 import { SubItemCheckbox } from "../../../inputs";
 import { DialogContents, DialogMain, DialogOptions } from "../../utilities";
 import { DialogImportAccountSelector } from "../utilities";
-import { FileImportTableViewGrid } from "./gridTable";
+import { FileImportTableViewGrid } from "./table";
 
 const useStyles = makeStyles({
     stepper: {
@@ -104,10 +106,11 @@ const useStyles = makeStyles({
     },
 
     actions: {
+        display: "flex",
         float: "right",
         marginTop: 15,
         marginRight: 19,
-        "& > button": {
+        "& > *": {
             marginRight: 15,
         },
     },
@@ -164,6 +167,7 @@ export const DialogImportScreen: React.FC = () => {
     );
 
     const [shouldRunRules, setShouldRunRules] = useState(true);
+    const [shouldDetectTransfers, setShouldDetectTransfers] = useState(true);
 
     const currencies = useAllCurrencies();
 
@@ -227,15 +231,19 @@ export const DialogImportScreen: React.FC = () => {
                                     >
                                         Back
                                     </Button>
-                                    <Button
-                                        color="primary"
-                                        variant="contained"
-                                        size="small"
-                                        disabled={!canGoToStatementMappingScreen(state)}
-                                        onClick={goToStatementMappingScreen}
-                                    >
-                                        Map Columns
-                                    </Button>
+                                    <Tooltip title={canGoToStatementMappingScreen(state) || ""}>
+                                        <div>
+                                            <Button
+                                                color="primary"
+                                                variant="contained"
+                                                size="small"
+                                                disabled={canGoToStatementMappingScreen(state) !== null}
+                                                onClick={goToStatementMappingScreen}
+                                            >
+                                                Map Columns
+                                            </Button>
+                                        </div>
+                                    </Tooltip>
                                 </div>
                             </StepContent>
                         ) : undefined}
@@ -492,6 +500,15 @@ export const DialogImportScreen: React.FC = () => {
                         <StepContent>
                             <div className={classes.optionsContainer}>
                                 <div className={classes.option}>
+                                    <Typography variant="body2">Include Transfers</Typography>
+                                    <Checkbox
+                                        checked={shouldDetectTransfers}
+                                        onChange={handleCheckboxChange(setShouldDetectTransfers)}
+                                        size="small"
+                                        color="primary"
+                                    />
+                                </div>
+                                <div className={classes.option}>
                                     <Typography variant="body2">Run Import Rules</Typography>
                                     <Checkbox
                                         checked={shouldRunRules}
@@ -510,14 +527,21 @@ export const DialogImportScreen: React.FC = () => {
                                 >
                                     Back
                                 </Button>
-                                <Button
-                                    color="primary"
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => console.log(shouldRunRules)}
-                                >
-                                    Import Files
-                                </Button>
+                                <Tooltip title={canImportStatementsAndClearDialog() || ""}>
+                                    <div>
+                                        <Button
+                                            color="primary"
+                                            variant="contained"
+                                            size="small"
+                                            onClick={() =>
+                                                importStatementsAndClearDialog(shouldRunRules, shouldDetectTransfers)
+                                            }
+                                            disabled={canImportStatementsAndClearDialog() !== null}
+                                        >
+                                            Import Files
+                                        </Button>
+                                    </div>
+                                </Tooltip>
                             </div>
                         </StepContent>
                     </Step>
@@ -560,7 +584,7 @@ export const DialogImportScreen: React.FC = () => {
                 ) : undefined}
                 {showParsed && state.columns.all[state.file].columns ? (
                     // <FileImportTableView columns={state.columns.all[state.file].columns!} />
-                    <FileImportTableViewGrid />
+                    <FileImportTableViewGrid transfers={shouldDetectTransfers} />
                 ) : (
                     <FileDisplay contents={state.files.find((file) => file.id === state.file)!.contents} />
                 )}

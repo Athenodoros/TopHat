@@ -122,10 +122,10 @@ const accounts = (
             {
                 parse: { header: true },
                 columns: [
-                    { id: "0", name: "date", type: "date" },
-                    { id: "1", name: "reference", type: "string" },
-                    { id: "2", name: "value", type: "number" },
-                    { id: "3", name: "currency", type: "string" },
+                    { id: "0", name: "DAT", type: "date" },
+                    { id: "1", name: "DES", type: "string" },
+                    { id: "2", name: "VAL", type: "number" },
+                    { id: "3", name: "CUR", type: "string" },
                 ],
                 mapping: {
                     date: "0",
@@ -166,20 +166,11 @@ const makeRule = (input: Omit<Rule, keyof typeof RuleDefaults | "id" | "index"> 
     ...input,
 });
 const rules: Rule[] = [
-    { name: "Weekly Shop", reference: ["WOOLWORTHS"], min: -100, max: 0 },
-    { name: "State Transit", reference: ["State\\sTransit.*"], regex: true, category: 2 },
-    { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 5, isInactive: true },
-    { name: "Travel", accounts: [2, 4, 8], category: 4 },
+    { name: "Weekly Shop", reference: ["WOOLWORTHS"], min: -200, max: 0, category: 2, summary: "Weekly Shop" },
+    { name: "State Transit", reference: ["State\\sTransit.*"], regex: true, category: 3 },
+    { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 6, isInactive: true },
+    { name: "Travel", reference: [], accounts: [3, 5, 9], category: 4 },
 ].map(makeRule);
-
-// const makeStatement = (date: DateTime) => "Everyday - " + date.startOf("month").toISODate().substring(0, 7) + ".csv";
-// const statements: Statement[] = uniq(range(1, 730).map((i) => makeStatement(today.minus({ days: i })))).map(
-//     (name, id) => ({ id, name })
-// );
-// const statementMap = zipObject(
-//     statements.map(({ name }) => name),
-//     statements.map(({ id }) => id)
-// );
 
 type TransactionArgs = [
     DurationObject,
@@ -193,13 +184,12 @@ type TransactionArgs = [
     string | undefined,
     true | undefined
 ];
-// ["days", "reference", "value", "account", "currency", "category", "transfer", "isBalance", "description", "statement"];
 const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
     const date = today.minus(args[0]);
     return {
         id: id + 1,
         date: date.toISODate(),
-        reference: args[1] || "",
+        reference: args[1],
         summary: null,
         value: args[7] ? null : args[2],
         recordedBalance: args[7] ? args[2] : null,
@@ -378,14 +368,14 @@ const statementMap = {
         {
             id: 1,
             name: "transactions.csv",
-            contents: "date\treference\tvalue\tcurrency\n",
+            contents: "DAT\tDES\tVAL\tCUR\n",
             date: formatDate(getToday().minus({ months: 8 })),
             account: 5,
         },
         {
             id: 2,
             name: "transactions.csv",
-            contents: "date\treference\tvalue\tcurrency\n",
+            contents: "DAT\tDES\tVAL\tCUR\n",
             date: formatDate(getToday().minus({ month: 1 })),
             account: 5,
         },
@@ -441,7 +431,7 @@ transactions.forEach((tx) => {
         const line = `${tx.date}\t${tx.reference}\t${tx.value}\t${
             [DEFAULT_CURRENCY].concat(currencies)[tx.currency - 1].ticker
         }\n`;
-        if (formatDate(getToday().minus({ months: 8 })) < tx.date) {
+        if (formatDate(getToday().minus({ months: 8 })) > tx.date) {
             tx.statement = statementMap.international[0].id;
             statementMap.international[0].contents += line;
             statementMap.international[1].contents += line;
@@ -453,7 +443,7 @@ transactions.forEach((tx) => {
 });
 const statements = values(statementMap.everyday)
     .filter(({ id }) => !lastEverydayStatements.includes(id))
-    .concat(statementMap.international)
+    .concat([statementMap.international[0]])
     .concat(values(statementMap.mortgage));
 transactions = transactions.filter(
     (tx) => !lastEverydayStatements.includes(tx.statement) && tx.statement !== statementMap.international[1].id
