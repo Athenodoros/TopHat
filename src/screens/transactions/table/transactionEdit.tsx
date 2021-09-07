@@ -150,10 +150,10 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                                 edit.statement !== undefined ? (
                                     <Description
                                         fontSize="small"
-                                        style={{ color: edit.statement ? Intents.primary.main : Intents.danger.main }}
+                                        htmlColor={edit.statement ? Intents.primary.main : Intents.danger.main}
                                     />
                                 ) : (
-                                    <Help fontSize="small" style={{ color: Greys[500] }} />
+                                    <Help fontSize="small" htmlColor={Greys[500]} />
                                 )
                             }
                         />
@@ -173,12 +173,12 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
                     <IconButton size="small" onClick={onSaveChanges(ids, edit)}>
-                        <SaveTwoTone fontSize="small" style={{ color: Intents.success.main }} />
+                        <SaveTwoTone fontSize="small" htmlColor={Intents.success.main} />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Discard Changes">
                     <IconButton size="small" onClick={onDiscardChanges}>
-                        <DeleteTwoTone fontSize="small" style={{ color: Intents.warning.main }} />
+                        <DeleteTwoTone fontSize="small" htmlColor={Intents.warning.main} />
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete Transaction">

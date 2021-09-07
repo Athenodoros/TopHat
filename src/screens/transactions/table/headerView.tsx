@@ -1,5 +1,5 @@
 import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@material-ui/core";
-import { AddCircleOutline } from "@material-ui/icons";
+import { AddCircleOutline, Description } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
@@ -95,6 +95,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     <FilterIcon
                         badgeContent={Number(!!filters.fromDate || !!filters.toDate)}
                         ButtonProps={DateRangePopoverState.buttonProps}
+                        onRightClick={removeDateFilter}
                     />
                     <Popover {...DateRangePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
                         <div>
@@ -125,6 +126,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                             style: { margin: "-10px 0 -10px 10px" },
                             ...DescriptionPopoverState.buttonProps,
                         }}
+                        onRightClick={removeDescriptionFilter}
                     />
                     <Popover
                         {...DescriptionPopoverState.popoverProps}
@@ -155,6 +157,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                         ButtonProps={ValuePopoverState.buttonProps}
                         badgeContent={Number(filters.valueFrom !== undefined || filters.valueTo !== undefined)}
                         margin="right"
+                        onRightClick={removeValueFilter}
                     />
                     VALUE
                     <Popover {...ValuePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
@@ -191,7 +194,11 @@ export const TransactionsTableHeaderView: React.FC = () => {
             <div className={classes.category}>
                 <div className={classes.compound}>
                     CATEGORY
-                    <FilterIcon badgeContent={filters.category.length} ButtonProps={CategoryPopoverState.buttonProps} />
+                    <FilterIcon
+                        badgeContent={filters.category.length}
+                        ButtonProps={CategoryPopoverState.buttonProps}
+                        onRightClick={removeCategoryFilter}
+                    />
                     <Menu {...CategoryPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
                         {categories.map((option) => (
                             <FilterMenuOption
@@ -211,6 +218,8 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     badgeContent={filters.statement.length}
                     ButtonProps={StatementPopoverState.buttonProps}
                     margin="none"
+                    Icon={Description}
+                    onRightClick={removeStatementFilter}
                 />
                 <Menu {...StatementPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
                     {statements.map((option) => (
@@ -227,7 +236,11 @@ export const TransactionsTableHeaderView: React.FC = () => {
             </div>
             <div className={classes.account}>
                 ACCOUNT
-                <FilterIcon badgeContent={filters.account.length} ButtonProps={AccountPopoverState.buttonProps} />
+                <FilterIcon
+                    badgeContent={filters.account.length}
+                    ButtonProps={AccountPopoverState.buttonProps}
+                    onRightClick={removeAccountFilter}
+                />
                 <Menu {...AccountPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
                     {accounts.map((option) => (
                         <FilterMenuOption
@@ -267,6 +280,16 @@ const onSelectIDs = zipObject(
     filters,
     filters.map((f) => (ids: ID[]) => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [f]: ids })))
 );
+
+const removeDateFilter = () =>
+    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate: undefined, toDate: undefined }));
+const removeDescriptionFilter = () =>
+    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ search: undefined, searchRegex: false }));
+const removeValueFilter = () =>
+    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom: undefined, valueTo: undefined }));
+const removeCategoryFilter = () => onSelectIDs.category([]);
+const removeStatementFilter = () => onSelectIDs.statement([]);
+const removeAccountFilter = () => onSelectIDs.account([]);
 
 const useTransactionValueRange = () => {
     const localiseCurrencyValue = useLocaliseCurrencies();

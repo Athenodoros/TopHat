@@ -3,12 +3,16 @@ import { FilterList } from "@material-ui/icons";
 import { upperFirst } from "lodash";
 import React, { ReactNode } from "react";
 import { Intents } from "../../../styles/colours";
+import { withSuppressEvent } from "../../../utilities/events";
+import { IconType } from "../../../utilities/types";
 
 export const FilterIcon: React.FC<{
     ButtonProps?: IconButtonProps;
     badgeContent: ReactNode;
     margin?: "left" | "right" | "none";
-}> = ({ ButtonProps = {}, badgeContent, margin = "left" }) => (
+    Icon?: IconType;
+    onRightClick?: () => void;
+}> = ({ ButtonProps = {}, badgeContent, margin = "left", Icon = FilterList, onRightClick }) => (
     <IconButton
         size="small"
         {...ButtonProps}
@@ -18,7 +22,8 @@ export const FilterIcon: React.FC<{
             ...ButtonProps.style,
             ...(margin !== "none" ? { ["margin" + upperFirst(margin)]: 10 } : undefined),
         }}
+        onContextMenu={onRightClick && withSuppressEvent<HTMLButtonElement>(onRightClick)}
     >
-        <FilterList fontSize="small" color={badgeContent ? "primary" : "disabled"} />
+        <Icon fontSize="small" color={badgeContent ? "primary" : "disabled"} />
     </IconButton>
 );
