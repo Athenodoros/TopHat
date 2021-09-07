@@ -4,17 +4,18 @@ import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";
 import numeral from "numeral";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
+import { DataSlice } from "../../../state/data";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
-import { BalanceHistory, parseDate } from "../../../state/utilities/values";
+import { BalanceHistory, getTodayString, parseDate } from "../../../state/utilities/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
-import { suppressEvent } from "../../../utilities/events";
+import { suppressEvent, withSuppressEvent } from "../../../utilities/events";
 import { ACCOUNT_TABLE_LEFT_PADDING } from "./styles";
 
 const useStyles = makeStyles({
@@ -122,6 +123,28 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
 
     const { value, summary, charts, domain } = getAccountSummaries(account, currencies, defaultCurrency);
 
+    const markUpToDate = useMemo(
+        () =>
+            withSuppressEvent(() =>
+                TopHatDispatch(
+                    DataSlice.actions.updateAccount({ id: account.id, changes: { lastUpdate: getTodayString() } })
+                )
+            ),
+        [account.id]
+    );
+    const goToUploadDialog = useMemo(
+        () =>
+            withSuppressEvent(() =>
+                TopHatDispatch(
+                    AppSlice.actions.setDialogPartial({
+                        id: "import",
+                        import: { page: "file", rejections: [], account },
+                    })
+                )
+            ),
+        [account]
+    );
+
     return (
         <ButtonBase key={account.id} className={classes.container} component="div" onClick={onClick}>
             <div className={classes.accountNameContainer}>
@@ -154,13 +177,17 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                 <Edit className={classes.accountIcon} />
             )}
             <div className={classes.accountUpdateContainer}>
-                {getAccountAgeDescription(account.lastTransactionDate)}
+                {getAccountAgeDescription(max([account.lastTransactionDate, account.lastUpdate]))}
                 <div className={classes.accountUpdateActions} onMouseDown={suppressEvent}>
                     <Tooltip title="Mark Up-To-Date">
-                        <Button size="small" startIcon={<Update htmlColor={Greys[700]} />} />
+                        <Button size="small" startIcon={<Update htmlColor={Greys[700]} />} onClick={markUpToDate} />
                     </Tooltip>
                     <Tooltip title="Upload Statement">
-                        <Button size="small" startIcon={<NoteAdd htmlColor={Greys[700]} />} />
+                        <Button
+                            size="small"
+                            startIcon={<NoteAdd htmlColor={Greys[700]} />}
+                            onClick={goToUploadDialog}
+                        />
                     </Tooltip>
                     <Tooltip title="Create Transaction">
                         <Button size="small" startIcon={<Add htmlColor={Greys[700]} />} />
@@ -316,7 +343,7 @@ const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
                         : Intents.danger.main,
             }}
         >
-            {date ? "Updated " + date.toRelative() : "Never Updated"}
+            {date ? "Updated " + date.toRelative({ unit: ["years", "months", "weeks", "days"] }) : "Never Updated"}
         </Typography>
     );
 };
