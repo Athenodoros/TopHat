@@ -68,7 +68,7 @@ const Placeholder = {
     subtext:
         "Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each.",
 };
-const createNewAccount = () => ({
+export const createNewAccount = () => ({
     id: getNextID(TopHatStore.getState().data.account.ids),
     name: "New Account",
     isInactive: false,

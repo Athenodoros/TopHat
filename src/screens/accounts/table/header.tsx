@@ -1,5 +1,15 @@
-import { ListItem, ListItemText, makeStyles, Menu, Typography } from "@material-ui/core";
 import {
+    IconButton,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    makeStyles,
+    Menu,
+    MenuItem,
+    Typography,
+} from "@material-ui/core";
+import {
+    AccountBalance,
     AccountBalanceWallet,
     AddCircleOutline,
     Category,
@@ -8,7 +18,9 @@ import {
     IndeterminateCheckBox,
 } from "@material-ui/icons";
 import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
-import React from "react";
+import React, { useCallback } from "react";
+import { createNewAccount } from "../../../components/dialog/pages/accounts";
+import { createNewInstitution } from "../../../components/dialog/pages/institutions";
 import {
     getAccountCategoryIcon,
     getCurrencyIcon,
@@ -37,6 +49,13 @@ const useStyles = makeStyles({
         alignItems: "center",
         paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
     },
+    actions: {
+        padding: "0 10px",
+        marginLeft: -50,
+    },
+    actionsItem: {
+        width: 250,
+    },
 });
 
 export const AccountsTableHeader: React.FC = () => {
@@ -51,6 +70,17 @@ export const AccountsTableHeader: React.FC = () => {
     const currencies = useAllCurrencies();
 
     const getAccountIcon = useGetAccountIcon();
+
+    const AddNewPopover = usePopoverProps();
+
+    const startAccountCreationCallback = useCallback(() => {
+        AddNewPopover.setIsOpen(false);
+        startAccountCreation();
+    }, [AddNewPopover]);
+    const startInstitutionCreationCallback = useCallback(() => {
+        AddNewPopover.setIsOpen(false);
+        startInstitutionCreation();
+    }, [AddNewPopover]);
 
     return (
         <TableHeaderContainer>
@@ -162,6 +192,29 @@ export const AccountsTableHeader: React.FC = () => {
                     </Menu>
                 </div>
             </div>
+            <div className={classes.actions}>
+                <IconButton size="small" {...AddNewPopover.buttonProps}>
+                    <AddCircleOutline />
+                </IconButton>
+                <Menu
+                    {...AddNewPopover.popoverProps}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    transformOrigin={{ vertical: "top", horizontal: "right" }}
+                >
+                    <MenuItem onClick={startAccountCreationCallback} className={classes.actionsItem}>
+                        <ListItemIcon>
+                            <AccountBalanceWallet />
+                        </ListItemIcon>
+                        <ListItemText>New Account</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={startInstitutionCreationCallback} className={classes.actionsItem}>
+                        <ListItemIcon>
+                            <AccountBalance />
+                        </ListItemIcon>
+                        <ListItemText>New Institution</ListItemText>
+                    </MenuItem>
+                </Menu>
+            </div>
         </TableHeaderContainer>
     );
 };
@@ -174,3 +227,8 @@ const onSelectIDs = zipObject(
 
 const onSetBalances = (_: any, balances: ChartSign) =>
     TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ balances }));
+
+const startAccountCreation = () =>
+    TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "account", account: createNewAccount() }));
+const startInstitutionCreation = () =>
+    TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "institution", institution: createNewInstitution() }));

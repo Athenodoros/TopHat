@@ -54,7 +54,7 @@ const Placeholder = {
     subtext:
         "Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts.",
 };
-const createNewInstitution = (): Institution => ({
+export const createNewInstitution = (): Institution => ({
     id: getNextID(TopHatStore.getState().data.institution.ids),
     name: "New Institution",
     colour: getRandomColour(),
