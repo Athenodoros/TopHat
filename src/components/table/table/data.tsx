@@ -1,14 +1,15 @@
-import { groupBy, toPairs } from "lodash";
+import { groupBy, keys, toPairs, uniqBy, zipObject } from "lodash";
 import { useMemo } from "react";
-import { filterListByID } from "../../../components/table";
-import { useTransactionsPageFilters } from "../../../state/app/hooks";
+import { filterListByID } from "..";
+import { EditTransactionState, TransactionsTableFilterState } from "../../../state/app/pageTypes";
+import { Transaction } from "../../../state/data";
 import { useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
+import { ID } from "../../../state/utilities/values";
 import { takeWithFilter } from "../../../utilities/data";
 
-export const useTransactionsTableData = () => {
+export const useTransactionsTableData = (filters: TransactionsTableFilterState) => {
     const transactions = useTransactionIDs();
     const metadata = useTransactionMap();
-    const filters = useTransactionsPageFilters();
 
     return useMemo(() => {
         const regex = new RegExp(filters.search);
@@ -18,9 +19,12 @@ export const useTransactionsTableData = () => {
 
             const search =
                 filters.search && filters.searchRegex
-                    ? (tx.summary && regex.test(tx.summary)) || (tx.description && regex.test(tx.description))
+                    ? (tx.reference && regex.test(tx.reference)) ||
+                      (tx.summary && regex.test(tx.summary)) ||
+                      (tx.description && regex.test(tx.description))
                     : filters.search
-                    ? (tx.summary || tx.reference)?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
+                    ? tx.reference?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
+                      tx.summary?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
                       tx.description?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())
                     : true;
 
@@ -44,4 +48,21 @@ export const useTransactionsTableData = () => {
             metadata,
         };
     }, [transactions, metadata, filters]);
+};
+
+export const getAllCommonTransactionValues = (transactions: Transaction[]) => {
+    const dataKeys = keys(transactions[0]).filter((x) => x !== "id") as (keyof Transaction)[];
+
+    return zipObject(
+        dataKeys,
+        dataKeys.map((key) => {
+            const values = uniqBy(transactions, (tx) => tx[key]);
+            return values.length === 1 ? values[0][key] : undefined;
+        })
+    ) as EditTransactionState;
+};
+
+export type TransactionsTableFixedData = {
+    type: "account";
+    account: ID;
 };

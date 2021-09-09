@@ -1,5 +1,6 @@
 import React from "react";
-import { VictoryAxis, VictoryAxisProps, VictoryChartProps } from "victory";
+import { DomainTuple, VictoryAxis, VictoryAxisProps, VictoryChartProps } from "victory";
+import { DomainPropObjectType } from "victory-core";
 
 const DummyComponent: React.FC<any> = () => <div />;
 
@@ -18,8 +19,18 @@ export const getChartPerformanceProps = (
     domain: VictoryChartProps["domain"],
     scale: VictoryChartProps["scale"] = "linear",
     categories: VictoryChartProps["categories"] = []
-) => ({
-    domain,
-    scale,
-    categories,
-});
+) => {
+    if (!domain) return { domain, scale, categories };
+    if (domain.constructor === Array) return { domain: fixEmptyRange(domain), scale, categories };
+
+    return {
+        domain: {
+            x: fixEmptyRange((domain as DomainPropObjectType).x),
+            y: fixEmptyRange((domain as DomainPropObjectType).y),
+        } as DomainPropObjectType,
+        scale,
+        categories,
+    };
+};
+const fixEmptyRange = (tuple: DomainTuple | undefined): DomainTuple | undefined =>
+    tuple && typeof tuple[0] === "number" ? (!tuple[0] && !tuple[1] ? [0, 0.1] : tuple) : tuple;

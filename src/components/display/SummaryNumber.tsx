@@ -6,7 +6,7 @@ import { IconType } from "../../utilities/types";
 const useStyles = makeStyles({
     summaryNumber: {
         display: "flex",
-        width: 250,
+        width: 220,
 
         padding: "10px 0 30px 0",
         "&:last-child": {

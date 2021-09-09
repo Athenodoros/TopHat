@@ -2,14 +2,7 @@ import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@m
 import { AddCircleOutline, Description } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
-import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
-import { SubItemCheckbox } from "../../../components/inputs";
-import { DateRangeFilter, NumericRangeFilter } from "../../../components/table";
-import { FilterIcon, FilterMenuOption } from "../../../components/table/";
-import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { useTransactionsPageFilters } from "../../../state/app/hooks";
-import { TransactionsPageState } from "../../../state/app/pageTypes";
+import { TransactionsTableFilterState } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCategories, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
 import { ID } from "../../../state/utilities/values";
@@ -17,6 +10,12 @@ import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
+import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { SubItemCheckbox } from "../../inputs";
+import { FilterIcon } from "../filters/FilterIcon";
+import { FilterMenuOption } from "../filters/FilterMenuOption";
+import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
+import { TransactionsTableFixedData } from "./data";
 import { useTransactionsTableStyles } from "./styles";
 
 const useHeaderStyles = makeStyles({
@@ -66,10 +65,14 @@ const useHeaderStyles = makeStyles({
     },
 });
 
-export const TransactionsTableHeaderView: React.FC = () => {
+export interface TransactionsTableHeaderProps {
+    filters: TransactionsTableFilterState;
+    updateFilters: (update: Partial<TransactionsTableFilterState>) => void;
+    fixed?: TransactionsTableFixedData;
+}
+export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = ({ filters, updateFilters, fixed }) => {
     const classes = useTransactionsTableStyles();
     const headerClasses = useHeaderStyles();
-    const filters = useTransactionsPageFilters();
 
     const accounts = useAllAccounts();
     const categories = useAllCategories();
@@ -87,6 +90,8 @@ export const TransactionsTableHeaderView: React.FC = () => {
     const CategoryPopoverState = usePopoverProps();
     const ValuePopoverState = usePopoverProps();
 
+    const updaters = useFilterUpdaters(updateFilters);
+
     return (
         <>
             <div className={classes.date}>
@@ -95,7 +100,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     <FilterIcon
                         badgeContent={Number(!!filters.fromDate || !!filters.toDate)}
                         ButtonProps={DateRangePopoverState.buttonProps}
-                        onRightClick={removeDateFilter}
+                        onRightClick={updaters.removeDate}
                     />
                     <Popover {...DateRangePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
                         <div>
@@ -110,7 +115,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                             min={startDate}
                             from={filters.fromDate}
                             to={filters.toDate}
-                            setRange={setDateRange}
+                            setRange={updaters.dates}
                         />
                     </Popover>
                 </div>
@@ -126,7 +131,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                             style: { margin: "-10px 0 -10px 10px" },
                             ...DescriptionPopoverState.buttonProps,
                         }}
-                        onRightClick={removeDescriptionFilter}
+                        onRightClick={updaters.removeSearch}
                     />
                     <Popover
                         {...DescriptionPopoverState.popoverProps}
@@ -139,13 +144,13 @@ export const TransactionsTableHeaderView: React.FC = () => {
                                 label="Search Term"
                                 variant="outlined"
                                 value={filters.search}
-                                onChange={setSearch}
+                                onChange={updaters.search}
                             />
                         </div>
                         <SubItemCheckbox
                             label="Regex Search"
                             checked={filters.searchRegex}
-                            setChecked={setSearchRegex}
+                            setChecked={updaters.searchRegex}
                             className={headerClasses.subitem}
                         />
                     </Popover>
@@ -157,7 +162,7 @@ export const TransactionsTableHeaderView: React.FC = () => {
                         ButtonProps={ValuePopoverState.buttonProps}
                         badgeContent={Number(filters.valueFrom !== undefined || filters.valueTo !== undefined)}
                         margin="right"
-                        onRightClick={removeValueFilter}
+                        onRightClick={updaters.removeValue}
                     />
                     VALUE
                     <Popover {...ValuePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
@@ -180,12 +185,12 @@ export const TransactionsTableHeaderView: React.FC = () => {
                             max={valueFilterDomain[1]}
                             from={filters.valueFrom}
                             to={filters.valueTo}
-                            setRange={setValueRange}
+                            setRange={updaters.values}
                         />
                         <SubItemCheckbox
                             label="Hide Stubs"
                             checked={filters.hideStubs}
-                            setChecked={setHideStubs}
+                            setChecked={updaters.hideStubs}
                             className={headerClasses.subitem}
                         />
                     </Popover>
@@ -197,14 +202,14 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     <FilterIcon
                         badgeContent={filters.category.length}
                         ButtonProps={CategoryPopoverState.buttonProps}
-                        onRightClick={removeCategoryFilter}
+                        onRightClick={updaters.removeCategories}
                     />
                     <Menu {...CategoryPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
                         {categories.map((option) => (
                             <FilterMenuOption
                                 key={option.id}
                                 option={option}
-                                select={onSelectIDs["category"]}
+                                select={updaters.selectIDs.category}
                                 selected={filters.category}
                                 getOptionIcon={getCategoryIcon}
                             />
@@ -219,14 +224,14 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     ButtonProps={StatementPopoverState.buttonProps}
                     margin="none"
                     Icon={Description}
-                    onRightClick={removeStatementFilter}
+                    onRightClick={updaters.removeStatements}
                 />
                 <Menu {...StatementPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
                     {statements.map((option) => (
                         <FilterMenuOption
                             key={option.id}
                             option={option}
-                            select={onSelectIDs["statement"]}
+                            select={updaters.selectIDs.statement}
                             selected={filters.statement}
                             getOptionIcon={getStatementIcon}
                             getSecondary={(option) => option.date}
@@ -234,25 +239,27 @@ export const TransactionsTableHeaderView: React.FC = () => {
                     ))}
                 </Menu>
             </div>
-            <div className={classes.account}>
-                ACCOUNT
-                <FilterIcon
-                    badgeContent={filters.account.length}
-                    ButtonProps={AccountPopoverState.buttonProps}
-                    onRightClick={removeAccountFilter}
-                />
-                <Menu {...AccountPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
-                    {accounts.map((option) => (
-                        <FilterMenuOption
-                            key={option.id}
-                            option={option}
-                            select={onSelectIDs["account"]}
-                            selected={filters.account}
-                            getOptionIcon={getAccountIcon}
-                        />
-                    ))}
-                </Menu>
-            </div>
+            {fixed?.type !== "account" ? (
+                <div className={classes.account}>
+                    ACCOUNT
+                    <FilterIcon
+                        badgeContent={filters.account.length}
+                        ButtonProps={AccountPopoverState.buttonProps}
+                        onRightClick={updaters.removeAccounts}
+                    />
+                    <Menu {...AccountPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
+                        {accounts.map((option) => (
+                            <FilterMenuOption
+                                key={option.id}
+                                option={option}
+                                select={updaters.selectIDs.account}
+                                selected={filters.account}
+                                getOptionIcon={getAccountIcon}
+                            />
+                        ))}
+                    </Menu>
+                </div>
+            ) : undefined}
             <div className={classes.actions}>
                 <IconButton size="small">
                     <AddCircleOutline />
@@ -262,35 +269,33 @@ export const TransactionsTableHeaderView: React.FC = () => {
     );
 };
 
-const setFilterPartial = <Key extends keyof TransactionsPageState>(key: Key, value: TransactionsPageState[Key]) =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [key]: value }));
+const arrayFilters = ["account", "category", "statement"] as const;
+const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilterState>) => void) =>
+    useMemo(
+        () => ({
+            // Set filters
+            dates: (fromDate?: string, toDate?: string) => update({ fromDate, toDate }),
+            search: handleTextFieldChange((search) => update({ search })),
+            searchRegex: (searchRegex: boolean) => update({ searchRegex }),
+            values: (valueFrom: number | undefined, valueTo: number | undefined) => update({ valueFrom, valueTo }),
+            hideStubs: (hideStubs: boolean) => update({ hideStubs }),
+            selectIDs: zipObject(
+                arrayFilters,
+                arrayFilters.map((f) => (ids: ID[]) => update({ [f]: ids }))
+            ),
 
-const setDateRange = (fromDate?: string, toDate?: string) =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate, toDate }));
+            // Cancel Filters
+            removeDate: () => update({ fromDate: undefined, toDate: undefined }),
+            removeSearch: () => update({ search: "", searchRegex: undefined }),
+            removeValue: () => update({ valueFrom: undefined, valueTo: undefined }),
+            removeCategories: () => update({ category: [] }),
+            removeStatements: () => update({ statement: [] }),
+            removeAccounts: () => update({ account: [] }),
+        }),
+        [update]
+    );
 
-const setSearch = handleTextFieldChange((value) => setFilterPartial("search", value));
-const setSearchRegex = (checked: boolean) => setFilterPartial("searchRegex", checked);
-
-const setValueRange = (valueFrom: number | undefined, valueTo: number | undefined) =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom, valueTo }));
-const setHideStubs = (checked: boolean) => setFilterPartial("hideStubs", checked);
-
-const filters = ["account", "category", "statement"] as const;
-const onSelectIDs = zipObject(
-    filters,
-    filters.map((f) => (ids: ID[]) => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ [f]: ids })))
-);
-
-const removeDateFilter = () =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ fromDate: undefined, toDate: undefined }));
-const removeDescriptionFilter = () =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ search: undefined, searchRegex: false }));
-const removeValueFilter = () =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ valueFrom: undefined, valueTo: undefined }));
-const removeCategoryFilter = () => onSelectIDs.category([]);
-const removeStatementFilter = () => onSelectIDs.statement([]);
-const removeAccountFilter = () => onSelectIDs.account([]);
-
+// This function gives the maximum and minimum values of all transactions
 const useTransactionValueRange = () => {
     const localiseCurrencyValue = useLocaliseCurrencies();
     const transactions = useSelector((state) => state.data.transaction);

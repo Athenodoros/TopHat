@@ -2,8 +2,11 @@ import { IconButton, Link, makeStyles, Typography } from "@material-ui/core";
 import { Edit, OpenInNew } from "@material-ui/icons";
 import { max, min } from "lodash";
 import { DateTime } from "luxon";
+import { useCallback } from "react";
 import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
 import { Section } from "../../components/layout";
+import { TopHatDispatch } from "../../state";
+import { AppSlice } from "../../state/app";
 import { useAccountPageAccount } from "../../state/app/hooks";
 import { useInstitutionByID } from "../../state/data/hooks";
 import { AccountTypeMap } from "../../state/data/types";
@@ -62,9 +65,9 @@ const useStyles = makeStyles({
         fontStyle: "italic",
     },
     link: {
+        width: "100%",
         display: "flex",
         alignItems: "center",
-        width: "max-content",
 
         "& > *:first-child": {
             marginRight: 10,
@@ -76,6 +79,11 @@ export const AccountPageHeader: React.FC = () => {
     const classes = useStyles();
     const account = useAccountPageAccount();
     const institution = useInstitutionByID(account.institution);
+
+    const openEditView = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "account", account })),
+        [account]
+    );
 
     return (
         <Section>
@@ -96,7 +104,7 @@ export const AccountPageHeader: React.FC = () => {
                             </Typography>
                         </div>
                         <div>
-                            <IconButton>
+                            <IconButton onClick={openEditView}>
                                 <Edit />
                             </IconButton>
                         </div>
@@ -106,7 +114,7 @@ export const AccountPageHeader: React.FC = () => {
                             <Typography variant="h6">Open Date</Typography>
                             <Typography variant="body1">
                                 {parseDate(min([account.openDate, account.firstTransactionDate])!).toLocaleString(
-                                    DateTime.DATETIME_FULL
+                                    DateTime.DATE_FULL
                                 )}
                             </Typography>
                         </div>
@@ -116,26 +124,24 @@ export const AccountPageHeader: React.FC = () => {
                             </Typography>
                             <Typography variant="body1">
                                 {parseDate(max([account.lastUpdate, account.lastTransactionDate])!).toLocaleString(
-                                    DateTime.DATETIME_FULL
+                                    DateTime.DATE_FULL
                                 )}
                             </Typography>
                         </div>
                         <div>
                             <Typography variant="h6">Website</Typography>
-                            <Typography
-                                variant="body1"
-                                noWrap={true}
-                                className={account.website ? undefined : classes.missing}
-                            >
-                                {account.website ? (
-                                    <Link href={account.website} className={classes.link} target="_blank">
-                                        <OpenInNew fontSize="small" />
+                            {account.website ? (
+                                <Link href={account.website} className={classes.link} target="_blank">
+                                    <OpenInNew fontSize="small" />
+                                    <Typography variant="body1" noWrap={true}>
                                         {getDomainFromURL(account.website)}
-                                    </Link>
-                                ) : (
-                                    "No Website"
-                                )}
-                            </Typography>
+                                    </Typography>
+                                </Link>
+                            ) : (
+                                <Typography variant="body1" noWrap={true} className={classes.missing}>
+                                    No Website
+                                </Typography>
+                            )}
                         </div>
                     </div>
                 </div>

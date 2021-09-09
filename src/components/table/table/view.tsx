@@ -2,10 +2,7 @@ import { IconButton, Tooltip, Typography } from "@material-ui/core";
 import { Description, Edit, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback } from "react";
-import { getCategoryIcon, getInstitutionIcon } from "../../../components/display/ObjectDisplay";
-import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { EditTransactionState } from "../../../state/app/pageTypes";
+import { EditTransactionState, TransactionsTableEditState } from "../../../state/app/pageTypes";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import {
     useAccountByID,
@@ -16,9 +13,20 @@ import {
 } from "../../../state/data/hooks";
 import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
 import { parseDate } from "../../../state/utilities/values";
+import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
+import { TransactionsTableFixedData } from "./data";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
 
-export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransactionState }> = ({ transaction: tx }) => {
+export interface TransactionsTableViewEntryProps {
+    transaction: EditTransactionState;
+    updateState: (update: Partial<TransactionsTableEditState>) => void;
+    fixed?: TransactionsTableFixedData;
+}
+export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProps> = ({
+    transaction: tx,
+    updateState,
+    fixed,
+}) => {
     const classes = useTransactionsTableStyles();
     const currency = useCurrencyByID(tx.currency);
     const category = useCategoryByID(tx.category);
@@ -26,10 +34,7 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
     const institution = useInstitutionByID(account?.institution);
     const statement = useStatementByID(tx.statement);
 
-    const handleStartEdit = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: tx })),
-        [tx]
-    );
+    const handleStartEdit = useCallback(() => updateState({ edit: tx }), [updateState, tx]);
 
     const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
         value !== undefined && value !== null ? (
@@ -119,16 +124,18 @@ export const TransactionsTableViewEntry: React.FC<{ transaction: EditTransaction
                     </Tooltip>
                 )}
             </div>
-            <div className={classes.account}>
-                {account && institution ? (
-                    <>
-                        {getInstitutionIcon(institution, classes.accountIcon)}
-                        {account.name}
-                    </>
-                ) : (
-                    MissingText
-                )}
-            </div>
+            {fixed?.type !== "account" ? (
+                <div className={classes.account}>
+                    {account && institution ? (
+                        <>
+                            {getInstitutionIcon(institution, classes.accountIcon)}
+                            {account.name}
+                        </>
+                    ) : (
+                        MissingText
+                    )}
+                </div>
+            ) : undefined}
             <div className={classes.actions}>
                 <IconButton size="small" onClick={handleStartEdit}>
                     <Edit fontSize="small" />

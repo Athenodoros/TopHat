@@ -11,7 +11,7 @@ import {
 } from "@reduxjs/toolkit";
 import { clone, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
-import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../utilities/actions";
+import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../utilities/actions";
 import {
     BaseBalanceValues,
     getCurrentMonth,
@@ -173,7 +173,7 @@ export const DataSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(SaveTransactionSelectionState, (state, { payload: { ids, edits } }) => {
+            .addCase(SaveTransactionTableSelectionState, (state, { payload: { ids, edits } }) => {
                 const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
 
                 updateTransactionSummaryStartDates(state);

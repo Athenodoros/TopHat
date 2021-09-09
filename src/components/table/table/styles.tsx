@@ -181,6 +181,10 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         overflow: "visible",
         // fontWeight: 300,
     },
+    loadMoreTransactionsButton: {
+        marginTop: 50,
+        alignSelf: "center",
+    },
 }));
 
 export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");

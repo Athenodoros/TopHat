@@ -12,13 +12,13 @@ import {
 import { Clear, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
-import { getCurrencyIcon } from "../../../components/display/ObjectDisplay";
-import { ObjectSelector, ObjectSelectorCommonProps } from "../../../components/inputs";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { handleTextFieldChange, suppressEvent } from "../../../utilities/events";
 import { useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
+import { getCurrencyIcon } from "../../display/ObjectDisplay";
+import { ObjectSelector, ObjectSelectorCommonProps } from "../../inputs";
 import { useTransactionsTableStyles } from "./styles";
 
 const useEditableCurrencyValueStyles = makeStyles({

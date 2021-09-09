@@ -2,7 +2,7 @@ import { createAction } from "@reduxjs/toolkit";
 import { EditTransactionState } from "../app/pageTypes";
 import { ID } from "./values";
 
-export const SaveTransactionSelectionState = createAction<{ ids: ID[]; edits: EditTransactionState }>(
-    "SaveTransactionSelectionState"
+export const SaveTransactionTableSelectionState = createAction<{ ids: ID[]; edits: EditTransactionState }>(
+    "SaveTransactionTableSelectionState"
 );
-export const DeleteTransactionSelectionState = createAction<ID[]>("DeleteTransactionSelectionState");
+export const DeleteTransactionSelectionState = createAction<ID[]>("DeleteTransactionTableSelectionState");

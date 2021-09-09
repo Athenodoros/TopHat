@@ -166,7 +166,14 @@ const makeRule = (input: Omit<Rule, keyof typeof RuleDefaults | "id" | "index"> 
     ...input,
 });
 const rules: Rule[] = [
-    { name: "Weekly Shop", reference: ["WOOLWORTHS"], min: -200, max: 0, category: 2, summary: "Weekly Shop" },
+    {
+        name: "Weekly Shop",
+        reference: ["WOOLWORTHS"],
+        min: -200,
+        max: 0,
+        category: 2,
+        descriptions: "Weekly shop - groceries, toiletries, and basic necessities",
+    },
     { name: "State Transit", reference: ["State\\sTransit.*"], regex: true, category: 3 },
     { name: "Income", reference: ["SALARY-EMPLOYER-INC.", "SUPER-EMPLOYER-INC."], category: 6, isInactive: true },
     { name: "Travel", reference: [], accounts: [3, 5, 9], category: 4 },
@@ -442,15 +449,17 @@ transactions.forEach((tx) => {
     }
 });
 const statements = values(statementMap.everyday)
-    .filter(({ id }) => !lastEverydayStatements.includes(id))
+    // .filter(({ id }) => !lastEverydayStatements.includes(id))
     .concat([statementMap.international[0]])
     .concat(values(statementMap.mortgage));
 transactions = transactions.filter(
-    (tx) => !lastEverydayStatements.includes(tx.statement) && tx.statement !== statementMap.international[1].id
+    (tx) => tx.statement !== statementMap.international[1].id
+    // && !lastEverydayStatements.includes(tx.statement)
 );
-export const DemoStatementFiles = values(statementMap.everyday)
-    .filter(({ id }) => lastEverydayStatements.includes(id))
-    .concat([statementMap.international[1]]);
+export const DemoStatementFiles = [statementMap.international[1]];
+// .concat(
+//     values(statementMap.everyday).filter(({ id }) => lastEverydayStatements.includes(id))
+// );
 
 const notifications = [
     { id: 1, type: "new-milestone", contents: 200000 },

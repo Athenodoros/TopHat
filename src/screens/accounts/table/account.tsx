@@ -9,7 +9,7 @@ import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
 import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
+import { AppSlice, DefaultPages } from "../../../state/app";
 import { DataSlice } from "../../../state/data";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
@@ -117,7 +117,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
     const currencies = useCurrencyMap();
     const defaultCurrency = useDefaultCurrency();
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "account", account: account.id })),
+        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.account, account: account.id })),
         [account.id]
     );
 

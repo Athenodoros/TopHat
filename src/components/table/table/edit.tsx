@@ -3,17 +3,15 @@ import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@m
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { DateTime } from "luxon";
-import React from "react";
-import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../../components/display/ObjectDisplay";
-import { TopHatDispatch, TopHatStore } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { useTransactionsPageState } from "../../../state/app/hooks";
-import { EditTransactionState, TransactionsPageState } from "../../../state/app/pageTypes";
-import { Transaction } from "../../../state/data";
+import React, { useMemo } from "react";
+import { TopHatDispatch } from "../../../state";
+import { EditTransactionState } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
-import { DeleteTransactionSelectionState, SaveTransactionSelectionState } from "../../../state/utilities/actions";
+import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
+import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { TransactionsTableFixedData } from "./data";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import { useTransactionsTableStyles } from "./styles";
 
@@ -60,12 +58,20 @@ const useEditStyles = makeStyles({
     },
 });
 
-export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransactionState; ids: ID[] }> = ({
-    transaction: tx,
+export interface TransactionsTableEditEntryProps {
+    original: EditTransactionState;
+    edit: EditTransactionState;
+    ids: ID[];
+    setEditPartial: (update: Partial<EditTransactionState> | null) => void;
+    fixed?: TransactionsTableFixedData;
+}
+export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProps> = ({
+    original: tx,
     ids,
+    edit,
+    setEditPartial,
+    fixed,
 }) => {
-    const edit = useTransactionsPageState((state) => state.edit!);
-
     const classes = useTransactionsTableStyles();
     const editClasses = useEditStyles();
 
@@ -74,12 +80,14 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
     const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
+    const updaters = useEditUpdaters(setEditPartial);
+
     return (
         <>
             <div className={classes.date}>
                 <DatePicker
                     value={edit.date || null}
-                    onChange={onDateChange}
+                    onChange={updaters.date}
                     format="yyyy-MM-dd"
                     inputVariant="outlined"
                     className={editClasses.centeredInput}
@@ -96,20 +104,20 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     value={edit.summary}
                     placeholder={tx.reference}
                     allowUndefined={tx.summary === undefined}
-                    onChange={updateSummary}
+                    onChange={updaters.summary}
                 />
                 <EditableTextValue
                     value={edit.description}
                     allowUndefined={tx.description === undefined}
-                    onChange={updateDescription}
+                    onChange={updaters.description}
                 />
             </div>
             <div className={classes.value}>
                 <EditableCurrencyValue
                     currency={edit.currency}
                     value={edit.value}
-                    onChangeValue={onChangeValue}
-                    onChangeCurrency={onChangeCurrency}
+                    onChangeValue={updaters.value}
+                    onChangeCurrency={updaters.currency}
                     allowUndefinedCurrency={tx.currency === undefined}
                     allowUndefinedValue={tx.value === undefined}
                 />
@@ -118,7 +126,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                 <TransactionsTableObjectDropdown
                     options={categories}
                     selected={edit.category}
-                    select={onChangeCategory}
+                    select={updaters.category}
                     getIcon={getCategoryIcon}
                     iconClass={editClasses.categoryDropdownIcon}
                     allowUndefined={tx.category === undefined}
@@ -129,8 +137,8 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     currency={edit.currency}
                     value={edit.recordedBalance}
                     placeholder={edit.balance}
-                    onChangeValue={onChangeBalance}
-                    onChangeCurrency={onChangeCurrency}
+                    onChangeValue={updaters.balance}
+                    onChangeCurrency={updaters.currency}
                     allowUndefinedCurrency={tx.currency === undefined}
                     allowUndefinedValue={tx.recordedBalance === undefined}
                 />
@@ -139,7 +147,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                 <TransactionsTableObjectDropdown
                     options={statements}
                     selected={edit.statement}
-                    select={onChangeStatement}
+                    select={updaters.statement}
                     getIcon={getStatementIcon}
                     iconClass={editClasses.accountDropdownIcon}
                     allowUndefined={tx.statement === undefined}
@@ -160,16 +168,18 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     }
                 />
             </div>
-            <div className={classes.account}>
-                <TransactionsTableObjectDropdown
-                    options={accounts}
-                    selected={edit.account}
-                    select={onChangeAccount}
-                    getIcon={getAccountIcon}
-                    iconClass={editClasses.accountDropdownIcon}
-                    allowUndefined={tx.account === undefined}
-                />
-            </div>
+            {fixed?.type === "account" ? (
+                <div className={classes.account}>
+                    <TransactionsTableObjectDropdown
+                        options={accounts}
+                        selected={edit.account}
+                        select={updaters.account}
+                        getIcon={getAccountIcon}
+                        iconClass={editClasses.accountDropdownIcon}
+                        allowUndefined={tx.account === undefined}
+                    />
+                </div>
+            ) : undefined}
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
                     <IconButton size="small" onClick={onSaveChanges(ids, edit)}>
@@ -177,7 +187,7 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
                     </IconButton>
                 </Tooltip>
                 <Tooltip title="Discard Changes">
-                    <IconButton size="small" onClick={onDiscardChanges}>
+                    <IconButton size="small" onClick={updaters.discard}>
                         <DeleteTwoTone fontSize="small" htmlColor={Intents.warning.main} />
                     </IconButton>
                 </Tooltip>
@@ -192,25 +202,25 @@ export const TransactionsTableEditEntry: React.FC<{ transaction: EditTransaction
 };
 
 const onSaveChanges = (ids: ID[], edits: EditTransactionState) => () =>
-    TopHatDispatch(SaveTransactionSelectionState({ ids, edits }));
-const onDiscardChanges = () => TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ edit: undefined }));
+    TopHatDispatch(SaveTransactionTableSelectionState({ ids, edits }));
 const onDeleteChanges = (ids: ID[]) => () => TopHatDispatch(DeleteTransactionSelectionState(ids));
 
-const setEditPartial =
-    <Key extends keyof Transaction>(key: Key) =>
-    (value?: Transaction[Key]) =>
-        TopHatDispatch(
-            AppSlice.actions.setTransactionsPagePartial({
-                edit: { ...(TopHatStore.getState().app.page as TransactionsPageState).edit!, [key]: value },
-            })
-        );
+const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null) => void) =>
+    useMemo(
+        () => ({
+            // Updates
+            date: (date: DateTime | null) => updater({ date: date ? formatDate(date) : undefined }),
+            summary: (summary?: string | null) => updater({ summary: summary ?? undefined }),
+            description: (description?: string | null) => updater({ description: description ?? undefined }),
+            currency: (currency?: ID) => updater({ currency }),
+            value: (value?: number | null) => updater({ value: value ?? undefined }),
+            balance: (recordedBalance?: number | null) => updater({ recordedBalance: recordedBalance ?? undefined }),
+            category: (category?: ID) => updater({ category }),
+            statement: (statement?: ID) => updater({ statement }),
+            account: (account?: ID) => updater({ account }),
 
-const onDateChange = (date: DateTime | null) => setEditPartial("date")(date ? formatDate(date) : undefined);
-const updateSummary = setEditPartial("summary");
-const updateDescription = setEditPartial("description");
-const onChangeCurrency = setEditPartial("currency");
-const onChangeValue = setEditPartial("value");
-const onChangeBalance = setEditPartial("recordedBalance");
-const onChangeCategory = setEditPartial("category");
-const onChangeStatement = setEditPartial("statement");
-const onChangeAccount = setEditPartial("account");
+            // Actions
+            discard: () => updater(null),
+        }),
+        [updater]
+    );

@@ -2,6 +2,7 @@ import { FormControl, MenuItem, Select } from "@material-ui/core";
 import { keys } from "lodash";
 import { useState } from "react";
 import { Section } from "../../components/layout";
+import { SnapshotSectionContents, useAssetsSnapshot } from "../../components/snapshot";
 import { useAccountPageAccount } from "../../state/app/hooks";
 import { useCurrencyMap } from "../../state/data/hooks";
 import { ID } from "../../state/utilities/values";
@@ -12,7 +13,11 @@ export const AccountPageBalances: React.FC = () => {
     const currencies = useCurrencyMap();
 
     const [currency, setCurrency] = useState<ID | "all">("all");
-    const onChangeCurrency = handleSelectChange((value: ID | "all") => setCurrency(value));
+    const onChangeCurrency = handleSelectChange((value: ID | "all") =>
+        setCurrency(value === "all" ? "all" : Number(value))
+    );
+
+    const balanceData = useAssetsSnapshot(account.id, currency === "all" ? undefined : currency);
 
     return (
         <Section
@@ -30,7 +35,7 @@ export const AccountPageBalances: React.FC = () => {
                 </FormControl>,
             ]}
         >
-            Balances!
+            <SnapshotSectionContents data={balanceData} />
         </Section>
     );
 };

@@ -1,4 +1,6 @@
+import { omit } from "lodash";
 import { Account, Category, Currency, Institution, Rule, Statement } from "../data";
+import { DefaultTransactionsTableState } from "./pageTypes";
 import { DialogFileState } from "./statementTypes";
 
 export const DefaultPages = {
@@ -17,21 +19,14 @@ export const DefaultPages = {
     account: {
         id: "account" as const,
         account: 0,
+        ...omit(DefaultTransactionsTableState, "account"),
     },
     transactions: {
         id: "transactions" as const,
         transfers: false,
         chartSign: "debits" as const,
         chartAggregation: "category" as const,
-        account: [],
-        category: [],
-        currency: [],
-        statement: [],
-        hideStubs: false,
-        tableLimit: 50,
-        search: "",
-        searchRegex: false,
-        selection: [],
+        ...DefaultTransactionsTableState,
     },
     categories: { id: "categories" as const },
     analysis: { id: "analysis" as const },

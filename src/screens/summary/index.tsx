@@ -1,9 +1,11 @@
-import { makeStyles } from "@material-ui/core";
+import { Button, makeStyles } from "@material-ui/core";
+import { ChevronRight } from "@material-ui/icons";
 import React from "react";
 import { Page, Section, SECTION_MARGIN } from "../../components/layout";
 import { Notifications } from "../../components/shell/notifications";
-import { SummaryAssetsSection } from "./assets";
-import { SummaryTransactionsSection } from "./transactions";
+import { SnapshotSectionContents, useAssetsSnapshot, useTransactionsSnapshot } from "../../components/snapshot";
+import { OpenPageCache } from "../../state/app/actions";
+import { PageStateType } from "../../state/app/pageTypes";
 
 const useStyles = makeStyles({
     container: {
@@ -12,10 +14,6 @@ const useStyles = makeStyles({
     summaryColumn: {
         flexGrow: 1,
         marginRight: SECTION_MARGIN,
-
-        "& > * > *:nth-child(2), & > * > *:nth-child(4)": {
-            display: "flex",
-        },
     },
     notificationColumn: {
         flexShrink: 0,
@@ -29,13 +27,19 @@ const useStyles = makeStyles({
 
 export const SummaryPage: React.FC = () => {
     const classes = useStyles();
+    const assetSummaryData = useAssetsSnapshot();
+    const transactionSummaryData = useTransactionsSnapshot();
 
     return (
         <Page title="Welcome to TopHat!">
             <div className={classes.container}>
                 <div className={classes.summaryColumn}>
-                    <SummaryAssetsSection />
-                    <SummaryTransactionsSection />
+                    <Section title="Net Worth" headers={<SeeMore page="accounts" />}>
+                        <SnapshotSectionContents data={assetSummaryData} />
+                    </Section>
+                    <Section title="Cash Flow" headers={<SeeMore page="transactions" />}>
+                        <SnapshotSectionContents data={transactionSummaryData} />
+                    </Section>
                 </div>
                 <Section title="Notifications" className={classes.notificationColumn}>
                     <Notifications />
@@ -44,3 +48,9 @@ export const SummaryPage: React.FC = () => {
         </Page>
     );
 };
+
+const SeeMore: React.FC<{ page: PageStateType["id"] }> = ({ page }) => (
+    <Button endIcon={<ChevronRight />} onClick={OpenPageCache[page]} size="small">
+        See More
+    </Button>
+);
