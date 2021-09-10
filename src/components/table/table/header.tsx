@@ -2,10 +2,13 @@ import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@m
 import { AddCircleOutline, Description } from "@material-ui/icons";
 import { last } from "lodash-es";
 import React, { useMemo } from "react";
+import { TopHatDispatch, TopHatStore } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { TransactionsTableFilterState } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCategories, useAllStatements, useFormatValue } from "../../../state/data/hooks";
+import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/utilities";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
-import { ID } from "../../../state/utilities/values";
+import { getTodayString, ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { handleTextFieldChange } from "../../../utilities/events";
@@ -261,7 +264,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                 </div>
             ) : undefined}
             <div className={classes.actions}>
-                <IconButton size="small">
+                <IconButton size="small" onClick={createNewTransaction(fixed)}>
                     <AddCircleOutline />
                 </IconButton>
             </div>
@@ -313,4 +316,25 @@ const useTransactionValueRange = () => {
 
         return [min, max] as [number | undefined, number | undefined];
     }, [transactions, localiseCurrencyValue]);
+};
+
+const createNewTransaction = (fixed?: TransactionsTableFixedData) => () => {
+    const { data } = TopHatStore.getState();
+
+    TopHatDispatch(
+        AppSlice.actions.setTransactionTableStatePartial({
+            edit: {
+                id: getNextID(data.transaction.ids),
+                date: getTodayString(),
+                summary: "Manual Transaction",
+                value: null,
+                recordedBalance: null,
+                balance: null,
+                account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
+                category: PLACEHOLDER_CATEGORY_ID,
+                currency: data.user.currency,
+                statement: PLACEHOLDER_STATEMENT_ID,
+            },
+        })
+    );
 };

@@ -1,3 +1,4 @@
+import { debounce } from "lodash";
 import numeral from "numeral";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { handleTextFieldChange } from "./events";
@@ -92,20 +93,20 @@ export const useNumericInputHandler = (
     id: any = ""
 ) => {
     const [text, setText] = useState(FormatNumber(initial));
-    const { onTextChange, setValue } = useMemo(
-        () => ({
+    const { onTextChange, setValue } = useMemo(() => {
+        const debounced = debounce(onChange, 500);
+        return {
             onTextChange: handleTextFieldChange((value) => {
                 if (NumberRegex.test(value)) {
                     setText(value);
 
-                    if (value === "") onChange(null);
-                    else if (value === (+value).toString()) onChange(+value);
+                    if (value === "") debounced(null);
+                    else if (value === (+value).toString()) debounced(+value);
                 }
             }),
             setValue: (value: number | null) => setText(FormatNumber(value)),
-        }),
-        [setText, onChange]
-    );
+        };
+    }, [setText, onChange]);
     useEffect(() => {
         if (FormatNumber(initial) !== text) setText(FormatNumber(initial));
         // eslint-disable-next-line react-hooks/exhaustive-deps

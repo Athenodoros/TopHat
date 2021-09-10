@@ -1,6 +1,7 @@
 import { Button, Card, Checkbox } from "@material-ui/core";
 import { PlaylistAdd } from "@material-ui/icons";
 import clsx from "clsx";
+import { noop } from "lodash";
 import React, { useCallback } from "react";
 import { TableContainer, TableHeaderContainer } from "..";
 import { TopHatDispatch, TopHatStore } from "../../../state";
@@ -26,6 +27,8 @@ export interface TransactionsTableProps {
 }
 
 // This table assumes that the current state.app.page extends TransactionsTableEditState
+// It could be made more general by generating the update functions from supplied
+//     "getEditState" and "setEditState" functions
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     filters,
     state: { selection, edit },
@@ -72,6 +75,21 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <TransactionsTableHeader filters={filters} updateFilters={setFilterPartial} fixed={fixed} />
                 )}
             </TableHeaderContainer>
+            {edit?.id !== undefined && !ids.includes(edit.id) ? (
+                <Card className={classes.rowGroupContainer} elevation={0}>
+                    <div className={clsx(classes.container, classes.rowContainer)}>
+                        <div className={classes.checkbox}>
+                            <Checkbox checked={false} onChange={noop} color="primary" disabled={true} />
+                        </div>
+                        <TransactionsTableEditEntry
+                            edit={edit}
+                            ids={[edit.id]}
+                            setEditPartial={setEditStatePartial}
+                            fixed={fixed}
+                        />
+                    </div>
+                </Card>
+            ) : undefined}
             {groups.map(([date, list]) => (
                 <Card className={classes.rowGroupContainer} key={date} elevation={0}>
                     {list.map((id) => (

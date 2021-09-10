@@ -9,7 +9,7 @@ import {
     PayloadAction,
     Update,
 } from "@reduxjs/toolkit";
-import { clone, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
+import { clone, cloneDeep, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
 import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../utilities/actions";
 import {
@@ -151,7 +151,9 @@ export const DataSlice = createSlice({
         },
         addNewTransactions: (
             state,
-            { payload: { transactions, transfers } }: PayloadAction<{ transactions: Transaction[]; transfers: ID[] }>
+            {
+                payload: { transactions, transfers = [] },
+            }: PayloadAction<{ transactions: Transaction[]; transfers?: ID[] }>
         ) => {
             updateTransactionSummaryStartDates(state);
             updateTransactionSummariesWithTransactions(state, transfers, true);
@@ -160,7 +162,8 @@ export const DataSlice = createSlice({
                 state.transaction,
                 transfers.map((id) => ({ id, changes: { category: TRANSFER_CATEGORY_ID } }))
             );
-            adapters.transaction.addMany(state.transaction, transactions);
+            // Actions make arguments read-only, which breaks the balance calculations
+            adapters.transaction.addMany(state.transaction, cloneDeep(transactions));
 
             const transactionIDs = transactions.map(({ id }) => id);
             updateTransactionSummariesWithTransactions(state, transfers.concat(transactionIDs));

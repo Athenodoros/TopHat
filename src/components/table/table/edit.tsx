@@ -4,8 +4,11 @@ import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
+import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { EditTransactionState } from "../../../state/app/pageTypes";
+import { DataSlice, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
 import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
@@ -59,7 +62,7 @@ const useEditStyles = makeStyles({
 });
 
 export interface TransactionsTableEditEntryProps {
-    original: EditTransactionState;
+    original?: EditTransactionState;
     edit: EditTransactionState;
     ids: ID[];
     setEditPartial: (update: Partial<EditTransactionState> | null) => void;
@@ -94,7 +97,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     size="small"
                     color="primary"
                     disableFuture={true}
-                    clearable={tx.date === undefined}
+                    clearable={tx && tx.date === undefined}
                     emptyLabel="(mixed)"
                     inputProps={edit.date ? undefined : { className: classes.mixed }}
                 />
@@ -102,13 +105,13 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
             <div className={clsx(classes.text, editClasses.editText)}>
                 <EditableTextValue
                     value={edit.summary}
-                    placeholder={tx.reference}
-                    allowUndefined={tx.summary === undefined}
+                    placeholder={tx?.reference}
+                    allowUndefined={!!tx && tx.summary === undefined}
                     onChange={updaters.summary}
                 />
                 <EditableTextValue
                     value={edit.description}
-                    allowUndefined={tx.description === undefined}
+                    allowUndefined={!!tx && tx.description === undefined}
                     onChange={updaters.description}
                 />
             </div>
@@ -118,8 +121,8 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     value={edit.value}
                     onChangeValue={updaters.value}
                     onChangeCurrency={updaters.currency}
-                    allowUndefinedCurrency={tx.currency === undefined}
-                    allowUndefinedValue={tx.value === undefined}
+                    allowUndefinedCurrency={!!tx && tx.currency === undefined}
+                    allowUndefinedValue={!!tx && tx.value === undefined}
                 />
             </div>
             <div className={classes.category}>
@@ -129,7 +132,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     select={updaters.category}
                     getIcon={getCategoryIcon}
                     iconClass={editClasses.categoryDropdownIcon}
-                    allowUndefined={tx.category === undefined}
+                    allowUndefined={!!tx && tx.category === undefined}
                 />
             </div>
             <div className={classes.balance}>
@@ -139,8 +142,8 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     placeholder={edit.balance}
                     onChangeValue={updaters.balance}
                     onChangeCurrency={updaters.currency}
-                    allowUndefinedCurrency={tx.currency === undefined}
-                    allowUndefinedValue={tx.recordedBalance === undefined}
+                    allowUndefinedCurrency={!!tx && tx.currency === undefined}
+                    allowUndefinedValue={!!tx && tx.recordedBalance === undefined}
                 />
             </div>
             <div className={classes.statement}>
@@ -150,7 +153,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     select={updaters.statement}
                     getIcon={getStatementIcon}
                     iconClass={editClasses.accountDropdownIcon}
-                    allowUndefined={tx.statement === undefined}
+                    allowUndefined={!!tx && tx.statement === undefined}
                     button={
                         <Button
                             variant="outlined"
@@ -168,7 +171,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     }
                 />
             </div>
-            {fixed?.type === "account" ? (
+            {fixed?.type !== "account" ? (
                 <div className={classes.account}>
                     <TransactionsTableObjectDropdown
                         options={accounts}
@@ -176,31 +179,39 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         select={updaters.account}
                         getIcon={getAccountIcon}
                         iconClass={editClasses.accountDropdownIcon}
-                        allowUndefined={tx.account === undefined}
+                        allowUndefined={!!tx && tx.account === undefined}
                     />
                 </div>
             ) : undefined}
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
-                    <IconButton size="small" onClick={onSaveChanges(ids, edit)}>
+                    <IconButton size="small" onClick={tx ? onSaveChanges(ids, edit) : createTransctionThunk(edit)}>
                         <SaveTwoTone fontSize="small" htmlColor={Intents.success.main} />
                     </IconButton>
                 </Tooltip>
+
                 <Tooltip title="Discard Changes">
                     <IconButton size="small" onClick={updaters.discard}>
                         <DeleteTwoTone fontSize="small" htmlColor={Intents.warning.main} />
                     </IconButton>
                 </Tooltip>
-                <Tooltip title="Delete Transaction">
-                    <IconButton size="small" onClick={onDeleteChanges(ids)}>
-                        <CancelTwoTone fontSize="small" color="error" />
-                    </IconButton>
-                </Tooltip>
+                {tx && (
+                    <Tooltip title="Delete Transaction">
+                        <IconButton size="small" onClick={onDeleteChanges(ids)}>
+                            <CancelTwoTone fontSize="small" color="error" />
+                        </IconButton>
+                    </Tooltip>
+                )}
             </div>
         </>
     );
 };
 
+const createTransctionThunk = (edit: EditTransactionState) => () =>
+    batch(() => {
+        TopHatDispatch(AppSlice.actions.setTransactionTableStatePartial({ edit: undefined }));
+        TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions: [edit as Transaction] }));
+    });
 const onSaveChanges = (ids: ID[], edits: EditTransactionState) => () =>
     TopHatDispatch(SaveTransactionTableSelectionState({ ids, edits }));
 const onDeleteChanges = (ids: ID[]) => () => TopHatDispatch(DeleteTransactionSelectionState(ids));
