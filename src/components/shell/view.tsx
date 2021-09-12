@@ -3,6 +3,7 @@ import React from "react";
 import { AccountPage } from "../../screens/account";
 import { AccountsPage } from "../../screens/accounts";
 import { AnalysisPage } from "../../screens/analysis";
+import { CategoriesPage } from "../../screens/categories";
 import { ForecastPage } from "../../screens/forecasts";
 import { SummaryPage } from "../../screens/summary";
 import { TransactionsPage } from "../../screens/transactions";
@@ -32,6 +33,7 @@ export const View: React.FC = () => {
             {page === "accounts" ? <AccountsPage /> : undefined}
             {page === "account" ? <AccountPage /> : undefined}
             {page === "transactions" ? <TransactionsPage /> : undefined}
+            {page === "categories" ? <CategoriesPage /> : undefined}
             {page === "analysis" ? <AnalysisPage /> : undefined}
             {page === "forecasts" ? <ForecastPage /> : undefined}
         </div>
