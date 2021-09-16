@@ -9,6 +9,7 @@ export const PLACEHOLDER_CATEGORY_ID = 0;
 export const PLACEHOLDER_CATEGORY: Category = {
     id: PLACEHOLDER_CATEGORY_ID,
     name: "No Category",
+    hierarchy: [],
     colour: Greys[500],
     transactions: BaseTransactionHistory(),
 };
@@ -16,6 +17,7 @@ export const TRANSFER_CATEGORY_ID = -1;
 export const TRANSFER_CATEGORY: Category = {
     id: TRANSFER_CATEGORY_ID,
     name: "Transfer",
+    hierarchy: [],
     colour: Greys[500],
     transactions: BaseTransactionHistory(),
 };

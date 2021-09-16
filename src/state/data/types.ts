@@ -52,6 +52,7 @@ export interface Category {
     id: ID;
     name: string;
     colour: string;
+    hierarchy: ID[];
 
     // budget?: number;
 

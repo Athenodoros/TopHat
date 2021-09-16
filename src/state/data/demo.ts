@@ -2,7 +2,7 @@ import chroma from "chroma-js";
 import { random as randomInt, range, values } from "lodash";
 import { DurationObject } from "luxon";
 import { zipObject } from "../../utilities/data";
-import { BaseTransactionHistory, formatDate, getToday, parseDate, SDate } from "../utilities/values";
+import { BaseTransactionHistory, formatDate, getToday, ID, parseDate, SDate } from "../utilities/values";
 import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 import {
     compareTransactionsDescendingDates,
@@ -21,30 +21,47 @@ type CurrencyArgs = [string, string, number, string];
 const currencyFields = ["symbol", "name", "exchangeRate", "ticker"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
-        id: id + 2,
+        id: id + 1,
         colour: currencyColourScale(id + 2).hex(),
         transactions: BaseTransactionHistory(),
         ...zipObject(currencyFields, args),
     } as Currency);
-export const DEFAULT_CURRENCY = makeCurrency(["AU$", "Australian Dollars", 0.5, "AUD"], -1);
 const currencies = (
     [
+        ["AU$", "Australian Dollars", 0.5, "AUD"],
         ["£", "Pounds Sterling", 0.92, "GBP"],
         ["€", "Euros", 0.83, "EUR"],
         ["US$", "US Dollars", 0.73, "USD"],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
+export const DEFAULT_CURRENCY = currencies[0];
 
 let cateogryColourScale = chroma.scale("set1").domain([0, 6]);
-const makeCategory = (name: string, id: number) =>
+const makeCategory = ({ name, hierarchy }: { name: string; hierarchy?: ID[] }, id: number) =>
     ({
         id: id + 1,
         budget: 0,
+        hierarchy: hierarchy || [],
         name,
         colour: cateogryColourScale(id).hex(),
         transactions: BaseTransactionHistory(),
     } as Category);
-const categories = ["Social", "Groceries", "Transport", "Travel", "Mortgage", "Income"].map(makeCategory);
+const categories = [
+    { name: "Social" }, // 1
+    { name: "Groceries" }, // 2
+    { name: "Transport" }, // 3
+    { name: "Travel" }, // 4
+    { name: "Housing" }, // 5
+    { name: "Income" }, // 6
+    { name: "Super", hierarchy: [6] }, // 7
+    { name: "Salary", hierarchy: [6] }, // 8
+    { name: "Trip to Europe", hierarchy: [4] }, // 9
+    { name: "Trip to Melbourne", hierarchy: [4] }, // 10
+    { name: "Mortgage", hierarchy: [5] }, // 11
+    { name: "Bills", hierarchy: [5] }, // 12
+    { name: "Electricity Bill", heirarchy: [12, 5] }, // 13
+    { name: "Gas Bill", heirarchy: [12, 5] }, // 14
+].map(makeCategory);
 
 type InstitutionArgs = [string, string, string];
 const makeInstitution = (args: InstitutionArgs, id: number) =>
@@ -179,35 +196,27 @@ const rules: Rule[] = [
     { name: "Travel", reference: [], accounts: [3, 5, 9], category: 4 },
 ].map(makeRule);
 
-type TransactionArgs = [
-    DurationObject,
-    string | undefined,
-    number,
-    number,
-    number,
-    number | undefined,
-    boolean | undefined,
-    boolean | undefined,
-    string | undefined,
-    true | undefined
-];
-const makeTransaction = (args: TransactionArgs, id: number): Transaction => {
-    const date = today.minus(args[0]);
-    return {
-        id: id + 1,
-        date: date.toISODate(),
-        reference: args[1],
-        summary: null,
-        value: args[7] ? null : args[2],
-        recordedBalance: args[7] ? args[2] : null,
-        balance: null,
-        account: args[3] + 1,
-        category: args[6] ? TRANSFER_CATEGORY_ID : args[5] !== undefined ? args[5] + 1 : PLACEHOLDER_CATEGORY_ID,
-        currency: args[4] + 1,
-        description: args[8] || null,
-        statement: PLACEHOLDER_STATEMENT_ID,
-    };
-};
+let id = 0;
+const make = (
+    diff: DurationObject,
+    reference: string,
+    account: ID,
+    partial?: Partial<Omit<Transaction, "id" | "date" | "reference" | "account">>
+): Transaction => ({
+    id: ++id, // Increments first, so first ID is 1
+    date: formatDate(today.minus(diff)),
+    reference,
+    summary: null,
+    value: null,
+    recordedBalance: null,
+    balance: null,
+    account,
+    category: PLACEHOLDER_CATEGORY_ID,
+    currency: DEFAULT_CURRENCY.id,
+    description: null,
+    statement: PLACEHOLDER_STATEMENT_ID,
+    ...partial,
+});
 const descriptions = [
     "Larry's",
     "George Street",
@@ -218,154 +227,134 @@ const descriptions = [
     "The Parkside",
 ];
 const types = ["Thai", "Italian", "Restaurant", "Bar", "Chinese", "Burgers"];
-let transactions = (
-    [
-        // Regular Payments
-        ...range(24).map((i) => [{ months: i, days: 8 }, "SALARY-EMPLOYER-INC.", i > 15 ? 3020 : 3680, 0, 0, 5]),
-        ...range(24).map((i) => [{ months: i, days: 7 }, "SUPER-EMPLOYER-INC.", i > 15 ? 490 : 580, 1, 0, 5]),
-        ...range(24).map((i) => [{ months: i, days: 7 }, "Super Contribution", -300, 0, 0, undefined, true]),
-        ...range(24).map((i) => [{ months: i, days: 7 }, "Super Contribution", 300, 1, 0, undefined, true]),
-        ...range(1, 730)
-            .filter((i) => today.minus({ days: i }).toFormat("c") < "6" && i % 5 && i % 7)
-            .map((i) => [
-                { days: i },
-                "State Transit - " + today.minus({ days: i }).toISODate(),
-                -4.8,
-                0,
-                0,
-                2,
-                undefined,
-                undefined,
-                undefined,
-                true,
-            ]),
-        ...range(104).map((i) => [
-            { weeks: i, days: Number(today.toFormat("c")) },
-            "WOOLWORTHS",
-            -random(80, 200),
-            0,
-            0,
-            1,
-            false,
-            false,
-            "Weekly shop - groceries, toiletries, and basic necessities",
-            true,
-        ]),
-        ...range(1, 730)
-            .filter((i) => i % 5 && i % 7 && i % 3 && i % 2)
-            .map((i) => [
-                { days: i },
-                descriptions[i % 7] + " " + types[i % 6],
-                random(5, 80) * (i % 11 === 0 ? 1 : -1),
-                0,
-                0,
-                i > 30 ? 0 : undefined,
-                undefined,
-                undefined,
-                undefined,
-                true,
-            ]),
-        ...range(1, 730)
-            .map((i) => i + 9999)
-            .filter((i) => i % 7 && i % 5 && i % 7 && i % 3 && i % 2)
-            .map((i) => [
-                { days: i - 9999 },
-                descriptions[i % 7] + " " + types[i % 6],
-                -random(5, 80),
-                0,
-                0,
-                0,
-                undefined,
-                undefined,
-                undefined,
-                true,
-            ]),
-        ...range(103)
-            .filter((i) => i % 9 && 1 % 5)
-            .map((i) => [
-                { weeks: i, days: today.day + 2 },
-                "CINEMAXERS-FRI SPECIAL",
-                -15,
-                0,
-                0,
-                0,
-                false,
-                false,
-                "Movie night with the school gang.",
-                true,
-            ]),
+let transactions = [
+    ...range(24).flatMap((i) => [
+        make({ months: i, days: 8 }, "SALARY-EMPLOYER-INC.", 1, { value: i > 15 ? 3020 : 3680, category: 8 }),
+        make({ months: i, days: 7 }, "SUPER-EMPLOYER-INC.", 2, { value: i > 15 ? 490 : 580, category: 7 }),
+        make({ months: i, days: 7 }, "Super Contribution", 1, { value: -300, category: TRANSFER_CATEGORY_ID }),
+        make({ months: i, days: 7 }, "Super Contribution", 2, { value: 300, category: TRANSFER_CATEGORY_ID }),
+    ]),
+    ...range(1, 730)
+        .filter((i) => today.minus({ days: i }).toFormat("c") < "6" && i % 5 && i % 7)
+        .map((days) =>
+            make({ days }, `State Transit - ${today.minus({ days }).toISODate()}`, 1, { value: -4.8, category: 3 })
+        ),
+    ...range(104).map((i) =>
+        make({ weeks: i, days: Number(today.toFormat("c")) }, "WOOLWORTHS", 1, {
+            value: -random(80, 200),
+            category: 2, // Groceries
+            description: "Weekly shop - groceries, toiletries, and basic necessities",
+        })
+    ),
+    ...range(1, 730)
+        .filter((i) => i % 5 && i % 7 && i % 3 && i % 2)
+        .map((i) =>
+            make({ days: i }, descriptions[i % 7] + " " + types[i % 6], 1, {
+                category: i > 30 ? 1 : PLACEHOLDER_CATEGORY_ID, // Social
+                value: random(5, 80) * (i % 11 === 0 ? 1 : -1), // Proxy for getting paid back for previous time
+            })
+        ),
+    ...range(1, 730)
+        .map((i) => i + 9999)
+        .filter((i) => i % 7 && i % 5 && i % 7 && i % 3 && i % 2)
+        .map((i) =>
+            make({ days: i - 9999 }, descriptions[i % 7] + " " + types[i % 6], 1, {
+                value: -random(5, 80),
+                category: 1, // Social
+            })
+        ),
+    ...range(103)
+        .filter((i) => i % 9 && i % 5)
+        .map((i) =>
+            make({ weeks: i, days: today.day + 2 }, "CINEMAXERS-FRI SPECIAL", 1, {
+                value: -15,
+                category: 1, // Social
+                description: "Movie night with the school gang.",
+            })
+        ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 8 }, "SYDNEY ELECTRIC", 1, {
+            value: -20,
+            category: 13,
+        })
+    ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 8 }, "SYDNEY GAS", 1, {
+            value: -7.8,
+            category: 14,
+        })
+    ),
 
-        // Travel
-        [{ months: 10, days: 5 }, "Transfer to GBP", -4500, 0, 0, undefined, true],
-        [{ months: 10, days: 3 }, "Transfer to GBP", 2484.73, 2, 1, undefined, true],
-        [{ months: 10 }, "BRITISH-AIRWAYS-SYD-LHR", -1749.5, 2, 1, 3],
-        [{ months: 9, days: 25 }, "London Hotels", -297, 2, 1, 3],
+    // Travel
+    make({ months: 10, days: 5 }, "Transfer to GBP", 1, { value: -4500, category: TRANSFER_CATEGORY_ID }),
+    make({ months: 10, days: 3 }, "Transfer to GBP", 3, {
+        value: 2484.73,
+        category: TRANSFER_CATEGORY_ID,
+        currency: 2,
+    }),
+    make({ months: 10 }, "BRITISH-AIRWAYS-SYD-LHR", 3, { value: -1749.5, currency: 2, category: 9 }),
+    make({ months: 9, days: 25 }, "London Hotels", 3, { value: -297, currency: 2, category: 9 }),
 
-        [{ months: 8, days: 20 }, "Transfer to Transferwise", -2000, 0, 0, undefined, true],
-        [{ months: 8, days: 19 }, "Transfer to Transferwise", 2000, 4, 0, undefined, true],
-        [{ months: 8, days: 18 }, "Transfer to EUR", -2000, 4, 0, undefined, true],
-        [{ months: 8, days: 18 }, "Transfer to EUR", 1207.61, 4, 2, undefined, true],
-        [{ months: 8, days: 13 }, "*EUROSTAR", -150.0, 4, 2, 3],
-        [{ months: 8, days: 10 }, "Paris Hotels", -500.0, 4, 2, 3],
-        [{ months: 7, days: 8 }, "Chateau Rue de Gaul", -43.75, 4, 2, 3],
-        [{ months: 7, days: 7 }, "Eiffel Tower Restaurant", -36.0, 4, 2, 3],
-        [{ months: 7, days: 6 }, "RESTAURANT DE LA TOUR", -84.5, 4, 2, 3],
-        [{ months: 7, days: 6 }, "Catacombes de Paris", -30.0, 4, 2, 3],
-        [{ months: 7, days: 5 }, "VERY BRITISH LUNCHES", -45.6, 2, 1, 3],
-        [{ months: 7, days: 5 }, "THE TOWER BAR", -14.9, 2, 1, 3],
+    make({ months: 8, days: 20 }, "Transfer to Transferwise", 1, { category: TRANSFER_CATEGORY_ID, value: -2000 }),
+    make({ months: 8, days: 19 }, "Transfer to Transferwise", 5, { category: TRANSFER_CATEGORY_ID, value: 2000 }),
+    make({ months: 8, days: 18 }, "Transfer to EUR", 5, { category: TRANSFER_CATEGORY_ID, value: -2000 }),
+    make({ months: 8, days: 18 }, "Transfer to EUR", 5, {
+        category: TRANSFER_CATEGORY_ID,
+        value: 1207.61,
+        currency: 3,
+    }),
+    make({ months: 8, days: 13 }, "*EUROSTAR", 5, { value: -150.0, category: 9, currency: 3 }),
+    make({ months: 8, days: 10 }, "Paris Hotels", 5, { value: -500.0, category: 9, currency: 3 }),
+    make({ months: 7, days: 8 }, "Chateau Rue de Gaul", 5, { value: -43.75, category: 9, currency: 3 }),
+    make({ months: 7, days: 7 }, "Eiffel Tower Restaurant", 5, { value: -36.0, category: 9, currency: 3 }),
+    make({ months: 7, days: 6 }, "RESTAURANT DE LA TOUR", 5, { value: -84.5, category: 9, currency: 3 }),
+    make({ months: 7, days: 6 }, "Catacombes de Paris", 5, { value: -30.0, category: 9, currency: 3 }),
+    make({ months: 7, days: 5 }, "VERY BRITISH LUNCHES", 3, { value: -45.6, category: 9, currency: 2 }),
+    make({ months: 7, days: 5 }, "THE TOWER BAR", 3, { value: -14.9, category: 9, currency: 2 }),
 
-        [{ months: 2, days: 15 }, "QANTAS AIRWAYS", -325, 0, 0, 3],
-        [{ months: 2, days: 15 }, "YHA Melbourne", -150, 0, 0, 3],
+    make({ months: 2, days: 15 }, "QANTAS AIRWAYS", 1, { value: -325.0, category: 10 }),
+    make({ months: 2, days: 15 }, "YHA Melbourne", 1, { value: -150.0, category: 10 }),
 
-        [{ months: 1, days: 11 }, "Load Euro Account", -250, 4, 2, undefined, true],
-        [{ months: 1, days: 10 }, "Load Euro Account", 250, 8, 2, undefined, true],
+    make({ months: 1, days: 11 }, "Load Euro Account", 5, { category: TRANSFER_CATEGORY_ID, value: -250, currency: 3 }),
+    make({ months: 1, days: 10 }, "Load Euro Account", 9, { category: TRANSFER_CATEGORY_ID, value: 250, currency: 3 }),
 
-        // Balances
-        [{ months: 18, days: 17 }, "Balance Reading", 11240.79, 0, 0, undefined, undefined, true],
-        ...range(24).map((i) => [
-            { months: i, days: 4 },
-            "SUPER VALUATION",
-            53715.89 - random(750, 1250) * i,
-            1,
-            0,
-            undefined,
-            false,
-            true,
-        ]),
-        ...range(24).map((i) => [
-            { months: i, days: today.day },
-            "Value Update",
-            24311.25 - random(150, 25) * i,
-            3,
-            1,
-            undefined,
-            false,
-            true,
-        ]),
+    // Balances
+    make({ months: 18, days: 17 }, "Balance Reading", 1, { recordedBalance: 11240.79 }),
+    ...range(24).map((i) =>
+        make({ months: i, days: 4 }, "SUPER VALUATION", 2, { recordedBalance: 53715.89 - random(750, 1250) * i })
+    ),
+    ...range(24).map((i) =>
+        make({ months: i, days: today.day }, "Value Update", 4, {
+            recordedBalance: 24311.25 - random(150, 25) * i,
+            currency: 2,
+        })
+    ),
 
-        // Mortgage
-        [{ months: 18, days: 18 }, "Apartment Downpayment", -100000, 0, 0, undefined, true],
-        [{ months: 18, days: 18 }, "Apartment Downpayment", 100000, 5, 0, undefined, true],
+    // Mortgage
+    make({ months: 18, days: 18 }, "Apartment Downpayment", 1, { category: TRANSFER_CATEGORY_ID, value: -100000 }),
+    make({ months: 18, days: 18 }, "Apartment Downpayment", 6, { category: TRANSFER_CATEGORY_ID, value: 100000 }),
 
-        [{ months: 18, days: 15 }, "Buy Apartment", -100000, 5, 0, undefined, true],
-        [{ months: 18, days: 15 }, "Buy Apartment", -350000, 6, 0, undefined, true],
-        [{ months: 18, days: 15 }, "Buy Apartment", 450000, 7, 0, undefined, true],
-        [{ months: 4, days: 25 }, "Apartment Valuation", 460000, 7, 0, undefined, undefined, true],
+    make({ months: 18, days: 15 }, "Buy Apartment", 6, { category: TRANSFER_CATEGORY_ID, value: -100000 }),
+    make({ months: 18, days: 15 }, "Buy Apartment", 7, { category: TRANSFER_CATEGORY_ID, value: -350000 }),
+    make({ months: 18, days: 15 }, "Buy Apartment", 8, { category: TRANSFER_CATEGORY_ID, value: 450000 }),
+    make({ months: 4, days: 25 }, "Apartment Valuation", 8, { recordedBalance: 460000.0 }),
 
-        ...range(18).map((i) => [{ months: i, days: 5 }, "Mortgage Transfer", 1712.76, 5, 0, undefined, true]),
-        ...range(18).map((i) => [{ months: i, days: 5 }, "Mortgage Transfer", -1712.76, 0, 0, undefined, true]),
-        ...range(18).map((i) => [{ months: i, days: 3 }, "Mortgage Payment", 1712.76, 6, 0, undefined, true]),
-        ...range(18).map((i) => [{ months: i, days: 3 }, "Mortgage Payment", -1712.76, 5, 0, undefined, true]),
-        ...range(18).map((i) => [
-            { months: i, days: 3 },
-            "Mortgage Interest",
-            -466.87 * (1 - (0.06 / 18) * i),
-            6,
-            0,
-            4,
-        ]),
-    ] as TransactionArgs[]
-).map(makeTransaction);
+    ...range(18).map((i) =>
+        make({ months: i, days: 5 }, "Mortgage Transfer", 6, { value: 1712.76, category: TRANSFER_CATEGORY_ID })
+    ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 5 }, "Mortgage Transfer", 1, { value: -1712.76, category: TRANSFER_CATEGORY_ID })
+    ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 3 }, "Mortgage Payment", 7, { value: 1712.76, category: TRANSFER_CATEGORY_ID })
+    ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 3 }, "Mortgage Payment", 6, { value: -1712.76, category: TRANSFER_CATEGORY_ID })
+    ),
+    ...range(18).map((i) =>
+        make({ months: i, days: 3 }, "Mortgage Interest", 7, { value: -466.87 * (1 - (0.06 / 18) * i), category: 11 })
+    ),
+];
 transactions.sort(compareTransactionsDescendingDates).reverse();
 
 // Account -> Statement Date -> contents

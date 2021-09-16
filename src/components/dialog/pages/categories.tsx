@@ -57,6 +57,7 @@ const Placeholder = {
 const createNewCategory = (): Category => ({
     id: getNextID(TopHatStore.getState().data.category.ids),
     name: "New Category",
+    hierarchy: [],
     colour: getRandomColour(),
     transactions: BaseTransactionHistory(),
 });
