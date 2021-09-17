@@ -4,6 +4,7 @@ import React from "react";
 import { ChartSign } from "../../../state/app/pageTypes";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
+import { SummaryChartSign } from "../utilities";
 import { SummaryPieChart } from "./pie";
 import { Value } from "./value";
 
@@ -51,7 +52,7 @@ interface SummaryBreakdownProps {
     creditsName: string;
     debitsName: string;
     data: SummaryBreakdownDatum[];
-    setFilter: (id: ID) => void;
+    setFilter: (id: ID, sign?: SummaryChartSign) => void;
 }
 export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     data,

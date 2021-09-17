@@ -1,14 +1,18 @@
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { Section } from "../../../components/layout";
-import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
-import { SummaryChartSign } from "../../../components/summary/utilities";
-import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { useTransactionsPageState } from "../../../state/app/hooks";
-import { TransactionsPageAggregations, TransactionsPageState } from "../../../state/app/pageTypes";
-import { zipObject } from "../../../utilities/data";
-import { handleSelectChange } from "../../../utilities/events";
-import { useTransactionsSummaryData } from "./data";
+import { max, mean } from "lodash";
+import { Section } from "../../components/layout";
+import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../components/summary";
+import { SummaryChartSign } from "../../components/summary/utilities";
+import { TopHatDispatch, TopHatStore } from "../../state";
+import { AppSlice } from "../../state/app";
+import { useTransactionsPageState } from "../../state/app/hooks";
+import { TransactionsPageAggregations, TransactionsPageState } from "../../state/app/pageTypes";
+import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
+import { useAllObjects, useInstitutionMap } from "../../state/data/hooks";
+import { Account, Currency } from "../../state/data/types";
+import { ID } from "../../state/utilities/values";
+import { takeWithDefault, zipObject } from "../../utilities/data";
+import { handleSelectChange } from "../../utilities/events";
 
 export const TransactionsPageSummary: React.FC = () => {
     const aggregation = useTransactionsPageState((state) => state.chartAggregation);
@@ -65,6 +69,11 @@ const setChartSign = handleSelectChange((chartSign: TransactionsPageState["chart
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartSign }))
 );
 
+const getCategoryFilter = (category: ID): ID[] => {
+    const { ids, entities } = TopHatStore.getState().data.category;
+    const children = ids.filter((id) => entities[id]!.hierarchy.includes(category) || id === category);
+    return children.length === 0 ? [category] : (children as ID[]);
+};
 const setFilterID = zipObject(
     TransactionsPageAggregations,
     TransactionsPageAggregations.map(
@@ -77,7 +86,7 @@ const setFilterID = zipObject(
                     ),
                     valueFrom: sign === "credits" ? 0 : undefined,
                     valueTo: sign === "debits" ? 0 : undefined,
-                    [aggregation]: [id],
+                    [aggregation]: aggregation !== "category" ? [id] : getCategoryFilter(id),
                     fromDate,
                     toDate,
                 })
@@ -97,3 +106,36 @@ const clearFilter = () =>
             valueTo: undefined,
         })
     );
+
+const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
+    let objects = useAllObjects(aggregation);
+    if (aggregation === "category") {
+        objects = objects.filter((category) => (category as Category).hierarchy.length === 0);
+    }
+
+    const institutions = useInstitutionMap();
+
+    const length = Math.min(
+        max(objects.flatMap((_) => [_.transactions.credits.length, _.transactions.debits.length])) || 24,
+        24
+    );
+
+    return objects.map((object) => {
+        const credits = takeWithDefault(object.transactions.credits, length, 0);
+        const debits = takeWithDefault(object.transactions.debits, length, 0);
+
+        const colour =
+            aggregation === "account"
+                ? institutions[(object as Account).institution!]!.colour
+                : (object as Exclude<typeof objects[number], Account>).colour;
+
+        return {
+            id: object.id,
+            name: aggregation === "currency" ? (object as Currency).ticker : object.name,
+            colour,
+            trend: { credits, debits },
+            value: { credit: mean(credits), debit: mean(debits) },
+            placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
+        };
+    });
+};

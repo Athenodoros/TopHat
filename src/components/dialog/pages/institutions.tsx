@@ -2,13 +2,21 @@ import { alpha, IconButton, ListItemText, makeStyles, Tooltip } from "@material-
 import { AccountBalance, Clear, Edit, Sync } from "@material-ui/icons";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
-import { useDialogState } from "../../../state/app/hooks";
+import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
 import { Institution } from "../../../state/data";
 import { getColourFromIcon, getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utilities";
 import { getRandomColour } from "../../../state/utilities/values";
 import { BLACK, Greys } from "../../../styles/colours";
 import { getInstitutionIcon } from "../../display/ObjectDisplay";
-import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
+import {
+    BasicDialogObjectSelector,
+    DialogContents,
+    DialogMain,
+    DialogPlaceholderDisplay,
+    EditValueContainer,
+    getUpdateFunctions,
+    ObjectEditContainer,
+} from "../utilities";
 
 const useMainStyles = makeStyles({
     base: {
@@ -25,6 +33,7 @@ const useMainStyles = makeStyles({
 
 export const DialogInstitutionsView: React.FC = () => {
     const classes = useMainStyles();
+    const working = useDialogHasWorking();
     const render = useCallback(
         (institution: Institution) => (
             <div className={classes.base}>
@@ -36,24 +45,28 @@ export const DialogInstitutionsView: React.FC = () => {
     );
 
     return (
-        <DialogObjectEditWrapper
-            type="institution"
-            createDefaultOption={createNewInstitution}
-            render={render}
-            placeholder={Placeholder}
-            exclude={[PLACEHOLDER_INSTITUTION_ID]}
-        >
-            <EditInstitutionView />
-        </DialogObjectEditWrapper>
+        <DialogMain onClick={remove}>
+            <BasicDialogObjectSelector
+                type="institution"
+                createDefaultOption={createNewInstitution}
+                render={render}
+                exclude={[PLACEHOLDER_INSTITUTION_ID]}
+            />
+            <DialogContents>
+                {working ? (
+                    <EditInstitutionView />
+                ) : (
+                    <DialogPlaceholderDisplay
+                        icon={AccountBalance}
+                        title="Institutions"
+                        subtext="Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts."
+                    />
+                )}
+            </DialogContents>
+        </DialogMain>
     );
 };
 
-const Placeholder = {
-    icon: AccountBalance,
-    title: "Institutions",
-    subtext:
-        "Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts.",
-};
 export const createNewInstitution = (): Institution => ({
     id: getNextID(TopHatStore.getState().data.institution.ids),
     name: "New Institution",
@@ -146,7 +159,7 @@ const EditInstitutionView: React.FC = () => {
     );
 };
 
-const { update } = getUpdateFunctions("institution");
+const { update, remove } = getUpdateFunctions("institution");
 
 const InstitutionIconFileReader = new FileReader();
 InstitutionIconFileReader.onload = (event) => update("icon")(event.target!.result as string);

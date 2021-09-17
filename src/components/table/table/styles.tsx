@@ -25,6 +25,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         ...theme.typography.body1,
         transition: theme.transitions.create(["box-shadow"]),
 
+        "& > *": { flexShrink: 0 },
+
         borderBottom: "1px solid " + Greys[200],
         "&:last-child": {
             borderBottomColor: "transparent",
@@ -56,10 +58,10 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         ...CENTERED_CONTAINER,
     },
     date: {
-        width: 120,
-        marginLeft: 30,
+        width: 90,
+        marginLeft: 10,
         marginRight: 10,
-        flexGrow: 0,
+        flexGrow: 1,
         ...CENTERED_CONTAINER,
     },
     text: {
@@ -67,7 +69,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         flexGrow: 4,
         margin: "17px 10px 10px 0",
     },
-    summary: { fontWeight: 500, overflow: "visible" },
+    summary: { fontWeight: 500 },
     description: {
         marginTop: 5,
         lineHeight: 1.4,
@@ -81,8 +83,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         justifyContent: "flex-end",
     },
     category: {
-        width: 130,
-        flexGrow: 1,
+        width: 150,
+        flexGrow: 2,
         ...CENTERED_CONTAINER,
 
         "& > div > div > svg": {
@@ -92,6 +94,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     categoryIcon: {
         height: 16,
         width: 16,
+        flexShrink: 0,
         borderRadius: "50%",
         marginRight: 6,
         border: "1px solid",
@@ -129,6 +132,9 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         width: 170,
         flexGrow: 1,
         ...CENTERED_CONTAINER,
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
     },
     accountIcon: {
         height: 18,
@@ -138,6 +144,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     },
     actions: {
         width: 100,
+        flexGrow: 0,
         padding: "0 5px",
         ...CENTERED_CONTAINER,
         justifyContent: "flex-end",
@@ -151,6 +158,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     compound: {
         display: "flex",
         alignItems: "center",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
     },
     subtext: {
         color: Greys[500],

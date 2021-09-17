@@ -19,6 +19,7 @@ import {
     getTodayString,
     ID,
     parseDate,
+    TransactionHistory,
 } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
 import {
@@ -89,9 +90,6 @@ const defaults = {
     ),
     user: { currency: 1, isDemo: false, start: getTodayString() },
 } as DataState;
-
-type TransactionSummary = "category" | "currency" | "account";
-const TransactionSummaries = ["category", "currency", "account"] as TransactionSummary[];
 
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
@@ -234,6 +232,9 @@ const getFullBalanceSubset = ({ ids, entities }: EntityState<Transaction>) => {
 //     keys(entities[id]!.balances).map((currency) => ({ account: Number(id), currency: Number(currency) }))
 // );
 
+type TransactionSummary = "category" | "currency" | "account";
+const TransactionSummaries = ["category", "currency", "account"] as TransactionSummary[];
+
 const updateTransactionSummaryStartDates = (state: DataState) => {
     TransactionSummaries.forEach((category) => {
         state[category].ids.forEach((id) => {
@@ -256,28 +257,32 @@ const updateTransactionSummaryStartDates = (state: DataState) => {
 const updateTransactionSummariesWithTransactions = (state: DataState, ids?: EntityId[], remove?: boolean) => {
     const userDefaultCurrency = state.currency.entities[state.user.currency]!;
 
+    const updateHistoryValue = (history: TransactionHistory, tx: Transaction) => {
+        const bucket = getDateBucket(tx.date, history.start);
+
+        if (bucket >= history.credits.length) {
+            history.credits = takeWithDefault(history.credits, bucket + 1, 0);
+            history.debits = takeWithDefault(history.debits, bucket + 1, 0);
+        }
+
+        history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
+            userDefaultCurrency,
+            state.currency.entities[tx.currency]!,
+            (remove ? -1 : 1) * tx.value!
+        );
+    };
+
     (ids || state.transaction.ids).forEach((id) => {
         const tx = state.transaction.entities[id]!;
         if (!tx.value || tx.category === TRANSFER_CATEGORY_ID) return;
 
         TransactionSummaries.forEach((summary) => {
             if (tx[summary] === null) return;
-
-            const history = state[summary].entities[tx[summary]]!.transactions;
-
-            const bucket = getDateBucket(tx.date, history.start);
-
-            if (bucket >= history.credits.length) {
-                history.credits = takeWithDefault(history.credits, bucket + 1, 0);
-                history.debits = takeWithDefault(history.debits, bucket + 1, 0);
-            }
-
-            history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
-                userDefaultCurrency,
-                state.currency.entities[tx.currency]!,
-                (remove ? -1 : 1) * tx.value!
-            );
+            updateHistoryValue(state[summary].entities[tx[summary]]!.transactions, tx);
         });
+
+        const { hierarchy } = state.category.entities[tx.category]!;
+        hierarchy.forEach((category) => updateHistoryValue(state.category.entities[category]!.transactions, tx));
     });
 };
 

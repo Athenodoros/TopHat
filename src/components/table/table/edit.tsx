@@ -1,18 +1,19 @@
-import { Button, IconButton, makeStyles, Tooltip } from "@material-ui/core";
+import { Button, IconButton, makeStyles, MenuProps, Tooltip } from "@material-ui/core";
 import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
 import { DateTime } from "luxon";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { EditTransactionState } from "../../../state/app/pageTypes";
-import { DataSlice, Transaction } from "../../../state/data";
+import { Category, DataSlice, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
 import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
+import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { TransactionsTableFixedData } from "./data";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
@@ -85,6 +86,21 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
 
     const updaters = useEditUpdaters(setEditPartial);
 
+    const getCategoryMenuContents = useCallback(
+        (onClick: () => void) => {
+            return (
+                <SingleCategoryMenu
+                    selected={edit.category}
+                    setSelected={(category?: Category) => {
+                        onClick();
+                        updaters.category(category?.id);
+                    }}
+                />
+            );
+        },
+        [edit.category, updaters]
+    );
+
     return (
         <>
             <div className={classes.date}>
@@ -133,6 +149,8 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     getIcon={getCategoryIcon}
                     iconClass={editClasses.categoryDropdownIcon}
                     allowUndefined={!!tx && tx.category === undefined}
+                    getMenuContents={getCategoryMenuContents}
+                    getMenuProps={getCategoryMenuProps}
                 />
             </div>
             <div className={classes.balance}>
@@ -235,3 +253,5 @@ const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null)
         }),
         [updater]
     );
+
+const getCategoryMenuProps = (): Partial<MenuProps> => ({ PaperProps: { style: { maxHeight: 230, width: 300 } } });

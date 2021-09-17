@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { DateTime } from "luxon";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
-import { useDialogState } from "../../../state/app/hooks";
+import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
 import { Account } from "../../../state/data";
 import { useAllInstitutions, useInstitutionByID } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
@@ -17,7 +17,15 @@ import { Greys } from "../../../styles/colours";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../../utilities/events";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
-import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
+import {
+    BasicDialogObjectSelector,
+    DialogContents,
+    DialogMain,
+    DialogPlaceholderDisplay,
+    EditValueContainer,
+    getUpdateFunctions,
+    ObjectEditContainer,
+} from "../utilities";
 
 const useMainStyles = makeStyles((theme) => ({
     base: {
@@ -41,6 +49,7 @@ const useMainStyles = makeStyles((theme) => ({
 export const DialogAccountsView: React.FC = () => {
     const classes = useMainStyles();
     const getAccountIcon = useGetAccountIcon();
+    const working = useDialogHasWorking();
     const render = useCallback(
         (account: Account) => (
             <div className={clsx(classes.base, account.isInactive && classes.disabled)}>
@@ -52,22 +61,23 @@ export const DialogAccountsView: React.FC = () => {
     );
 
     return (
-        <DialogObjectEditWrapper
-            type="account"
-            createDefaultOption={createNewAccount}
-            render={render}
-            placeholder={Placeholder}
-        >
-            <EditAccountView />
-        </DialogObjectEditWrapper>
+        <DialogMain onClick={remove}>
+            <BasicDialogObjectSelector type="account" createDefaultOption={createNewAccount} render={render} />
+            <DialogContents>
+                {working ? (
+                    <EditAccountView />
+                ) : (
+                    <DialogPlaceholderDisplay
+                        icon={AccountBalanceWallet}
+                        title="Accounts"
+                        subtext="Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each."
+                    />
+                )}
+            </DialogContents>
+        </DialogMain>
     );
 };
-const Placeholder = {
-    icon: AccountBalanceWallet,
-    title: "Accounts",
-    subtext:
-        "Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each.",
-};
+
 export const createNewAccount = () => ({
     id: getNextID(TopHatStore.getState().data.account.ids),
     name: "New Account",
@@ -223,7 +233,7 @@ const EditAccountView: React.FC = () => {
     );
 };
 
-const { update } = getUpdateFunctions("account");
+const { update, remove } = getUpdateFunctions("account");
 const updateWorkingIsInactive = update("isInactive");
 const updateWorkingInstitution = update("institution");
 const updateWorkingWebsite = handleTextFieldChange(update("website"));

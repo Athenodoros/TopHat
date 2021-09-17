@@ -1,6 +1,6 @@
 import { Button, List, makeStyles, MenuItem, TextField } from "@material-ui/core";
 import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@material-ui/icons";
-import { inRange, isEqual, upperFirst } from "lodash";
+import { isEqual, upperFirst } from "lodash";
 import React, { useMemo } from "react";
 import {
     DragDropContext,
@@ -14,7 +14,6 @@ import {
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useDialogState } from "../../../state/app/hooks";
-import { DataSlice } from "../../../state/data";
 import { useAllObjects, useObjectByID } from "../../../state/data/hooks";
 import { BasicObjectName, BasicObjectType } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
@@ -22,15 +21,9 @@ import { Greys } from "../../../styles/colours";
 import { useButtonStyles } from "../../../styles/components";
 import { handleTextFieldChange, withSuppressEvent } from "../../../utilities/events";
 import { EditDivider } from "./edits";
-import {
-    DialogContents,
-    DialogMain,
-    DialogOptions,
-    DialogPlaceholderDisplay,
-    DialogPlaceholderDisplayProps,
-} from "./layout";
+import { DialogOptions } from "./layout";
 
-const useStyles = makeStyles({
+export const useDialogObjectSelectorStyles = makeStyles({
     options: {
         overflowY: "auto",
         flexGrow: 1,
@@ -46,45 +39,129 @@ const useStyles = makeStyles({
     },
 });
 
-interface DialogObjectSelectorProps<
-    Name extends BasicObjectName,
-    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
-> {
+interface DialogObjectSelectorProps<Name extends BasicObjectName> {
     type: Name;
     exclude?: ID[];
     createDefaultOption?: () => BasicObjectType[Name];
     onAddNew?: () => void;
     render: (option: BasicObjectType[Name]) => React.ReactNode;
-    draggable?: Drag;
 }
-export const DialogObjectSelector = <
-    Name extends BasicObjectName,
-    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
->({
+const useFilteredObjects = <Name extends BasicObjectName>(type: Name, exclude?: ID[]) => {
+    const options = useAllObjects(type);
+    return exclude ? options.filter(({ id }) => !exclude.includes(id)) : options;
+};
+export const DialogSelectorAddNewButton: React.FC<{ onClick: () => void; type: string }> = ({ onClick, type }) => (
+    <Button
+        className={useDialogObjectSelectorStyles().button}
+        variant="outlined"
+        color="primary"
+        startIcon={<AddCircleOutline />}
+        onClick={withSuppressEvent<HTMLButtonElement>(onClick)}
+    >
+        New {upperFirst(type)}
+    </Button>
+);
+
+export const BasicDialogObjectSelector = <Name extends BasicObjectName>({
     type,
     exclude,
     createDefaultOption,
     onAddNew,
     render,
-    draggable,
-}: DialogObjectSelectorProps<Name, Drag>) => {
-    const classes = useStyles();
+}: DialogObjectSelectorProps<Name>) => {
+    const classes = useDialogObjectSelectorStyles();
     const selected = useDialogState(type, (object) => object?.id);
-
-    let options = useAllObjects(type);
-    if (exclude) options = options.filter(({ id }) => !exclude.includes(id));
-
+    const options = useFilteredObjects(type, exclude);
     const functions = getUpdateFunctions(type);
 
-    const getItem =
-        (option: BasicObjectType[Name]) => (provided?: DraggableProvided, snapshot?: DraggableStateSnapshot) =>
-            (
+    return (
+        <DialogOptions>
+            <div className={classes.options}>
+                <List>
+                    {options.map((option) => (
+                        <MenuItem
+                            key={option.id}
+                            selected={option.id === selected}
+                            onClick={withSuppressEvent(() =>
+                                functions.set(option.id === selected ? undefined : option)
+                            )}
+                        >
+                            {render(option)}
+                        </MenuItem>
+                    ))}
+                </List>
+            </div>
+            {(createDefaultOption || onAddNew) && (
+                <DialogSelectorAddNewButton
+                    onClick={() => (onAddNew ? onAddNew() : functions.set(createDefaultOption!()))}
+                    type={type}
+                />
+            )}
+        </DialogOptions>
+    );
+};
+
+export const HeaderDialogObjectSelector = <Name extends BasicObjectName>({
+    type,
+    exclude,
+    createDefaultOption,
+    onAddNew,
+    render,
+}: DialogObjectSelectorProps<Name>) => {
+    const classes = useDialogObjectSelectorStyles();
+    const selected = useDialogState(type, (object) => object?.id);
+    const options = useFilteredObjects(type, exclude);
+    const functions = getUpdateFunctions(type);
+
+    return (
+        <DialogOptions>
+            <div className={classes.options}>
+                <List>
+                    {options.map((option) => (
+                        <MenuItem
+                            key={option.id}
+                            selected={option.id === selected}
+                            onClick={withSuppressEvent(() =>
+                                functions.set(option.id === selected ? undefined : option)
+                            )}
+                        >
+                            {render(option)}
+                        </MenuItem>
+                    ))}
+                </List>
+            </div>
+            {(createDefaultOption || onAddNew) && (
+                <DialogSelectorAddNewButton
+                    onClick={() => (onAddNew ? onAddNew() : functions.set(createDefaultOption!()))}
+                    type={type}
+                />
+            )}
+        </DialogOptions>
+    );
+};
+
+export const DraggableDialogObjectSelector = <Name extends "rule">({
+    type,
+    exclude,
+    createDefaultOption,
+    onAddNew,
+    render,
+    onDragEnd,
+}: DialogObjectSelectorProps<Name> & { onDragEnd: (result: DropResult) => void }) => {
+    const classes = useDialogObjectSelectorStyles();
+    const selected = useDialogState(type, (object) => object?.id);
+    const options = useFilteredObjects(type, exclude);
+    const functions = getUpdateFunctions(type);
+
+    const getMenuItem = (option: BasicObjectType[Name]) => (
+        <Draggable draggableId={String(option.id)} index={option.index} key={option.id} isDragDisabled={false}>
+            {(provided: DraggableProvided, snapshot: DraggableStateSnapshot) => (
                 <MenuItem
                     key={option.id}
-                    selected={option.id === selected || snapshot?.isDragging}
+                    selected={option.id === selected || snapshot.isDragging}
                     onClick={withSuppressEvent(() => functions.set(option.id === selected ? undefined : option))}
-                    {...provided?.draggableProps}
-                    ref={provided?.innerRef}
+                    {...provided.draggableProps}
+                    ref={provided.innerRef}
                 >
                     {render(option)}
                     {provided && (
@@ -93,73 +170,32 @@ export const DialogObjectSelector = <
                         </div>
                     )}
                 </MenuItem>
-            );
-    const getList = (provided?: DroppableProvided) => (
-        <List {...provided?.droppableProps} ref={provided?.innerRef}>
-            {options.map((option) =>
-                draggable ? (
-                    <Draggable
-                        draggableId={String(option.id)}
-                        index={(option as { index: number }).index}
-                        key={option.id}
-                        isDragDisabled={false}
-                    >
-                        {getItem(option)}
-                    </Draggable>
-                ) : (
-                    getItem(option)()
-                )
             )}
-            {provided?.placeholder}
+        </Draggable>
+    );
+
+    const getList = (provided: DroppableProvided) => (
+        <List {...provided.droppableProps} ref={provided.innerRef}>
+            {options.map(getMenuItem)}
+            {provided.placeholder}
         </List>
     );
 
     return (
         <DialogOptions>
             <div className={classes.options}>
-                {draggable ? (
-                    <DragDropContext onDragEnd={onDragEndForRule}>
-                        <Droppable droppableId="object-list">{getList}</Droppable>
-                    </DragDropContext>
-                ) : (
-                    getList()
-                )}
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId="object-list">{getList}</Droppable>
+                </DragDropContext>
             </div>
             {(createDefaultOption || onAddNew) && (
-                <Button
-                    className={classes.button}
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<AddCircleOutline />}
-                    onClick={withSuppressEvent<HTMLButtonElement>(() =>
-                        onAddNew ? onAddNew() : functions.set(createDefaultOption!())
-                    )}
-                >
-                    New {upperFirst(type)}
-                </Button>
+                <DialogSelectorAddNewButton
+                    onClick={() => (onAddNew ? onAddNew() : functions.set(createDefaultOption!()))}
+                    type={type}
+                />
             )}
         </DialogOptions>
     );
-};
-
-const onDragEndForRule = ({ source, destination, reason, draggableId }: DropResult) => {
-    if (reason !== "DROP" || destination === undefined) return;
-
-    const { ids, entities } = TopHatStore.getState().data.rule;
-
-    const rangeMin = Math.min(source.index, destination.index);
-    const rangeMax = Math.max(source.index, destination.index);
-    const updates = ids
-        .filter((id) => inRange(entities[id]!.index, rangeMin, rangeMax + 1) && entities[id]!.index !== source.index)
-        .map((id) => ({
-            id,
-            changes: {
-                index: entities[id]!.index + (source.index > destination.index ? 1 : -1),
-            },
-        }))
-        .concat([{ id: Number(draggableId), changes: { index: destination.index } }]);
-
-    TopHatDispatch(DataSlice.actions.updateSimpleObjects({ type: "rule", updates }));
 };
 
 const useObjectContainerStyles = makeStyles({
@@ -263,24 +299,4 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
             setPartial({ [key]: value } as any);
 
     return { get, set, setPartial, remove, update };
-};
-
-export const DialogObjectEditWrapper = <
-    Name extends BasicObjectName,
-    Drag extends BasicObjectType[Name] extends { index: number } ? boolean : false
->({
-    type,
-    placeholder,
-    children,
-    ...SelectorProps
-}: React.PropsWithChildren<DialogObjectSelectorProps<Name, Drag> & { placeholder: DialogPlaceholderDisplayProps }>) => {
-    const working = useDialogState(type, (working) => !!working);
-    const remove = useMemo(() => getUpdateFunctions(type).remove, [type]);
-
-    return (
-        <DialogMain onClick={remove}>
-            <DialogObjectSelector type={type} {...SelectorProps} />
-            <DialogContents>{working ? children : <DialogPlaceholderDisplay {...placeholder} />}</DialogContents>
-        </DialogMain>
-    );
 };

@@ -1,6 +1,7 @@
 import { IconButton, Tooltip, Typography } from "@material-ui/core";
 import { Description, Edit, Help } from "@material-ui/icons";
 import clsx from "clsx";
+import { last } from "lodash";
 import React, { useCallback } from "react";
 import { EditTransactionState, TransactionsTableEditState } from "../../../state/app/pageTypes";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
@@ -33,6 +34,8 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
     const account = useAccountByID(tx.account);
     const institution = useInstitutionByID(account?.institution);
     const statement = useStatementByID(tx.statement);
+
+    const topLevelCategory = useCategoryByID(category && last(category.hierarchy));
 
     const handleStartEdit = useCallback(() => updateState({ edit: tx }), [updateState, tx]);
 
@@ -98,7 +101,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
                     <div className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}>
                         {getCategoryIcon(category, classes.categoryIcon)}
-                        {category.name}
+                        {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
                     </div>
                 ) : category === undefined ? (
                     MissingText

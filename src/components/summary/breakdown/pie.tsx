@@ -37,7 +37,7 @@ interface SummaryPieChartPoint {
 type SummaryPieChartProps = {
     series: SummaryPieChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID, sign: SummaryChartSign) => void;
+    setFilter: (id: ID, sign?: SummaryChartSign) => void;
 };
 export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, setFilter }) => {
     const classes = useStyles();
@@ -45,7 +45,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
     const credits = useMaybePieChartData("credits", series, sign);
     const debits = useMaybePieChartData("debits", series, sign);
 
-    const getPie = useGetPie(setFilter);
+    const getPie = useGetPie(setFilter, sign);
 
     const totalCredits = sumBy(series, (p) => p.value.credit);
     const totalDebits = sumBy(series, (p) => Math.abs(p.value.debit));
@@ -68,7 +68,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
     );
 };
 
-const useGetPie = (setFilter: (id: ID, sign: SummaryChartSign) => void) => {
+const useGetPie = (setFilter: (id: ID, sign?: SummaryChartSign) => void, sign: ChartSign) => {
     const props = useMemo<VictoryPieProps>(
         () => ({
             y: "value",
@@ -80,10 +80,12 @@ const useGetPie = (setFilter: (id: ID, sign: SummaryChartSign) => void) => {
             // animate: { duration: 500, onLoad: { duration: 500 } },
             labels: () => null,
             padAngle: 5,
-            events: getChartEvents(({ datum: { id, sign } }: SummaryPieEventProps) => setFilter(id, sign)),
+            events: getChartEvents(({ datum: { id, sign: series } }: SummaryPieEventProps) =>
+                setFilter(id, sign === "all" ? series : undefined)
+            ),
             style: CHART_SECTION_STYLE,
         }),
-        [setFilter]
+        [setFilter, sign]
     );
 
     return (points: PieChartDatum[] | undefined, innerRadius: number, radius: number, endAngle?: number) =>

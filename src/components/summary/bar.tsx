@@ -20,7 +20,7 @@ interface SummaryBarChartPoint {
 type SummaryBarChartProps = {
     series: SummaryBarChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID, sign: SummaryChartSign, fromDate: string, toDate: string) => void;
+    setFilter: (id: ID, sign?: SummaryChartSign, fromDate?: string, toDate?: string) => void;
     id?: string;
     highlightSeries?: boolean;
 };
@@ -50,7 +50,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                         (props: SummaryChartEvent) =>
                             setFilter(
                                 props.datum.id,
-                                props.datum.sign,
+                                sign === "all" ? props.datum.sign : undefined,
                                 formatJSDate(props.datum.x),
                                 formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }).minus({ days: 1 }))
                             ),

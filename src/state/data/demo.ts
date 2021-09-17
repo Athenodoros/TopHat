@@ -59,8 +59,8 @@ const categories = [
     { name: "Trip to Melbourne", hierarchy: [4] }, // 10
     { name: "Mortgage", hierarchy: [5] }, // 11
     { name: "Bills", hierarchy: [5] }, // 12
-    { name: "Electricity Bill", heirarchy: [12, 5] }, // 13
-    { name: "Gas Bill", heirarchy: [12, 5] }, // 14
+    { name: "Electricity Bill", hierarchy: [12, 5] }, // 13
+    { name: "Gas Bill", hierarchy: [12, 5] }, // 14
 ].map(makeCategory);
 
 type InstitutionArgs = [string, string, string];

@@ -52,6 +52,10 @@ export interface Category {
     id: ID;
     name: string;
     colour: string;
+
+    // This contains a list of parent hierarchies, not including the current ID
+    // A `parent?: ID` field would be easier to update, but much slower and harder to use
+    // The order is from sub-categories out to final parent categories - the last entry would have no parent
     hierarchy: ID[];
 
     // budget?: number;

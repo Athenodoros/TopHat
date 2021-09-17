@@ -2,14 +2,22 @@ import { IconButton, ListItemText, makeStyles, TextField, Tooltip } from "@mater
 import { Euro, Sync } from "@material-ui/icons";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
-import { useDialogState } from "../../../state/app/hooks";
+import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
 import { Currency } from "../../../state/data";
 import { getNextID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, getRandomColour } from "../../../state/utilities/values";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
 import { getCurrencyIcon } from "../../display/ObjectDisplay";
-import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
+import {
+    BasicDialogObjectSelector,
+    DialogContents,
+    DialogMain,
+    DialogPlaceholderDisplay,
+    EditValueContainer,
+    getUpdateFunctions,
+    ObjectEditContainer,
+} from "../utilities";
 
 const useMainStyles = makeStyles({
     base: {
@@ -26,6 +34,7 @@ const useMainStyles = makeStyles({
 
 export const DialogCurrenciesView: React.FC = () => {
     const classes = useMainStyles();
+    const working = useDialogHasWorking();
     const render = useCallback(
         (currency: Currency) => (
             <div className={classes.base}>
@@ -37,22 +46,23 @@ export const DialogCurrenciesView: React.FC = () => {
     );
 
     return (
-        <DialogObjectEditWrapper
-            type="currency"
-            createDefaultOption={createNewCurrency}
-            render={render}
-            placeholder={Placeholder}
-        >
-            <EditCurrencyView />
-        </DialogObjectEditWrapper>
+        <DialogMain onClick={remove}>
+            <BasicDialogObjectSelector type="currency" createDefaultOption={createNewCurrency} render={render} />
+            <DialogContents>
+                {working ? (
+                    <EditCurrencyView />
+                ) : (
+                    <DialogPlaceholderDisplay
+                        icon={Euro}
+                        title="Currencies"
+                        subtext="Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds."
+                    />
+                )}
+            </DialogContents>
+        </DialogMain>
     );
 };
-const Placeholder = {
-    icon: Euro,
-    title: "Currencies",
-    subtext:
-        "Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds.",
-};
+
 const createNewCurrency = (): Currency => ({
     id: getNextID(TopHatStore.getState().data.currency.ids),
     ticker: "NCD",
@@ -122,7 +132,7 @@ const EditCurrencyView: React.FC = () => {
     );
 };
 
-const { update } = getUpdateFunctions("currency");
+const { update, remove } = getUpdateFunctions("currency");
 
 const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) => update("colour")(event.target.value);
 const generateRandomColour = () => update("colour")(getRandomColour());

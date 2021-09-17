@@ -2,11 +2,12 @@ import { Button, Checkbox, ListItemText, makeStyles, TextField, Typography } fro
 import { CallSplit, KeyboardArrowDown } from "@material-ui/icons";
 import { Autocomplete } from "@material-ui/lab";
 import clsx from "clsx";
-import { identity } from "lodash";
+import { identity, inRange } from "lodash";
 import React, { useCallback } from "react";
-import { TopHatStore } from "../../../state";
-import { useDialogState } from "../../../state/app/hooks";
-import { Account, Rule } from "../../../state/data";
+import { DropResult } from "react-beautiful-dnd";
+import { TopHatDispatch, TopHatStore } from "../../../state";
+import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
+import { Account, DataSlice, Rule } from "../../../state/data";
 import { useAccountMap, useAllAccounts, useAllCategories, useCategoryByID } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../../state/data/utilities";
 import { Greys } from "../../../styles/colours";
@@ -15,7 +16,10 @@ import { useNumericInputHandler } from "../../../utilities/hooks";
 import { getCategoryIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
 import {
-    DialogObjectEditWrapper,
+    DialogContents,
+    DialogMain,
+    DialogPlaceholderDisplay,
+    DraggableDialogObjectSelector,
     EditTitleContainer,
     EditValueContainer,
     getUpdateFunctions,
@@ -45,6 +49,7 @@ const useMainStyles = makeStyles((theme) => ({
 
 export const DialogRulesView: React.FC = () => {
     const classes = useMainStyles();
+    const working = useDialogHasWorking();
     const render = useCallback(
         (rule: Rule) => (
             <div className={clsx(classes.base, rule.isInactive && classes.disabled)}>
@@ -56,23 +61,28 @@ export const DialogRulesView: React.FC = () => {
     );
 
     return (
-        <DialogObjectEditWrapper
-            type="rule"
-            createDefaultOption={createNewRule}
-            render={render}
-            draggable={true}
-            placeholder={Placeholder}
-        >
-            <EditRuleView />
-        </DialogObjectEditWrapper>
+        <DialogMain onClick={remove}>
+            <DraggableDialogObjectSelector
+                type="rule"
+                createDefaultOption={createNewRule}
+                render={render}
+                onDragEnd={onDragEnd}
+            />
+            <DialogContents>
+                {working ? (
+                    <EditRuleView />
+                ) : (
+                    <DialogPlaceholderDisplay
+                        icon={CallSplit}
+                        title="Rules"
+                        subtext="Rules can be set up to automatically categorise and modify transactions as they are added from statements."
+                    />
+                )}
+            </DialogContents>
+        </DialogMain>
     );
 };
-const Placeholder = {
-    icon: CallSplit,
-    title: "Rules",
-    subtext:
-        "Rules can be set up to automatically categorise and modify transactions as they are added from statements.",
-};
+
 const createNewRule = (): Rule => {
     const id = getNextID(TopHatStore.getState().data.rule.ids);
     return {
@@ -87,6 +97,26 @@ const createNewRule = (): Rule => {
         max: null,
         category: PLACEHOLDER_CATEGORY_ID,
     };
+};
+
+const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => {
+    if (reason !== "DROP" || destination === undefined) return;
+
+    const { ids, entities } = TopHatStore.getState().data.rule;
+
+    const rangeMin = Math.min(source.index, destination.index);
+    const rangeMax = Math.max(source.index, destination.index);
+    const updates = ids
+        .filter((id) => inRange(entities[id]!.index, rangeMin, rangeMax + 1) && entities[id]!.index !== source.index)
+        .map((id) => ({
+            id,
+            changes: {
+                index: entities[id]!.index + (source.index > destination.index ? 1 : -1),
+            },
+        }))
+        .concat([{ id: Number(draggableId), changes: { index: destination.index } }]);
+
+    TopHatDispatch(DataSlice.actions.updateSimpleObjects({ type: "rule", updates }));
 };
 
 const useEditViewStyles = makeStyles((theme) => ({
@@ -284,7 +314,7 @@ const EditRuleView: React.FC = () => {
     );
 };
 
-const { update } = getUpdateFunctions("rule");
+const { update, remove } = getUpdateFunctions("rule");
 const updateWorkingIsInactive = update("isInactive");
 const updateWorkingReference = update("reference");
 const updateWorkingReferenceAuto = handleAutoCompleteChange(updateWorkingReference);

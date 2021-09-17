@@ -4,7 +4,7 @@ import chroma from "chroma-js";
 import { last } from "lodash";
 import React, { useCallback } from "react";
 import { Institution } from "../../state/data";
-import { useInstitutionMap } from "../../state/data/hooks";
+import { getCategoryColour, useInstitutionMap } from "../../state/data/hooks";
 import { Account, AccountTypes, Category, Currency, Statement } from "../../state/data/types";
 import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../state/data/utilities";
 import { Greys } from "../../styles/colours";
@@ -46,8 +46,8 @@ export const getCategoryIcon = (category: Category, className: string) =>
             className={className}
             style={{
                 borderRadius: "50%",
-                border: "1px solid " + category.colour,
-                background: fadeSolidColour(category.colour),
+                border: "1px solid " + getCategoryColour(category.id),
+                background: fadeSolidColour(getCategoryColour(category.id)),
             }}
         />
     );

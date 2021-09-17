@@ -6,6 +6,7 @@ import {
     makeStyles,
     Menu,
     MenuItem,
+    MenuProps,
     OutlinedInput,
     Typography,
 } from "@material-ui/core";
@@ -237,6 +238,8 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     iconClass: string;
     allowUndefined?: boolean;
     button?: ObjectSelectorCommonProps<T>["children"];
+    getMenuContents?: (close: () => void) => React.ReactNode;
+    getMenuProps?: () => Partial<MenuProps>;
 }
 export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string }>({
     options,
@@ -246,10 +249,14 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     iconClass,
     allowUndefined,
     button,
+    getMenuContents,
+    getMenuProps = () => ({ PaperProps: { style: { maxHeight: 170 } } }),
 }: TransactionsTableObjectDropdownProps<T>) => {
     const classes = useTransactionsTableObjectDropdownStyles();
     const MixedClass = useTransactionsTableStyles().mixed;
     const option = options.find(({ id }) => id === selected);
+
+    const MenuProps = useMemo(() => getMenuProps(), [getMenuProps]);
 
     const clearSelection = useCallback<React.MouseEventHandler>(
         (event) => {
@@ -263,7 +270,8 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
         <ObjectSelector
             options={options}
             render={(option) => getIcon(option, iconClass)}
-            MenuProps={{ PaperProps: { style: { maxHeight: 170 } } }}
+            MenuProps={MenuProps}
+            getMenuContents={getMenuContents}
             selected={selected}
             setSelected={select}
             placeholder={

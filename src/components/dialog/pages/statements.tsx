@@ -1,19 +1,31 @@
-import { ListItemText, makeStyles, Typography } from "@material-ui/core";
+import { List, ListItemText, ListSubheader, makeStyles, MenuItem, Typography } from "@material-ui/core";
 import { Description, Event } from "@material-ui/icons";
 import { KeyboardDatePicker } from "@material-ui/pickers";
 import { MaterialUiPickersDate } from "@material-ui/pickers/typings/date";
+import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
-import { useDialogState } from "../../../state/app/hooks";
+import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
 import { Statement } from "../../../state/data";
-import { useAccountByID } from "../../../state/data/hooks";
+import { useAccountByID, useAccountMap, useAllStatements, useInstitutionMap } from "../../../state/data/hooks";
 import { PLACEHOLDER_STATEMENT_ID } from "../../../state/data/utilities";
 import { formatDate, parseDate } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
+import { withSuppressEvent } from "../../../utilities/events";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { DialogObjectEditWrapper, EditValueContainer, getUpdateFunctions, ObjectEditContainer } from "../utilities";
+import {
+    DialogContents,
+    DialogMain,
+    DialogOptions,
+    DialogPlaceholderDisplay,
+    DialogSelectorAddNewButton,
+    EditValueContainer,
+    getUpdateFunctions,
+    ObjectEditContainer,
+    useDialogObjectSelectorStyles,
+} from "../utilities";
 
 const useMainStyles = makeStyles({
     base: {
@@ -37,6 +49,7 @@ const useMainStyles = makeStyles({
 
 export const DialogStatementView: React.FC = () => {
     const classes = useMainStyles();
+    const working = useDialogHasWorking();
     const render = useCallback(
         (statement: Statement) => (
             <div className={classes.base}>
@@ -50,25 +63,67 @@ export const DialogStatementView: React.FC = () => {
     );
 
     return (
-        <DialogObjectEditWrapper
-            type="statement"
-            render={render}
-            placeholder={Placeholder}
-            exclude={[PLACEHOLDER_STATEMENT_ID]}
-            onAddNew={goToStatementImport}
-        >
-            <EditStatementView />
-        </DialogObjectEditWrapper>
+        <DialogMain onClick={remove}>
+            <StatementDialogObjectSelector render={render} />
+            <DialogContents>
+                {working ? (
+                    <EditStatementView />
+                ) : (
+                    <DialogPlaceholderDisplay
+                        icon={Description}
+                        title="Statements"
+                        subtext="Statements are export files, usually from an Institution, containing one row for each transaction or balance readings. Each is associated with one Account."
+                    />
+                )}
+            </DialogContents>
+        </DialogMain>
     );
 };
 
 const goToStatementImport = () => TopHatDispatch(AppSlice.actions.setDialogPage("import"));
 
-const Placeholder = {
-    icon: Description,
-    title: "Statements",
-    subtext:
-        "Statements are export files, usually from an Institution, containing one row for each transaction or balance readings. Each is associated with one Account.",
+const useSelectorClasses = makeStyles({
+    container: { background: Greys[200] },
+});
+
+const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) => JSX.Element }> = ({ render }) => {
+    const classes = useDialogObjectSelectorStyles();
+    const selectorClasses = useSelectorClasses();
+    const selected = useDialogState("statement", (object) => object?.id);
+    const statements = useAllStatements();
+    const options = useMemo(() => {
+        const filtered = statements.filter(({ id }) => id !== PLACEHOLDER_STATEMENT_ID);
+        const grouped = groupBy(filtered, ({ account }) => account);
+        return toPairs(grouped);
+    }, [statements]);
+    const institutions = useInstitutionMap();
+    const accounts = useAccountMap();
+
+    return (
+        <DialogOptions>
+            <div className={classes.options}>
+                <List subheader={<li />}>
+                    {options.map((group) => (
+                        <li key={group[0]} className={selectorClasses.container}>
+                            <ListSubheader>
+                                {institutions[accounts[group[0]]!.institution]!.name} - {accounts[group[0]]!.name}
+                            </ListSubheader>
+                            {group[1].map((option) => (
+                                <MenuItem
+                                    key={option.id}
+                                    selected={option.id === selected}
+                                    onClick={withSuppressEvent(() => set(option.id === selected ? undefined : option))}
+                                >
+                                    {render(option)}
+                                </MenuItem>
+                            ))}
+                        </li>
+                    ))}
+                </List>
+            </div>
+            <DialogSelectorAddNewButton type="statement" onClick={goToStatementImport} />
+        </DialogOptions>
+    );
 };
 
 const useEditViewStyles = makeStyles((theme) => ({
@@ -125,5 +180,5 @@ const EditStatementView: React.FC = () => {
     );
 };
 
-const { update } = getUpdateFunctions("statement");
+const { update, remove, set } = getUpdateFunctions("statement");
 const updateWorkingDate = (date: MaterialUiPickersDate) => update("date")(formatDate(date as DateTime));

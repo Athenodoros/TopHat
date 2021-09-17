@@ -1,7 +1,9 @@
 import { Dictionary } from "@reduxjs/toolkit";
+import { last } from "lodash";
 import numeral from "numeral";
 import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
+import { TopHatStore } from "..";
 import { useSelector } from "../utilities/hooks";
 import { ID } from "../utilities/values";
 import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution, Statement } from "./types";
@@ -28,6 +30,8 @@ export function useCategoryByID(id: ID | undefined): Category | undefined;
 export function useCategoryByID(id: ID | undefined): Category | undefined {
     return useSelector((state) => state.data.category.entities[id as ID]);
 }
+export const useCategoryIDs = () => useSelector((state) => state.data.category.ids);
+export const useCategoryMap = () => useSelector((state) => state.data.category.entities);
 export const useAllCategories = () =>
     useSelector((state) => state.data.category.ids.map((id) => state.data.category.entities[id]!), shallowEqual);
 
@@ -86,3 +90,9 @@ export const useAllObjects = <T extends BasicObjectName>(type: T) =>
         (state) => state.data[type].ids.map((id) => state.data[type].entities[id]! as BasicObjectType[T]),
         shallowEqual
     );
+
+export const getCategoryColour = (id: ID, working?: Category) => {
+    const { entities } = TopHatStore.getState().data.category;
+    const { hierarchy } = working || entities[id]!;
+    return hierarchy.length ? entities[last(hierarchy)!]!.colour : working?.colour || entities[id]!.colour;
+};

@@ -5,7 +5,7 @@ import React, { useMemo } from "react";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { TransactionsTableFilterState } from "../../../state/app/pageTypes";
-import { useAllAccounts, useAllCategories, useAllStatements, useFormatValue } from "../../../state/data/hooks";
+import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/utilities";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
 import { getTodayString, ID } from "../../../state/utilities/values";
@@ -13,7 +13,8 @@ import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
-import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { MultipleCategoryMenu } from "../../display/CategoryMenu";
+import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
@@ -78,7 +79,6 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
     const headerClasses = useHeaderStyles();
 
     const accounts = useAllAccounts();
-    const categories = useAllCategories();
     const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
@@ -207,16 +207,8 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         ButtonProps={CategoryPopoverState.buttonProps}
                         onRightClick={updaters.removeCategories}
                     />
-                    <Menu {...CategoryPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
-                        {categories.map((option) => (
-                            <FilterMenuOption
-                                key={option.id}
-                                option={option}
-                                select={updaters.selectIDs.category}
-                                selected={filters.category}
-                                getOptionIcon={getCategoryIcon}
-                            />
-                        ))}
+                    <Menu {...CategoryPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 230, width: 300 } }}>
+                        <MultipleCategoryMenu selected={filters.category} setSelected={updaters.selectIDs.category} />
                     </Menu>
                 </div>
             </div>

@@ -35,10 +35,12 @@ export const useTransactionsPageFilters = (): TransactionsTableFilterState =>
     useTransactionsPageState((state) => pick(state, ...TransactionsTableStateFilterFields), shallowEqual);
 
 export const useDialogPage = () => useSelector((state) => state.app.dialog.id);
-export const useDialogState = <ID extends Exclude<DialogState["id"], "closed">, T = DialogState[ID]>(
+type DialogPageID = Exclude<DialogState["id"], "closed">;
+export const useDialogState = <ID extends DialogPageID, T = DialogState[ID]>(
     id: ID,
     callback: (state: DialogState[ID]) => T = identity
 ) => useSelector((state) => callback(state.app.dialog[id]));
+export const useDialogHasWorking = () => useSelector(({ app: { dialog } }) => !!dialog[dialog.id as DialogPageID]);
 
 export const useTransactionsTableEditState = (): TransactionsTableEditState =>
     useTransactionsPageState((state) => pick(state, ...TransactionsTableStateEditFields), shallowEqual);
