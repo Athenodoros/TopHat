@@ -1,8 +1,9 @@
 import { ListItemText, makeStyles, MenuItem } from "@material-ui/core";
 import { Dictionary } from "@reduxjs/toolkit";
-import React, { useCallback } from "react";
-import { Category } from "../../state/data";
+import React, { useCallback, useMemo } from "react";
+import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
 import { useCategoryIDs, useCategoryMap } from "../../state/data/hooks";
+import { TRANSFER_CATEGORY_ID } from "../../state/data/utilities";
 import { ID } from "../../state/utilities/values";
 import { updateListSelection, zipObject } from "../../utilities/data";
 import { withSuppressEvent } from "../../utilities/events";
@@ -154,9 +155,13 @@ const MultipleCategoryMenuFunction = (
 export const SingleCategoryMenu: React.FC<SingleCategoryMenuProps> = React.forwardRef(SingleCategoryMenuFunction);
 export const MultipleCategoryMenu: React.FC<MultiCategoryMenuProps> = React.forwardRef(MultipleCategoryMenuFunction);
 
-const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, exclude: ID[]) => {
-    if (exclude.length) ids = ids.filter((id) => ~exclude.includes(id));
-
+export const useCategoryGraph = (exclude: ID[] = [PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID]) => {
+    const ids = useCategoryIDs() as ID[];
+    const entities = useCategoryMap();
+    const { options, graph } = useMemo(() => getCategoryGraph(ids, entities, exclude), [ids, entities, exclude]);
+    return { options, graph, entities };
+};
+export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, exclude: ID[]) => {
     const graph = zipObject(
         ids,
         ids.map((_) => [] as ID[])
@@ -166,7 +171,7 @@ const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, exclude: ID
     });
 
     return {
-        options: ids.filter((option) => entities[option]!.hierarchy.length === 0),
+        options: ids.filter((option) => entities[option]!.hierarchy.length === 0 && !exclude.includes(option)),
         graph,
     };
 };

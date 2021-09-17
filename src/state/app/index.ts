@@ -5,6 +5,7 @@ import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
     AccountPageState,
     AccountsPageState,
+    CategoriesPageState,
     PageStateType,
     TransactionsPageState,
     TransactionsTableEditState,
@@ -67,6 +68,12 @@ export const AppSlice = createSlice({
             if (state.page.id !== "transactions") return;
             state.page = {
                 ...state.page,
+                ...payload,
+            };
+        },
+        setCategoriesPagePartial: (state, { payload }: PayloadAction<Partial<CategoriesPageState>>) => {
+            state.page = {
+                ...(state.page.id === "categories" ? state.page : DefaultPages["categories"]),
                 ...payload,
             };
         },

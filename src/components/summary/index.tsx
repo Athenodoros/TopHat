@@ -4,6 +4,7 @@ import { SECTION_MARGIN } from "../layout";
 
 export * from "./bar";
 export * from "./breakdown";
+export * from "./data";
 
 const useStyles = makeStyles({
     container: {

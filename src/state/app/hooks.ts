@@ -5,6 +5,7 @@ import { useSelector } from "../utilities/hooks";
 import {
     AccountPageState,
     AccountsPageState,
+    CategoriesPageState,
     TransactionsPageState,
     TransactionsTableEditState,
     TransactionsTableFilterState,
@@ -30,6 +31,11 @@ export const useTransactionsPageState = <T = TransactionsPageState>(
     selector: (state: TransactionsPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
 ) => useSelector((state) => selector(state.app.page as TransactionsPageState), equalityFn);
+
+export const useCategoriesPageState = <T = CategoriesPageState>(
+    selector: (state: CategoriesPageState) => T = identity,
+    equalityFn?: (left: T, right: T) => boolean
+) => useSelector((state) => selector(state.app.page as CategoriesPageState), equalityFn);
 
 export const useTransactionsPageFilters = (): TransactionsTableFilterState =>
     useTransactionsPageState((state) => pick(state, ...TransactionsTableStateFilterFields), shallowEqual);

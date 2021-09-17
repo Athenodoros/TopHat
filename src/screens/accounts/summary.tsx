@@ -1,19 +1,18 @@
 import { FormControl, MenuItem, Select } from "@material-ui/core";
-import { Section } from "../../../components/layout";
-import { SummaryBarChart, SummaryBreakdown, SummarySection } from "../../../components/summary";
-import { SummaryChartSign } from "../../../components/summary/utilities";
-import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { useAccountsPageState } from "../../../state/app/hooks";
-import { AccountsPageAggregations, AccountsPageState } from "../../../state/app/pageTypes";
-import { zipObject } from "../../../utilities/data";
-import { handleSelectChange } from "../../../utilities/events";
-import { useAccountsSummaryData } from "./data";
+import { Section } from "../../components/layout";
+import { SummaryBarChart, SummaryBreakdown, SummarySection, useBalanceSummaryData } from "../../components/summary";
+import { SummaryChartSign } from "../../components/summary/utilities";
+import { TopHatDispatch } from "../../state";
+import { AppSlice } from "../../state/app";
+import { useAccountsPageState } from "../../state/app/hooks";
+import { AccountsPageAggregations, AccountsPageState } from "../../state/app/pageTypes";
+import { zipObject } from "../../utilities/data";
+import { handleSelectChange } from "../../utilities/events";
 
 export const AccountsPageSummary: React.FC = () => {
     const aggregation = useAccountsPageState((state) => state.chartAggregation);
     const sign = useAccountsPageState((state) => state.chartSign);
-    const data = useAccountsSummaryData(aggregation);
+    const data = useBalanceSummaryData(aggregation);
 
     return (
         <SummarySection>

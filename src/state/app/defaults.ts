@@ -28,7 +28,7 @@ export const DefaultPages = {
         chartAggregation: "category" as const,
         ...DefaultTransactionsTableState,
     },
-    categories: { id: "categories" as const },
+    categories: { id: "categories", metric: "previous", tableSign: "debits" } as const,
     analysis: { id: "analysis" as const },
     forecasts: { id: "forecasts" as const },
 };

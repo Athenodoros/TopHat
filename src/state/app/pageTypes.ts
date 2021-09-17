@@ -89,6 +89,8 @@ export interface TransactionsPageState extends TransactionsTableState {
 }
 export interface CategoriesPageState {
     id: "categories";
+    metric: "previous" | "average";
+    tableSign: ChartSign;
 }
 export interface AnalysisPageState {
     id: "analysis";

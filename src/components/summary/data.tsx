@@ -1,14 +1,47 @@
+import { max, mean } from "lodash";
 import { omit, toPairs, unzip, zip } from "lodash-es";
-import { AccountsPageState } from "../../../state/app/pageTypes";
-import { PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
-import { useAccountIDs, useAccountMap, useCurrencyMap, useInstitutionMap } from "../../../state/data/hooks";
-import { AccountTypeMap } from "../../../state/data/types";
-import { ID } from "../../../state/utilities/values";
-import { zipObject } from "../../../utilities/data";
+import { AccountsPageState, TransactionsPageState } from "../../state/app/pageTypes";
+import { Category, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data";
+import { useAccountIDs, useAccountMap, useAllObjects, useCurrencyMap, useInstitutionMap } from "../../state/data/hooks";
+import { Account, AccountTypeMap, Currency } from "../../state/data/types";
+import { ID } from "../../state/utilities/values";
+import { takeWithDefault, zipObject } from "../../utilities/data";
+
+export const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
+    let objects = useAllObjects(aggregation);
+    if (aggregation === "category") {
+        objects = objects.filter((category) => (category as Category).hierarchy.length === 0);
+    }
+
+    const institutions = useInstitutionMap();
+
+    const length = Math.min(
+        max(objects.flatMap((_) => [_.transactions.credits.length, _.transactions.debits.length])) || 24,
+        24
+    );
+
+    return objects.map((object) => {
+        const credits = takeWithDefault(object.transactions.credits, length, 0);
+        const debits = takeWithDefault(object.transactions.debits, length, 0);
+
+        const colour =
+            aggregation === "account"
+                ? institutions[(object as Account).institution!]!.colour
+                : (object as Exclude<typeof objects[number], Account>).colour;
+
+        return {
+            id: object.id,
+            name: aggregation === "currency" ? (object as Currency).ticker : object.name,
+            colour,
+            trend: { credits, debits },
+            value: { credit: mean(credits), debit: mean(debits) },
+            placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
+        };
+    });
+};
 
 type HistorySummary = { credits: number[]; debits: number[]; totals: { credit: number; debit: number } };
-
-export function useAccountsSummaryData(aggregation: AccountsPageState["chartAggregation"]) {
+export function useBalanceSummaryData(aggregation: AccountsPageState["chartAggregation"]) {
     const accountIDs = useAccountIDs();
     const accounts = useAccountMap();
     const institutions = useInstitutionMap();
