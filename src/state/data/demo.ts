@@ -70,11 +70,11 @@ const getBaseBudget = (base: number, length: number = 24) => ({
     base,
 });
 const categories = [
-    { name: "Social", budgets: getBaseBudget(650) }, // 1
-    { name: "Groceries", budgets: getBaseBudget(700) }, // 2
+    { name: "Social", budgets: getBaseBudget(-650) }, // 1
+    { name: "Groceries", budgets: getBaseBudget(-700) }, // 2
     { name: "Transport" }, // 3
     { name: "Travel" }, // 4
-    { name: "Housing", budgets: getBaseBudget(360) }, // 5
+    { name: "Housing", budgets: getBaseBudget(-360) }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
     { name: "Salary", hierarchy: [6] }, // 8
@@ -494,11 +494,12 @@ export const DemoObjects = {
 export const finishDemoInitialisation = (state: DataState) => {
     // Travel budget
     const travelCategory = state.category.entities[4]!;
-    const travelBudget = 250;
+    const travelBudget = -250;
     const travelBudgetHistory: number[] = [];
     rangeRight(24).forEach((idx) => {
-        const budget =
-            travelBudget + (travelBudgetHistory[0] || 0) + (travelCategory.transactions.debits[idx + 1] || 0);
+        const previous = travelCategory.transactions.debits[idx + 1] || 0;
+        const budget = travelBudget + (travelBudgetHistory[0] || 0) - previous;
+        travelBudgetHistory[0] = previous;
         travelBudgetHistory.unshift(budget);
     });
     travelCategory.budgets = { start, values: travelBudgetHistory, strategy: "rollover", base: travelBudget };
@@ -507,7 +508,7 @@ export const finishDemoInitialisation = (state: DataState) => {
     const incomeCategory = state.category.entities[6]!;
     incomeCategory.budgets = {
         start,
-        values: range(24).map((i) => -incomeCategory.transactions.credits[i] || 0),
+        values: range(24).map((i) => (incomeCategory.transactions.credits[i] || 10) - 10),
         strategy: "copy",
         base: 0,
     };

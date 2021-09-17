@@ -66,7 +66,7 @@ export interface Category {
         base: number;
 
         // Going back in time, monthly - always at least 24 months
-        // Sign convention: Expense categories have _positive_ budgets
+        // Sign convention: Expense categories have negative budgets
         values: number[];
     };
 }

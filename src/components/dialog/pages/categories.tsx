@@ -179,6 +179,18 @@ const EditCategoryView: React.FC = () => {
         }
     }, [setMonthValue, setBaseValue, working.id, selectedMonth]);
 
+    const updateBudgetStrategy = useMemo(
+        () =>
+            handleButtonGroupChange((strategy: NonNullable<Category["budgets"]>["strategy"] | "none") => {
+                if (strategy === "none") {
+                    setMonthValue(0);
+                    setBaseValue(0);
+                }
+                updateBudget(strategy !== "none" ? { strategy } : undefined);
+            }),
+        [setBaseValue, setMonthValue]
+    );
+
     return (
         <ObjectEditContainer type="category" onReset={onReset}>
             <EditValueContainer label="Parent">
@@ -263,12 +275,18 @@ const EditCategoryView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer
                 label="Value"
-                disabled={parent ? "Child categories inherit their parent's budget" : undefined}
+                disabled={
+                    parent
+                        ? "Child categories inherit their parent's budget"
+                        : !working.budgets
+                        ? "This Category does not have a budget!"
+                        : ""
+                }
             >
                 <div className={classes.valueContainer}>
                     <BasicBarChart
                         className={classes.valueChart}
-                        values={working.budgets?.values || BaseBudget}
+                        values={working.budgets ? working.budgets.values.map((x) => -x) : BaseBudget}
                         selected={selectedMonth}
                         setSelected={setSelectedMonth}
                     />
@@ -285,7 +303,8 @@ const EditCategoryView: React.FC = () => {
                             value={base.text}
                             onChange={base.onTextChange}
                             size="small"
-                            label="Default Budget"
+                            label={working.budgets?.strategy !== "rollover" ? "Monthly Budget" : "Monthly Increase"}
+                            disabled={working.budgets?.strategy === "copy"}
                         />
                     </div>
                 </div>
@@ -318,10 +337,6 @@ const updateBudget = (partial?: Partial<NonNullable<Category["budgets"]>>) => {
         }
     );
 };
-const updateBudgetStrategy = handleButtonGroupChange(
-    (strategy: NonNullable<Category["budgets"]>["strategy"] | "none") =>
-        updateBudget(strategy !== "none" ? { strategy } : undefined)
-);
 const updateMonthsBudget = (index: number) => (value: number | null) => {
     const current = getWorking().budgets?.values || BaseBudget;
     current[index] = value ?? 0;

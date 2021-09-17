@@ -32,7 +32,7 @@ export const getInstitutionIcon = (institution: Institution, className: string) 
         <AccountBalance style={{ height: "60%" }} />
     </Avatar>
 );
-export const getCategoryIcon = (category: Category, className: string) =>
+export const getCategoryIcon = (category: Pick<Category, "id" | "colour">, className: string) =>
     category.id === TRANSFER_CATEGORY_ID ? (
         <Avatar className={className} style={{ backgroundColor: "transparent" }}>
             <ImportExport style={{ height: "90%", color: category.colour }} />

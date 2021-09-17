@@ -34,7 +34,7 @@ export const useTransactionsSummaryData = (aggregation: TransactionsPageState["c
             name: aggregation === "currency" ? (object as Currency).ticker : object.name,
             colour,
             trend: { credits, debits },
-            value: { credit: mean(credits), debit: mean(debits) },
+            value: { credit: mean(credits.slice(1)), debit: mean(debits.slice(1)) },
             placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
         };
     });
