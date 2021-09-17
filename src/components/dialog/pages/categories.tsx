@@ -1,7 +1,9 @@
-import { Button, IconButton, List, makeStyles, Tooltip, Typography } from "@material-ui/core";
-import { KeyboardArrowDown, ShoppingBasket, Sync } from "@material-ui/icons";
+import { Button, IconButton, List, makeStyles, TextField, Tooltip, Typography } from "@material-ui/core";
+import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@material-ui/icons";
+import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
 import clsx from "clsx";
-import React, { useMemo } from "react";
+import { range } from "lodash";
+import React, { useCallback, useMemo, useState } from "react";
 import { TopHatStore } from "../../../state";
 import { useDialogState } from "../../../state/app/hooks";
 import { Category } from "../../../state/data";
@@ -12,8 +14,11 @@ import {
     PLACEHOLDER_CATEGORY_ID,
     TRANSFER_CATEGORY_ID,
 } from "../../../state/data/utilities";
-import { BaseTransactionHistory, getRandomColour, ID } from "../../../state/utilities/values";
+import { BaseTransactionHistory, getRandomColour, getTodayString, ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
+import { handleButtonGroupChange } from "../../../utilities/events";
+import { useNumericInputHandler } from "../../../utilities/hooks";
+import { BasicBarChart } from "../../display/BasicBarChart";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector } from "../../inputs";
@@ -23,6 +28,7 @@ import {
     DialogOptions,
     DialogPlaceholderDisplay,
     DialogSelectorAddNewButton,
+    EditTitleContainer,
     EditValueContainer,
     getUpdateFunctions,
     ObjectEditContainer,
@@ -78,9 +84,12 @@ const useEditViewStyles = makeStyles({
         alignItems: "center",
         width: 90,
 
-        "& input": { width: 50, height: 50 },
+        "& input": { width: 40, height: 40 },
     },
-    colourContainerDisabled: { "& input": { opacity: 0.3 } },
+    colourContainerDisabled: {
+        opacity: 0.3,
+        pointerEvents: "none",
+    },
     icon: {
         height: 24,
         width: 24,
@@ -94,6 +103,40 @@ const useEditViewStyles = makeStyles({
         "& .MuiButton-label > svg:last-child": {
             marginLeft: 15,
         },
+    },
+    valueContainer: {
+        flexGrow: 1,
+        display: "flex",
+        flexDirection: "column",
+    },
+    valueChart: {
+        height: 30,
+        marginBottom: 10,
+    },
+    values: {
+        display: "flex",
+        justifyContent: "space-between",
+        marginTop: 5,
+
+        "& > *": { width: 160 },
+    },
+    toggles: {
+        flexGrow: 1,
+        "& > button": {
+            flexGrow: 1,
+            padding: 5,
+        },
+    },
+    toggle: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        width: 60,
+    },
+    toggleInner: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
     },
 });
 const EditCategoryView: React.FC = () => {
@@ -110,8 +153,34 @@ const EditCategoryView: React.FC = () => {
     );
     const parent: Category | undefined = useCategoryByID(working.hierarchy[0]);
 
+    const [selectedMonth, setSelectedMonthRaw] = useState(0);
+    const month = useNumericInputHandler(
+        working.budgets?.values[selectedMonth] ?? null,
+        updateMonthsBudget(selectedMonth),
+        working.id
+    );
+    const base = useNumericInputHandler(working.budgets?.base ?? null, updateBaseBudget, working.id);
+    const setSelectedMonth = useCallback(
+        (value: number) => {
+            setSelectedMonthRaw(value);
+            month.setValue(working.budgets?.values[value] ?? null);
+        },
+        [month, working.budgets?.values]
+    );
+
+    // These dummies are to help ESLint work out the dependencies of the callback
+    const setMonthValue = month.setValue;
+    const setBaseValue = base.setValue;
+    const onReset = useCallback(() => {
+        const actual = TopHatStore.getState().data.category.entities[working.id];
+        if (actual) {
+            setMonthValue(actual.budgets?.values[selectedMonth] ?? null);
+            setBaseValue(actual.budgets?.base ?? null);
+        }
+    }, [setMonthValue, setBaseValue, working.id, selectedMonth]);
+
     return (
-        <ObjectEditContainer type="category">
+        <ObjectEditContainer type="category" onReset={onReset}>
             <EditValueContainer label="Parent">
                 <ObjectSelector<true, Category>
                     options={parentOptions}
@@ -136,28 +205,96 @@ const EditCategoryView: React.FC = () => {
                     </Button>
                 </ObjectSelector>
             </EditValueContainer>
-            <EditValueContainer label="Colour">
-                <Tooltip title={parent ? "Child categories inherit their parent's colour" : ""}>
-                    <div className={clsx(classes.colourContainer, parent && classes.colourContainerDisabled)}>
-                        <input
-                            type="color"
-                            value={getCategoryColour(working.id, working)}
-                            onChange={handleColorChange}
-                            disabled={!!parent}
+            <EditValueContainer label="Colour" disabled={parent && "Child categories inherit their parent's colour"}>
+                <div className={clsx(classes.colourContainer, parent && classes.colourContainerDisabled)}>
+                    <input type="color" value={getCategoryColour(working.id, working)} onChange={handleColorChange} />
+                    <IconButton size="small" onClick={generateRandomColour}>
+                        <Tooltip title="Get random colour">
+                            <Sync />
+                        </Tooltip>
+                    </IconButton>
+                </div>
+            </EditValueContainer>
+            <EditTitleContainer title="Budget" />
+            <EditValueContainer
+                label="Type"
+                disabled={parent ? "Child categories inherit their parent's budget" : undefined}
+            >
+                <ToggleButtonGroup
+                    size="small"
+                    value={working.budgets?.strategy || "none"}
+                    exclusive={true}
+                    onChange={updateBudgetStrategy}
+                    className={classes.toggles}
+                >
+                    <ToggleButton value="none" classes={{ label: classes.toggle }}>
+                        <Tooltip title="Do not budget this category">
+                            <div className={classes.toggleInner}>
+                                <Clear fontSize="small" />
+                                <Typography variant="caption">None</Typography>
+                            </div>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton value="base" classes={{ label: classes.toggle }}>
+                        <Tooltip title="Set a constant budget each month">
+                            <div className={classes.toggleInner}>
+                                <LooksOne fontSize="small" />
+                                <Typography variant="caption">Constant</Typography>
+                            </div>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton value="copy" classes={{ label: classes.toggle }}>
+                        <Tooltip title="Copy previous month's budget">
+                            <div className={classes.toggleInner}>
+                                <FastForward fontSize="small" />
+                                <Typography variant="caption">Copy</Typography>
+                            </div>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton value="rollover" classes={{ label: classes.toggle }}>
+                        <Tooltip title="Roll over unused budget each month">
+                            <div className={classes.toggleInner}>
+                                <Forward10 fontSize="small" />
+                                <Typography variant="caption">Rollover</Typography>
+                            </div>
+                        </Tooltip>
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </EditValueContainer>
+            <EditValueContainer
+                label="Value"
+                disabled={parent ? "Child categories inherit their parent's budget" : undefined}
+            >
+                <div className={classes.valueContainer}>
+                    <BasicBarChart
+                        className={classes.valueChart}
+                        values={working.budgets?.values || BaseBudget}
+                        selected={selectedMonth}
+                        setSelected={setSelectedMonth}
+                    />
+                    <div className={classes.values}>
+                        <TextField
+                            variant="outlined"
+                            value={month.text}
+                            onChange={month.onTextChange}
+                            size="small"
+                            label="Current Month"
                         />
-                        <IconButton size="small" onClick={generateRandomColour} disabled={!!parent}>
-                            <Tooltip title="Get random colour">
-                                <Sync />
-                            </Tooltip>
-                        </IconButton>
+                        <TextField
+                            variant="outlined"
+                            value={base.text}
+                            onChange={base.onTextChange}
+                            size="small"
+                            label="Default Budget"
+                        />
                     </div>
-                </Tooltip>
+                </div>
             </EditValueContainer>
         </ObjectEditContainer>
     );
 };
 
-const { update, remove, set } = getUpdateFunctions("category");
+const { update, remove, set, getWorking } = getUpdateFunctions("category");
 const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) => update("colour")(event.target.value);
 const generateRandomColour = () => update("colour")(getRandomColour());
 const updateWorkingParent = (id?: ID) => {
@@ -165,3 +302,29 @@ const updateWorkingParent = (id?: ID) => {
         id === undefined ? [] : [id].concat(TopHatStore.getState().data.category.entities[id]!.hierarchy ?? [])
     );
 };
+
+const BaseBudget = range(24).map((_) => 0);
+const updateBudget = (partial?: Partial<NonNullable<Category["budgets"]>>) => {
+    const current = getWorking();
+    update("budgets")(
+        partial && {
+            ...(current.budgets || {
+                start: getTodayString(),
+                values: BaseBudget,
+                strategy: "base",
+                base: 0,
+            }),
+            ...partial,
+        }
+    );
+};
+const updateBudgetStrategy = handleButtonGroupChange(
+    (strategy: NonNullable<Category["budgets"]>["strategy"] | "none") =>
+        updateBudget(strategy !== "none" ? { strategy } : undefined)
+);
+const updateMonthsBudget = (index: number) => (value: number | null) => {
+    const current = getWorking().budgets?.values || BaseBudget;
+    current[index] = value ?? 0;
+    updateBudget({ values: current });
+};
+const updateBaseBudget = (value: number | null) => updateBudget({ base: value || 0 });

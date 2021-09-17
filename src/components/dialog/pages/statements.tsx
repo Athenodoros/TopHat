@@ -102,9 +102,9 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
     return (
         <DialogOptions>
             <div className={classes.options}>
-                <List subheader={<li />}>
+                <List subheader={<div />}>
                     {options.map((group) => (
-                        <li key={group[0]} className={selectorClasses.container}>
+                        <div key={group[0]} className={selectorClasses.container}>
                             <ListSubheader>
                                 {institutions[accounts[group[0]]!.institution]!.name} - {accounts[group[0]]!.name}
                             </ListSubheader>
@@ -117,7 +117,7 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
                                     {render(option)}
                                 </MenuItem>
                             ))}
-                        </li>
+                        </div>
                     ))}
                 </List>
             </div>

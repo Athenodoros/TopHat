@@ -21,19 +21,8 @@ import {
     parseDate,
     TransactionHistory,
 } from "../utilities/values";
-import { DEFAULT_CURRENCY, DemoObjects } from "./demo";
-import {
-    Account,
-    BasicObjectType,
-    Category,
-    Currency,
-    Institution,
-    Notification,
-    Rule,
-    Statement,
-    Transaction,
-    UserState,
-} from "./types";
+import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo";
+import { Account, BasicObjectType, DataState, Transaction } from "./types";
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
@@ -43,25 +32,23 @@ import {
     TRANSFER_CATEGORY,
     TRANSFER_CATEGORY_ID,
 } from "./utilities";
-export type { Account, Category, Currency, Institution, Notification, Rule, Statement, Transaction } from "./types";
+export type {
+    Account,
+    Category,
+    Currency,
+    DataState,
+    Institution,
+    Notification,
+    Rule,
+    Statement,
+    Transaction,
+} from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter<object>();
 const NameAdapter = createEntityAdapter<{ name: string }>({ sortComparer: (a, b) => a.name.localeCompare(b.name) });
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
-
-export interface DataState {
-    account: EntityState<Account>;
-    category: EntityState<Category>;
-    currency: EntityState<Currency>;
-    institution: EntityState<Institution>;
-    rule: EntityState<Rule>;
-    transaction: EntityState<Transaction>;
-    statement: EntityState<Statement>;
-    user: UserState;
-    notification: EntityState<Notification>;
-}
 
 const BaseObjects = {
     category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
@@ -117,6 +104,8 @@ export const DataSlice = createSlice({
                 updateTransactionSummariesWithTransactions(state, state.transaction.ids);
 
                 updateBalancesAndAccountSummaries(state);
+
+                finishDemoInitialisation(state);
             });
         },
         updateSimpleObjects: <Name extends "rule">(

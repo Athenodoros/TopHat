@@ -1,4 +1,5 @@
 import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
+import { EntityState } from "@reduxjs/toolkit";
 import { zipObject } from "../../utilities/data";
 import { DialogColumnParseResult, DialogColumnValueMapping, DialogParseSpecification } from "../logic/statement";
 import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
@@ -58,10 +59,16 @@ export interface Category {
     // The order is from sub-categories out to final parent categories - the last entry would have no parent
     hierarchy: ID[];
 
-    // budget?: number;
-
-    // TODO: This should be by currency
     transactions: TransactionHistory;
+    budgets?: {
+        start: SDate;
+        strategy: "rollover" | "base" | "copy";
+        base: number;
+
+        // Going back in time, monthly - always at least 24 months
+        // Sign convention: Expense categories have _positive_ budgets
+        values: number[];
+    };
 }
 
 /**
@@ -177,3 +184,15 @@ export interface BasicObjectType {
     statement: Statement;
 }
 export type BasicObjectName = keyof BasicObjectType;
+
+export interface DataState {
+    account: EntityState<Account>;
+    category: EntityState<Category>;
+    currency: EntityState<Currency>;
+    institution: EntityState<Institution>;
+    rule: EntityState<Rule>;
+    transaction: EntityState<Transaction>;
+    statement: EntityState<Statement>;
+    user: UserState;
+    notification: EntityState<Notification>;
+}

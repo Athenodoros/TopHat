@@ -86,10 +86,19 @@ const useEditViewStyles = makeStyles({
 const EditCurrencyView: React.FC = () => {
     const classes = useEditViewStyles();
     const working = useDialogState("currency")!;
-    const exchange = useNumericInputHandler(working.exchangeRate, updateWorkingExchangeRate);
+    const exchange = useNumericInputHandler(working.exchangeRate, updateWorkingExchangeRate, working.id);
+
+    // The dummy is to help ESLint work out the dependencies of the callback
+    const setExchangeValue = exchange.setValue;
+    const onReset = useCallback(() => {
+        const actual = TopHatStore.getState().data.currency.entities[working.id];
+        if (actual) {
+            setExchangeValue(actual.exchangeRate);
+        }
+    }, [setExchangeValue, working.id]);
 
     return (
-        <ObjectEditContainer type="currency">
+        <ObjectEditContainer type="currency" onReset={onReset}>
             <EditValueContainer label="Exchange Rate">
                 <TextField
                     variant="outlined"

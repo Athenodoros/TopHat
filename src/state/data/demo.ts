@@ -1,8 +1,17 @@
 import chroma from "chroma-js";
-import { random as randomInt, range, values } from "lodash";
+import { random as randomInt, range, rangeRight, values } from "lodash";
 import { DurationObject } from "luxon";
-import { zipObject } from "../../utilities/data";
-import { BaseTransactionHistory, formatDate, getToday, ID, parseDate, SDate } from "../utilities/values";
+import { DataState } from ".";
+import { takeWithDefault, zipObject } from "../../utilities/data";
+import {
+    BaseTransactionHistory,
+    formatDate,
+    getToday,
+    getTodayString,
+    ID,
+    parseDate,
+    SDate,
+} from "../utilities/values";
 import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 import {
     compareTransactionsDescendingDates,
@@ -37,21 +46,35 @@ const currencies = (
 export const DEFAULT_CURRENCY = currencies[0];
 
 let cateogryColourScale = chroma.scale("set1").domain([0, 6]);
-const makeCategory = ({ name, hierarchy }: { name: string; hierarchy?: ID[] }, id: number) =>
+const makeCategory = (
+    { name, hierarchy, budgets }: { name: string; hierarchy?: ID[]; budgets?: Category["budgets"] },
+    id: number
+) =>
     ({
         id: id + 1,
-        budget: 0,
-        hierarchy: hierarchy || [],
         name,
         colour: cateogryColourScale(id).hex(),
+        hierarchy: hierarchy || [],
         transactions: BaseTransactionHistory(),
+        budgets,
     } as Category);
+const start = getTodayString();
+const getBaseBudget = (base: number, length: number = 24) => ({
+    start,
+    values: takeWithDefault(
+        range(length).map((_) => base),
+        24,
+        0
+    ),
+    strategy: "base" as const,
+    base,
+});
 const categories = [
-    { name: "Social" }, // 1
-    { name: "Groceries" }, // 2
+    { name: "Social", budgets: getBaseBudget(650) }, // 1
+    { name: "Groceries", budgets: getBaseBudget(700) }, // 2
     { name: "Transport" }, // 3
     { name: "Travel" }, // 4
-    { name: "Housing" }, // 5
+    { name: "Housing", budgets: getBaseBudget(360) }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
     { name: "Salary", hierarchy: [6] }, // 8
@@ -466,4 +489,26 @@ export const DemoObjects = {
     transaction: transactions,
     statement: statements,
     notification: notifications,
+};
+
+export const finishDemoInitialisation = (state: DataState) => {
+    // Travel budget
+    const travelCategory = state.category.entities[4]!;
+    const travelBudget = 250;
+    const travelBudgetHistory: number[] = [];
+    rangeRight(24).forEach((idx) => {
+        const budget =
+            travelBudget + (travelBudgetHistory[0] || 0) + (travelCategory.transactions.debits[idx + 1] || 0);
+        travelBudgetHistory.unshift(budget);
+    });
+    travelCategory.budgets = { start, values: travelBudgetHistory, strategy: "rollover", base: travelBudget };
+
+    // Income budget
+    const incomeCategory = state.category.entities[6]!;
+    incomeCategory.budgets = {
+        start,
+        values: range(24).map((i) => -incomeCategory.transactions.credits[i] || 0),
+        strategy: "copy",
+        base: 0,
+    };
 };

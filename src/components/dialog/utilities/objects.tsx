@@ -1,6 +1,6 @@
 import { Button, List, makeStyles, MenuItem, TextField } from "@material-ui/core";
 import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@material-ui/icons";
-import { isEqual, upperFirst } from "lodash";
+import { cloneDeep, isEqual, upperFirst } from "lodash";
 import React, { useMemo } from "react";
 import {
     DragDropContext,
@@ -289,6 +289,7 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
     type Option = BasicObjectType[Type];
 
     const get = (id: ID) => TopHatStore.getState().data[type].entities[Number(id)] as Option;
+    const getWorking = () => cloneDeep(TopHatStore.getState().app.dialog[type] as Option);
     const set = (option?: Option) => TopHatDispatch(AppSlice.actions.setDialogPartial({ [type]: option }));
     const setPartial = (partial?: Partial<Option>) =>
         set({ ...(TopHatStore.getState().app.dialog[type]! as Option), ...partial });
@@ -298,5 +299,5 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
         (value: Option[K]) =>
             setPartial({ [key]: value } as any);
 
-    return { get, set, setPartial, remove, update };
+    return { get, getWorking, set, setPartial, remove, update };
 };

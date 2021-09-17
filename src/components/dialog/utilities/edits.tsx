@@ -1,16 +1,17 @@
-import { makeStyles, Typography } from "@material-ui/core";
+import { makeStyles, Tooltip, Typography } from "@material-ui/core";
 import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../../styles/colours";
 
 const useEditValueContainerStyles = makeStyles({
+    outer: {
+        margin: "15px 0",
+        "&:first-child": { marginTop: 10 },
+        "&:last-child": { marginBottom: 10 },
+    },
     container: {
         display: "flex",
         alignItems: "center",
-        margin: "15px 0",
-
-        "&:first-child": { marginTop: 10 },
-        "&:last-child": { marginBottom: 10 },
     },
     label: {
         flex: "0 0 150px",
@@ -27,25 +28,34 @@ const useEditValueContainerStyles = makeStyles({
         textTransform: "uppercase",
         marginTop: 20,
     },
+    disabled: {
+        pointerEvents: "none",
+        opacity: 0.3,
+    },
 });
-export const EditValueContainer: React.FC<{ label: React.ReactNode; className?: string }> = ({
+export const EditValueContainer: React.FC<{ label: React.ReactNode; className?: string; disabled?: string }> = ({
     label,
     children,
     className,
+    disabled,
 }) => {
     const classes = useEditValueContainerStyles();
 
     return (
-        <div className={clsx(classes.container, className)}>
-            {typeof label === "string" ? (
-                <Typography variant="subtitle2" noWrap={true} className={classes.label}>
-                    {label}
-                </Typography>
-            ) : (
-                <div className={classes.labelWrapper}>{label}</div>
-            )}
-            {children}
-        </div>
+        <Tooltip title={disabled || ""}>
+            <div className={classes.outer}>
+                <div className={clsx(classes.container, disabled && classes.disabled, className)}>
+                    {typeof label === "string" ? (
+                        <Typography variant="subtitle2" noWrap={true} className={classes.label}>
+                            {label}
+                        </Typography>
+                    ) : (
+                        <div className={classes.labelWrapper}>{label}</div>
+                    )}
+                    {children}
+                </div>
+            </div>
+        </Tooltip>
     );
 };
 

@@ -28,7 +28,7 @@ export const CategoryTable: React.FC = () => {
                         <MenuItem value="average">12 Month Average</MenuItem>
                     </Select>
                 </FormControl>,
-                <FormControl variant="outlined" size="small" key="metric">
+                <FormControl variant="outlined" size="small" key="sign">
                     <Select value={tableSign} onChange={setTableSign}>
                         <MenuItem value="all">All Categories</MenuItem>
                         <MenuItem value="debits">Expense Categories</MenuItem>

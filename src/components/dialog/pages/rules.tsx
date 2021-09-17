@@ -178,6 +178,17 @@ const EditRuleView: React.FC = () => {
     const accounts = useAllAccounts();
     const accountMap = useAccountMap();
 
+    // These dummies are to help ESLint work out the dependencies of the callback
+    const setMinValue = min.setValue;
+    const setMaxValue = max.setValue;
+    const onReset = useCallback(() => {
+        const actual = TopHatStore.getState().data.rule.entities[working.id];
+        if (actual) {
+            setMinValue(actual.min);
+            setMaxValue(actual.max);
+        }
+    }, [setMinValue, setMaxValue, working.id]);
+
     return (
         <ObjectEditContainer
             type="rule"
@@ -189,13 +200,7 @@ const EditRuleView: React.FC = () => {
                     className={classes.inactive}
                 />
             }
-            onReset={() => {
-                const actual = TopHatStore.getState().data.rule.entities[working.id];
-                if (actual) {
-                    min.setValue(actual.min);
-                    max.setValue(actual.max);
-                }
-            }}
+            onReset={onReset}
         >
             <EditTitleContainer title="Conditions" />
             <EditValueContainer label="Reference">
