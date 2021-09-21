@@ -70,20 +70,21 @@ const getBaseBudget = (base: number, length: number = 24) => ({
     base,
 });
 const categories = [
-    { name: "Social", budgets: getBaseBudget(-650) }, // 1
+    { name: "Social", budgets: getBaseBudget(-500) }, // 1
     { name: "Groceries", budgets: getBaseBudget(-700) }, // 2
     { name: "Transport" }, // 3
     { name: "Travel" }, // 4
-    { name: "Housing", budgets: getBaseBudget(-360) }, // 5
+    { name: "Housing", budgets: getBaseBudget(-560) }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
     { name: "Salary", hierarchy: [6] }, // 8
     { name: "Trip to Europe", hierarchy: [4] }, // 9
     { name: "Trip to Melbourne", hierarchy: [4] }, // 10
-    { name: "Mortgage", hierarchy: [5] }, // 11
+    { name: "Mortgage Interest", hierarchy: [5] }, // 11
     { name: "Bills", hierarchy: [5] }, // 12
     { name: "Electricity Bill", hierarchy: [12, 5] }, // 13
     { name: "Gas Bill", hierarchy: [12, 5] }, // 14
+    { name: "Internet", hierarchy: [12, 5] }, // 15
 ].map(makeCategory);
 
 type InstitutionArgs = [string, string, string];
@@ -305,6 +306,12 @@ let transactions = [
         make({ months: i, days: 8 }, "SYDNEY GAS", 1, {
             value: -7.8,
             category: 14,
+        })
+    ),
+    ...range(24).map((i) =>
+        make({ months: i, days: 10 }, "My Local ISP", 1, {
+            value: -70,
+            category: 15,
         })
     ),
 

@@ -7,11 +7,11 @@ import { useCategoriesPageState } from "../../../state/app/hooks";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { handleSelectChange } from "../../../utilities/events";
 import { useCategoriesTableData } from "./data";
-import { TopLevelCategoryView } from "./TopLevel";
+import { TopLevelCategoryTableView } from "./TopLevel";
 
 export const CategoryTable: React.FC = () => {
     const { metric, tableSign } = useCategoriesPageState();
-    const { options, graph, fillbarDomainSpecs } = useCategoriesTableData(metric, tableSign);
+    const { options, graph, chartFunctions, getCategoryStatistics } = useCategoriesTableData(metric, tableSign);
 
     return (
         <Section
@@ -34,11 +34,12 @@ export const CategoryTable: React.FC = () => {
             ]}
         >
             {options.map((option) => (
-                <TopLevelCategoryView
+                <TopLevelCategoryTableView
                     key={option.id}
                     category={option}
                     graph={graph}
-                    fillbarDomainSpecs={fillbarDomainSpecs}
+                    chartFunctions={chartFunctions}
+                    getCategoryStatistics={getCategoryStatistics}
                 />
             ))}
         </Section>
@@ -51,12 +52,3 @@ const setMetric = handleSelectChange((metric: CategoriesPageState["metric"]) =>
 const setTableSign = handleSelectChange((tableSign: CategoriesPageState["tableSign"]) =>
     TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableSign }))
 );
-
-// TODO: This will be the final function, I think
-// const useTableData = () => {
-//     return {
-//         options: [] as { id: ID; budget: number; value: number }[], // Ordered
-//         bounds: [0, 1200],
-//         graph: { ... },
-//     };
-// };

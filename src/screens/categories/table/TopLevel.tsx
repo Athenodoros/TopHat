@@ -1,17 +1,24 @@
-import { Card, makeStyles, Typography } from "@material-ui/core";
+import { ButtonBase, Card, makeStyles, Typography } from "@material-ui/core";
+import chroma from "chroma-js";
+import clsx from "clsx";
+import { reverse } from "lodash";
 import numeral from "numeral";
 import React from "react";
-import { BasicChartDomainSpec } from "../../../components/display/BasicBarChart";
+import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
+import { Category } from "../../../state/data";
+import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
+import { useCategoriesTableStyles } from "./styles";
+import { SubCategoryTableView } from "./SubCategory";
 
-const useTopLevelStyles = makeStyles({
+const useStyles = makeStyles({
     container: {
+        margin: "10px 0",
         position: "relative",
         overflow: "hidden",
-        margin: "12px 0",
     },
     colour: {
         position: "absolute",
@@ -22,30 +29,24 @@ const useTopLevelStyles = makeStyles({
         left: -140,
         transform: "rotate(-20deg)",
         opacity: 0.1,
+        pointerEvents: "none",
     },
-    main: {
+    toplevel: {
         display: "flex",
-        height: 64,
+        height: 60,
+        width: "100%",
         alignItems: "center",
+
+        "&:hover": {
+            background: chroma(Greys[500]).alpha(0.1).hex(),
+        },
     },
-    title: {
-        display: "flex",
-        alignItems: "center",
-        flexGrow: 1,
-    },
+    fillbar: { height: 35 },
     icon: {
         height: 20,
         width: 20,
         marginLeft: 30,
         marginRight: 20,
-    },
-    fillbar: {},
-    total: {
-        width: 250,
-        display: "flex",
-        justifyContent: "flex-end",
-        alignItems: "flex-end",
-        marginRight: 40,
     },
     blue: {
         color: Intents.primary.main,
@@ -75,49 +76,89 @@ export interface TopLevelCategoryViewProps {
         success?: boolean | null;
     };
     graph: Record<ID, ID[]>;
-    fillbarDomainSpecs: BasicChartDomainSpec;
+    chartFunctions: BasicChartDomainFunctions;
+    getCategoryStatistics: (category: Category) => { value: number; budget?: number; success?: boolean | null };
 }
-export const TopLevelCategoryView: React.FC<TopLevelCategoryViewProps> = ({ category, graph, fillbarDomainSpecs }) => {
-    const classes = useTopLevelStyles();
+export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
+    category,
+    graph,
+    chartFunctions,
+    getCategoryStatistics,
+}) => {
+    const tableClasses = useCategoriesTableStyles();
+    const classes = useStyles();
+
+    const format = useFormatValue("0,0.00");
+
+    const categories = useCategoryMap();
+    let running: Record<number, number> = { 0: 0 }; // Depth -> Running Total
+    const getNestedSubcategoryNodes = (id: ID, depth: number = 0): JSX.Element[] => {
+        running[depth + 1] = running[depth];
+        const children = graph[id].flatMap((child) => getNestedSubcategoryNodes(child, depth + 1));
+
+        const statistic = getCategoryStatistics(categories[id]!).value;
+        const results = [
+            <SubCategoryTableView
+                key={id}
+                id={id}
+                depth={depth}
+                chartFunctions={chartFunctions}
+                success={category.success ?? null}
+                format={format}
+                range={[running[depth], running[depth + 1], running[depth] + statistic]}
+                // range={[running[depth + 1], running[depth + 1], running[depth] + statistic]}
+            />,
+        ].concat(reverse(children));
+
+        running[depth] += statistic;
+        return results;
+    };
+    const subcategories = reverse(graph[category.id].map((child) => getNestedSubcategoryNodes(child)));
 
     return (
         <Card className={classes.container}>
-            <div className={classes.colour} style={{ background: category.colour }} />
-            <div className={classes.main}>
-                <div className={classes.title}>
+            <ButtonBase className={classes.toplevel}>
+                <div className={tableClasses.title}>
                     {getCategoryIcon(category, classes.icon)}
                     <Typography variant="h5" noWrap={true}>
                         {category.name}
                     </Typography>
                 </div>
-                <div className={classes.fillbar}>
-                    <BasicFillbar
-                        value={category.value}
-                        secondary={category.budget}
-                        spec={fillbarDomainSpecs}
-                        success={category.success}
-                    />
-                </div>
-                <div className={classes.total}>
-                    <Typography
-                        variant="h5"
-                        className={
-                            category.budget !== undefined
-                                ? category.success
-                                    ? classes.green
-                                    : classes.red
-                                : classes.blue
-                        }
-                    >
-                        {numeral(category.value).format("0,0.00")}
-                    </Typography>
-                    {category.budget !== undefined ? (
-                        <Typography variant="caption" className={classes.budget}>
-                            / {numeral(category.budget).format("0,0.00")}
+                <div className={tableClasses.main}>
+                    <div className={tableClasses.subtitle} />
+                    <div className={clsx(tableClasses.fillbar, classes.fillbar)}>
+                        <BasicFillbar
+                            range={[0, 0, category.value]}
+                            // range={[0, running[0], category.value]}
+                            showEndpoint={true}
+                            secondary={category.budget}
+                            functions={chartFunctions}
+                            success={category.success ?? null}
+                        />
+                    </div>
+                    <div className={tableClasses.total}>
+                        <Typography
+                            variant="h5"
+                            className={
+                                category.budget !== undefined
+                                    ? category.success
+                                        ? classes.green
+                                        : classes.red
+                                    : classes.blue
+                            }
+                        >
+                            {format(category.value)}
                         </Typography>
-                    ) : undefined}
+                        {category.budget !== undefined ? (
+                            <Typography variant="caption" className={classes.budget}>
+                                / {numeral(category.budget).format("0,0.00")}
+                            </Typography>
+                        ) : undefined}
+                    </div>
                 </div>
-            </div>
+            </ButtonBase>
+            <div className={classes.colour} style={{ background: category.colour }} />
+            {subcategories}
         </Card>
     );
 };
