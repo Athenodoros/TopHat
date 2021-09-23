@@ -15,13 +15,13 @@ import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utili
 import { BaseTransactionHistory, formatDate, getTodayString } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../../utilities/events";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
 import {
     BasicDialogObjectSelector,
     DialogContents,
     DialogMain,
-    DialogPlaceholderDisplay,
     EditValueContainer,
     getUpdateFunctions,
     ObjectEditContainer,
@@ -67,10 +67,10 @@ export const DialogAccountsView: React.FC = () => {
                 {working ? (
                     <EditAccountView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={AccountBalanceWallet}
                         title="Accounts"
-                        subtext="Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each."
+                        subtitle="Accounts are transaction or investment accounts, or assets to be tracked. They can have multiple currencies, and will track their balances in each."
                     />
                 )}
             </DialogContents>

@@ -1,8 +1,7 @@
-import { makeStyles, Typography } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core";
 import React from "react";
 import { Greys } from "../../../styles/colours";
 import { stopEventPropagation } from "../../../utilities/events";
-import { IconType } from "../../../utilities/types";
 
 /**
  * Dialog Layout Components
@@ -49,39 +48,3 @@ export const DialogContents: React.FC = ({ children }) => (
         {children}
     </div>
 );
-
-const usePlaceholderStyles = makeStyles({
-    placeholder: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        flexGrow: 1,
-        justifyContent: "center",
-        padding: "0 60px 50px 60px",
-    },
-    subtext: {
-        opacity: 0.8,
-        textAlign: "center",
-        marginTop: 10,
-    },
-});
-export interface DialogPlaceholderDisplayProps {
-    icon: IconType;
-    title: string;
-    subtext?: string;
-}
-export const DialogPlaceholderDisplay: React.FC<DialogPlaceholderDisplayProps> = ({ icon: Icon, title, subtext }) => {
-    const classes = usePlaceholderStyles();
-
-    return (
-        <div className={classes.placeholder}>
-            <Icon fontSize="large" htmlColor={Greys[600]} />
-            <Typography variant="h6">{title}</Typography>
-            {subtext !== undefined ? (
-                <Typography variant="body2" className={classes.subtext}>
-                    {subtext}
-                </Typography>
-            ) : undefined}
-        </div>
-    );
-};

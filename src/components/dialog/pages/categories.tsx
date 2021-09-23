@@ -20,13 +20,13 @@ import { handleButtonGroupChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
 import { BasicBarChart } from "../../display/BasicBarChart";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getCategoryIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector } from "../../inputs";
 import {
     DialogContents,
     DialogMain,
     DialogOptions,
-    DialogPlaceholderDisplay,
     DialogSelectorAddNewButton,
     EditTitleContainer,
     EditValueContainer,
@@ -57,10 +57,10 @@ export const DialogCategoriesView: React.FC = () => {
                 {selected !== undefined ? (
                     <EditCategoryView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={ShoppingBasket}
                         title="Categories"
-                        subtext="Categories are a way to break down income and expenses into manageable chunks for tracking and budgeting."
+                        subtitle="Categories are a way to break down income and expenses into manageable chunks for tracking and budgeting."
                     />
                 )}
             </DialogContents>

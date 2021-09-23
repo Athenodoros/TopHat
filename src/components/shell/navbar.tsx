@@ -93,6 +93,7 @@ const useStyles = makeStyles((theme) => ({
 const SelectionEquivalents = {
     ...mapValues(DefaultPages, (page) => page.id as "summary"),
     account: "accounts" as const,
+    category: "categories" as const,
 };
 
 export const NavBar: React.FC = () => {

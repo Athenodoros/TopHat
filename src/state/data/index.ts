@@ -104,6 +104,7 @@ export const DataSlice = createSlice({
                 updateTransactionSummariesWithTransactions(state, state.transaction.ids);
 
                 updateBalancesAndAccountSummaries(state);
+                updateCategoryTransactionDates(state);
 
                 finishDemoInitialisation(state);
             });
@@ -155,6 +156,10 @@ export const DataSlice = createSlice({
             const transactionIDs = transactions.map(({ id }) => id);
             updateTransactionSummariesWithTransactions(state, transfers.concat(transactionIDs));
             updateBalancesAndAccountSummaries(state, getBalanceSubset(transactionIDs, state.transaction.entities));
+            updateCategoryTransactionDates(
+                state,
+                uniq(transactionIDs.map((id) => state.transaction.entities[id]!.category))
+            );
         },
 
         // Notifications
@@ -348,6 +353,24 @@ const updateAccountTransactionDates = (data: DataState, subset?: EntityId[]) => 
             account.firstTransactionDate = tx.date;
         if (!account.lastTransactionDate || account.lastTransactionDate < tx.date)
             account.lastTransactionDate = tx.date;
+    });
+};
+
+const updateCategoryTransactionDates = (data: DataState, subset?: EntityId[]) => {
+    (subset || data.category.ids).forEach((id) => {
+        data.category.entities[id]!.firstTransactionDate = undefined;
+        data.category.entities[id]!.lastTransactionDate = undefined;
+    });
+
+    data.transaction.ids.forEach((id) => {
+        const tx = data.transaction.entities[id]!;
+        if (subset && !subset.includes(tx.category)) return;
+        const category = data.category.entities[tx.category]!;
+
+        if (!category.firstTransactionDate || category.firstTransactionDate > tx.date)
+            category.firstTransactionDate = tx.date;
+        if (!category.lastTransactionDate || category.lastTransactionDate < tx.date)
+            category.lastTransactionDate = tx.date;
     });
 };
 

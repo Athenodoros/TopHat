@@ -92,6 +92,10 @@ export interface CategoriesPageState {
     metric: "previous" | "average";
     tableSign: ChartSign;
 }
+export interface CategoryPageState {
+    id: "category";
+    category: ID;
+}
 export interface AnalysisPageState {
     id: "analysis";
 }
@@ -105,5 +109,6 @@ export type PageStateType =
     | AccountPageState
     | TransactionsPageState
     | CategoriesPageState
+    | CategoryPageState
     | AnalysisPageState
     | ForecastsPageState;

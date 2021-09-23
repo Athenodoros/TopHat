@@ -3,10 +3,12 @@ import chroma from "chroma-js";
 import clsx from "clsx";
 import { reverse } from "lodash";
 import numeral from "numeral";
-import React from "react";
+import React, { useCallback } from "react";
 import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { Category } from "../../../state/data";
 import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
@@ -115,9 +117,14 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     };
     const subcategories = reverse(graph[category.id].map((child) => getNestedSubcategoryNodes(child)));
 
+    const onClick = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "category", category: category.id })),
+        [category.id]
+    );
+
     return (
         <Card className={classes.container}>
-            <ButtonBase className={classes.toplevel}>
+            <ButtonBase className={classes.toplevel} onClick={onClick}>
                 <div className={tableClasses.title}>
                     {getCategoryIcon(category, classes.icon)}
                     <Typography variant="h5" noWrap={true}>

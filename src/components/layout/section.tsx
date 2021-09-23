@@ -41,12 +41,21 @@ const useSectionStyles = makeStyles((theme) => ({
 
 export interface SectionProps {
     className?: string;
+    PaperClassName?: string;
     title?: string;
     headers?: React.ReactNode | React.ReactNode[];
     emptyBody?: boolean;
     onClick?: () => void;
 }
-export const Section: React.FC<SectionProps> = ({ className, title, headers, children, emptyBody, onClick }) => {
+export const Section: React.FC<SectionProps> = ({
+    className,
+    PaperClassName,
+    title,
+    headers,
+    children,
+    emptyBody,
+    onClick,
+}) => {
     const classes = useSectionStyles();
 
     return (
@@ -60,7 +69,7 @@ export const Section: React.FC<SectionProps> = ({ className, title, headers, chi
             {emptyBody ? (
                 children
             ) : (
-                <Paper className={classes.sectionBody} variant="outlined" onClick={onClick}>
+                <Paper className={clsx(classes.sectionBody, PaperClassName)} variant="outlined" onClick={onClick}>
                     {children}
                 </Paper>
             )}

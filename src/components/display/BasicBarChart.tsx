@@ -8,6 +8,9 @@ export interface BasicChartDomainFunctions {
     getOffsetAndSizeForRange: (x: number, y?: number) => { offset: string; size: string };
 }
 export const getBasicChartFunctions = (values: number[], padding: number = 0): BasicChartDomainFunctions => {
+    const flip = values.every((x) => x <= 0) ? -1 : 1;
+    values = values.map((x) => x * flip);
+
     let min = Math.min(0, ...values);
     let max = Math.max(0, ...values);
 
@@ -20,9 +23,10 @@ export const getBasicChartFunctions = (values: number[], padding: number = 0): B
     max += valueRange * padding;
 
     const scale = (raw: number) => (raw / (max - min)) * 100 + "%";
-    const getPoint = (raw: number) => scale(max - raw);
+
+    const getPoint = (raw: number) => scale(max - raw * flip);
     const getOffsetAndSizeForRange = (x: number, y: number = 0) => ({
-        offset: getPoint(Math.max(x, y)),
+        offset: scale(max - Math.max(x * flip, y * flip)),
         size: scale(Math.abs(x - y)),
     });
 

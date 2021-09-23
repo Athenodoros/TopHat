@@ -7,12 +7,12 @@ import { Institution } from "../../../state/data";
 import { getColourFromIcon, getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utilities";
 import { getRandomColour } from "../../../state/utilities/values";
 import { BLACK, Greys } from "../../../styles/colours";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getInstitutionIcon } from "../../display/ObjectDisplay";
 import {
     BasicDialogObjectSelector,
     DialogContents,
     DialogMain,
-    DialogPlaceholderDisplay,
     EditValueContainer,
     getUpdateFunctions,
     ObjectEditContainer,
@@ -56,11 +56,16 @@ export const DialogInstitutionsView: React.FC = () => {
                 {working ? (
                     <EditInstitutionView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={AccountBalance}
                         title="Institutions"
-                        subtext="Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts."
+                        subtitle="Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts."
                     />
+                    // <DialogPlaceholderDisplay
+                    //     icon={AccountBalance}
+                    //     title="Institutions"
+                    //     subtext="Institutions are generally banks and credit unions: organisations at which you can hold one or more Accounts."
+                    // />
                 )}
             </DialogContents>
         </DialogMain>

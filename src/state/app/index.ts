@@ -20,12 +20,16 @@ interface AppState {
 
 const ObjectIDRegex = /^\d+$/;
 export const getPagePathForPageState = (state: PageStateType) => {
-    return "/" + state.id + (state.id === "account" ? "/" + state.account : "");
+    let path = "/" + state.id;
+    if (state.id === "account") path += "/" + state.account;
+    if (state.id === "category") path += "/" + state.category;
+    return path;
 };
 export const getPageStateFromPagePath = (path: string) => {
     const [_, page, id] = trimEnd(path, "#").split("/");
 
     if (page === "account") return ObjectIDRegex.test(id) ? { ...DefaultPages.account, account: Number(id) } : null;
+    if (page === "category") return ObjectIDRegex.test(id) ? { ...DefaultPages.category, category: Number(id) } : null;
 
     return get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
 };

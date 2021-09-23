@@ -8,12 +8,12 @@ import { getNextID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, getRandomColour } from "../../../state/utilities/values";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getCurrencyIcon } from "../../display/ObjectDisplay";
 import {
     BasicDialogObjectSelector,
     DialogContents,
     DialogMain,
-    DialogPlaceholderDisplay,
     EditValueContainer,
     getUpdateFunctions,
     ObjectEditContainer,
@@ -52,10 +52,10 @@ export const DialogCurrenciesView: React.FC = () => {
                 {working ? (
                     <EditCurrencyView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={Euro}
                         title="Currencies"
-                        subtext="Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds."
+                        subtitle="Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds."
                     />
                 )}
             </DialogContents>

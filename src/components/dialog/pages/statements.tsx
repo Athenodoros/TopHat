@@ -14,12 +14,12 @@ import { PLACEHOLDER_STATEMENT_ID } from "../../../state/data/utilities";
 import { formatDate, parseDate } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { withSuppressEvent } from "../../../utilities/events";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import {
     DialogContents,
     DialogMain,
     DialogOptions,
-    DialogPlaceholderDisplay,
     DialogSelectorAddNewButton,
     EditValueContainer,
     getUpdateFunctions,
@@ -69,10 +69,10 @@ export const DialogStatementView: React.FC = () => {
                 {working ? (
                     <EditStatementView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={Description}
                         title="Statements"
-                        subtext="Statements are export files, usually from an Institution, containing one row for each transaction or balance readings. Each is associated with one Account."
+                        subtitle="Statements are export files, usually from an Institution, containing one row for each transaction or balance readings. Each is associated with one Account."
                     />
                 )}
             </DialogContents>

@@ -6,6 +6,7 @@ import {
     AccountPageState,
     AccountsPageState,
     CategoriesPageState,
+    CategoryPageState,
     TransactionsPageState,
     TransactionsTableEditState,
     TransactionsTableFilterState,
@@ -36,6 +37,13 @@ export const useCategoriesPageState = <T = CategoriesPageState>(
     selector: (state: CategoriesPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
 ) => useSelector((state) => selector(state.app.page as CategoriesPageState), equalityFn);
+
+export const useCategoryPageState = <T = CategoryPageState>(
+    selector: (state: CategoryPageState) => T = identity,
+    equalityFn?: (left: T, right: T) => boolean
+) => useSelector((state) => selector(state.app.page as CategoryPageState), equalityFn);
+export const useCategoryPageCategory = () =>
+    useSelector((state) => state.data.category.entities[(state.app.page as CategoryPageState).category]!);
 
 export const useTransactionsPageFilters = (): TransactionsTableFilterState =>
     useTransactionsPageState((state) => pick(state, ...TransactionsTableStateFilterFields), shallowEqual);

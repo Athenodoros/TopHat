@@ -13,12 +13,12 @@ import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../../state/data/utilitie
 import { Greys } from "../../../styles/colours";
 import { handleAutoCompleteChange, handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getCategoryIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
 import {
     DialogContents,
     DialogMain,
-    DialogPlaceholderDisplay,
     DraggableDialogObjectSelector,
     EditTitleContainer,
     EditValueContainer,
@@ -72,10 +72,10 @@ export const DialogRulesView: React.FC = () => {
                 {working ? (
                     <EditRuleView />
                 ) : (
-                    <DialogPlaceholderDisplay
+                    <NonIdealState
                         icon={CallSplit}
                         title="Rules"
-                        subtext="Rules can be set up to automatically categorise and modify transactions as they are added from statements."
+                        subtitle="Rules can be set up to automatically categorise and modify transactions as they are added from statements."
                     />
                 )}
             </DialogContents>

@@ -1,8 +1,11 @@
 import { ButtonBase, makeStyles, Typography } from "@material-ui/core";
 import chroma from "chroma-js";
 import clsx from "clsx";
+import { useCallback } from "react";
 import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { useCategoryByID } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
@@ -62,10 +65,15 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
     const tableClasses = useCategoriesTableStyles();
     const classes = useStyles();
 
+    const onClick = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "category", category: id })),
+        [id]
+    );
+
     return (
         <div className={clsx(classes.row, depth === 0 && classes.root)}>
             <div className={tableClasses.title} />
-            <ButtonBase className={clsx(tableClasses.main, classes.main)}>
+            <ButtonBase className={clsx(tableClasses.main, classes.main)} onClick={onClick}>
                 <Typography
                     variant="body2"
                     className={clsx(tableClasses.subtitle, depth !== 0 ? classes.nested : classes.top)}

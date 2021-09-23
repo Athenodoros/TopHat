@@ -91,6 +91,10 @@ export const useAllObjects = <T extends BasicObjectName>(type: T) =>
         shallowEqual
     );
 
+export const useCategoryColour = (category: Category) => {
+    const parent = last(category.hierarchy) || category.id;
+    return useCategoryByID(parent).colour;
+};
 export const getCategoryColour = (id: ID, working?: Category) => {
     const { entities } = TopHatStore.getState().data.category;
     const { hierarchy } = working || entities[id]!;

@@ -1,5 +1,5 @@
 import { omit } from "lodash";
-import { Account, Category, Currency, Institution, Rule, Statement } from "../data";
+import { Account, Category, Currency, Institution, PLACEHOLDER_CATEGORY_ID, Rule, Statement } from "../data";
 import { DefaultTransactionsTableState } from "./pageTypes";
 import { DialogFileState } from "./statementTypes";
 
@@ -29,6 +29,7 @@ export const DefaultPages = {
         ...DefaultTransactionsTableState,
     },
     categories: { id: "categories", metric: "average", tableSign: "debits" } as const,
+    category: { id: "category" as const, category: PLACEHOLDER_CATEGORY_ID },
     analysis: { id: "analysis" as const },
     forecasts: { id: "forecasts" as const },
 };
