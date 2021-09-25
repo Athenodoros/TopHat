@@ -1,10 +1,9 @@
 import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@material-ui/core";
 import { AddCircleOutline, Description } from "@material-ui/icons";
 import { last } from "lodash-es";
-import React, { useMemo } from "react";
-import { TopHatDispatch, TopHatStore } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { TransactionsTableFilterState } from "../../../state/app/pageTypes";
+import React, { useCallback, useMemo } from "react";
+import { TopHatStore } from "../../../state";
+import { EditTransactionState } from "../../../state/data";
 import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/utilities";
 import { useLocaliseCurrencies, useSelector } from "../../../state/utilities/hooks";
@@ -19,8 +18,8 @@ import { SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
 import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
-import { TransactionsTableFixedData } from "./data";
 import { useTransactionsTableStyles } from "./styles";
+import { TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
 
 const useHeaderStyles = makeStyles({
     description: {
@@ -70,11 +69,17 @@ const useHeaderStyles = makeStyles({
 });
 
 export interface TransactionsTableHeaderProps {
-    filters: TransactionsTableFilterState;
-    updateFilters: (update: Partial<TransactionsTableFilterState>) => void;
-    fixed?: TransactionsTableFixedData;
+    filters: TransactionsTableFilters;
+    setFiltersPartial: (update: Partial<TransactionsTableFilters>) => void;
+    setEdit: (edit: EditTransactionState) => void;
+    fixed?: TransactionsTableFixedDataState;
 }
-export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = ({ filters, updateFilters, fixed }) => {
+export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = ({
+    filters,
+    setFiltersPartial,
+    setEdit,
+    fixed,
+}) => {
     const classes = useTransactionsTableStyles();
     const headerClasses = useHeaderStyles();
 
@@ -93,7 +98,9 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
     const CategoryPopoverState = usePopoverProps();
     const ValuePopoverState = usePopoverProps();
 
-    const updaters = useFilterUpdaters(updateFilters);
+    const updaters = useFilterUpdaters(setFiltersPartial);
+
+    const createNewTransaction = useCreateNewTransaction(setEdit);
 
     return (
         <>
@@ -256,7 +263,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                 </div>
             ) : undefined}
             <div className={classes.actions}>
-                <IconButton size="small" onClick={createNewTransaction(fixed)}>
+                <IconButton size="small" onClick={createNewTransaction}>
                     <AddCircleOutline />
                 </IconButton>
             </div>
@@ -265,7 +272,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 };
 
 const arrayFilters = ["account", "category", "statement"] as const;
-const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilterState>) => void) =>
+const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilters>) => void) =>
     useMemo(
         () => ({
             // Set filters
@@ -310,23 +317,23 @@ const useTransactionValueRange = () => {
     }, [transactions, localiseCurrencyValue]);
 };
 
-const createNewTransaction = (fixed?: TransactionsTableFixedData) => () => {
-    const { data } = TopHatStore.getState();
+const useCreateNewTransaction = (
+    setEdit: (edit: EditTransactionState) => void,
+    fixed?: TransactionsTableFixedDataState
+) =>
+    useCallback(() => {
+        const { data } = TopHatStore.getState();
 
-    TopHatDispatch(
-        AppSlice.actions.setTransactionTableStatePartial({
-            edit: {
-                id: getNextID(data.transaction.ids),
-                date: getTodayString(),
-                summary: "Manual Transaction",
-                value: null,
-                recordedBalance: null,
-                balance: null,
-                account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
-                category: PLACEHOLDER_CATEGORY_ID,
-                currency: data.user.currency,
-                statement: PLACEHOLDER_STATEMENT_ID,
-            },
-        })
-    );
-};
+        setEdit({
+            id: getNextID(data.transaction.ids),
+            date: getTodayString(),
+            summary: "Manual Transaction",
+            value: null,
+            recordedBalance: null,
+            balance: null,
+            account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
+            category: PLACEHOLDER_CATEGORY_ID,
+            currency: data.user.currency,
+            statement: PLACEHOLDER_STATEMENT_ID,
+        });
+    }, [setEdit, fixed]);

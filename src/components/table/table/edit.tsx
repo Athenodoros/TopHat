@@ -2,22 +2,20 @@ import { Button, IconButton, makeStyles, MenuProps, Tooltip } from "@material-ui
 import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@material-ui/icons";
 import { DatePicker } from "@material-ui/pickers";
 import clsx from "clsx";
+import { isEqual } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import { EditTransactionState } from "../../../state/app/pageTypes";
-import { Category, DataSlice, Transaction } from "../../../state/data";
+import { Category, DataSlice, EditTransactionState, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
-import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../../../state/utilities/actions";
 import { formatDate, ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { TransactionsTableFixedData } from "./data";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import { useTransactionsTableStyles } from "./styles";
+import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 const useEditStyles = makeStyles({
     centeredInput: {
@@ -67,13 +65,15 @@ export interface TransactionsTableEditEntryProps {
     edit: EditTransactionState;
     ids: ID[];
     setEditPartial: (update: Partial<EditTransactionState> | null) => void;
-    fixed?: TransactionsTableFixedData;
+    setStatePartial: (update: Partial<TransactionsTableState>) => void;
+    fixed?: TransactionsTableFixedDataState;
 }
 export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProps> = ({
     original: tx,
     ids,
     edit,
     setEditPartial,
+    setStatePartial,
     fixed,
 }) => {
     const classes = useTransactionsTableStyles();
@@ -84,6 +84,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
+    const actions = useActions(ids, edit, setStatePartial);
     const updaters = useEditUpdaters(setEditPartial);
 
     const getCategoryMenuContents = useCallback(
@@ -150,7 +151,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     iconClass={editClasses.categoryDropdownIcon}
                     allowUndefined={!!tx && tx.category === undefined}
                     getMenuContents={getCategoryMenuContents}
-                    getMenuProps={getCategoryMenuProps}
+                    MenuProps={CategoryMenuProps}
                 />
             </div>
             <div className={classes.balance}>
@@ -203,11 +204,19 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
             ) : undefined}
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
-                    <IconButton size="small" onClick={tx ? onSaveChanges(ids, edit) : createTransctionThunk(edit)}>
-                        <SaveTwoTone fontSize="small" htmlColor={Intents.success.main} />
-                    </IconButton>
+                    <span>
+                        <IconButton
+                            size="small"
+                            onClick={tx ? actions.save : actions.create}
+                            disabled={isEqual(tx, edit)}
+                        >
+                            <SaveTwoTone
+                                fontSize="small"
+                                htmlColor={isEqual(tx, edit) ? Intents.success.light : Intents.success.main}
+                            />
+                        </IconButton>
+                    </span>
                 </Tooltip>
-
                 <Tooltip title="Discard Changes">
                     <IconButton size="small" onClick={updaters.discard}>
                         <DeleteTwoTone fontSize="small" htmlColor={Intents.warning.main} />
@@ -215,7 +224,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                 </Tooltip>
                 {tx && (
                     <Tooltip title="Delete Transaction">
-                        <IconButton size="small" onClick={onDeleteChanges(ids)}>
+                        <IconButton size="small" onClick={actions.delete}>
                             <CancelTwoTone fontSize="small" color="error" />
                         </IconButton>
                     </Tooltip>
@@ -225,14 +234,36 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     );
 };
 
-const createTransctionThunk = (edit: EditTransactionState) => () =>
-    batch(() => {
-        TopHatDispatch(AppSlice.actions.setTransactionTableStatePartial({ edit: undefined }));
-        TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions: [edit as Transaction] }));
-    });
-const onSaveChanges = (ids: ID[], edits: EditTransactionState) => () =>
-    TopHatDispatch(SaveTransactionTableSelectionState({ ids, edits }));
-const onDeleteChanges = (ids: ID[]) => () => TopHatDispatch(DeleteTransactionSelectionState(ids));
+const useActions = (
+    ids: ID[],
+    edit: EditTransactionState,
+    setStatePartial: (update: Partial<TransactionsTableState>) => void
+) =>
+    useMemo(
+        () => ({
+            create: () =>
+                batch(() => {
+                    setStatePartial({ edit: undefined });
+                    TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions: [edit as Transaction] }));
+                }),
+            save: () =>
+                batch(() => {
+                    setStatePartial({ edit: undefined });
+                    TopHatDispatch(
+                        DataSlice.actions.updateTransactions({
+                            ids,
+                            edits: edit,
+                        })
+                    );
+                }),
+            delete: () =>
+                batch(() => {
+                    setStatePartial({ edit: undefined, selection: [] });
+                    TopHatDispatch(DataSlice.actions.deleteTransactions(ids));
+                }),
+        }),
+        [setStatePartial, edit, ids]
+    );
 
 const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null) => void) =>
     useMemo(
@@ -254,4 +285,4 @@ const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null)
         [updater]
     );
 
-const getCategoryMenuProps = (): Partial<MenuProps> => ({ PaperProps: { style: { maxHeight: 230, width: 300 } } });
+const CategoryMenuProps: Partial<MenuProps> = { PaperProps: { style: { maxHeight: 230, width: 300 } } };

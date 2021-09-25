@@ -1,12 +1,11 @@
 import { makeStyles } from "@material-ui/core";
-import { omit } from "lodash";
 import { useMemo } from "react";
 import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
+import { TransactionsTableFilters, TransactionsTableState } from "../../components/table/table/types";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
-import { useAccountPageAccount, useAccountPageFilters, useTransactionsTableEditState } from "../../state/app/hooks";
-import { TransactionsTableFilterState } from "../../state/app/pageTypes";
+import { useAccountPageAccount, useAccountPageState } from "../../state/app/hooks";
 import { AccountPageBalances } from "./balances";
 import { AccountPageHeader } from "./header";
 import { AccountStatementTable } from "./statements";
@@ -28,10 +27,9 @@ export const AccountPage: React.FC = () => {
     const classes = useStyles();
 
     const account = useAccountPageAccount();
-    const pageFilters = useAccountPageFilters();
-    const tableState = useTransactionsTableEditState();
+    const table = useAccountPageState((state) => state.table);
     const fixed = useMemo(() => ({ type: "account" as const, account: account.id }), [account]);
-    const filters = useMemo(() => ({ ...pageFilters, account: [account.id] }), [pageFilters, account.id]);
+    const filters = useMemo(() => ({ ...table.filters, account: [account.id] }), [table.filters, account.id]);
 
     return (
         <Page title="Accounts" padding={200}>
@@ -40,10 +38,19 @@ export const AccountPage: React.FC = () => {
                 <AccountPageBalances />
                 <AccountStatementTable />
             </div>
-            <TransactionsTable filters={filters} state={tableState} setFilterPartial={setFilterPartial} fixed={fixed} />
+            <TransactionsTable
+                filters={filters}
+                state={table.state}
+                setFilters={setFilters}
+                setState={setState}
+                fixed={fixed}
+            />
         </Page>
     );
 };
 
-const setFilterPartial = (update: Partial<TransactionsTableFilterState>) =>
-    TopHatDispatch(AppSlice.actions.setAccountPagePartial(omit(update, "account")));
+const setFilters = (filters: TransactionsTableFilters) =>
+    TopHatDispatch(AppSlice.actions.setAccountTableStatePartial({ filters }));
+
+const setState = (state: TransactionsTableState) =>
+    TopHatDispatch(AppSlice.actions.setAccountTableStatePartial({ state }));

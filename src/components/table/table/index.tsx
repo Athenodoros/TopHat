@@ -2,46 +2,44 @@ import { Button, Card, Checkbox } from "@material-ui/core";
 import { PlaylistAdd } from "@material-ui/icons";
 import clsx from "clsx";
 import { noop } from "lodash";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { TableContainer, TableHeaderContainer } from "..";
-import { TopHatDispatch, TopHatStore } from "../../../state";
-import { AppSlice } from "../../../state/app";
-import {
-    EditTransactionState,
-    TransactionsTableEditState,
-    TransactionsTableFilterState,
-} from "../../../state/app/pageTypes";
+import { EditTransactionState } from "../../../state/data";
 import { ID } from "../../../state/utilities/values";
 import { flipListIncludes } from "../../../utilities/data";
-import { getAllCommonTransactionValues, TransactionsTableFixedData, useTransactionsTableData } from "./data";
+import { useRefToValue } from "../../../utilities/hooks";
+import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
 import { useTransactionsTableStyles } from "./styles";
+import { TransactionsTableFilters, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 import { TransactionsTableViewEntry } from "./view";
 
 export interface TransactionsTableProps {
-    filters: TransactionsTableFilterState;
-    state: TransactionsTableEditState;
-    setFilterPartial: (filter: Partial<TransactionsTableFilterState>) => void;
-    fixed?: TransactionsTableFixedData;
+    filters: TransactionsTableFilters;
+    setFilters: (filter: TransactionsTableFilters) => void;
+
+    state: TransactionsTableState;
+    setState: (state: TransactionsTableState) => void;
+
+    fixed?: TransactionsTableFixedDataState;
 }
 
-// This table assumes that the current state.app.page extends TransactionsTableEditState
-// It could be made more general by generating the update functions from supplied
-//     "getEditState" and "setEditState" functions
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     filters,
-    state: { selection, edit },
-    setFilterPartial,
+    state,
     fixed,
+
+    setFilters,
+    setState,
 }) => {
     const classes = useTransactionsTableStyles();
+    const { selection, edit } = state;
     const { ids, groups, metadata } = useTransactionsTableData(filters);
 
-    const loadMoreTransactions = useCallback(
-        () => setFilterPartial({ tableLimit: filters.tableLimit + Math.min(100, filters.tableLimit) }),
-        [filters.tableLimit, setFilterPartial]
-    );
+    const [filtersRef, setFiltersPartial] = useSetPartialValue(filters, setFilters);
+    const [stateRef, setStatePartial] = useSetPartialValue(state, setState);
+    const updaters = useTableUpdateFunctions(stateRef, setStatePartial, filtersRef, setFiltersPartial);
 
     return (
         <TableContainer title="Transaction List">
@@ -52,7 +50,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <Checkbox
                         indeterminate={!!selection.length && selection.length !== ids.length}
                         checked={!!selection.length}
-                        onChange={toggleSelectionHeader(ids)}
+                        onChange={updaters.selectionHeader(ids)}
                         color="primary"
                         disabled={!!edit}
                     />
@@ -62,17 +60,23 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         original={getAllCommonTransactionValues(selection.map((id) => metadata[id]!))}
                         edit={edit}
                         ids={selection}
-                        setEditPartial={setEditStatePartial}
+                        setEditPartial={updaters.editPartial}
+                        setStatePartial={setStatePartial}
                         fixed={fixed}
                     />
                 ) : selection.length ? (
                     <TransactionsTableViewEntry
                         transaction={getAllCommonTransactionValues(selection.map((id) => metadata[id]!))}
-                        updateState={updateTableState}
+                        updateState={setStatePartial}
                         fixed={fixed}
                     />
                 ) : (
-                    <TransactionsTableHeader filters={filters} updateFilters={setFilterPartial} fixed={fixed} />
+                    <TransactionsTableHeader
+                        filters={filters}
+                        setFiltersPartial={setFiltersPartial}
+                        setEdit={updaters.edit}
+                        fixed={fixed}
+                    />
                 )}
             </TableHeaderContainer>
             {edit?.id !== undefined && !ids.includes(edit.id) ? (
@@ -84,7 +88,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         <TransactionsTableEditEntry
                             edit={edit}
                             ids={[edit.id]}
-                            setEditPartial={setEditStatePartial}
+                            setEditPartial={updaters.editPartial}
+                            setStatePartial={setStatePartial}
                             fixed={fixed}
                         />
                     </div>
@@ -97,7 +102,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                             <div className={classes.checkbox}>
                                 <Checkbox
                                     checked={selection.includes(id)}
-                                    onChange={toggleSelection(id)}
+                                    onChange={updaters.selection(id)}
                                     color="primary"
                                     disabled={!!edit}
                                 />
@@ -107,13 +112,14 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                                     original={metadata[id]!}
                                     edit={edit}
                                     ids={[id]}
-                                    setEditPartial={setEditStatePartial}
+                                    setEditPartial={updaters.editPartial}
+                                    setStatePartial={setStatePartial}
                                     fixed={fixed}
                                 />
                             ) : (
                                 <TransactionsTableViewEntry
                                     transaction={metadata[id]!}
-                                    updateState={updateTableState}
+                                    updateState={setStatePartial}
                                     fixed={fixed}
                                 />
                             )}
@@ -124,7 +130,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             <Button
                 variant="outlined"
                 size="large"
-                onClick={loadMoreTransactions}
+                onClick={updaters.loadMore}
                 className={classes.loadMoreTransactionsButton}
                 endIcon={<PlaylistAdd />}
             >
@@ -134,18 +140,38 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     );
 };
 
-const getEditState = () => TopHatStore.getState().app.page as TransactionsTableEditState;
-const setSelection = (selection: ID[]) =>
-    TopHatDispatch(AppSlice.actions.setTransactionTableStatePartial({ selection }));
-const toggleSelection = (id: ID) => () => setSelection(flipListIncludes(id, getEditState().selection));
-const toggleSelectionHeader = (ids: ID[]) => () => setSelection(getEditState().selection.length > 0 ? [] : ids);
+const useSetPartialValue = <T,>(current: T, setValue: (t: T) => void) => {
+    const ref = useRefToValue(current);
+    const setPartial = useCallback(
+        (update: Partial<T>) =>
+            setValue({
+                ...ref.current,
+                ...update,
+            }),
+        [ref, setValue]
+    );
+    return [ref, setPartial] as const;
+};
 
-const updateTableState = (update: Partial<TransactionsTableEditState>) =>
-    TopHatDispatch(AppSlice.actions.setTransactionTableStatePartial(update));
-
-const setEditStatePartial = (update: Partial<EditTransactionState> | null) =>
-    TopHatDispatch(
-        AppSlice.actions.setTransactionTableStatePartial({
-            edit: update ? { ...getEditState().edit!, ...update } : undefined,
-        })
+const useTableUpdateFunctions = (
+    stateRef: React.MutableRefObject<TransactionsTableState>,
+    setStatePartial: (state: Partial<TransactionsTableState>) => void,
+    filterRef: React.MutableRefObject<TransactionsTableFilters>,
+    setFiltersPartial: (state: Partial<TransactionsTableFilters>) => void
+) =>
+    useMemo(
+        () => ({
+            selection: (id: ID) => () =>
+                setStatePartial({ selection: flipListIncludes(id, stateRef.current.selection) }),
+            selectionHeader: (ids: ID[]) => () =>
+                setStatePartial({ selection: stateRef.current.selection.length > 0 ? [] : ids }),
+            edit: (edit: EditTransactionState) => setStatePartial({ edit }),
+            editPartial: (update: Partial<EditTransactionState> | null) =>
+                setStatePartial({ edit: update ? { ...stateRef.current.edit, ...update } : undefined }),
+            loadMore: () =>
+                setFiltersPartial({
+                    tableLimit: filterRef.current.tableLimit + Math.min(100, filterRef.current.tableLimit),
+                }),
+        }),
+        [stateRef, setStatePartial, filterRef, setFiltersPartial]
     );

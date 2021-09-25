@@ -3,8 +3,7 @@ import { Description, Edit, Help } from "@material-ui/icons";
 import clsx from "clsx";
 import { last } from "lodash";
 import React, { useCallback } from "react";
-import { EditTransactionState, TransactionsTableEditState } from "../../../state/app/pageTypes";
-import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
+import { EditTransactionState, PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import {
     useAccountByID,
     useCategoryByID,
@@ -15,13 +14,13 @@ import {
 import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
 import { parseDate } from "../../../state/utilities/values";
 import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
-import { TransactionsTableFixedData } from "./data";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
+import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 export interface TransactionsTableViewEntryProps {
     transaction: EditTransactionState;
-    updateState: (update: Partial<TransactionsTableEditState>) => void;
-    fixed?: TransactionsTableFixedData;
+    updateState: (update: Partial<TransactionsTableState>) => void;
+    fixed?: TransactionsTableFixedDataState;
 }
 export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProps> = ({
     transaction: tx,

@@ -572,7 +572,13 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
             AppSlice.actions.closeDialogAndGoToPage({
                 ...DefaultPages.transactions,
                 ...(page.id === "transactions" ? pick(page, "chartSign", "chartAggregation") : {}),
-                statement: statements.map(({ id }) => id),
+                table: {
+                    ...DefaultPages.transactions.table,
+                    filters: {
+                        ...DefaultPages.transactions.table.filters,
+                        statement: statements.map(({ id }) => id),
+                    },
+                },
             })
         );
     });

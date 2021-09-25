@@ -10,7 +10,7 @@ import { handleTextFieldChange } from "./events";
 //         ref.current = state;
 //     }, [state]);
 
-//     return [ref, setState, state] as [React.MutableRefObject<T>, (t: T) => void, T];
+//     return [ref, setState, state] as const;
 // };
 
 // export const useStateWithEqualityBuffer = <T>(initial: T, buffer: (t1: T, t2: T) => boolean = isEqual) => {
@@ -23,7 +23,7 @@ import { handleTextFieldChange } from "./events";
 //         [buffer, setStateRaw, ref]
 //     );
 
-//     return [state, setState] as [T, (t: T) => void];
+//     return [state, setState] as const;
 // };
 
 export const useDivBoundingRect = <T extends Element = HTMLDivElement>(
@@ -52,7 +52,7 @@ export const useDivBoundingRect = <T extends Element = HTMLDivElement>(
         [observer, setRect, inputRef]
     );
 
-    return [rect, ref] as [DOMRectReadOnly, React.Ref<T>];
+    return [rect, ref] as const;
 };
 
 export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
@@ -99,9 +99,7 @@ export const useNumericInputHandler = (
             onTextChange: handleTextFieldChange((value) => {
                 if (NumberRegex.test(value)) {
                     setText(value);
-
-                    if (value === "") debounced(null);
-                    else if (value === (+value).toString()) debounced(+value);
+                    debounced(value === "" ? null : +value);
                 }
             }),
             setValue: (value: number | null) => setText(FormatNumber(value)),
@@ -116,4 +114,12 @@ export const useNumericInputHandler = (
 export const useNumericInputHandlerState = () => {
     const [value, setValue] = useState<number | null>(null);
     return { value, onTextChange: useNumericInputHandler(value, setValue).onTextChange };
+};
+
+export const useRefToValue = <T>(t: T) => {
+    const ref = useRef(t);
+    useEffect(() => {
+        ref.current = t;
+    }, [t]);
+    return ref;
 };

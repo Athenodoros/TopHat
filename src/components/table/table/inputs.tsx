@@ -239,7 +239,7 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     allowUndefined?: boolean;
     button?: ObjectSelectorCommonProps<T>["children"];
     getMenuContents?: (close: () => void) => React.ReactNode;
-    getMenuProps?: () => Partial<MenuProps>;
+    MenuProps?: Partial<MenuProps>;
 }
 export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string }>({
     options,
@@ -250,13 +250,11 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     allowUndefined,
     button,
     getMenuContents,
-    getMenuProps = () => ({ PaperProps: { style: { maxHeight: 170 } } }),
+    MenuProps = { PaperProps: { style: { maxHeight: 170 } } },
 }: TransactionsTableObjectDropdownProps<T>) => {
     const classes = useTransactionsTableObjectDropdownStyles();
     const MixedClass = useTransactionsTableStyles().mixed;
     const option = options.find(({ id }) => id === selected);
-
-    const MenuProps = useMemo(() => getMenuProps(), [getMenuProps]);
 
     const clearSelection = useCallback<React.MouseEventHandler>(
         (event) => {

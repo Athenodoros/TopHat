@@ -143,6 +143,7 @@ export interface Transaction {
     currency: ID;
     statement: ID;
 }
+export type EditTransactionState = { [K in keyof Transaction]?: Transaction[K] };
 
 /**
  * An imported statement of transactions

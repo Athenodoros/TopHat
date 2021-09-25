@@ -11,7 +11,6 @@ import {
 } from "@reduxjs/toolkit";
 import { clone, cloneDeep, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
 import { takeWithDefault } from "../../utilities/data";
-import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../utilities/actions";
 import {
     BaseBalanceValues,
     getCurrentMonth,
@@ -22,7 +21,7 @@ import {
     TransactionHistory,
 } from "../utilities/values";
 import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo";
-import { Account, BasicObjectType, DataState, Transaction } from "./types";
+import { Account, BasicObjectType, DataState, EditTransactionState, Transaction } from "./types";
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
@@ -37,6 +36,7 @@ export type {
     Category,
     Currency,
     DataState,
+    EditTransactionState,
     Institution,
     Notification,
     Rule,
@@ -161,40 +161,40 @@ export const DataSlice = createSlice({
                 uniq(transactionIDs.map((id) => state.transaction.entities[id]!.category))
             );
         },
+        updateTransactions: (
+            state,
+            { payload: { ids, edits } }: PayloadAction<{ ids: ID[]; edits: EditTransactionState }>
+        ) => {
+            const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
+
+            updateTransactionSummaryStartDates(state);
+            updateTransactionSummariesWithTransactions(state, ids, true);
+
+            adapters.transaction.updateMany(
+                state.transaction,
+                ids.map((id) => ({
+                    id,
+                    changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
+                }))
+            );
+
+            const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
+            updateTransactionSummariesWithTransactions(state, ids);
+            updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
+        },
+        deleteTransactions: (state, { payload: ids }: PayloadAction<ID[]>) => {
+            const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
+
+            updateTransactionSummaryStartDates(state);
+            updateTransactionSummariesWithTransactions(state, ids, true);
+            adapters.transaction.removeMany(state.transaction, ids);
+
+            updateBalancesAndAccountSummaries(state, balanceSubset);
+        },
 
         // Notifications
         deleteNotification: (state, { payload }: PayloadAction<ID>) =>
             void BaseAdapter.removeOne(state.notification, payload),
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(SaveTransactionTableSelectionState, (state, { payload: { ids, edits } }) => {
-                const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
-
-                updateTransactionSummaryStartDates(state);
-                updateTransactionSummariesWithTransactions(state, ids, true);
-
-                adapters.transaction.updateMany(
-                    state.transaction,
-                    ids.map((id) => ({
-                        id,
-                        changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
-                    }))
-                );
-
-                const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
-                updateTransactionSummariesWithTransactions(state, ids);
-                updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
-            })
-            .addCase(DeleteTransactionSelectionState, (state, { payload: ids }) => {
-                const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
-
-                updateTransactionSummaryStartDates(state);
-                updateTransactionSummariesWithTransactions(state, ids, true);
-                adapters.transaction.removeMany(state.transaction, ids);
-
-                updateBalancesAndAccountSummaries(state, balanceSubset);
-            });
     },
 });
 

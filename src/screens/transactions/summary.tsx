@@ -7,6 +7,7 @@ import {
     useTransactionsSummaryData,
 } from "../../components/summary";
 import { SummaryChartSign } from "../../components/summary/utilities";
+import { TransactionsTableFilters } from "../../components/table/table/types";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useTransactionsPageState } from "../../state/app/hooks";
@@ -70,6 +71,16 @@ const setChartSign = handleSelectChange((chartSign: TransactionsPageState["chart
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartSign }))
 );
 
+const updateFilters = (update: Partial<TransactionsTableFilters>) =>
+    TopHatDispatch(
+        AppSlice.actions.setTransactionsTablePartial({
+            filters: {
+                ...(TopHatStore.getState().app.page as TransactionsPageState).table.filters,
+                ...update,
+            },
+        })
+    );
+
 const getCategoryFilter = (category: ID): ID[] => {
     const { ids, entities } = TopHatStore.getState().data.category;
     const children = ids.filter((id) => entities[id]!.hierarchy.includes(category) || id === category);
@@ -79,31 +90,27 @@ const setFilterID = zipObject(
     TransactionsPageAggregations,
     TransactionsPageAggregations.map(
         (aggregation) => (id: number, sign?: SummaryChartSign, fromDate?: string, toDate?: string) =>
-            TopHatDispatch(
-                AppSlice.actions.setTransactionsPagePartial({
-                    ...zipObject(
-                        TransactionsPageAggregations,
-                        TransactionsPageAggregations.map((_) => [])
-                    ),
-                    valueFrom: sign === "credits" ? 0 : undefined,
-                    valueTo: sign === "debits" ? 0 : undefined,
-                    [aggregation]: aggregation !== "category" ? [id] : getCategoryFilter(id),
-                    fromDate,
-                    toDate,
-                })
-            )
+            updateFilters({
+                ...zipObject(
+                    TransactionsPageAggregations,
+                    TransactionsPageAggregations.map((_) => [])
+                ),
+                valueFrom: sign === "credits" ? 0 : undefined,
+                valueTo: sign === "debits" ? 0 : undefined,
+                [aggregation]: aggregation !== "category" ? [id] : getCategoryFilter(id),
+                fromDate,
+                toDate,
+            })
     )
 );
 const clearFilter = () =>
-    TopHatDispatch(
-        AppSlice.actions.setTransactionsPagePartial({
-            ...zipObject(
-                TransactionsPageAggregations,
-                TransactionsPageAggregations.map((_) => [])
-            ),
-            fromDate: undefined,
-            toDate: undefined,
-            valueFrom: undefined,
-            valueTo: undefined,
-        })
-    );
+    updateFilters({
+        ...zipObject(
+            TransactionsPageAggregations,
+            TransactionsPageAggregations.map((_) => [])
+        ),
+        fromDate: undefined,
+        toDate: undefined,
+        valueFrom: undefined,
+        valueTo: undefined,
+    });

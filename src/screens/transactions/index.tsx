@@ -1,23 +1,25 @@
 import React from "react";
 import { Page } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
+import { TransactionsTableFilters, TransactionsTableState } from "../../components/table/table/types";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
-import { useTransactionsPageFilters, useTransactionsTableEditState } from "../../state/app/hooks";
-import { TransactionsTableFilterState } from "../../state/app/pageTypes";
+import { useTransactionsPageState } from "../../state/app/hooks";
 import { TransactionsPageSummary } from "./summary";
 
 export const TransactionsPage: React.FC = () => {
-    const filters = useTransactionsPageFilters();
-    const tableState = useTransactionsTableEditState();
+    const { filters, state } = useTransactionsPageState((state) => state.table);
 
     return (
         <Page title="Transactions" padding={200}>
             <TransactionsPageSummary />
-            <TransactionsTable filters={filters} state={tableState} setFilterPartial={setFilterPartial} />
+            <TransactionsTable filters={filters} state={state} setFilters={setFilters} setState={setState} />
         </Page>
     );
 };
 
-const setFilterPartial = (update: Partial<TransactionsTableFilterState>) =>
-    TopHatDispatch(AppSlice.actions.setTransactionsPagePartial(update));
+const setFilters = (filters: TransactionsTableFilters) =>
+    TopHatDispatch(AppSlice.actions.setTransactionsTablePartial({ filters }));
+
+const setState = (state: TransactionsTableState) =>
+    TopHatDispatch(AppSlice.actions.setTransactionsTablePartial({ state }));

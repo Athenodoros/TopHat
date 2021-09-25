@@ -1,13 +1,12 @@
 import { groupBy, keys, toPairs, uniqBy, zipObject } from "lodash";
 import { useMemo } from "react";
 import { filterListByID } from "..";
-import { EditTransactionState, TransactionsTableFilterState } from "../../../state/app/pageTypes";
-import { Transaction } from "../../../state/data";
+import { EditTransactionState, Transaction } from "../../../state/data";
 import { useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
-import { ID } from "../../../state/utilities/values";
 import { takeWithFilter } from "../../../utilities/data";
+import { TransactionsTableFilters } from "./types";
 
-export const useTransactionsTableData = (filters: TransactionsTableFilterState) => {
+export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
     const transactions = useTransactionIDs();
     const metadata = useTransactionMap();
 
@@ -60,9 +59,4 @@ export const getAllCommonTransactionValues = (transactions: Transaction[]) => {
             return values.length === 1 ? values[0][key] : undefined;
         })
     ) as EditTransactionState;
-};
-
-export type TransactionsTableFixedData = {
-    type: "account";
-    account: ID;
 };

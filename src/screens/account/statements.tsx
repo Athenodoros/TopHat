@@ -109,4 +109,4 @@ const openUploadStatementDialog = (account: Account) => () =>
 const openEditStatementDialog = (statement: Statement) => () =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "statement", statement }));
 const filterTableToStatement = (statement: ID) => () =>
-    TopHatDispatch(AppSlice.actions.setAccountPagePartial({ statement: [statement] }));
+    TopHatDispatch(AppSlice.actions.setAccountTableStatement(statement));

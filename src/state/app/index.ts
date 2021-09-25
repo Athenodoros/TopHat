@@ -1,6 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd, trimStart } from "lodash";
-import { DeleteTransactionSelectionState, SaveTransactionTableSelectionState } from "../utilities/actions";
+import { ID } from "../utilities/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
     AccountPageState,
@@ -8,7 +8,6 @@ import {
     CategoriesPageState,
     PageStateType,
     TransactionsPageState,
-    TransactionsTableEditState,
 } from "./pageTypes";
 export { DefaultPages } from "./defaults";
 export type { DialogState } from "./defaults";
@@ -56,6 +55,17 @@ export const AppSlice = createSlice({
                 ...payload,
             };
         },
+        setAccountTableStatePartial: (state, { payload }: PayloadAction<Partial<AccountPageState["table"]>>) => {
+            if (state.page.id !== "account") state.page = DefaultPages["account"];
+            state.page.table = {
+                ...state.page.table,
+                ...payload,
+            };
+        },
+        setAccountTableStatement: (state, { payload }: PayloadAction<ID>) => {
+            if (state.page.id !== "account") state.page = DefaultPages["account"];
+            state.page.table.filters.statement = [payload];
+        },
         setAccountPagePartial: (state, { payload }: PayloadAction<Partial<AccountPageState>>) => {
             state.page = {
                 ...(state.page.id === "account" ? state.page : DefaultPages["account"]),
@@ -68,10 +78,10 @@ export const AppSlice = createSlice({
                 ...payload,
             };
         },
-        setTransactionTableStatePartial: (state, { payload }: PayloadAction<Partial<TransactionsTableEditState>>) => {
-            if (state.page.id !== "transactions") return;
-            state.page = {
-                ...state.page,
+        setTransactionsTablePartial: (state, { payload }: PayloadAction<Partial<TransactionsPageState["table"]>>) => {
+            if (state.page.id !== "transactions") state.page = DefaultPages["transactions"];
+            state.page.table = {
+                ...state.page.table,
                 ...payload,
             };
         },
@@ -94,16 +104,6 @@ export const AppSlice = createSlice({
             dialog: DefaultDialogs,
             page,
         }),
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(SaveTransactionTableSelectionState, (state) => {
-                (state.page as TransactionsTableEditState).edit = undefined;
-            })
-            .addCase(DeleteTransactionSelectionState, (state) => {
-                (state.page as TransactionsTableEditState).selection = [];
-                (state.page as TransactionsTableEditState).edit = undefined;
-            });
     },
 });
 const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion

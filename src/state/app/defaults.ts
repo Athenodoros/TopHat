@@ -1,6 +1,6 @@
 import { omit } from "lodash";
+import { DefaultTransactionsTableFilters, DefaultTransactionsTableState } from "../../components/table/table/types";
 import { Account, Category, Currency, Institution, PLACEHOLDER_CATEGORY_ID, Rule, Statement } from "../data";
-import { DefaultTransactionsTableState } from "./pageTypes";
 import { DialogFileState } from "./statementTypes";
 
 export const DefaultPages = {
@@ -19,14 +19,20 @@ export const DefaultPages = {
     account: {
         id: "account" as const,
         account: 0,
-        ...omit(DefaultTransactionsTableState, "account"),
+        table: {
+            filters: omit(DefaultTransactionsTableFilters, "account"),
+            state: DefaultTransactionsTableState,
+        },
     },
     transactions: {
         id: "transactions" as const,
         transfers: false,
         chartSign: "debits" as const,
         chartAggregation: "category" as const,
-        ...DefaultTransactionsTableState,
+        table: {
+            filters: DefaultTransactionsTableFilters,
+            state: DefaultTransactionsTableState,
+        },
     },
     categories: { id: "categories", metric: "average", tableSign: "debits" } as const,
     category: { id: "category" as const, category: PLACEHOLDER_CATEGORY_ID },
