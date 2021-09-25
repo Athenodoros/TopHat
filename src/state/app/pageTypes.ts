@@ -58,6 +58,10 @@ export interface CategoriesPageState {
 export interface CategoryPageState {
     id: "category";
     category: ID;
+    table: {
+        filters: Omit<TransactionsTableFilters, "category">;
+        state: TransactionsTableState;
+    };
 }
 export interface AnalysisPageState {
     id: "analysis";

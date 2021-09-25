@@ -6,6 +6,7 @@ import {
     AccountPageState,
     AccountsPageState,
     CategoriesPageState,
+    CategoryPageState,
     PageStateType,
     TransactionsPageState,
 } from "./pageTypes";
@@ -88,6 +89,13 @@ export const AppSlice = createSlice({
         setCategoriesPagePartial: (state, { payload }: PayloadAction<Partial<CategoriesPageState>>) => {
             state.page = {
                 ...(state.page.id === "categories" ? state.page : DefaultPages["categories"]),
+                ...payload,
+            };
+        },
+        setCategoryTableStatePartial: (state, { payload }: PayloadAction<Partial<CategoryPageState["table"]>>) => {
+            if (state.page.id !== "category") state.page = DefaultPages["category"];
+            state.page.table = {
+                ...state.page.table,
                 ...payload,
             };
         },

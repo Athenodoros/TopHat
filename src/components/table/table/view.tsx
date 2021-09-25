@@ -96,16 +96,20 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 )}
             </div>
             <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
-            <div className={classes.category}>
-                {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
-                    <div className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}>
-                        {getCategoryIcon(category, classes.categoryIcon)}
-                        {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
-                    </div>
-                ) : category === undefined ? (
-                    MissingText
-                ) : undefined}
-            </div>
+            {fixed?.type !== "category" ? (
+                <div className={classes.category}>
+                    {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
+                        <div
+                            className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}
+                        >
+                            {getCategoryIcon(category, classes.categoryIcon)}
+                            {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
+                        </div>
+                    ) : category === undefined ? (
+                        MissingText
+                    ) : undefined}
+                </div>
+            ) : undefined}
             <div className={classes.balance}>
                 {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
             </div>

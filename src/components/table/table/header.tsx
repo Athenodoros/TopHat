@@ -206,19 +206,27 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     </Popover>
                 </div>
             </div>
-            <div className={classes.category}>
-                <div className={classes.compound}>
-                    CATEGORY
-                    <FilterIcon
-                        badgeContent={filters.category.length}
-                        ButtonProps={CategoryPopoverState.buttonProps}
-                        onRightClick={updaters.removeCategories}
-                    />
-                    <Menu {...CategoryPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 230, width: 300 } }}>
-                        <MultipleCategoryMenu selected={filters.category} setSelected={updaters.selectIDs.category} />
-                    </Menu>
+            {fixed?.type !== "category" ? (
+                <div className={classes.category}>
+                    <div className={classes.compound}>
+                        CATEGORY
+                        <FilterIcon
+                            badgeContent={filters.category.length}
+                            ButtonProps={CategoryPopoverState.buttonProps}
+                            onRightClick={updaters.removeCategories}
+                        />
+                        <Menu
+                            {...CategoryPopoverState.popoverProps}
+                            PaperProps={{ style: { maxHeight: 230, width: 300 } }}
+                        >
+                            <MultipleCategoryMenu
+                                selected={filters.category}
+                                setSelected={updaters.selectIDs.category}
+                            />
+                        </Menu>
+                    </div>
                 </div>
-            </div>
+            ) : undefined}
             <div className={classes.balance}>BALANCE</div>
             <div className={classes.statement}>
                 <FilterIcon
@@ -332,7 +340,7 @@ const useCreateNewTransaction = (
             recordedBalance: null,
             balance: null,
             account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
-            category: PLACEHOLDER_CATEGORY_ID,
+            category: fixed?.type === "category" ? fixed.category : PLACEHOLDER_CATEGORY_ID,
             currency: data.user.currency,
             statement: PLACEHOLDER_STATEMENT_ID,
         });

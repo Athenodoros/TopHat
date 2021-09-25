@@ -35,7 +35,14 @@ export const DefaultPages = {
         },
     },
     categories: { id: "categories", metric: "average", tableSign: "debits" } as const,
-    category: { id: "category" as const, category: PLACEHOLDER_CATEGORY_ID },
+    category: {
+        id: "category" as const,
+        category: PLACEHOLDER_CATEGORY_ID,
+        table: {
+            filters: omit(DefaultTransactionsTableFilters, "category"),
+            state: DefaultTransactionsTableState,
+        },
+    },
     analysis: { id: "analysis" as const },
     forecasts: { id: "forecasts" as const },
 };

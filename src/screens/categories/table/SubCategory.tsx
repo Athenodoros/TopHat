@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
+import { AppSlice, DefaultPages } from "../../../state/app";
 import { useCategoryByID } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
@@ -66,7 +66,7 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
     const classes = useStyles();
 
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "category", category: id })),
+        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.category, category: id })),
         [id]
     );
 

@@ -37,7 +37,12 @@ export const DefaultTransactionsTableState: TransactionsTableState = {
 };
 
 // Fixed state state
-export type TransactionsTableFixedDataState = {
-    type: "account";
-    account: ID;
-};
+export type TransactionsTableFixedDataState =
+    | {
+          type: "account";
+          account: ID;
+      }
+    | {
+          type: "category";
+          category: ID;
+      };

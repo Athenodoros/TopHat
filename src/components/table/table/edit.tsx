@@ -142,18 +142,20 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     allowUndefinedValue={!!tx && tx.value === undefined}
                 />
             </div>
-            <div className={classes.category}>
-                <TransactionsTableObjectDropdown
-                    options={categories}
-                    selected={edit.category}
-                    select={updaters.category}
-                    getIcon={getCategoryIcon}
-                    iconClass={editClasses.categoryDropdownIcon}
-                    allowUndefined={!!tx && tx.category === undefined}
-                    getMenuContents={getCategoryMenuContents}
-                    MenuProps={CategoryMenuProps}
-                />
-            </div>
+            {fixed?.type !== "category" ? (
+                <div className={classes.category}>
+                    <TransactionsTableObjectDropdown
+                        options={categories}
+                        selected={edit.category}
+                        select={updaters.category}
+                        getIcon={getCategoryIcon}
+                        iconClass={editClasses.categoryDropdownIcon}
+                        allowUndefined={!!tx && tx.category === undefined}
+                        getMenuContents={getCategoryMenuContents}
+                        MenuProps={CategoryMenuProps}
+                    />
+                </div>
+            ) : undefined}
             <div className={classes.balance}>
                 <EditableCurrencyValue
                     currency={edit.currency}

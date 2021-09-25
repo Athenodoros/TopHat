@@ -8,7 +8,7 @@ import { BasicChartDomainFunctions } from "../../../components/display/BasicBarC
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
 import { TopHatDispatch } from "../../../state";
-import { AppSlice } from "../../../state/app";
+import { AppSlice, DefaultPages } from "../../../state/app";
 import { Category } from "../../../state/data";
 import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
 import { ID } from "../../../state/utilities/values";
@@ -118,7 +118,7 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     const subcategories = reverse(graph[category.id].map((child) => getNestedSubcategoryNodes(child)));
 
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ id: "category", category: category.id })),
+        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.category, category: category.id })),
         [category.id]
     );
 
