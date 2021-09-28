@@ -1,5 +1,5 @@
-import { Badge, ListItemIcon, ListItemText, Menu, MenuItem, Popover } from "@material-ui/core";
-import { ChevronRight } from "@material-ui/icons";
+import { Badge, ListItemIcon, ListItemText, Menu, MenuItem, Popover } from "@mui/material";
+import { ChevronRight } from "@mui/icons-material";
 import React from "react";
 import { NBSP } from "../../../utilities/constants";
 import { suppressEvent } from "../../../utilities/events";

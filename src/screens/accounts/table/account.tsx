@@ -1,5 +1,6 @@
-import { Button, ButtonBase, makeStyles, Tooltip, Typography } from "@material-ui/core";
-import { Add, Description, Edit, NoteAdd, Update } from "@material-ui/icons";
+import { Button, ButtonBase, Tooltip, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { Add, Description, Edit, NoteAdd, Update } from "@mui/icons-material";
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";

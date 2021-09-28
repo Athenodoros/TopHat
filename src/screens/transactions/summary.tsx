@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@material-ui/core";
+import { MenuItem, Select } from "@mui/material";
 import { Section } from "../../components/layout";
 import {
     SummaryBarChart,
@@ -35,20 +35,16 @@ export const TransactionsPageSummary: React.FC = () => {
             <Section
                 title=""
                 headers={[
-                    <FormControl variant="outlined" size="small" key="aggregation">
-                        <Select value={aggregation} onChange={setAggregation}>
-                            <MenuItem value="account">By Account</MenuItem>
-                            <MenuItem value="category">By Category</MenuItem>
-                            <MenuItem value="currency">By Currency</MenuItem>
-                        </Select>
-                    </FormControl>,
-                    <FormControl variant="outlined" size="small" key="sign">
-                        <Select value={sign} onChange={setChartSign}>
-                            <MenuItem value="all">All Transactions</MenuItem>
-                            <MenuItem value="credits">Income</MenuItem>
-                            <MenuItem value="debits">Expenses</MenuItem>
-                        </Select>
-                    </FormControl>,
+                    <Select value={aggregation} onChange={setAggregation} size="small" key="aggregation">
+                        <MenuItem value="account">By Account</MenuItem>
+                        <MenuItem value="category">By Category</MenuItem>
+                        <MenuItem value="currency">By Currency</MenuItem>
+                    </Select>,
+                    <Select value={sign} onChange={setChartSign} size="small" key="sign">
+                        <MenuItem value="all">All Transactions</MenuItem>
+                        <MenuItem value="credits">Income</MenuItem>
+                        <MenuItem value="debits">Expenses</MenuItem>
+                    </Select>,
                 ]}
                 onClick={clearFilter}
             >

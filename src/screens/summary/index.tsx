@@ -1,5 +1,6 @@
-import { Button, makeStyles } from "@material-ui/core";
-import { ChevronRight } from "@material-ui/icons";
+import { Button } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { ChevronRight } from "@mui/icons-material";
 import React from "react";
 import { Page, Section, SECTION_MARGIN } from "../../components/layout";
 import { Notifications } from "../../components/shell/notifications";

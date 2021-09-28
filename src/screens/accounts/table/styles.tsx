@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import makeStyles from '@mui/styles/makeStyles';
 
 export const ACCOUNT_TABLE_LEFT_PADDING = 19;
 

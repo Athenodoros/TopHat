@@ -1,6 +1,7 @@
-import { Button, IconButton, makeStyles, MenuProps, Tooltip } from "@material-ui/core";
-import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@material-ui/icons";
-import { DatePicker } from "@material-ui/pickers";
+import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@mui/icons-material";
+import { DatePickerProps } from "@mui/lab";
+import { Button, IconButton, MenuProps, TextField, Tooltip } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { isEqual } from "lodash";
 import { DateTime } from "luxon";
@@ -13,6 +14,7 @@ import { formatDate, ID } from "../../../state/utilities/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { AutoClosingDatePicker } from "../../inputs";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import { useTransactionsTableStyles } from "./styles";
 import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
@@ -105,18 +107,21 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     return (
         <>
             <div className={classes.date}>
-                <DatePicker
+                <AutoClosingDatePicker
                     value={edit.date || null}
-                    onChange={updaters.date}
-                    format="yyyy-MM-dd"
-                    inputVariant="outlined"
-                    className={editClasses.centeredInput}
-                    size="small"
-                    color="primary"
+                    onChange={updaters.date as DatePickerProps["onChange"]}
                     disableFuture={true}
+                    inputFormat="yyyy-MM-dd"
                     clearable={tx && tx.date === undefined}
-                    emptyLabel="(mixed)"
-                    inputProps={edit.date ? undefined : { className: classes.mixed }}
+                    className={editClasses.centeredInput}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            size="small"
+                            placeholder="(mixed)"
+                            InputProps={edit.date ? undefined : { className: classes.mixed }}
+                        />
+                    )}
                 />
             </div>
             <div className={clsx(classes.text, editClasses.editText)}>

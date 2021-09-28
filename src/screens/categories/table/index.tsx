@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@material-ui/core";
+import { MenuItem, Select } from "@mui/material";
 import React from "react";
 import { Section } from "../../../components/layout";
 import { TopHatDispatch } from "../../../state";
@@ -18,19 +18,15 @@ export const CategoryTable: React.FC = () => {
             title="All Categories"
             emptyBody={true}
             headers={[
-                <FormControl variant="outlined" size="small" key="metric">
-                    <Select value={metric} onChange={setMetric}>
-                        <MenuItem value="previous">Previous Month</MenuItem>
-                        <MenuItem value="average">Average</MenuItem>
-                    </Select>
-                </FormControl>,
-                <FormControl variant="outlined" size="small" key="sign">
-                    <Select value={tableSign} onChange={setTableSign}>
-                        <MenuItem value="all">All Categories</MenuItem>
-                        <MenuItem value="debits">Expense Categories</MenuItem>
-                        <MenuItem value="credits">Credit Categories</MenuItem>
-                    </Select>
-                </FormControl>,
+                <Select value={metric} onChange={setMetric} size="small" key="metric">
+                    <MenuItem value="previous">Previous Month</MenuItem>
+                    <MenuItem value="average">Average</MenuItem>
+                </Select>,
+                <Select value={tableSign} onChange={setTableSign} size="small" key="sign">
+                    <MenuItem value="all">All Categories</MenuItem>
+                    <MenuItem value="debits">Expense Categories</MenuItem>
+                    <MenuItem value="credits">Credit Categories</MenuItem>
+                </Select>,
             ]}
         >
             {options.map((option) => (

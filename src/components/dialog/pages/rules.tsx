@@ -1,6 +1,6 @@
-import { Button, Checkbox, ListItemText, makeStyles, TextField, Typography } from "@material-ui/core";
-import { CallSplit, KeyboardArrowDown } from "@material-ui/icons";
-import { Autocomplete } from "@material-ui/lab";
+import { CallSplit, KeyboardArrowDown } from "@mui/icons-material";
+import { Autocomplete, Button, Checkbox, ListItemText, TextField, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { identity, inRange } from "lodash";
 import React, { useCallback } from "react";
@@ -140,12 +140,12 @@ const useEditViewStyles = makeStyles((theme) => ({
         textTransform: "inherit",
         height: 40,
 
-        "& .MuiButton-label > p": {
+        "& > p": {
             flexGrow: 1,
             textAlign: "left",
         },
 
-        "& .MuiButton-label > svg:last-child": {
+        "& > svg": {
             marginLeft: 15,
         },
     },
@@ -215,7 +215,6 @@ const EditRuleView: React.FC = () => {
                         renderInput={(params) => (
                             <TextField
                                 {...params}
-                                variant="outlined"
                                 label="Transaction Reference"
                                 size="small"
                                 onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -240,20 +239,8 @@ const EditRuleView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Value">
                 <div className={classes.range}>
-                    <TextField
-                        variant="outlined"
-                        value={min.text}
-                        onChange={min.onTextChange}
-                        size="small"
-                        label="Minimum"
-                    />
-                    <TextField
-                        variant="outlined"
-                        value={max.text}
-                        onChange={max.onTextChange}
-                        size="small"
-                        label="Maximum"
-                    />
+                    <TextField value={min.text} onChange={min.onTextChange} size="small" label="Minimum" />
+                    <TextField value={max.text} onChange={max.onTextChange} size="small" label="Maximum" />
                 </div>
             </EditValueContainer>
             <EditValueContainer label="Accounts">
@@ -266,24 +253,21 @@ const EditRuleView: React.FC = () => {
                     value={working.accounts.map((id) => accountMap[id]!)}
                     autoHighlight={true}
                     onChange={updateWorkingAccounts}
-                    renderOption={(account) => (
-                        <>
+                    renderOption={(props, account) => (
+                        <li {...props}>
                             {getAccountIcon(account, classes.accountIcon)}
                             <Typography variant="body1" className={classes.grow}>
                                 {account.name}
                             </Typography>
                             <Checkbox size="small" color="primary" checked={working.accounts.includes(account.id)} />
-                        </>
+                        </li>
                     )}
-                    renderInput={(params) => (
-                        <TextField {...params} variant="outlined" label="Included Accounts" size="small" />
-                    )}
+                    renderInput={(params) => <TextField {...params} label="Included Accounts" size="small" />}
                 />
             </EditValueContainer>
             <EditTitleContainer title="Updated Values" />
             <EditValueContainer label="Summary">
                 <TextField
-                    variant="outlined"
                     value={working.summary || ""}
                     onChange={updateWorkingSummary}
                     size="small"
@@ -292,7 +276,6 @@ const EditRuleView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Description">
                 <TextField
-                    variant="outlined"
                     value={working.description || ""}
                     onChange={updateWorkingDescription}
                     size="small"

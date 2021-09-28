@@ -1,4 +1,5 @@
-import { makeStyles, Tooltip, Typography } from "@material-ui/core";
+import { Tooltip, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../../styles/colours";

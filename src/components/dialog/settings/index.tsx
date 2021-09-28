@@ -1,11 +1,13 @@
-import { List, ListItemIcon, ListItemText, ListSubheader, makeStyles, MenuItem } from "@material-ui/core";
-import { CloudDone, Edit, GetApp, ListAlt, Timeline } from "@material-ui/icons";
+import { CloudDone, Edit, GetApp, ListAlt, Timeline } from "@mui/icons-material";
+import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import React from "react";
 import { TopHatDispatch, TopHatStore } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useDialogState } from "../../../state/app/hooks";
 import { useSelector } from "../../../state/utilities/hooks";
+import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { withSuppressEvent } from "../../../utilities/events";
 import { DialogContents, DialogMain, DialogOptions } from "../utilities";
@@ -19,6 +21,7 @@ const useStyles = makeStyles({
             paddingRight: 20,
         },
     },
+    subheader: { background: Greys[200] },
 });
 export const DialogSettingsView: React.FC = () => {
     const classes = useStyles();
@@ -29,7 +32,7 @@ export const DialogSettingsView: React.FC = () => {
         <DialogMain>
             <DialogOptions>
                 <List className={classes.list}>
-                    <ListSubheader>Data</ListSubheader>
+                    <ListSubheader className={classes.subheader}>Data</ListSubheader>
                     <MenuItem onClick={setEmptyPage} selected={page === undefined}>
                         <ListItemIcon>
                             <ListAlt fontSize="small" />
@@ -48,7 +51,7 @@ export const DialogSettingsView: React.FC = () => {
                         </ListItemIcon>
                         <ListItemText>Export</ListItemText>
                     </MenuItem>
-                    <ListSubheader>Settings</ListSubheader>
+                    <ListSubheader className={classes.subheader}>Settings</ListSubheader>
                     <MenuItem onClick={setPage["storage"]} selected={page === "storage"}>
                         <ListItemIcon>
                             <CloudDone fontSize="small" />

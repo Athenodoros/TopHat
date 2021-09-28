@@ -1,4 +1,4 @@
-import { unstable_createMuiStrictModeTheme as createMuiTheme } from "@material-ui/core";
+import { unstable_createMuiStrictModeTheme as createMuiTheme } from "@mui/material";
 import { Greys, Intents } from "./colours";
 
 export const theme = createMuiTheme({

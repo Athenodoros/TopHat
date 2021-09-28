@@ -1,14 +1,4 @@
 import {
-    IconButton,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    makeStyles,
-    Menu,
-    MenuItem,
-    Typography,
-} from "@material-ui/core";
-import {
     AccountBalance,
     AccountBalanceWallet,
     AddCircleOutline,
@@ -16,8 +6,20 @@ import {
     Euro,
     Exposure,
     IndeterminateCheckBox,
-} from "@material-ui/icons";
-import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
+} from "@mui/icons-material";
+import {
+    IconButton,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
+} from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
+import clsx from "clsx";
 import React, { useCallback } from "react";
 import { createNewAccount } from "../../../components/dialog/pages/accounts";
 import { createNewInstitution } from "../../../components/dialog/pages/institutions";
@@ -44,14 +46,17 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
     },
+    accounts: {
+        flexDirection: "row",
+    },
     accountInner: {
         display: "flex",
         alignItems: "center",
         paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
+        flexGrow: 1,
     },
     actions: {
-        padding: "0 10px",
-        marginLeft: -50,
+        paddingLeft: 10,
     },
     actionsItem: {
         width: 250,
@@ -102,7 +107,7 @@ export const AccountsTableHeader: React.FC = () => {
                     </Menu>
                 </div>
             </div>
-            <div className={accountsTableClasses.accounts}>
+            <div className={clsx(accountsTableClasses.accounts, classes.accounts)}>
                 <div className={classes.accountInner}>
                     <Typography variant="h6">Account</Typography>
                     <FilterIcon
@@ -191,29 +196,29 @@ export const AccountsTableHeader: React.FC = () => {
                         </ListItem>
                     </Menu>
                 </div>
-            </div>
-            <div className={classes.actions}>
-                <IconButton size="small" {...AddNewPopover.buttonProps}>
-                    <AddCircleOutline />
-                </IconButton>
-                <Menu
-                    {...AddNewPopover.popoverProps}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                    transformOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                    <MenuItem onClick={startAccountCreationCallback} className={classes.actionsItem}>
-                        <ListItemIcon>
-                            <AccountBalanceWallet />
-                        </ListItemIcon>
-                        <ListItemText>New Account</ListItemText>
-                    </MenuItem>
-                    <MenuItem onClick={startInstitutionCreationCallback} className={classes.actionsItem}>
-                        <ListItemIcon>
-                            <AccountBalance />
-                        </ListItemIcon>
-                        <ListItemText>New Institution</ListItemText>
-                    </MenuItem>
-                </Menu>
+                <div className={classes.actions}>
+                    <IconButton size="small" {...AddNewPopover.buttonProps}>
+                        <AddCircleOutline />
+                    </IconButton>
+                    <Menu
+                        {...AddNewPopover.popoverProps}
+                        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                        transformOrigin={{ vertical: "top", horizontal: "right" }}
+                    >
+                        <MenuItem onClick={startAccountCreationCallback} className={classes.actionsItem}>
+                            <ListItemIcon>
+                                <AccountBalanceWallet />
+                            </ListItemIcon>
+                            <ListItemText>New Account</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={startInstitutionCreationCallback} className={classes.actionsItem}>
+                            <ListItemIcon>
+                                <AccountBalance />
+                            </ListItemIcon>
+                            <ListItemText>New Institution</ListItemText>
+                        </MenuItem>
+                    </Menu>
+                </div>
             </div>
         </TableHeaderContainer>
     );

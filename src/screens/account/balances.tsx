@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@material-ui/core";
+import { MenuItem, Select } from "@mui/material";
 import { keys } from "lodash";
 import { useState } from "react";
 import { Section } from "../../components/layout";
@@ -23,16 +23,14 @@ export const AccountPageBalances: React.FC = () => {
         <Section
             title="Balance History"
             headers={[
-                <FormControl variant="outlined" size="small" key="aggregation">
-                    <Select value={currency} onChange={onChangeCurrency}>
-                        <MenuItem value="all">All Currencies</MenuItem>
-                        {keys(account.balances).map((id) => (
-                            <MenuItem value={id} key={id}>
-                                {currencies[id]!.symbol}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>,
+                <Select value={currency} onChange={onChangeCurrency} size="small" key="aggregation">
+                    <MenuItem value="all">All Currencies</MenuItem>
+                    {keys(account.balances).map((id) => (
+                        <MenuItem value={id} key={id}>
+                            {currencies[id]!.symbol}
+                        </MenuItem>
+                    ))}
+                </Select>,
             ]}
         >
             <SnapshotSectionContents data={balanceData} />

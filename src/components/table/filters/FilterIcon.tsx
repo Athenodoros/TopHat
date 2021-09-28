@@ -1,5 +1,5 @@
-import { IconButton, IconButtonProps, useTheme } from "@material-ui/core";
-import { FilterList } from "@material-ui/icons";
+import { FilterList } from "@mui/icons-material";
+import { IconButton, IconButtonProps, useTheme } from "@mui/material";
 import { upperFirst } from "lodash";
 import React, { ReactNode } from "react";
 import { Intents } from "../../../styles/colours";
@@ -17,6 +17,7 @@ export const FilterIcon: React.FC<{
         size="small"
         {...ButtonProps}
         style={{
+            padding: 3,
             border: "1px solid " + (badgeContent ? Intents.primary.main : "transparent"),
             transition: useTheme().transitions.create("border-color"),
             ...ButtonProps.style,

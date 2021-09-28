@@ -1,5 +1,6 @@
-import { alpha, IconButton, ListItemText, makeStyles, Tooltip } from "@material-ui/core";
-import { AccountBalance, Clear, Edit, Sync } from "@material-ui/icons";
+import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { AccountBalance, Clear, Edit, Sync } from "@mui/icons-material";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
 import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";

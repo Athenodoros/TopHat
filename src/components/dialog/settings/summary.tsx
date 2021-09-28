@@ -1,5 +1,6 @@
-import { Link, makeStyles, Typography } from "@material-ui/core";
-import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@material-ui/icons";
+import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@mui/icons-material";
+import { Link, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { DateTime } from "luxon";
 import React from "react";
 import { shallowEqual } from "react-redux";
@@ -59,7 +60,7 @@ export const DialogSummaryContents: React.FC = () => {
         <>
             This is a demo instance of TopHat, initialised on {start}. To start a real instance or restart the demo, go
             to{" "}
-            <Link onClick={goToImportDataPage} href="#">
+            <Link onClick={goToImportDataPage} href="#" underline="hover">
                 Import and Wipe Data
             </Link>
             . Currently, it contains the following data:

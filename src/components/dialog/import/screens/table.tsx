@@ -1,5 +1,6 @@
-import { Button, ButtonBase, Card, Checkbox, Collapse, makeStyles, Menu, Typography } from "@material-ui/core";
-import { ArrowDropDown, Event, Exposure, Filter1, ImportExport, Translate } from "@material-ui/icons";
+import { ArrowDropDown, Event, Exposure, Filter1, ImportExport, Translate } from "@mui/icons-material";
+import { Button, ButtonBase, Card, Checkbox, Collapse, Menu, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { get, inRange, toPairs, unzip, upperFirst } from "lodash";
 import React, { useMemo } from "react";
@@ -72,7 +73,7 @@ const useStyles = makeStyles({
         justifyContent: "center",
         padding: "6px 0 22px 0",
 
-        "& > .MuiIconButton-root": {
+        "& > .MuiButtonBase-root": {
             padding: 2,
         },
     },
@@ -81,7 +82,7 @@ const useStyles = makeStyles({
         display: "flex",
         justifyContent: "center",
 
-        "& > .MuiIconButton-root": {
+        "& > .MuiButtonBase-root": {
             padding: 2,
             transform: "scale(0.8)",
             transformOrigin: "center center",
@@ -93,14 +94,6 @@ const useStyles = makeStyles({
     transfer: {
         gridColumnStart: "start",
         gridColumnEnd: "end",
-    },
-    transferInner: {
-        "& .MuiIconButton-root": {
-            marginLeft: 15,
-            padding: 2,
-            transform: "scale(0.8)",
-            transformOrigin: "center center",
-        },
     },
 });
 export const FileImportTableViewGrid: React.FC<{ transfers?: boolean }> = ({ transfers }) => {

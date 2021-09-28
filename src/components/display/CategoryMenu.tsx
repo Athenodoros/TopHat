@@ -1,4 +1,5 @@
-import { ListItemText, makeStyles, MenuItem } from "@material-ui/core";
+import { ListItemText, MenuItem } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { Dictionary } from "@reduxjs/toolkit";
 import React, { useCallback, useMemo } from "react";
 import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
@@ -57,7 +58,9 @@ export const SingleCategoryMenuFunction = (
                     dense={true}
                     style={{ marginLeft: 36 + 15 * depth }}
                     selected={subitem === selected}
-                    onClick={withSuppressEvent(() => setSelected(subitem === selected ? undefined : entities[subitem]))}
+                    onClick={withSuppressEvent<HTMLLIElement>(() =>
+                        setSelected(subitem === selected ? undefined : entities[subitem])
+                    )}
                 >
                     {entities[subitem]!.name}
                 </MenuItem>
@@ -72,7 +75,9 @@ export const SingleCategoryMenuFunction = (
                     <MenuItem
                         style={graph[id].length ? { paddingBottom: 0 } : undefined}
                         selected={id === selected}
-                        onClick={withSuppressEvent(() => setSelected(id === selected ? undefined : entities[id]!))}
+                        onClick={withSuppressEvent<HTMLLIElement>(() =>
+                            setSelected(id === selected ? undefined : entities[id]!)
+                        )}
                     >
                         {render(entities[id]!)}
                     </MenuItem>
@@ -114,7 +119,9 @@ const MultipleCategoryMenuFunction = (
                     dense={true}
                     selected={selected.includes(subitem)}
                     style={{ paddingLeft: 52 + 15 * depth }}
-                    onClick={withSuppressEvent(() => setSelected(updateListSelection(subitem, selected)))}
+                    onClick={withSuppressEvent<HTMLLIElement>(() =>
+                        setSelected(updateListSelection(subitem, selected))
+                    )}
                 >
                     {entities[subitem]!.name}
                     {/* <Checkbox
@@ -135,7 +142,7 @@ const MultipleCategoryMenuFunction = (
                     <MenuItem
                         style={graph[id].length ? { paddingBottom: 0 } : undefined}
                         selected={selected.includes(id)}
-                        onClick={withSuppressEvent(() => setSelected(updateListSelection(id, selected)))}
+                        onClick={withSuppressEvent<HTMLLIElement>(() => setSelected(updateListSelection(id, selected)))}
                     >
                         {render(entities[id]!)}
                         {/* <Checkbox

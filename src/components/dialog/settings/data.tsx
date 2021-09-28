@@ -1,4 +1,5 @@
-import { Button, makeStyles, TextField, Typography } from "@material-ui/core";
+import { Button, TextField, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React, { useCallback, useState } from "react";
 import { TopHatDispatch } from "../../../state";
@@ -110,7 +111,6 @@ export const DialogImportContents: React.FC = () => {
                 "PERMANENTLY DELETE ALL DATA" in the box:
             </Typography>
             <TextField
-                variant="outlined"
                 color="secondary"
                 size="small"
                 placeholder="Warning: Dangerous!"

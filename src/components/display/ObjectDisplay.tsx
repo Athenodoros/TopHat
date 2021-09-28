@@ -1,5 +1,5 @@
-import { Avatar, Typography } from "@material-ui/core";
-import { AccountBalance, Block, Description, ImportExport } from "@material-ui/icons";
+import { Avatar, Typography } from "@mui/material";
+import { AccountBalance, Block, Description, ImportExport } from "@mui/icons-material";
 import chroma from "chroma-js";
 import { last } from "lodash";
 import React, { useCallback } from "react";

@@ -1,16 +1,6 @@
-import {
-    Button,
-    FormControl,
-    IconButton,
-    InputAdornment,
-    makeStyles,
-    Menu,
-    MenuItem,
-    MenuProps,
-    OutlinedInput,
-    Typography,
-} from "@material-ui/core";
-import { Clear, Help } from "@material-ui/icons";
+import { Clear, Help } from "@mui/icons-material";
+import { Button, IconButton, InputAdornment, Menu, MenuItem, MenuProps, TextField, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
 import { useAllCurrencies } from "../../../state/data/hooks";
@@ -43,11 +33,9 @@ const useEditableCurrencyValueStyles = makeStyles({
             minWidth: "inherit",
             padding: "0 5px",
 
-            "& > .MuiButton-label": {
-                color: Greys[500],
-                fontWeight: 400,
-                width: 28,
-            },
+            color: Greys[500],
+            fontWeight: 400,
+            width: 38,
         },
     },
     icon: {
@@ -90,14 +78,17 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
 
     return (
         <div className={classes.container}>
-            <FormControl size="small" className={classes.input}>
-                <OutlinedInput
-                    value={text}
-                    onChange={onTextChange}
-                    placeholder={
-                        allowUndefinedValue ? (value === undefined ? "(mixed)" : "(empty)") : "" + (placeholder || "")
-                    }
-                    startAdornment={
+            <TextField
+                variant="outlined"
+                size="small"
+                className={classes.input}
+                value={text}
+                onChange={onTextChange}
+                placeholder={
+                    allowUndefinedValue ? (value === undefined ? "(mixed)" : "(empty)") : "" + (placeholder || "")
+                }
+                InputProps={{
+                    startAdornment: (
                         <InputAdornment position="start">
                             <Button {...popover.buttonProps}>
                                 {currency !== undefined ? (
@@ -107,19 +98,17 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                                 )}
                             </Button>
                         </InputAdornment>
-                    }
-                    endAdornment={
-                        allowUndefinedValue ? (
-                            <InputAdornment position="end">
-                                <IconButton size="small" disabled={value === undefined} onClick={setValueToUndefined}>
-                                    <Clear fontSize="small" />
-                                </IconButton>
-                            </InputAdornment>
-                        ) : undefined
-                    }
-                    inputProps={allowUndefinedValue ? { className: utilClasses.mixedPlaceholder } : undefined}
-                />
-            </FormControl>
+                    ),
+                    endAdornment: allowUndefinedValue ? (
+                        <InputAdornment position="end">
+                            <IconButton size="small" disabled={value === undefined} onClick={setValueToUndefined}>
+                                <Clear fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ) : undefined,
+                }}
+                inputProps={allowUndefinedValue ? { className: utilClasses.mixedPlaceholder } : undefined}
+            />
             <Menu {...popover.popoverProps} style={{ maxHeight: 250 }}>
                 {allowUndefinedCurrency ? (
                     <MenuItem onClick={() => onChangeCurrency(undefined)}>
@@ -155,24 +144,32 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     const updateValue = useMemo(() => handleTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
     const clearValue = useCallback(() => onChange(), [onChange]);
 
+    const InputProps = useMemo(
+        () =>
+            allowUndefined
+                ? {
+                      className: classes.mixedPlaceholder,
+                      endAdornment: (
+                          <InputAdornment position="end">
+                              <IconButton size="small" disabled={value === undefined} onClick={clearValue}>
+                                  <Clear fontSize="small" />
+                              </IconButton>
+                          </InputAdornment>
+                      ),
+                  }
+                : undefined,
+        [allowUndefined, clearValue, classes.mixedPlaceholder, value]
+    );
+
     return (
-        <FormControl size="small">
-            <OutlinedInput
-                placeholder={allowUndefined ? (value === undefined ? "(mixed)" : "(empty)") : placeholder}
-                value={value || ""}
-                onChange={updateValue}
-                inputProps={allowUndefined ? { className: classes.mixedPlaceholder } : undefined}
-                endAdornment={
-                    allowUndefined ? (
-                        <InputAdornment position="end">
-                            <IconButton size="small" disabled={value === undefined} onClick={clearValue}>
-                                <Clear fontSize="small" />
-                            </IconButton>
-                        </InputAdornment>
-                    ) : undefined
-                }
-            />
-        </FormControl>
+        <TextField
+            size="small"
+            variant="outlined"
+            placeholder={allowUndefined ? (value === undefined ? "(mixed)" : "(empty)") : placeholder}
+            value={value || ""}
+            onChange={updateValue}
+            InputProps={InputProps}
+        />
     );
 };
 

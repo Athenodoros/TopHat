@@ -1,5 +1,6 @@
-import { IconButton, makeStyles, Typography } from "@material-ui/core";
-import { Edit, ShoppingBasketTwoTone } from "@material-ui/icons";
+import { IconButton, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { Edit, ShoppingBasketTwoTone } from "@mui/icons-material";
 import { DateTime } from "luxon";
 import React, { useCallback } from "react";
 import { Section } from "../../components/layout";
@@ -82,7 +83,7 @@ export const CategoryPageHeader: React.FC = () => {
                     </Typography>
                 </div>
 
-                <IconButton onClick={openEditView} className={classes.edit}>
+                <IconButton onClick={openEditView} className={classes.edit} size="large">
                     <Edit />
                 </IconButton>
             </div>

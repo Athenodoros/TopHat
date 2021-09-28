@@ -1,4 +1,4 @@
-import { AccountBalance, Home, TrendingUp } from "@material-ui/icons";
+import { AccountBalance, Home, TrendingUp } from "@mui/icons-material";
 import { EntityState } from "@reduxjs/toolkit";
 import { zipObject } from "../../utilities/data";
 import { DialogColumnParseResult, DialogColumnValueMapping, DialogParseSpecification } from "../logic/statement";

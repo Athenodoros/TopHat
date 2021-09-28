@@ -1,4 +1,4 @@
-import { makeStyles } from "@material-ui/core";
+import makeStyles from '@mui/styles/makeStyles';
 import { sumBy } from "lodash-es";
 import React, { useMemo } from "react";
 import { VictoryPie, VictoryPieProps } from "victory";

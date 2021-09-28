@@ -1,5 +1,6 @@
-import { IconButton, Link, makeStyles, Typography } from "@material-ui/core";
-import { Edit, OpenInNew } from "@material-ui/icons";
+import { Edit, OpenInNew } from "@mui/icons-material";
+import { IconButton, Link, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { max, min } from "lodash";
 import { DateTime } from "luxon";
 import { useCallback } from "react";
@@ -104,7 +105,7 @@ export const AccountPageHeader: React.FC = () => {
                             </Typography>
                         </div>
                         <div>
-                            <IconButton onClick={openEditView}>
+                            <IconButton onClick={openEditView} size="large">
                                 <Edit />
                             </IconButton>
                         </div>
@@ -131,7 +132,7 @@ export const AccountPageHeader: React.FC = () => {
                         <div>
                             <Typography variant="h6">Website</Typography>
                             {account.website ? (
-                                <Link href={account.website} className={classes.link} target="_blank">
+                                <Link href={account.website} className={classes.link} target="_blank" underline="hover">
                                     <OpenInNew fontSize="small" />
                                     <Typography variant="body1" noWrap={true}>
                                         {getDomainFromURL(account.website)}

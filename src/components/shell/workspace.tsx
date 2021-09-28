@@ -1,6 +1,6 @@
-import LuxonUtils from "@date-io/luxon";
-import { CssBaseline, ThemeProvider } from "@material-ui/core";
-import { MuiPickersUtilsProvider } from "@material-ui/pickers";
+import { LocalizationProvider } from "@mui/lab";
+import DateAdapter from "@mui/lab/AdapterLuxon";
+import { CssBaseline, StyledEngineProvider, Theme, ThemeProvider } from "@mui/material";
 import { noop, omit } from "lodash-es";
 import { SnackbarProvider } from "notistack";
 import React from "react";
@@ -10,6 +10,12 @@ import { TopHatStore } from "../../state";
 import { handleStatementFileUpload } from "../../state/logic/statement";
 import { theme } from "../../styles/theme";
 import { TopHatDialog } from "../dialog";
+
+// This is necessary to ensure that the DefaultTheme used by typescript fully inherits everything from Theme
+declare module "@mui/styles/defaultTheme" {
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface DefaultTheme extends Theme {}
+}
 
 export const FileHandlerContext = React.createContext<{
     openFileDialog: () => void;
@@ -43,24 +49,32 @@ export const Workspace: React.FC = ({ children }) => {
         <>
             <CssBaseline />
             <SnackbarProvider>
-                <MuiPickersUtilsProvider utils={LuxonUtils}>
-                    <ThemeProvider theme={theme}>
-                        <FileHandlerContext.Provider
-                            value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
-                        >
-                            <Provider store={TopHatStore}>
-                                <div {...omit(getRootProps(), ["onClick"])}>
-                                    <TopHatDialog />
-                                    <input
-                                        id="file-upload-dropzone"
-                                        {...getInputProps({ style: { display: "none" } })}
-                                    />
-                                    {children}
-                                </div>
-                            </Provider>
-                        </FileHandlerContext.Provider>
-                    </ThemeProvider>
-                </MuiPickersUtilsProvider>
+                <LocalizationProvider
+                    dateAdapter={
+                        // Typescript thinks that some functions are missing in DateAdapter
+                        // This seems just to be a bug in the type definitions
+                        DateAdapter as any
+                    }
+                >
+                    <StyledEngineProvider injectFirst>
+                        <ThemeProvider theme={theme}>
+                            <FileHandlerContext.Provider
+                                value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
+                            >
+                                <Provider store={TopHatStore}>
+                                    <div {...omit(getRootProps(), ["onClick"])}>
+                                        <TopHatDialog />
+                                        <input
+                                            id="file-upload-dropzone"
+                                            {...getInputProps({ style: { display: "none" } })}
+                                        />
+                                        {children}
+                                    </div>
+                                </Provider>
+                            </FileHandlerContext.Provider>
+                        </ThemeProvider>
+                    </StyledEngineProvider>
+                </LocalizationProvider>
             </SnackbarProvider>
         </>
     );

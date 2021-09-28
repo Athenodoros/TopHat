@@ -1,5 +1,6 @@
-import { Button, Link, makeStyles, Typography } from "@material-ui/core";
-import { NoteAdd } from "@material-ui/icons";
+import { NoteAdd } from "@mui/icons-material";
+import { Button, Link, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React, { useContext } from "react";
 import { TopHatDispatch } from "../../../../state";
@@ -58,7 +59,7 @@ export const DialogImportFileScreen: React.FC = () => {
                 </Typography>
                 <Typography variant="body2" className={classes.body}>
                     Alternatively, manually create transactions from{" "}
-                    <Link onClick={goToTransactionsPage} href="#">
+                    <Link onClick={goToTransactionsPage} href="#" underline="hover">
                         the Transactions page
                     </Link>
                     .

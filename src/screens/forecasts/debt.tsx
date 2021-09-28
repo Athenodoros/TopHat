@@ -1,5 +1,5 @@
-import { TextField, Typography } from "@material-ui/core";
-import { Help } from "@material-ui/icons";
+import { TextField, Typography } from "@mui/material";
+import { Help } from "@mui/icons-material";
 import { sumBy, toPairs } from "lodash";
 import React from "react";
 import { Section } from "../../components/layout";

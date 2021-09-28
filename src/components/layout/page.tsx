@@ -1,5 +1,6 @@
-import { Badge, IconButton, makeStyles, Popover, Typography } from "@material-ui/core";
-import { Camera, Notifications as NotificationsIcon } from "@material-ui/icons";
+import { Badge, IconButton, Popover, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { Camera, Notifications as NotificationsIcon } from "@mui/icons-material";
 import { DemoStatementFiles } from "../../state/data/demo";
 import { useNotificationCount } from "../../state/data/hooks";
 import { createAndDownloadFile } from "../../utilities/data";
@@ -45,7 +46,7 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
             <div className={classes.title}>
                 <Typography variant="h3">{title}</Typography>
                 <div className={classes.titleButtons}>
-                    <IconButton {...buttonProps}>
+                    <IconButton {...buttonProps} size="large">
                         <Badge badgeContent={notifications} color="error" overlap="circular" variant="dot">
                             <NotificationsIcon />
                         </Badge>
@@ -57,7 +58,7 @@ export const Page: React.FC<{ title: string; padding?: number }> = ({ children, 
                     >
                         <Notifications />
                     </Popover>
-                    <IconButton onClick={downloadExampleStatements}>
+                    <IconButton onClick={downloadExampleStatements} size="large">
                         <Camera />
                     </IconButton>
                 </div>

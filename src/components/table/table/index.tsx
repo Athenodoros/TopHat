@@ -1,5 +1,5 @@
-import { Button, Card, Checkbox } from "@material-ui/core";
-import { PlaylistAdd } from "@material-ui/icons";
+import { Button, Card, Checkbox } from "@mui/material";
+import { PlaylistAdd } from "@mui/icons-material";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";

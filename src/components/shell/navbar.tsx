@@ -1,4 +1,5 @@
-import { IconButton, makeStyles, Paper } from "@material-ui/core";
+import { IconButton, Paper } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import {
     AccountBalanceWalletTwoTone,
     Camera,
@@ -7,7 +8,7 @@ import {
     SettingsTwoTone,
     ShoppingBasketTwoTone,
     TrendingUpTwoTone,
-} from "@material-ui/icons";
+} from "@mui/icons-material";
 import chroma from "chroma-js";
 import clsx from "clsx";
 import { mapValues } from "lodash-es";
@@ -112,7 +113,7 @@ export const NavBar: React.FC = () => {
                 // borderColor: selected ? dark : light,
             }}
             onClick={onClick}
-        >
+            size="large">
             <Icon style={{ fontSize: logo ? "2rem" : "1.7rem" }} />
         </IconButton>
     );

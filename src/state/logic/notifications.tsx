@@ -1,5 +1,6 @@
-import { Avatar, makeStyles, styled, Typography } from "@material-ui/core";
-import { AccountBalance, NoteAdd, Payment, TrendingUp } from "@material-ui/icons";
+import { Avatar, styled, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { AccountBalance, NoteAdd, Payment, TrendingUp } from "@mui/icons-material";
 import { noop } from "lodash";
 import numeral from "numeral";
 import React from "react";

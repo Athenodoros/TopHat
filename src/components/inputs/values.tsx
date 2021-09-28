@@ -1,6 +1,9 @@
-import { Checkbox, FormControlLabel, makeStyles } from "@material-ui/core";
+import { DatePicker, DatePickerProps } from "@mui/lab";
+import { Checkbox, ClickAwayListener, FormControlLabel } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { noop } from "lodash";
+import { useCallback, useState } from "react";
 
 const useStyles = makeStyles({
     base: {
@@ -56,5 +59,38 @@ export const SubItemCheckbox: React.FC<SubItemCheckboxProps> = ({
             }}
             disabled={disabled}
         />
+    );
+};
+
+const useDatePickerStyles = makeStyles({
+    picker: {
+        "& .PrivatePickersSlideTransition-root": {
+            minHeight: 246,
+        },
+    },
+});
+export const AutoClosingDatePicker: React.FC<Omit<DatePickerProps, "open" | "onClose" | "onOpen">> = (props) => {
+    const classes = useDatePickerStyles();
+
+    const [isOpen, setIsOpen] = useState(false);
+    const handleOpen = useCallback(() => setIsOpen(true), []);
+    const handleClose = useCallback(() => setIsOpen(false), []);
+
+    return (
+        <ClickAwayListener mouseEvent="onMouseUp" onClickAway={handleClose}>
+            <div>
+                <DatePicker
+                    allowSameDateSelection={true}
+                    {...props}
+                    open={isOpen}
+                    onClose={handleClose}
+                    onOpen={handleOpen}
+                    PopperProps={{
+                        ...props.PopperProps,
+                        className: clsx(classes.picker, props.PopperProps?.className),
+                    }}
+                />
+            </div>
+        </ClickAwayListener>
     );
 };

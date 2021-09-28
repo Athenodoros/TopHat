@@ -1,5 +1,5 @@
-import { IconButton, Tooltip, Typography } from "@material-ui/core";
-import { Description, Edit, Help } from "@material-ui/icons";
+import { Description, Edit, Help } from "@mui/icons-material";
+import { IconButton, Tooltip, Typography } from "@mui/material";
 import clsx from "clsx";
 import { last } from "lodash";
 import React, { useCallback } from "react";
@@ -103,7 +103,9 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                             className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}
                         >
                             {getCategoryIcon(category, classes.categoryIcon)}
-                            {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
+                            <Typography noWrap={true}>
+                                {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
+                            </Typography>
                         </div>
                     ) : category === undefined ? (
                         MissingText

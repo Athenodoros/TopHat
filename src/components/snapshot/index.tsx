@@ -1,5 +1,5 @@
-import { makeStyles } from "@material-ui/core";
-import { AttachMoney, TrendingUp } from "@material-ui/icons";
+import { AttachMoney, TrendingUp } from "@mui/icons-material";
+import makeStyles from "@mui/styles/makeStyles";
 import { clone, max, min, reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
@@ -20,6 +20,7 @@ const useStyles = makeStyles({
     container: {
         display: "flex",
         width: "100%",
+        height: "100%",
     },
 });
 export const SnapshotSectionContents: React.FC<SnapshotSectionContentsProps> = ({ data: { trends, net } }) => {
@@ -63,7 +64,7 @@ const useSummaryChart = ({ credits, debits }: { credits: number[]; debits: numbe
     return useCallback(
         () => (
             <VictoryChart
-                height={200}
+                height={220}
                 padding={{ left: 70, right: 10, top: 10, bottom: 10 }}
                 {...getChartPerformanceProps({
                     x: [-0.7, Math.max(credits.length, debits.length)],

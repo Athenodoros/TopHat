@@ -1,5 +1,6 @@
-import { Avatar, Button, Card, makeStyles, Typography } from "@material-ui/core";
-import { AccountBalance } from "@material-ui/icons";
+import { Avatar, Button, Card, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { AccountBalance } from "@mui/icons-material";
 import clsx from "clsx";
 import React from "react";
 import { PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";

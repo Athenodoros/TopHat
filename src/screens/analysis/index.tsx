@@ -1,5 +1,5 @@
-import { Tooltip } from "@material-ui/core";
-import { Help } from "@material-ui/icons";
+import { Tooltip } from "@mui/material";
+import { Help } from "@mui/icons-material";
 import { Page, Section } from "../../components/layout";
 import { Greys } from "../../styles/colours";
 

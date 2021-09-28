@@ -1,5 +1,6 @@
-import { IconButton, ListItemText, makeStyles, TextField, Tooltip } from "@material-ui/core";
-import { Euro, Sync } from "@material-ui/icons";
+import { Euro, Sync } from "@mui/icons-material";
+import { IconButton, ListItemText, TextField, Tooltip } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
 import { useDialogHasWorking, useDialogState } from "../../../state/app/hooks";
@@ -101,7 +102,6 @@ const EditCurrencyView: React.FC = () => {
         <ObjectEditContainer type="currency" onReset={onReset}>
             <EditValueContainer label="Exchange Rate">
                 <TextField
-                    variant="outlined"
                     value={exchange.text}
                     onChange={exchange.onTextChange}
                     size="small"
@@ -111,7 +111,6 @@ const EditCurrencyView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Display">
                 <TextField
-                    variant="outlined"
                     value={working.symbol || ""}
                     onChange={updateWorkingSymbol}
                     size="small"
@@ -119,7 +118,6 @@ const EditCurrencyView: React.FC = () => {
                     label="Symbol"
                 />
                 <TextField
-                    variant="outlined"
                     value={working.ticker || ""}
                     onChange={updateWorkingTicker}
                     size="small"

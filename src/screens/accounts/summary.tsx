@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@material-ui/core";
+import { MenuItem, Select } from "@mui/material";
 import { Section } from "../../components/layout";
 import { SummaryBarChart, SummaryBreakdown, SummarySection, useBalanceSummaryData } from "../../components/summary";
 import { SummaryChartSign } from "../../components/summary/utilities";
@@ -28,21 +28,17 @@ export const AccountsPageSummary: React.FC = () => {
             <Section
                 title=""
                 headers={[
-                    <FormControl variant="outlined" size="small" key="aggregation">
-                        <Select value={aggregation} onChange={setAggregation}>
-                            <MenuItem value="account">By Account</MenuItem>
-                            <MenuItem value="currency">By Currency</MenuItem>
-                            <MenuItem value="institution">By Institution</MenuItem>
-                            <MenuItem value="type">By Type</MenuItem>
-                        </Select>
-                    </FormControl>,
-                    <FormControl variant="outlined" size="small" key="sign">
-                        <Select value={sign} onChange={setChartSign}>
-                            <MenuItem value="all">All Balances</MenuItem>
-                            <MenuItem value="credits">Assets</MenuItem>
-                            <MenuItem value="debits">Liabilities</MenuItem>
-                        </Select>
-                    </FormControl>,
+                    <Select value={aggregation} onChange={setAggregation} size="small" key="aggregation">
+                        <MenuItem value="account">By Account</MenuItem>
+                        <MenuItem value="currency">By Currency</MenuItem>
+                        <MenuItem value="institution">By Institution</MenuItem>
+                        <MenuItem value="type">By Type</MenuItem>
+                    </Select>,
+                    <Select value={sign} onChange={setChartSign} size="small" key="sign">
+                        <MenuItem value="all">All Balances</MenuItem>
+                        <MenuItem value="credits">Assets</MenuItem>
+                        <MenuItem value="debits">Liabilities</MenuItem>
+                    </Select>,
                 ]}
                 onClick={clearFilter}
             >

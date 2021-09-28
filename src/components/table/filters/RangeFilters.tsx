@@ -1,4 +1,4 @@
-import { Slider, SliderProps } from "@material-ui/core";
+import { Slider, SliderProps } from "@mui/material";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
@@ -37,7 +37,9 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ min, max, from
     // Defaults shouldn't be changed after the component is initialised.
     const defaults = useFirstValue(values);
 
-    return <Slider max={range} defaultValue={defaults} onChangeCommitted={onChange as SliderProps["onChange"]} />;
+    return (
+        <Slider max={range} defaultValue={defaults} onChangeCommitted={onChange as SliderProps["onChangeCommitted"]} />
+    );
 };
 
 interface NumericRangeFilterProps {
@@ -68,7 +70,7 @@ export const NumericRangeFilter: React.FC<NumericRangeFilterProps> = ({ min, max
             min={min || 0}
             max={max || 0}
             defaultValue={defaults}
-            onChangeCommitted={onChange as SliderProps["onChange"]}
+            onChangeCommitted={onChange as SliderProps["onChangeCommitted"]}
             valueLabelDisplay="auto"
             valueLabelFormat={formatLarge}
         />

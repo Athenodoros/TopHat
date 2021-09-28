@@ -1,4 +1,4 @@
-import { FormControlLabel, Switch } from "@material-ui/core";
+import { FormControlLabel, Switch } from "@mui/material";
 import React from "react";
 import { TableContainer } from "../../../components/table";
 import { TopHatDispatch } from "../../../state";
@@ -17,7 +17,7 @@ export const AccountsTable: React.FC = () => {
             title="All Accounts"
             headers={
                 <FormControlLabel
-                    control={<Switch checked={filterInactive} onChange={handleToggle} color="primary" />}
+                    control={<Switch checked={filterInactive} onChange={handleToggle} />}
                     label="Filter Inactive"
                 />
             }
@@ -30,5 +30,5 @@ export const AccountsTable: React.FC = () => {
     );
 };
 
-const handleToggle = (_: any, filterInactive: boolean) =>
-    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ filterInactive }));
+const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) =>
+    TopHatDispatch(AppSlice.actions.setAccountsPagePartial({ filterInactive: event.target.checked }));

@@ -1,5 +1,6 @@
-import { Button, IconButton, makeStyles, Typography } from "@material-ui/core";
-import { ChevronRight, Description, Edit, Payment } from "@material-ui/icons";
+import { ChevronRight, Description, Edit, Payment } from "@mui/icons-material";
+import { Button, IconButton, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { Section } from "../../components/layout";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
@@ -16,7 +17,7 @@ const useStyles = makeStyles({
     table: {
         display: "flex",
         flexDirection: "column",
-        height: 205,
+        height: 220,
         overflowY: "auto",
     },
     statement: {
@@ -24,7 +25,7 @@ const useStyles = makeStyles({
         alignItems: "center",
         height: 40,
         "&:not(:last-child)": {
-            marginBottom: 15,
+            marginBottom: 18,
         },
     },
     icon: {

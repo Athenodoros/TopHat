@@ -1,5 +1,5 @@
-import { CheckboxProps, SelectProps, TextFieldProps } from "@material-ui/core";
-import { ToggleButtonGroupProps } from "@material-ui/lab";
+import { CheckboxProps, SelectProps, TextFieldProps } from "@mui/material";
+import { ToggleButtonGroupProps } from "@mui/lab";
 import React from "react";
 
 export const stopEventPropagation = (event: React.MouseEvent | React.SyntheticEvent) => event.stopPropagation();

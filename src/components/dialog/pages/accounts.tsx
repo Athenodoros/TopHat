@@ -1,8 +1,7 @@
-import { Button, ListItemText, makeStyles, TextField, Typography } from "@material-ui/core";
-import { AccountBalanceWallet, Event, KeyboardArrowDown } from "@material-ui/icons";
-import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
-import { KeyboardDatePicker } from "@material-ui/pickers";
-import { MaterialUiPickersDate } from "@material-ui/pickers/typings/date";
+import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
+import { DatePickerProps } from "@mui/lab";
+import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { DateTime } from "luxon";
 import React, { useCallback } from "react";
@@ -17,7 +16,7 @@ import { Greys } from "../../../styles/colours";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../../utilities/events";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { ObjectSelector, SubItemCheckbox } from "../../inputs";
+import { AutoClosingDatePicker, ObjectSelector, SubItemCheckbox } from "../../inputs";
 import {
     BasicDialogObjectSelector,
     DialogContents,
@@ -101,7 +100,7 @@ const useEditViewStyles = makeStyles({
         textTransform: "inherit",
         height: 40,
 
-        "& .MuiButton-label > svg:last-child": {
+        "& > svg": {
             marginLeft: 15,
         },
     },
@@ -175,7 +174,7 @@ const EditAccountView: React.FC = () => {
                     className={classes.toggles}
                 >
                     {AccountTypes.map((typ) => (
-                        <ToggleButton key={typ.id} value={typ.id} classes={{ label: classes.toggle }}>
+                        <ToggleButton key={typ.id} value={typ.id} classes={{ root: classes.toggle }}>
                             {React.createElement(typ.icon, { fontSize: "small" })}
                             <Typography variant="caption">{typ.short}</Typography>
                         </ToggleButton>
@@ -184,7 +183,6 @@ const EditAccountView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Website">
                 <TextField
-                    variant="outlined"
                     value={working.website || ""}
                     onChange={updateWorkingWebsite}
                     size="small"
@@ -194,34 +192,31 @@ const EditAccountView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Dates">
                 <div className={classes.dates}>
-                    <KeyboardDatePicker
+                    <AutoClosingDatePicker
                         value={working.openDate}
-                        onChange={updateWorkingOpenDate}
+                        onChange={updateWorkingOpenDate as DatePickerProps["onChange"]}
                         disableFuture={true}
-                        format="yyyy-MM-dd"
-                        inputVariant="outlined"
-                        size="small"
-                        label="Open Date"
-                        KeyboardButtonProps={{ size: "small" }}
-                        keyboardIcon={<Event fontSize="small" />}
+                        inputFormat="yyyy-MM-dd"
                         clearable={true}
+                        renderInput={(params) => <TextField {...params} size="small" label="Open Date" />}
                     />
-                    <KeyboardDatePicker
+                    <AutoClosingDatePicker
                         value={working.lastUpdate}
-                        onChange={updateWorkingUpdateDate}
-                        format="yyyy-MM-dd"
-                        inputVariant="outlined"
-                        size="small"
-                        label={working.isInactive ? "Inactive Since" : "Last Update"}
-                        KeyboardButtonProps={{ size: "small" }}
-                        keyboardIcon={<Event fontSize="small" />}
+                        onChange={updateWorkingUpdateDate as DatePickerProps["onChange"]}
+                        inputFormat="yyyy-MM-dd"
                         clearable={true}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                size="small"
+                                label={working.isInactive ? "Inactive Since" : "Last Update"}
+                            />
+                        )}
                     />
                 </div>
             </EditValueContainer>
             <EditValueContainer label="Statements">
                 <TextField
-                    variant="outlined"
                     value={working.statementFilePatternManual || ""}
                     onChange={updateWorkingFilePattern}
                     size="small"
@@ -238,6 +233,6 @@ const updateWorkingIsInactive = update("isInactive");
 const updateWorkingInstitution = update("institution");
 const updateWorkingWebsite = handleTextFieldChange(update("website"));
 const updateWorkingCategory = handleButtonGroupChange(update("category"));
-const updateWorkingOpenDate = (date: MaterialUiPickersDate) => update("openDate")(formatDate(date as DateTime));
-const updateWorkingUpdateDate = (date: MaterialUiPickersDate) => update("lastUpdate")(formatDate(date as DateTime));
+const updateWorkingOpenDate = (date: DateTime) => update("openDate")(formatDate(date));
+const updateWorkingUpdateDate = (date: DateTime) => update("lastUpdate")(formatDate(date));
 const updateWorkingFilePattern = handleTextFieldChange(update("statementFilePatternManual"));

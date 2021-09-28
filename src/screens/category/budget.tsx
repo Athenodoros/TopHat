@@ -1,5 +1,6 @@
-import { Button, makeStyles, Typography } from "@material-ui/core";
-import { AccountTree, AssignmentLate, Edit, OpenInNew, SwapHoriz } from "@material-ui/icons";
+import { Button, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { AccountTree, AssignmentLate, Edit, OpenInNew, SwapHoriz } from "@mui/icons-material";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { getBasicChartFunctions } from "../../components/display/BasicBarChart";

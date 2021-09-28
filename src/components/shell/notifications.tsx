@@ -1,5 +1,6 @@
-import { Button, Collapse, Fade, IconButton, makeStyles, Typography } from "@material-ui/core";
-import { Clear } from "@material-ui/icons";
+import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
+import { Clear } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";

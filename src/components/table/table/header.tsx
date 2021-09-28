@@ -1,5 +1,6 @@
-import { IconButton, makeStyles, Menu, Popover, TextField, Typography } from "@material-ui/core";
-import { AddCircleOutline, Description } from "@material-ui/icons";
+import { AddCircleOutline, Description } from "@mui/icons-material";
+import { IconButton, Menu, Popover, TextField, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { TopHatStore } from "../../../state";
@@ -152,7 +153,6 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             <TextField
                                 size="small"
                                 label="Search Term"
-                                variant="outlined"
                                 value={filters.search}
                                 onChange={updaters.search}
                             />

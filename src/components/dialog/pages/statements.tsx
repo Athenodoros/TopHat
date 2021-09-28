@@ -1,7 +1,7 @@
-import { List, ListItemText, ListSubheader, makeStyles, MenuItem, Typography } from "@material-ui/core";
-import { Description, Event } from "@material-ui/icons";
-import { KeyboardDatePicker } from "@material-ui/pickers";
-import { MaterialUiPickersDate } from "@material-ui/pickers/typings/date";
+import { Description } from "@mui/icons-material";
+import { DatePickerProps } from "@mui/lab";
+import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useCallback, useMemo } from "react";
@@ -16,6 +16,7 @@ import { Greys } from "../../../styles/colours";
 import { withSuppressEvent } from "../../../utilities/events";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { AutoClosingDatePicker } from "../../inputs";
 import {
     DialogContents,
     DialogMain,
@@ -31,8 +32,8 @@ const useMainStyles = makeStyles({
     base: {
         display: "flex",
         alignItems: "center",
-        paddingRight: 20,
         minWidth: 0,
+        flexShrink: 1,
 
         "& .MuiTypography-root": {
             overflow: "hidden",
@@ -55,7 +56,7 @@ export const DialogStatementView: React.FC = () => {
             <div className={classes.base}>
                 {getStatementIcon(statement, classes.icon, true)}
                 <ListItemText secondary={parseDate(statement.date).toLocaleString(DateTime.DATE_MED)}>
-                    {statement.name}
+                    <Typography noWrap={true}>{statement.name}</Typography>
                 </ListItemText>
             </div>
         ),
@@ -84,6 +85,8 @@ const goToStatementImport = () => TopHatDispatch(AppSlice.actions.setDialogPage(
 
 const useSelectorClasses = makeStyles({
     container: { background: Greys[200] },
+    subheader: { background: Greys[200] },
+    item: { padding: "6px 16px", width: "100%" },
 });
 
 const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) => JSX.Element }> = ({ render }) => {
@@ -105,14 +108,17 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
                 <List subheader={<div />}>
                     {options.map((group) => (
                         <div key={group[0]} className={selectorClasses.container}>
-                            <ListSubheader>
+                            <ListSubheader className={selectorClasses.subheader}>
                                 {institutions[accounts[group[0]]!.institution]!.name} - {accounts[group[0]]!.name}
                             </ListSubheader>
                             {group[1].map((option) => (
                                 <MenuItem
                                     key={option.id}
+                                    className={selectorClasses.item}
                                     selected={option.id === selected}
-                                    onClick={withSuppressEvent(() => set(option.id === selected ? undefined : option))}
+                                    onClick={withSuppressEvent<HTMLLIElement>(() =>
+                                        set(option.id === selected ? undefined : option)
+                                    )}
                                 >
                                     {render(option)}
                                 </MenuItem>
@@ -157,17 +163,13 @@ const EditStatementView: React.FC = () => {
     return (
         <ObjectEditContainer type="statement">
             <EditValueContainer label="Date">
-                <KeyboardDatePicker
+                <AutoClosingDatePicker
                     value={working.date}
-                    onChange={updateWorkingDate}
+                    onChange={updateWorkingDate as DatePickerProps["onChange"]}
                     disableFuture={true}
-                    format="yyyy-MM-dd"
-                    inputVariant="outlined"
-                    size="small"
-                    label="Open Date"
-                    KeyboardButtonProps={{ size: "small" }}
-                    keyboardIcon={<Event fontSize="small" />}
+                    inputFormat="yyyy-MM-dd"
                     clearable={true}
+                    renderInput={(params) => <TextField {...params} size="small" label="Open Date" />}
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">
@@ -181,4 +183,4 @@ const EditStatementView: React.FC = () => {
 };
 
 const { update, remove, set } = getUpdateFunctions("statement");
-const updateWorkingDate = (date: MaterialUiPickersDate) => update("date")(formatDate(date as DateTime));
+const updateWorkingDate = (date: DateTime) => update("date")(formatDate(date));

@@ -1,4 +1,4 @@
-import { lighten, useTheme } from "@material-ui/core";
+import { lighten, useTheme } from "@mui/material";
 import { identity } from "lodash";
 import React from "react";
 import { Greys, Intents } from "../../styles/colours";

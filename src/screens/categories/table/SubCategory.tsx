@@ -1,4 +1,5 @@
-import { ButtonBase, makeStyles, Typography } from "@material-ui/core";
+import { ButtonBase, Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import chroma from "chroma-js";
 import clsx from "clsx";
 import { useCallback } from "react";

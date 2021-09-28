@@ -1,15 +1,4 @@
 import {
-    Dialog,
-    Divider,
-    FormControl,
-    IconButton,
-    ListItemIcon,
-    ListItemText,
-    makeStyles,
-    MenuItem,
-    Select,
-} from "@material-ui/core";
-import {
     AccountBalance,
     AccountBalanceWallet,
     CallSplit,
@@ -19,7 +8,9 @@ import {
     NoteAdd,
     Settings,
     ShoppingBasket,
-} from "@material-ui/icons";
+} from "@mui/icons-material";
+import { Dialog, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, Select } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import { useCallback, useContext } from "react";
 import { TopHatDispatch } from "../../state";
@@ -57,7 +48,7 @@ const useStyles = makeStyles({
             border: "none",
         },
 
-        "& .MuiSelect-root": {
+        "& .MuiSelect-select": {
             width: DIALOG_OPTIONS_WIDTH - 32 - 18 - 20 * 2,
             display: "flex",
             alignItems: "center",
@@ -87,12 +78,10 @@ export const TopHatDialog: React.FC = () => {
             disablePortal={true} // This enables file dragover to still hit the dropzone with a full-page dialog
         >
             <div className={classes.header}>
-                <FormControl variant="outlined" size="small">
-                    <Select value={state !== "closed" ? state : "settings"} onChange={changeDialogScreen}>
-                        {MenuItems}
-                    </Select>
-                </FormControl>
-                <IconButton onClick={closeDialog}>
+                <Select value={state !== "closed" ? state : "settings"} onChange={changeDialogScreen} size="small">
+                    {MenuItems}
+                </Select>
+                <IconButton onClick={closeDialog} size="large">
                     <Clear fontSize="small" />
                 </IconButton>
             </div>

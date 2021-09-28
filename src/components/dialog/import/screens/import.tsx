@@ -1,3 +1,4 @@
+import { Clear, Help } from "@mui/icons-material";
 import {
     alpha,
     Button,
@@ -5,7 +6,6 @@ import {
     Checkbox,
     FormControlLabel,
     IconButton,
-    makeStyles,
     MenuItem,
     Step,
     StepContent,
@@ -17,8 +17,8 @@ import {
     TextField,
     Tooltip,
     Typography,
-} from "@material-ui/core";
-import { Clear, Help } from "@material-ui/icons";
+} from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { useDialogState } from "../../../../state/app/hooks";
@@ -257,7 +257,6 @@ export const DialogImportScreen: React.FC = () => {
                                         select={true}
                                         value={state.mapping.date}
                                         onChange={onChangeMappingDate}
-                                        variant="outlined"
                                         size="small"
                                         className={classes.mappingColumn}
                                         label="Transaction Date"
@@ -279,7 +278,6 @@ export const DialogImportScreen: React.FC = () => {
                                         select={true}
                                         value={state.mapping.reference || ""}
                                         onChange={onChangeMappingReference}
-                                        variant="outlined"
                                         size="small"
                                         className={classes.mappingColumn}
                                         label="Transaction Reference"
@@ -299,7 +297,6 @@ export const DialogImportScreen: React.FC = () => {
                                         select={true}
                                         value={state.mapping.balance || ""}
                                         onChange={onChangeMappingBalance}
-                                        variant="outlined"
                                         size="small"
                                         className={classes.mappingColumn}
                                         label="Account Balance"
@@ -333,7 +330,6 @@ export const DialogImportScreen: React.FC = () => {
                                                 select={true}
                                                 value={state.mapping.value.credit || ""}
                                                 onChange={onChangeMappingCredit}
-                                                variant="outlined"
                                                 size="small"
                                                 className={classes.mappingColumn}
                                                 label="Transaction Credits"
@@ -353,7 +349,6 @@ export const DialogImportScreen: React.FC = () => {
                                                 select={true}
                                                 value={state.mapping.value.debit || ""}
                                                 onChange={onChangeMappingDebit}
-                                                variant="outlined"
                                                 size="small"
                                                 className={classes.mappingColumn}
                                                 label="Transaction Debits"
@@ -375,7 +370,6 @@ export const DialogImportScreen: React.FC = () => {
                                             select={true}
                                             value={state.mapping.value.value || ""}
                                             onChange={onChangeMappingValue}
-                                            variant="outlined"
                                             size="small"
                                             className={classes.mappingColumn}
                                             label="Transaction Value"
@@ -428,7 +422,6 @@ export const DialogImportScreen: React.FC = () => {
                                             select={true}
                                             value={state.mapping.currency.currency}
                                             onChange={onChangeCurrencyValue}
-                                            variant="outlined"
                                             size="small"
                                             className={classes.mappingColumn}
                                             label="Transaction Currency"
@@ -445,7 +438,6 @@ export const DialogImportScreen: React.FC = () => {
                                                 select={true}
                                                 value={state.mapping.currency.column}
                                                 onChange={onChangeCurrencyColumn}
-                                                variant="outlined"
                                                 size="small"
                                                 className={classes.mappingColumn}
                                                 label="Currency Column"
@@ -462,7 +454,6 @@ export const DialogImportScreen: React.FC = () => {
                                                 select={true}
                                                 value={state.mapping.currency.field}
                                                 onChange={onChangeCurrencyField}
-                                                variant="outlined"
                                                 size="small"
                                                 className={classes.mappingColumn}
                                                 label="Matching Currency Field"
@@ -608,7 +599,7 @@ export const DialogImportScreen: React.FC = () => {
 
 const changeDelimiter = handleTextFieldChange((value) => changeStatementParsing({ delimiter: value || undefined }));
 const changeDateFormat = handleTextFieldChange((value) => changeStatementParsing({ dateFormat: value || undefined }));
-const onFileChange = (_: React.ChangeEvent<{}>, id: string) => changeFileSelection(id);
+const onFileChange = (_: React.SyntheticEvent, id: string) => changeFileSelection(id);
 
 const getOnChangeMapping = (key: keyof typeof StatementMappingColumns) =>
     handleTextFieldChange((value: string) => changeStatementMappingValue(key, value || undefined));

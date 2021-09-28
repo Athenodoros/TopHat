@@ -1,4 +1,5 @@
-import { makeStyles, Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
+import makeStyles from '@mui/styles/makeStyles';
 import { Greys, Intents, WHITE } from "../../styles/colours";
 import { NBSP } from "../../utilities/constants";
 import { IconType } from "../../utilities/types";

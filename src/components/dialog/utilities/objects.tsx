@@ -1,5 +1,6 @@
-import { Button, List, makeStyles, MenuItem, TextField } from "@material-ui/core";
-import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@material-ui/icons";
+import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@mui/icons-material";
+import { Button, List, MenuItem, MenuList, TextField } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { cloneDeep, isEqual, upperFirst } from "lodash";
 import React, { useMemo } from "react";
 import {
@@ -77,19 +78,19 @@ export const BasicDialogObjectSelector = <Name extends BasicObjectName>({
     return (
         <DialogOptions>
             <div className={classes.options}>
-                <List>
+                <MenuList>
                     {options.map((option) => (
                         <MenuItem
                             key={option.id}
                             selected={option.id === selected}
-                            onClick={withSuppressEvent(() =>
+                            onClick={withSuppressEvent<HTMLLIElement>(() =>
                                 functions.set(option.id === selected ? undefined : option)
                             )}
                         >
                             {render(option)}
                         </MenuItem>
                     ))}
-                </List>
+                </MenuList>
             </div>
             {(createDefaultOption || onAddNew) && (
                 <DialogSelectorAddNewButton
@@ -121,7 +122,7 @@ export const HeaderDialogObjectSelector = <Name extends BasicObjectName>({
                         <MenuItem
                             key={option.id}
                             selected={option.id === selected}
-                            onClick={withSuppressEvent(() =>
+                            onClick={withSuppressEvent<HTMLLIElement>(() =>
                                 functions.set(option.id === selected ? undefined : option)
                             )}
                         >
@@ -159,7 +160,9 @@ export const DraggableDialogObjectSelector = <Name extends "rule">({
                 <MenuItem
                     key={option.id}
                     selected={option.id === selected || snapshot.isDragging}
-                    onClick={withSuppressEvent(() => functions.set(option.id === selected ? undefined : option))}
+                    onClick={withSuppressEvent<HTMLLIElement>(() =>
+                        functions.set(option.id === selected ? undefined : option)
+                    )}
                     {...provided.draggableProps}
                     ref={provided.innerRef}
                 >
@@ -247,12 +250,7 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
 
     return (
         <div className={classes.edit}>
-            <TextField
-                variant="outlined"
-                label={`${upperFirst(type)} Name`}
-                value={working.name}
-                onChange={handleNameChange}
-            />
+            <TextField label={`${upperFirst(type)} Name`} value={working.name} onChange={handleNameChange} />
             {subtitle || <div className={classes.subtitleStub} />}
             <EditDivider />
             <div className={classes.editContainer}>{children}</div>

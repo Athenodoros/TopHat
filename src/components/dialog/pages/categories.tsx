@@ -1,6 +1,15 @@
-import { Button, IconButton, List, makeStyles, TextField, Tooltip, Typography } from "@material-ui/core";
-import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@material-ui/icons";
-import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab";
+import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@mui/icons-material";
+import {
+    Button,
+    IconButton,
+    List,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography,
+} from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { range } from "lodash";
 import React, { useCallback, useMemo, useState } from "react";
@@ -100,7 +109,7 @@ const useEditViewStyles = makeStyles({
         textTransform: "inherit",
         height: 40,
 
-        "& .MuiButton-label > svg:last-child": {
+        "& > svg": {
             marginLeft: 15,
         },
     },
@@ -239,7 +248,7 @@ const EditCategoryView: React.FC = () => {
                     onChange={updateBudgetStrategy}
                     className={classes.toggles}
                 >
-                    <ToggleButton value="none" classes={{ label: classes.toggle }}>
+                    <ToggleButton value="none" classes={{ root: classes.toggle }}>
                         <Tooltip title="Do not budget this category">
                             <div className={classes.toggleInner}>
                                 <Clear fontSize="small" />
@@ -247,7 +256,7 @@ const EditCategoryView: React.FC = () => {
                             </div>
                         </Tooltip>
                     </ToggleButton>
-                    <ToggleButton value="base" classes={{ label: classes.toggle }}>
+                    <ToggleButton value="base" classes={{ root: classes.toggle }}>
                         <Tooltip title="Set a constant budget each month">
                             <div className={classes.toggleInner}>
                                 <LooksOne fontSize="small" />
@@ -255,7 +264,7 @@ const EditCategoryView: React.FC = () => {
                             </div>
                         </Tooltip>
                     </ToggleButton>
-                    <ToggleButton value="copy" classes={{ label: classes.toggle }}>
+                    <ToggleButton value="copy" classes={{ root: classes.toggle }}>
                         <Tooltip title="Copy previous month's budget">
                             <div className={classes.toggleInner}>
                                 <FastForward fontSize="small" />
@@ -263,7 +272,7 @@ const EditCategoryView: React.FC = () => {
                             </div>
                         </Tooltip>
                     </ToggleButton>
-                    <ToggleButton value="rollover" classes={{ label: classes.toggle }}>
+                    <ToggleButton value="rollover" classes={{ root: classes.toggle }}>
                         <Tooltip title="Roll over unused budget each month">
                             <div className={classes.toggleInner}>
                                 <Forward10 fontSize="small" />
@@ -292,14 +301,12 @@ const EditCategoryView: React.FC = () => {
                     />
                     <div className={classes.values}>
                         <TextField
-                            variant="outlined"
                             value={month.text}
                             onChange={month.onTextChange}
                             size="small"
                             label="Current Month"
                         />
                         <TextField
-                            variant="outlined"
                             value={base.text}
                             onChange={base.onTextChange}
                             size="small"
