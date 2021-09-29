@@ -2,8 +2,8 @@ import { Slider, SliderProps } from "@mui/material";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
-import { formatDate, getToday, parseDate } from "../../../state/utilities/values";
-import { useFirstValue } from "../../../utilities/hooks";
+import { useFirstValue } from "../../../shared/hooks";
+import { formatDate, getToday, parseDate } from "../../../state/shared/values";
 
 interface DateRangeFilterProps {
     min?: string;

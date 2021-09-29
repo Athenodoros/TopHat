@@ -1,5 +1,5 @@
 import { Transaction } from "../../data/types";
-import { ID } from "../../utilities/values";
+import { ID } from "../../shared/values";
 
 type FILE_ID = string; // Automatically generated
 type COLUMN_ID = string; // Automatically generated, unique within a file

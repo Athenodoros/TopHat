@@ -1,8 +1,8 @@
 import { sum, toPairs, unzip, zip } from "lodash";
 import { useMemo } from "react";
+import { equalZip } from "../../shared/data";
 import { useAllAccounts, useAllCategories } from "../../state/data/hooks";
-import { ID } from "../../state/utilities/values";
-import { equalZip } from "../../utilities/data";
+import { ID } from "../../state/shared/values";
 
 export interface SnapshotSectionData {
     trends: {

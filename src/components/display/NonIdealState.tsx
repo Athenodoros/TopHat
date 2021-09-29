@@ -1,8 +1,8 @@
 import { Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
+import { IconType } from "../../shared/types";
 import { Greys } from "../../styles/colours";
-import { IconType } from "../../utilities/types";
 
 const useStyles = makeStyles({
     container: {

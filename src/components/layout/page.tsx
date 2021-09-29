@@ -1,12 +1,12 @@
-import { Badge, IconButton, Popover, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { Camera, Notifications as NotificationsIcon } from "@mui/icons-material";
+import { Badge, IconButton, Popover, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
+import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
+import { Notifications } from "../../app/notifications";
+import { createAndDownloadFile } from "../../shared/data";
+import { usePopoverProps } from "../../shared/hooks";
 import { DemoStatementFiles } from "../../state/data/demo";
 import { useNotificationCount } from "../../state/data/hooks";
-import { createAndDownloadFile } from "../../utilities/data";
-import { usePopoverProps } from "../../utilities/hooks";
-import { NAVBAR_LOGO_HEIGHT } from "../shell/navbar";
-import { Notifications } from "../shell/notifications";
 
 const usePageStyles = makeStyles((theme) => ({
     page: {

@@ -1,6 +1,6 @@
 import { identity } from "lodash";
 import { DialogState } from ".";
-import { useSelector } from "../utilities/hooks";
+import { useSelector } from "../shared/hooks";
 import {
     AccountPageState,
     AccountsPageState,

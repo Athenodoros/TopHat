@@ -2,8 +2,8 @@ import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
 import { Checkbox, ListItemText, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
-import { ID } from "../../../state/utilities/values";
-import { updateListSelection } from "../../../utilities/data";
+import { updateListSelection } from "../../../shared/data";
+import { ID } from "../../../state/shared/values";
 
 const useStyles = makeStyles({
     icon: {

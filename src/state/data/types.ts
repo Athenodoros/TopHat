@@ -1,8 +1,8 @@
 import { AccountBalance, Home, TrendingUp } from "@mui/icons-material";
 import { EntityState } from "@reduxjs/toolkit";
-import { zipObject } from "../../utilities/data";
+import { zipObject } from "../../shared/data";
 import { DialogColumnParseResult, DialogColumnValueMapping, DialogParseSpecification } from "../logic/statement";
-import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../utilities/values";
+import { BalanceHistory, ColourScale, ID, SDate, TransactionHistory } from "../shared/values";
 
 /**
  * A bank account or asset, possibly held at a financial institution

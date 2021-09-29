@@ -11,8 +11,8 @@ import {
     useInstitutionByID,
     useStatementByID,
 } from "../../../state/data/hooks";
-import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/utilities";
-import { parseDate } from "../../../state/utilities/values";
+import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
+import { parseDate } from "../../../state/shared/values";
 import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
 import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";

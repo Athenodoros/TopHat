@@ -10,7 +10,7 @@ import {
     Update,
 } from "@reduxjs/toolkit";
 import { clone, cloneDeep, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
-import { takeWithDefault } from "../../utilities/data";
+import { takeWithDefault } from "../../shared/data";
 import {
     BaseBalanceValues,
     getCurrentMonth,
@@ -19,9 +19,8 @@ import {
     ID,
     parseDate,
     TransactionHistory,
-} from "../utilities/values";
+} from "../shared/values";
 import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo";
-import { Account, BasicObjectType, DataState, EditTransactionState, Transaction } from "./types";
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
@@ -30,7 +29,9 @@ import {
     PLACEHOLDER_STATEMENT,
     TRANSFER_CATEGORY,
     TRANSFER_CATEGORY_ID,
-} from "./utilities";
+} from "./shared";
+import { Account, BasicObjectType, DataState, EditTransactionState, Transaction } from "./types";
+export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./shared";
 export type {
     Account,
     Category,
@@ -43,7 +44,6 @@ export type {
     Statement,
     Transaction,
 } from "./types";
-export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./utilities";
 
 const BaseAdapter = createEntityAdapter<object>();
 const NameAdapter = createEntityAdapter<{ name: string }>({ sortComparer: (a, b) => a.name.localeCompare(b.name) });

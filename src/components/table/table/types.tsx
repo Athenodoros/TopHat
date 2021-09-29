@@ -1,5 +1,5 @@
 import { EditTransactionState } from "../../../state/data/types";
-import { ID, SDate } from "../../../state/utilities/values";
+import { ID, SDate } from "../../../state/shared/values";
 
 // Filters
 export interface TransactionsTableFilters {

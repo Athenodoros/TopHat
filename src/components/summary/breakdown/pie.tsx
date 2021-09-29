@@ -1,11 +1,11 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import { sumBy } from "lodash-es";
 import React, { useMemo } from "react";
 import { VictoryPie, VictoryPieProps } from "victory";
 import { ChartSign } from "../../../state/app/pageTypes";
-import { ID } from "../../../state/utilities/values";
+import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "../utilities";
+import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "../shared";
 
 const useStyles = makeStyles({
     container: {

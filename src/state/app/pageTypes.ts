@@ -1,5 +1,5 @@
 import { TransactionsTableFilters, TransactionsTableState } from "../../components/table/table/types";
-import { ID } from "../utilities/values";
+import { ID } from "../shared/values";
 
 export type ChartSign = "all" | "credits" | "debits";
 export const ChartSigns = ["all", "credits", "debits"] as ChartSign[];

@@ -1,11 +1,11 @@
 import { max, mean } from "lodash";
 import { omit, toPairs, unzip, zip } from "lodash-es";
+import { takeWithDefault, zipObject } from "../../shared/data";
 import { AccountsPageState, TransactionsPageState } from "../../state/app/pageTypes";
 import { Category, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data";
 import { useAccountIDs, useAccountMap, useAllObjects, useCurrencyMap, useInstitutionMap } from "../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../state/data/types";
-import { ID } from "../../state/utilities/values";
-import { takeWithDefault, zipObject } from "../../utilities/data";
+import { ID } from "../../state/shared/values";
 
 export const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
     let objects = useAllObjects(aggregation);

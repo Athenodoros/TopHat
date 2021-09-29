@@ -1,8 +1,8 @@
 import { Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
+import { NBSP } from "../../shared/constants";
+import { IconType } from "../../shared/types";
 import { Greys, Intents, WHITE } from "../../styles/colours";
-import { NBSP } from "../../utilities/constants";
-import { IconType } from "../../utilities/types";
 
 const useStyles = makeStyles({
     summaryNumber: {

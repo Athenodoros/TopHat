@@ -1,9 +1,9 @@
 import { groupBy, keys, take, toPairs, uniqBy, zipObject } from "lodash";
 import { useMemo } from "react";
 import { filterListByID } from "..";
+import { takeWithFilter } from "../../../shared/data";
 import { EditTransactionState, Transaction } from "../../../state/data";
 import { useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
-import { takeWithFilter } from "../../../utilities/data";
 import { TransactionsTableFilters } from "./types";
 
 export const useTransactionsTableData = (filters: TransactionsTableFilters) => {

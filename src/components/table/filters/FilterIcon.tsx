@@ -2,9 +2,9 @@ import { FilterList } from "@mui/icons-material";
 import { IconButton, IconButtonProps, useTheme } from "@mui/material";
 import { upperFirst } from "lodash";
 import React, { ReactNode } from "react";
+import { withSuppressEvent } from "../../../shared/events";
+import { IconType } from "../../../shared/types";
 import { Intents } from "../../../styles/colours";
-import { withSuppressEvent } from "../../../utilities/events";
-import { IconType } from "../../../utilities/types";
 
 export const FilterIcon: React.FC<{
     ButtonProps?: IconButtonProps;

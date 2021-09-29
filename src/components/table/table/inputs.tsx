@@ -3,11 +3,11 @@ import { Button, IconButton, InputAdornment, Menu, MenuItem, MenuProps, TextFiel
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
+import { handleTextFieldChange, suppressEvent } from "../../../shared/events";
+import { useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { useAllCurrencies } from "../../../state/data/hooks";
-import { ID } from "../../../state/utilities/values";
+import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { handleTextFieldChange, suppressEvent } from "../../../utilities/events";
-import { useNumericInputHandler, usePopoverProps } from "../../../utilities/hooks";
 import { getCurrencyIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, ObjectSelectorCommonProps } from "../../inputs";
 import { useTransactionsTableStyles } from "./styles";

@@ -10,7 +10,7 @@ import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
 import { Category, DataSlice, EditTransactionState, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
-import { formatDate, ID } from "../../../state/utilities/values";
+import { formatDate, ID } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";

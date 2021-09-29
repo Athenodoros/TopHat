@@ -20,12 +20,12 @@ import {
 } from "lodash";
 import { batch } from "react-redux";
 import { TopHatDispatch, TopHatStore } from "../..";
-import { updateListSelection } from "../../../utilities/data";
+import { updateListSelection } from "../../../shared/data";
 import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
 import { DataSlice, Statement, Transaction } from "../../data";
-import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/utilities";
-import { getTodayString, ID, SDate } from "../../utilities/values";
+import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
+import { getTodayString, ID, SDate } from "../../shared/values";
 import {
     getCombinedColumnProperties,
     getFileColumnProperties,

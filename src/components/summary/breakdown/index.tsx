@@ -1,10 +1,10 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import { orderBy, sumBy } from "lodash";
 import React from "react";
 import { ChartSign } from "../../../state/app/pageTypes";
-import { ID } from "../../../state/utilities/values";
+import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { SummaryChartSign } from "../utilities";
+import { SummaryChartSign } from "../shared";
 import { SummaryPieChart } from "./pie";
 import { Value } from "./value";
 

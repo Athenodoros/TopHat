@@ -2,12 +2,12 @@ import { ListItemText, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { Dictionary } from "@reduxjs/toolkit";
 import React, { useCallback, useMemo } from "react";
+import { updateListSelection, zipObject } from "../../shared/data";
+import { withSuppressEvent } from "../../shared/events";
 import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
 import { useCategoryIDs, useCategoryMap } from "../../state/data/hooks";
-import { TRANSFER_CATEGORY_ID } from "../../state/data/utilities";
-import { ID } from "../../state/utilities/values";
-import { updateListSelection, zipObject } from "../../utilities/data";
-import { withSuppressEvent } from "../../utilities/events";
+import { TRANSFER_CATEGORY_ID } from "../../state/data/shared";
+import { ID } from "../../state/shared/values";
 import { getCategoryIcon } from "./ObjectDisplay";
 
 const useStyles = makeStyles({

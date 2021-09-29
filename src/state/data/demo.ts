@@ -2,24 +2,16 @@ import chroma from "chroma-js";
 import { random as randomInt, range, rangeRight, values } from "lodash";
 import { DurationObject } from "luxon";
 import { DataState } from ".";
-import { takeWithDefault, zipObject } from "../../utilities/data";
-import {
-    BaseTransactionHistory,
-    formatDate,
-    getToday,
-    getTodayString,
-    ID,
-    parseDate,
-    SDate,
-} from "../utilities/values";
-import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
+import { takeWithDefault, zipObject } from "../../shared/data";
+import { BaseTransactionHistory, formatDate, getToday, getTodayString, ID, parseDate, SDate } from "../shared/values";
 import {
     compareTransactionsDescendingDates,
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY_ID,
-} from "./utilities";
+} from "./shared";
+import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 
 const today = getToday();
 

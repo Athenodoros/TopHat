@@ -1,12 +1,12 @@
-import { Avatar, Typography } from "@mui/material";
 import { AccountBalance, Block, Description, ImportExport } from "@mui/icons-material";
+import { Avatar, Typography } from "@mui/material";
 import chroma from "chroma-js";
 import { last } from "lodash";
 import React, { useCallback } from "react";
 import { Institution } from "../../state/data";
 import { getCategoryColour, useInstitutionMap } from "../../state/data/hooks";
+import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../state/data/shared";
 import { Account, AccountTypes, Category, Currency, Statement } from "../../state/data/types";
-import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../state/data/utilities";
 import { Greys } from "../../styles/colours";
 
 export function fadeSolidColour(colour: string): string;

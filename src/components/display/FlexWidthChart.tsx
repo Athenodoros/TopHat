@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { VictoryChart } from "victory";
-import { useDivBoundingRect } from "../../utilities/hooks";
+import { useDivBoundingRect } from "../../shared/hooks";
 
 interface FlexWidthChartProps {
     getChart: () => React.ReactElement<VictoryChart>;

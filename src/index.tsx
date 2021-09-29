@@ -6,7 +6,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import React from "react";
 import ReactDOM from "react-dom";
-import { App } from "./components/shell";
+import { App } from "./app";
 import reportWebVitals from "./reportWebVitals";
 import { debug } from "./state/logic/debug";
 import { startup } from "./state/logic/startup";

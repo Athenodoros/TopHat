@@ -1,7 +1,7 @@
 import { Menu, MenuItem, MenuProps, Typography } from "@mui/material";
 import React, { useCallback } from "react";
-import { ID } from "../../state/utilities/values";
-import { useDivBoundingRect, usePopoverProps } from "../../utilities/hooks";
+import { useDivBoundingRect, usePopoverProps } from "../../shared/hooks";
+import { ID } from "../../state/shared/values";
 
 export interface ObjectSelectorCommonProps<Option extends { id: ID; name: string }> {
     options: Option[];

@@ -1,16 +1,16 @@
-import { Avatar, styled, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { AccountBalance, NoteAdd, Payment, TrendingUp } from "@mui/icons-material";
+import { Avatar, styled, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { noop } from "lodash";
 import numeral from "numeral";
 import React from "react";
 import { TopHatDispatch } from "..";
+import { IconType } from "../../shared/types";
 import { Greys, Intents } from "../../styles/colours";
-import { IconType } from "../../utilities/types";
 import { DataSlice } from "../data";
 import { useAccountByID, useDefaultCurrency, useInstitutionByID } from "../data/hooks";
 import { Notification, NotificationRuleDefinitions } from "../data/types";
-import { ID } from "../utilities/values";
+import { ID } from "../shared/values";
 
 export interface NotificationDisplayMetadata {
     icon: IconType;

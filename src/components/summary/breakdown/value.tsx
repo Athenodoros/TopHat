@@ -1,11 +1,11 @@
 import { ButtonBase, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { identity } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
+import { suppressEvent } from "../../../shared/events";
 import { Greys } from "../../../styles/colours";
-import { suppressEvent } from "../../../utilities/events";
 import { fadeSolidColour } from "../../display/ObjectDisplay";
 
 const useValueStyles = makeStyles({

@@ -5,11 +5,11 @@ import React, { useCallback, useMemo } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
-import { formatDate, formatJSDate, getToday, ID } from "../../state/utilities/values";
+import { formatDate, formatJSDate, getToday, ID } from "../../state/shared/values";
 import { BLACK } from "../../styles/colours";
 import { FlexWidthChart } from "../display/FlexWidthChart";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
-import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./utilities";
+import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./shared";
 
 interface SummaryBarChartPoint {
     id: ID;

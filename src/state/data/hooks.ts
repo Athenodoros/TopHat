@@ -4,8 +4,8 @@ import numeral from "numeral";
 import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
 import { TopHatStore } from "..";
-import { useSelector } from "../utilities/hooks";
-import { ID } from "../utilities/values";
+import { useSelector } from "../shared/hooks";
+import { ID } from "../shared/values";
 import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution, Statement } from "./types";
 
 export const useDefaultCurrency = () =>

@@ -1,6 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd, trimStart } from "lodash";
-import { ID } from "../utilities/values";
+import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
     AccountPageState,
