@@ -64,7 +64,7 @@ export const DialogImportFileScreen: React.FC = () => {
                     </Link>
                     .
                 </Typography>
-                <Button variant="outlined" color="primary" onClick={openFileDialog} className={classes.upload}>
+                <Button variant="outlined" onClick={openFileDialog} className={classes.upload}>
                     Upload File
                 </Button>
             </DialogOptions>

@@ -124,9 +124,6 @@ const useStyles = makeStyles({
         "& .MuiTab-root": {
             minHeight: 48,
             padding: "0 18px",
-        },
-
-        "& .MuiTab-wrapper": {
             flexDirection: "row-reverse",
 
             "& .MuiIconButton-root": { margin: "0 -5px 0 5px" },
@@ -193,6 +190,7 @@ export const DialogImportScreen: React.FC = () => {
                                     <div className={classes.option}>
                                         <Typography variant="body2">Delimiter</Typography>
                                         <TextField
+                                            variant="standard"
                                             placeholder=","
                                             size="small"
                                             value={state.parse.delimiter || ""}
@@ -214,6 +212,7 @@ export const DialogImportScreen: React.FC = () => {
                                             </Tooltip>
                                         </div>
                                         <TextField
+                                            variant="standard"
                                             placeholder="YYYY-MM-DD"
                                             size="small"
                                             value={state.parse.dateFormat || ""}
@@ -224,7 +223,7 @@ export const DialogImportScreen: React.FC = () => {
                                 </div>
                                 <div className={classes.actions}>
                                     <Button
-                                        color="secondary"
+                                        color="error"
                                         variant="outlined"
                                         size="small"
                                         onClick={removeAllStatementFiles}
@@ -234,7 +233,6 @@ export const DialogImportScreen: React.FC = () => {
                                     <Tooltip title={canGoToStatementMappingScreen(state) || ""}>
                                         <div>
                                             <Button
-                                                color="primary"
                                                 variant="contained"
                                                 size="small"
                                                 disabled={canGoToStatementMappingScreen(state) !== null}
@@ -467,19 +465,14 @@ export const DialogImportScreen: React.FC = () => {
                                 </div>
                                 <div className={classes.actions}>
                                     <Button
-                                        color="secondary"
+                                        color="error"
                                         variant="outlined"
                                         size="small"
                                         onClick={goBackToStatementParsing}
                                     >
                                         Back
                                     </Button>
-                                    <Button
-                                        color="primary"
-                                        variant="contained"
-                                        size="small"
-                                        onClick={goToStatementImportScreen}
-                                    >
+                                    <Button variant="contained" size="small" onClick={goToStatementImportScreen}>
                                         Filter Rows
                                     </Button>
                                 </div>
@@ -511,7 +504,7 @@ export const DialogImportScreen: React.FC = () => {
                             </div>
                             <div className={classes.actions}>
                                 <Button
-                                    color="secondary"
+                                    color="error"
                                     variant="outlined"
                                     size="small"
                                     onClick={goBackToStatementMapping}
@@ -521,7 +514,6 @@ export const DialogImportScreen: React.FC = () => {
                                 <Tooltip title={canImportStatementsAndClearDialog() || ""}>
                                     <div>
                                         <Button
-                                            color="primary"
                                             variant="contained"
                                             size="small"
                                             onClick={() =>

@@ -217,7 +217,7 @@ const EditCategoryView: React.FC = () => {
                         </>
                     }
                 >
-                    <Button variant="outlined" className={classes.category}>
+                    <Button variant="outlined" className={classes.category} color="inherit">
                         {getCategoryIcon(parent || PLACEHOLDER_CATEGORY, classes.icon)}
                         <Typography variant="body1" noWrap={true}>
                             {parent?.name || "No Parent"}

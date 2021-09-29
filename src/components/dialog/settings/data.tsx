@@ -1,12 +1,10 @@
 import { Button, TextField, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
 import React, { useCallback, useState } from "react";
 import { TopHatDispatch } from "../../../state";
 import { DataSlice, DataState } from "../../../state/data";
 import { useSelector } from "../../../state/utilities/hooks";
 import { Greys } from "../../../styles/colours";
-import { useButtonStyles } from "../../../styles/components";
 import { createAndDownloadFile } from "../../../utilities/data";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { EditValueContainer } from "../utilities";
@@ -61,7 +59,7 @@ export const DialogExportContents: React.FC = () => {
             <div className={classes.divider} />
             <EditValueContainer
                 label={
-                    <Button variant="outlined" className={classes.largeButton} color="primary" disabled={true}>
+                    <Button variant="outlined" className={classes.largeButton} disabled={true}>
                         Export CSV
                     </Button>
                 }
@@ -73,12 +71,7 @@ export const DialogExportContents: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer
                 label={
-                    <Button
-                        variant="outlined"
-                        className={classes.largeButton}
-                        color="primary"
-                        onClick={createJSONDownload}
-                    >
+                    <Button variant="outlined" className={classes.largeButton} onClick={createJSONDownload}>
                         Export JSON
                     </Button>
                 }
@@ -94,12 +87,12 @@ export const DialogExportContents: React.FC = () => {
 
 export const DialogImportContents: React.FC = () => {
     const classes = useStyles();
-    const buttonStyles = useButtonStyles();
 
     const [text, setText] = useState("");
     const ButtonProps = {
         variant: "outlined",
-        className: clsx(classes.button, buttonStyles.dangerOutlined),
+        color: "error",
+        className: classes.button,
         disabled: text.toUpperCase() !== "PERMANENTLY DELETE ALL DATA",
     } as const;
 
@@ -111,7 +104,7 @@ export const DialogImportContents: React.FC = () => {
                 "PERMANENTLY DELETE ALL DATA" in the box:
             </Typography>
             <TextField
-                color="secondary"
+                color="error"
                 size="small"
                 placeholder="Warning: Dangerous!"
                 className={classes.input}

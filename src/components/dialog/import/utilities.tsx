@@ -1,6 +1,6 @@
-import { Button, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { KeyboardArrowDown } from "@mui/icons-material";
+import { Button, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React from "react";
 import { useDialogState } from "../../../state/app/hooks";
@@ -64,7 +64,7 @@ export const DialogImportAccountSelector: React.FC = () => {
                 <Button
                     variant="outlined"
                     className={classes.account}
-                    color={account === undefined ? "secondary" : undefined}
+                    color={account === undefined ? "error" : "inherit"}
                 >
                     {getAccountIcon(account, classes.icon)}
                     <Typography

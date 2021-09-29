@@ -1,4 +1,4 @@
-import { groupBy, keys, toPairs, uniqBy, zipObject } from "lodash";
+import { groupBy, keys, take, toPairs, uniqBy, zipObject } from "lodash";
 import { useMemo } from "react";
 import { filterListByID } from "..";
 import { EditTransactionState, Transaction } from "../../../state/data";
@@ -13,7 +13,7 @@ export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
     return useMemo(() => {
         const regex = new RegExp(filters.search);
 
-        const included = takeWithFilter(transactions as number[], filters.tableLimit, (id) => {
+        const included = takeWithFilter(transactions as number[], filters.tableLimit + 1, (id) => {
             const tx = metadata[id]!;
 
             const search =
@@ -42,9 +42,10 @@ export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
         });
 
         return {
-            ids: included,
+            ids: take(included, filters.tableLimit),
             groups: toPairs(groupBy(included, (id) => metadata[id]!.date)),
             metadata,
+            more: included.length > filters.tableLimit,
         };
     }, [transactions, metadata, filters]);
 };

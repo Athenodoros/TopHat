@@ -1,6 +1,6 @@
-import { Button, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { AccountTree, AssignmentLate, Edit, OpenInNew, SwapHoriz } from "@mui/icons-material";
+import { Button, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { getBasicChartFunctions } from "../../components/display/BasicBarChart";
@@ -13,7 +13,6 @@ import { useCategoryPageCategory } from "../../state/app/hooks";
 import { useFormatValue } from "../../state/data/hooks";
 import { getToday } from "../../state/utilities/values";
 import { Greys, Intents } from "../../styles/colours";
-import { useButtonStyles } from "../../styles/components";
 // import { NonIdealState } from "../../components/display/NonIdealState";
 
 const useStyles = makeStyles({
@@ -51,7 +50,6 @@ const useStyles = makeStyles({
 
 export const CategoryPageBudgetSummary: React.FC = () => {
     const classes = useStyles();
-    const buttonClasses = useButtonStyles();
     const category = useCategoryPageCategory();
     const format = useFormatValue("0,0.00");
 
@@ -68,7 +66,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
                     title="No Budget Available"
                     subtitle="Only top-level categories have budgets - remove the parent category to start budgeting"
                     action={
-                        <Button color="primary" onClick={openEditView} startIcon={<OpenInNew />}>
+                        <Button onClick={openEditView} startIcon={<OpenInNew />}>
                             Edit Category
                         </Button>
                     }
@@ -83,7 +81,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
                     title="No Budget Created"
                     subtitle="This category does not have a budget set up - add one in the edit view to start tracking over time"
                     action={
-                        <Button color="primary" onClick={openEditView} startIcon={<OpenInNew />}>
+                        <Button onClick={openEditView} startIcon={<OpenInNew />}>
                             Add Budget
                         </Button>
                     }
@@ -145,10 +143,10 @@ export const CategoryPageBudgetSummary: React.FC = () => {
                 />
             </div>
             <div className={classes.actions}>
-                <Button className={buttonClasses.warning} startIcon={<Edit />}>
+                <Button color="warning" startIcon={<Edit />}>
                     EDIT
                 </Button>
-                <Button variant="outlined" color="primary" startIcon={<SwapHoriz />}>
+                <Button variant="outlined" startIcon={<SwapHoriz />}>
                     TRANSFER
                 </Button>
             </div>

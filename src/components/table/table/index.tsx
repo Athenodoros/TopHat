@@ -1,5 +1,5 @@
-import { Button, Card, Checkbox } from "@mui/material";
 import { PlaylistAdd } from "@mui/icons-material";
+import { Button, Card, Checkbox } from "@mui/material";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
@@ -35,7 +35,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 }) => {
     const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
-    const { ids, groups, metadata } = useTransactionsTableData(filters);
+    const { ids, groups, metadata, more } = useTransactionsTableData(filters);
 
     const [filtersRef, setFiltersPartial] = useSetPartialValue(filters, setFilters);
     const [stateRef, setStatePartial] = useSetPartialValue(state, setState);
@@ -133,6 +133,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 onClick={updaters.loadMore}
                 className={classes.loadMoreTransactionsButton}
                 endIcon={<PlaylistAdd />}
+                disabled={!more}
             >
                 Load More
             </Button>

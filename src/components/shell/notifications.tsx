@@ -1,6 +1,6 @@
-import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { Clear } from "@mui/icons-material";
+import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import React, { useState } from "react";
 import { useAllNotifications } from "../../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../../state/logic/notifications";
@@ -84,7 +84,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                     {buttons && (
                         <div className={classes.buttons}>
                             {buttons.map(({ text, onClick }, idx) => (
-                                <Button onClick={onClick} size="small" key={idx}>
+                                <Button onClick={onClick} size="small" key={idx} color="inherit">
                                     {text}
                                 </Button>
                             ))}

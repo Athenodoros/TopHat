@@ -241,7 +241,7 @@ const TransferTransactionDisplay: React.FC<{
                 <Button
                     size="small"
                     endIcon={<ImportExport />}
-                    color={excluded || disabled ? undefined : "primary"}
+                    color={excluded || disabled ? "inherit" : undefined}
                     className={classes.button}
                     onClick={onClick}
                 />
@@ -327,6 +327,7 @@ const ColumnHeader: React.FC<{
                     className={field ? undefined : classes.empty}
                     disabled={state.page !== "mapping"}
                     {...popover.buttonProps}
+                    color="inherit"
                 >
                     {field ? upperFirst(field) : "(none)"}
                 </Button>
@@ -335,7 +336,7 @@ const ColumnHeader: React.FC<{
                     <Button
                         size="small"
                         endIcon={<Exposure />}
-                        color={mapping.value.flip ? "secondary" : undefined}
+                        color={mapping.value.flip ? "error" : "inherit"}
                         className={clsx(classes.iconButton, mapping.value.flip && classes.flipped)}
                         disabled={state.page !== "mapping"}
                         onClick={flipStatementMappingFlipValue}

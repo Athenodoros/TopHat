@@ -193,6 +193,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                                     <Help fontSize="small" htmlColor={Greys[500]} />
                                 )
                             }
+                            color="inherit"
                         />
                     }
                 />

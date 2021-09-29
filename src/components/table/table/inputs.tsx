@@ -280,7 +280,7 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
             }
         >
             {button || (
-                <Button variant="outlined" className={classes.button} component="div">
+                <Button variant="outlined" className={classes.button} component="div" color="inherit">
                     {option && getIcon(option, iconClass)}
                     <Typography
                         variant="body1"

@@ -19,7 +19,6 @@ import { useAllObjects, useObjectByID } from "../../../state/data/hooks";
 import { BasicObjectName, BasicObjectType } from "../../../state/data/types";
 import { ID } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
-import { useButtonStyles } from "../../../styles/components";
 import { handleTextFieldChange, withSuppressEvent } from "../../../utilities/events";
 import { EditDivider } from "./edits";
 import { DialogOptions } from "./layout";
@@ -55,7 +54,6 @@ export const DialogSelectorAddNewButton: React.FC<{ onClick: () => void; type: s
     <Button
         className={useDialogObjectSelectorStyles().button}
         variant="outlined"
-        color="primary"
         startIcon={<AddCircleOutline />}
         onClick={withSuppressEvent<HTMLButtonElement>(onClick)}
     >
@@ -231,7 +229,6 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     onReset,
 }: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode; onReset?: () => void }>) => {
     const classes = useObjectContainerStyles();
-    const buttonClasses = useButtonStyles();
 
     const working = useDialogState(type) as BasicObjectType[Type];
     const actual = useObjectByID(type, working.id);
@@ -256,22 +253,17 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
             <div className={classes.editContainer}>{children}</div>
             <div className={classes.actions}>
                 <Button
-                    className={buttonClasses.warning}
+                    color="warning"
                     disabled={isEqual(working, actual)}
                     startIcon={<DeleteTwoTone fontSize="small" />}
                     onClick={reset}
                 >
                     Reset
                 </Button>
-                <Button
-                    className={buttonClasses.danger}
-                    disabled={!actual}
-                    startIcon={<DeleteForeverTwoTone fontSize="small" />}
-                >
+                <Button color="error" disabled={!actual} startIcon={<DeleteForeverTwoTone fontSize="small" />}>
                     Delete
                 </Button>
                 <Button
-                    className={buttonClasses.primaryOutlined}
                     disabled={isEqual(working, actual)}
                     variant="outlined"
                     startIcon={<SaveTwoTone fontSize="small" />}

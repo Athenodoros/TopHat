@@ -1,8 +1,10 @@
-import { Avatar, Button, Card, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { AccountBalance } from "@mui/icons-material";
+import { Avatar, Button, Card, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
-import React from "react";
+import React, { useCallback } from "react";
+import { TopHatDispatch } from "../../../state";
+import { AppSlice } from "../../../state/app";
 import { PLACEHOLDER_INSTITUTION_ID } from "../../../state/data";
 import { Greys } from "../../../styles/colours";
 import { AccountTableEntry } from "./account";
@@ -26,6 +28,7 @@ const useStyles = makeStyles({
         opacity: 0.1,
         borderRadius: 48,
         transform: "rotate(-60deg)",
+        pointerEvents: "none",
     },
     institutionName: {
         lineHeight: 1,
@@ -48,6 +51,10 @@ const useStyles = makeStyles({
 export const AccountsInstitutionDisplay: React.FC<{ institution: AccountsInstitutionSummary }> = ({ institution }) => {
     const accountsTableClasses = useAccountsTableStyles();
     const classes = useStyles();
+    const onEditInstitution = useCallback(
+        () => TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "institution", institution })),
+        [institution]
+    );
 
     return (
         <Card className={classes.container}>
@@ -69,6 +76,8 @@ export const AccountsInstitutionDisplay: React.FC<{ institution: AccountsInstitu
                     size="small"
                     className={classes.institutionEditAction}
                     disabled={institution.id === PLACEHOLDER_INSTITUTION_ID}
+                    color="inherit"
+                    onClick={onEditInstitution}
                 >
                     EDIT
                 </Button>

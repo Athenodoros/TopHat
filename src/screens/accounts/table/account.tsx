@@ -1,6 +1,6 @@
-import { Button, ButtonBase, Tooltip, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { Add, Description, Edit, NoteAdd, Update } from "@mui/icons-material";
+import { Button, ButtonBase, Tooltip, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { max, min, range, sumBy, toPairs } from "lodash";
@@ -181,17 +181,23 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                 {getAccountAgeDescription(max([account.lastTransactionDate, account.lastUpdate]))}
                 <div className={classes.accountUpdateActions} onMouseDown={suppressEvent}>
                     <Tooltip title="Mark Up-To-Date">
-                        <Button size="small" startIcon={<Update htmlColor={Greys[700]} />} onClick={markUpToDate} />
+                        <Button
+                            size="small"
+                            startIcon={<Update htmlColor={Greys[700]} />}
+                            onClick={markUpToDate}
+                            color="inherit"
+                        />
                     </Tooltip>
                     <Tooltip title="Upload Statement">
                         <Button
                             size="small"
                             startIcon={<NoteAdd htmlColor={Greys[700]} />}
                             onClick={goToUploadDialog}
+                            color="inherit"
                         />
                     </Tooltip>
                     <Tooltip title="Create Transaction">
-                        <Button size="small" startIcon={<Add htmlColor={Greys[700]} />} />
+                        <Button size="small" startIcon={<Add htmlColor={Greys[700]} />} color="inherit" />
                     </Tooltip>
                 </div>
             </div>

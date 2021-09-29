@@ -291,7 +291,7 @@ const EditRuleView: React.FC = () => {
                     selected={working.category}
                     setSelected={updateWorkingCategory}
                 >
-                    <Button variant="outlined" className={classes.category}>
+                    <Button variant="outlined" className={classes.category} color="inherit">
                         {getCategoryIcon(category, classes.icon)}
                         <Typography variant="body1">{category.name}</Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />

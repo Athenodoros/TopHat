@@ -156,7 +156,7 @@ const EditAccountView: React.FC = () => {
                     selected={working.institution}
                     setSelected={updateWorkingInstitution}
                 >
-                    <Button variant="outlined" className={classes.institution}>
+                    <Button variant="outlined" className={classes.institution} color="inherit">
                         {getInstitutionIcon(institution!, classes.icon)}
                         <Typography variant="body1" noWrap={true}>
                             {institution.name}
