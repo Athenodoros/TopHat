@@ -1,11 +1,16 @@
+import styled from "@emotion/styled";
 import { ChevronRight } from "@mui/icons-material";
-import { Badge, ListItemIcon, Menu, MenuItem, Popover } from "@mui/material";
+import { Badge, ListItemIcon, ListItemText, Menu, MenuItem, Popover } from "@mui/material";
 import React from "react";
 import { NBSP } from "../../../utilities/constants";
 import { suppressEvent } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
 import { IconType } from "../../../utilities/types";
-import { PaddedListItemText } from "../../display/ListItems";
+
+const PaddedListItemText = styled(ListItemText)({
+    paddingTop: "4px",
+    paddingBottom: "4px",
+});
 
 interface FilterMenuNestedOptionProps {
     icon: IconType;

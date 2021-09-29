@@ -11,6 +11,7 @@ import {
     IconButton,
     ListItem,
     ListItemIcon,
+    ListItemText,
     Menu,
     MenuItem,
     ToggleButton,
@@ -22,7 +23,6 @@ import clsx from "clsx";
 import React, { useCallback } from "react";
 import { createNewAccount } from "../../../components/dialog/pages/accounts";
 import { createNewInstitution } from "../../../components/dialog/pages/institutions";
-import { PaddedListItemText } from "../../../components/display/ListItems";
 import {
     getAccountCategoryIcon,
     getCurrencyIcon,
@@ -60,6 +60,7 @@ const useStyles = makeStyles({
     },
     actionsItem: {
         width: 250,
+        height: 48,
     },
 });
 
@@ -176,7 +177,7 @@ export const AccountsTableHeader: React.FC = () => {
                             ))}
                         </FilterMenuNestedOption>
                         <ListItem>
-                            <PaddedListItemText>Balances</PaddedListItemText>
+                            <ListItemText>Balances</ListItemText>
                             <ToggleButtonGroup
                                 size="small"
                                 value={filters.balances}
@@ -209,13 +210,13 @@ export const AccountsTableHeader: React.FC = () => {
                             <ListItemIcon>
                                 <AccountBalanceWallet />
                             </ListItemIcon>
-                            <PaddedListItemText>New Account</PaddedListItemText>
+                            <ListItemText>New Account</ListItemText>
                         </MenuItem>
                         <MenuItem onClick={startInstitutionCreationCallback} className={classes.actionsItem}>
                             <ListItemIcon>
                                 <AccountBalance />
                             </ListItemIcon>
-                            <PaddedListItemText>New Institution</PaddedListItemText>
+                            <ListItemText>New Institution</ListItemText>
                         </MenuItem>
                     </Menu>
                 </div>

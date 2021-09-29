@@ -1,5 +1,5 @@
 import { CallSplit, KeyboardArrowDown } from "@mui/icons-material";
-import { Autocomplete, Button, Checkbox, TextField, Typography } from "@mui/material";
+import { Autocomplete, Button, Checkbox, ListItemText, TextField, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { identity, inRange } from "lodash";
@@ -13,7 +13,6 @@ import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../../state/data/utilitie
 import { Greys } from "../../../styles/colours";
 import { handleAutoCompleteChange, handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
-import { PaddedListItemText } from "../../display/ListItems";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getCategoryIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../inputs";
@@ -32,6 +31,7 @@ const useMainStyles = makeStyles((theme) => ({
         display: "flex",
         alignItems: "center",
         flexGrow: 1,
+        height: 32,
 
         "& > div:first-child": {
             marginLeft: 10,
@@ -54,8 +54,8 @@ export const DialogRulesView: React.FC = () => {
     const render = useCallback(
         (rule: Rule) => (
             <div className={clsx(classes.base, rule.isInactive && classes.disabled)}>
-                <PaddedListItemText>{rule.index + "."}</PaddedListItemText>
-                <PaddedListItemText>{rule.name}</PaddedListItemText>
+                <ListItemText>{rule.index + "."}</ListItemText>
+                <ListItemText>{rule.name}</ListItemText>
             </div>
         ),
         [classes]

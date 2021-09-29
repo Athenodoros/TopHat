@@ -9,7 +9,7 @@ import {
     Settings,
     ShoppingBasket,
 } from "@mui/icons-material";
-import { Dialog, Divider, IconButton, ListItemIcon, MenuItem, Select } from "@mui/material";
+import { Dialog, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, Select } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import { useCallback, useContext } from "react";
@@ -18,7 +18,6 @@ import { AppSlice, DialogState } from "../../state/app";
 import { useDialogPage } from "../../state/app/hooks";
 import { handleSelectChange } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
-import { PaddedListItemText } from "../display/ListItems";
 import { FileHandlerContext } from "../shell/workspace";
 import { DialogImportView } from "./import";
 import { DialogAccountsView } from "./pages/accounts";
@@ -60,6 +59,12 @@ const useStyles = makeStyles({
             },
         },
     },
+    menu: {
+        "& .MuiListItemText-root": {
+            marginTop: 4,
+            marginBottom: 4,
+        },
+    },
 });
 
 export const TopHatDialog: React.FC = () => {
@@ -79,7 +84,12 @@ export const TopHatDialog: React.FC = () => {
             disablePortal={true} // This enables file dragover to still hit the dropzone with a full-page dialog
         >
             <div className={classes.header}>
-                <Select value={state !== "closed" ? state : "settings"} onChange={changeDialogScreen} size="small">
+                <Select
+                    value={state !== "closed" ? state : "settings"}
+                    onChange={changeDialogScreen}
+                    size="small"
+                    MenuProps={{ className: classes.menu }}
+                >
                     {MenuItems}
                 </Select>
                 <IconButton onClick={closeDialog} size="large">
@@ -102,7 +112,7 @@ const getMenuItem = (Icon: IconType, name: string, display: string) => (
         <ListItemIcon>
             <Icon fontSize="small" />
         </ListItemIcon>
-        <PaddedListItemText>{display}</PaddedListItemText>
+        <ListItemText>{display}</ListItemText>
     </MenuItem>
 );
 const MenuItems = [

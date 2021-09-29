@@ -1,10 +1,9 @@
 import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { Checkbox, MenuItem } from "@mui/material";
+import { Checkbox, ListItemText, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
 import { ID } from "../../../state/utilities/values";
 import { updateListSelection } from "../../../utilities/data";
-import { PaddedListItemText } from "../../display/ListItems";
 
 const useStyles = makeStyles({
     icon: {
@@ -14,6 +13,8 @@ const useStyles = makeStyles({
         marginRight: 10,
     },
     text: {
+        padding: "4px 0",
+
         "& span": {
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -42,7 +43,7 @@ const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
                 onClick={() => select(updateListSelection(option.id, selected))}
             >
                 {getOptionIcon(option, classes.icon)}
-                <PaddedListItemText
+                <ListItemText
                     className={classes.text}
                     primary={option.name}
                     secondary={getSecondary && getSecondary(option)}

@@ -1,5 +1,5 @@
 import { AccountBalance, Clear, Edit, Sync } from "@mui/icons-material";
-import { alpha, IconButton, Tooltip } from "@mui/material";
+import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
@@ -8,7 +8,6 @@ import { Institution } from "../../../state/data";
 import { getColourFromIcon, getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utilities";
 import { getRandomColour } from "../../../state/utilities/values";
 import { BLACK, Greys } from "../../../styles/colours";
-import { PaddedListItemText } from "../../display/ListItems";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getInstitutionIcon } from "../../display/ObjectDisplay";
 import {
@@ -24,6 +23,7 @@ const useMainStyles = makeStyles({
     base: {
         display: "flex",
         alignItems: "center",
+        height: 32,
     },
     icon: {
         height: 24,
@@ -40,7 +40,7 @@ export const DialogInstitutionsView: React.FC = () => {
         (institution: Institution) => (
             <div className={classes.base}>
                 {getInstitutionIcon(institution, classes.icon)}
-                <PaddedListItemText>{institution.name}</PaddedListItemText>
+                <ListItemText>{institution.name}</ListItemText>
             </div>
         ),
         [classes]
