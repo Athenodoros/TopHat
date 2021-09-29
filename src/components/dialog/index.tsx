@@ -9,7 +9,7 @@ import {
     Settings,
     ShoppingBasket,
 } from "@mui/icons-material";
-import { Dialog, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, Select } from "@mui/material";
+import { Dialog, Divider, IconButton, ListItemIcon, MenuItem, Select } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import { useCallback, useContext } from "react";
@@ -18,6 +18,7 @@ import { AppSlice, DialogState } from "../../state/app";
 import { useDialogPage } from "../../state/app/hooks";
 import { handleSelectChange } from "../../utilities/events";
 import { IconType } from "../../utilities/types";
+import { PaddedListItemText } from "../display/ListItems";
 import { FileHandlerContext } from "../shell/workspace";
 import { DialogImportView } from "./import";
 import { DialogAccountsView } from "./pages/accounts";
@@ -101,7 +102,7 @@ const getMenuItem = (Icon: IconType, name: string, display: string) => (
         <ListItemIcon>
             <Icon fontSize="small" />
         </ListItemIcon>
-        <ListItemText>{display}</ListItemText>
+        <PaddedListItemText>{display}</PaddedListItemText>
     </MenuItem>
 );
 const MenuItems = [

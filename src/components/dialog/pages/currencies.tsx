@@ -1,5 +1,5 @@
 import { Euro, Sync } from "@mui/icons-material";
-import { IconButton, ListItemText, TextField, Tooltip } from "@mui/material";
+import { IconButton, TextField, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import React, { useCallback } from "react";
 import { TopHatStore } from "../../../state";
@@ -9,6 +9,7 @@ import { getNextID } from "../../../state/data/utilities";
 import { BaseTransactionHistory, getRandomColour } from "../../../state/utilities/values";
 import { handleTextFieldChange } from "../../../utilities/events";
 import { useNumericInputHandler } from "../../../utilities/hooks";
+import { PaddedListItemText } from "../../display/ListItems";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getCurrencyIcon } from "../../display/ObjectDisplay";
 import {
@@ -40,7 +41,7 @@ export const DialogCurrenciesView: React.FC = () => {
         (currency: Currency) => (
             <div className={classes.base}>
                 {getCurrencyIcon(currency, classes.icon)}
-                <ListItemText>{currency.name}</ListItemText>
+                <PaddedListItemText>{currency.name}</PaddedListItemText>
             </div>
         ),
         [classes]

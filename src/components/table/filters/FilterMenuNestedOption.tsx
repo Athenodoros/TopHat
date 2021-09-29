@@ -1,10 +1,11 @@
-import { Badge, ListItemIcon, ListItemText, Menu, MenuItem, Popover } from "@mui/material";
 import { ChevronRight } from "@mui/icons-material";
+import { Badge, ListItemIcon, Menu, MenuItem, Popover } from "@mui/material";
 import React from "react";
 import { NBSP } from "../../../utilities/constants";
 import { suppressEvent } from "../../../utilities/events";
 import { usePopoverProps } from "../../../utilities/hooks";
 import { IconType } from "../../../utilities/types";
+import { PaddedListItemText } from "../../display/ListItems";
 
 interface FilterMenuNestedOptionProps {
     icon: IconType;
@@ -44,7 +45,7 @@ export const FilterMenuNestedOptionFunction = (
                         <Icon fontSize="small" />
                     </Badge>
                 </ListItemIcon>
-                <ListItemText>{name + NBSP + NBSP}</ListItemText>
+                <PaddedListItemText>{name + NBSP + NBSP}</PaddedListItemText>
                 <ChevronRight fontSize="small" />
                 <PopoverComponent
                     {...popoverProps}

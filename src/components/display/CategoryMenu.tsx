@@ -1,4 +1,4 @@
-import { ListItemText, MenuItem } from "@mui/material";
+import { MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { Dictionary } from "@reduxjs/toolkit";
 import React, { useCallback, useMemo } from "react";
@@ -8,6 +8,7 @@ import { TRANSFER_CATEGORY_ID } from "../../state/data/utilities";
 import { ID } from "../../state/utilities/values";
 import { updateListSelection, zipObject } from "../../utilities/data";
 import { withSuppressEvent } from "../../utilities/events";
+import { PaddedListItemText } from "./ListItems";
 import { getCategoryIcon } from "./ObjectDisplay";
 
 const useStyles = makeStyles({
@@ -45,7 +46,7 @@ export const SingleCategoryMenuFunction = (
         (category: Category) => (
             <div className={classes.base}>
                 {getCategoryIcon(category, classes.icon)}
-                <ListItemText>{category.name}</ListItemText>
+                <PaddedListItemText>{category.name}</PaddedListItemText>
             </div>
         ),
         [classes]
@@ -106,7 +107,7 @@ const MultipleCategoryMenuFunction = (
         (category: Category) => (
             <div className={classes.base}>
                 {getCategoryIcon(category, classes.icon)}
-                <ListItemText>{category.name}</ListItemText>
+                <PaddedListItemText>{category.name}</PaddedListItemText>
             </div>
         ),
         [classes]

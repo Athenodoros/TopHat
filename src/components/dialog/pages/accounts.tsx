@@ -1,6 +1,6 @@
 import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
 import { DatePickerProps } from "@mui/lab";
-import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { Button, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { DateTime } from "luxon";
@@ -14,6 +14,7 @@ import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../../state/data/utili
 import { BaseTransactionHistory, formatDate, getTodayString } from "../../../state/utilities/values";
 import { Greys } from "../../../styles/colours";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../../utilities/events";
+import { PaddedListItemText } from "../../display/ListItems";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getInstitutionIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { AutoClosingDatePicker, ObjectSelector, SubItemCheckbox } from "../../inputs";
@@ -53,7 +54,7 @@ export const DialogAccountsView: React.FC = () => {
         (account: Account) => (
             <div className={clsx(classes.base, account.isInactive && classes.disabled)}>
                 {getAccountIcon(account, classes.icon)}
-                <ListItemText>{account.name}</ListItemText>
+                <PaddedListItemText>{account.name}</PaddedListItemText>
             </div>
         ),
         [classes, getAccountIcon]

@@ -1,5 +1,5 @@
 import { CloudDone, Edit, GetApp, ListAlt, Timeline } from "@mui/icons-material";
-import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
+import { List, ListItemIcon, ListSubheader, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import React from "react";
@@ -10,6 +10,7 @@ import { useSelector } from "../../../state/utilities/hooks";
 import { Greys } from "../../../styles/colours";
 import { zipObject } from "../../../utilities/data";
 import { withSuppressEvent } from "../../../utilities/events";
+import { PaddedListItemText } from "../../display/ListItems";
 import { DialogContents, DialogMain, DialogOptions } from "../utilities";
 import { DialogExportContents, DialogImportContents } from "./data";
 import { DialogSummaryContents } from "./summary";
@@ -37,32 +38,32 @@ export const DialogSettingsView: React.FC = () => {
                         <ListItemIcon>
                             <ListAlt fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>{isDemo ? "Demo" : "Summary"}</ListItemText>
+                        <PaddedListItemText>{isDemo ? "Demo" : "Summary"}</PaddedListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["import"]} selected={page === "import"}>
                         <ListItemIcon>
                             <Edit fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Manage Data</ListItemText>
+                        <PaddedListItemText>Manage Data</PaddedListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["export"]} selected={page === "export"}>
                         <ListItemIcon>
                             <GetApp fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Export</ListItemText>
+                        <PaddedListItemText>Export</PaddedListItemText>
                     </MenuItem>
                     <ListSubheader className={classes.subheader}>Settings</ListSubheader>
                     <MenuItem onClick={setPage["storage"]} selected={page === "storage"}>
                         <ListItemIcon>
                             <CloudDone fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Storage and Services</ListItemText>
+                        <PaddedListItemText>Storage and Services</PaddedListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["budgeting"]} selected={page === "budgeting"}>
                         <ListItemIcon>
                             <Timeline fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText>Budgeting</ListItemText>
+                        <PaddedListItemText>Budgeting</PaddedListItemText>
                     </MenuItem>
                 </List>
             </DialogOptions>

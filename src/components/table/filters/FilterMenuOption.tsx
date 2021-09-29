@@ -1,9 +1,10 @@
-import { Checkbox, ListItemText, MenuItem } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
 import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
+import { Checkbox, MenuItem } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
 import { ID } from "../../../state/utilities/values";
 import { updateListSelection } from "../../../utilities/data";
+import { PaddedListItemText } from "../../display/ListItems";
 
 const useStyles = makeStyles({
     icon: {
@@ -41,7 +42,7 @@ const FilterMenuOptionFunction = <T extends { id: ID; name: string }>(
                 onClick={() => select(updateListSelection(option.id, selected))}
             >
                 {getOptionIcon(option, classes.icon)}
-                <ListItemText
+                <PaddedListItemText
                     className={classes.text}
                     primary={option.name}
                     secondary={getSecondary && getSecondary(option)}

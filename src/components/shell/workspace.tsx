@@ -48,7 +48,7 @@ export const Workspace: React.FC = ({ children }) => {
                     DateAdapter as any
                 }
             >
-                <StyledEngineProvider injectFirst>
+                <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={theme}>
                         <FileHandlerContext.Provider
                             value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
