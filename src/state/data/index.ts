@@ -9,7 +9,20 @@ import {
     PayloadAction,
     Update,
 } from "@reduxjs/toolkit";
-import { clone, cloneDeep, fromPairs, get, isEqual, range, reverse, round, toPairs, uniq, uniqWith } from "lodash";
+import {
+    clone,
+    cloneDeep,
+    fromPairs,
+    get,
+    isEqual,
+    keys,
+    range,
+    reverse,
+    round,
+    toPairs,
+    uniq,
+    uniqWith,
+} from "lodash";
 import { takeWithDefault } from "../../shared/data";
 import {
     BaseBalanceValues,
@@ -136,6 +149,12 @@ export const DataSlice = createSlice({
             }>
         ) => {
             adapters.account.updateOne(state.account, payload);
+        },
+        updateCategoryBudgets: (state, { payload }: PayloadAction<Record<ID, number>>) => {
+            keys(payload).forEach((id) => {
+                const budget = state.category.entities[Number(id)]!.budgets;
+                if (budget) budget.values[0] = payload[Number(id)];
+            });
         },
         addNewTransactions: (
             state,
