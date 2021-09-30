@@ -28,11 +28,16 @@ const useStyles = makeStyles({
     },
 });
 
+interface Anchor {
+    id: ID;
+    include?: boolean;
+}
+
 interface SingleCategoryMenuProps {
     selected?: ID;
     setSelected: (category?: Category) => void;
     exclude?: ID[];
-    anchor?: ID;
+    anchor?: Anchor;
 }
 export const SingleCategoryMenuFunction = (
     { selected, setSelected, exclude = [], anchor }: SingleCategoryMenuProps,
@@ -94,7 +99,7 @@ interface MultiCategoryMenuProps {
     selected: ID[];
     setSelected: (ids: ID[]) => void;
     exclude?: ID[];
-    anchor?: ID;
+    anchor?: Anchor;
 }
 const MultipleCategoryMenuFunction = (
     { selected, setSelected, exclude = [], anchor }: MultiCategoryMenuProps,
@@ -165,7 +170,7 @@ const MultipleCategoryMenuFunction = (
 export const SingleCategoryMenu: React.FC<SingleCategoryMenuProps> = React.forwardRef(SingleCategoryMenuFunction);
 export const MultipleCategoryMenu: React.FC<MultiCategoryMenuProps> = React.forwardRef(MultipleCategoryMenuFunction);
 
-export const useCategoryGraph = (exclude: ID[] = [PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID], anchor?: ID) => {
+export const useCategoryGraph = (exclude: ID[] = [PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID], anchor?: Anchor) => {
     const ids = useCategoryIDs() as ID[];
     const entities = useCategoryMap();
     const { options, graph } = useMemo(
@@ -174,19 +179,25 @@ export const useCategoryGraph = (exclude: ID[] = [PLACEHOLDER_CATEGORY_ID, TRANS
     );
     return { options, graph, entities };
 };
-export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, exclude: ID[], anchor?: ID) => {
-    if (anchor !== undefined) ids = ids.filter((id) => entities[id]!.hierarchy.includes(anchor));
+export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, exclude: ID[], anchor?: Anchor) => {
+    ids = ids.filter((id) => !exclude.includes(id));
+    if (anchor !== undefined)
+        ids = ids.filter(
+            (id) => entities[id]!.hierarchy.includes(anchor.id) || (anchor.include ? id === anchor.id : false)
+        );
+
+    const isRootCategory = (id: ID) => (anchor?.include ? id === anchor.id : entities[id]!.hierarchy[0] === anchor?.id);
 
     const graph = zipObject(
         ids,
         ids.map((_) => [] as ID[])
     );
     ids.forEach((option) => {
-        if (entities[option]!.hierarchy[0] !== anchor) graph[entities[option]!.hierarchy[0]].push(option);
+        if (!isRootCategory(option)) graph[entities[option]!.hierarchy[0]].push(option);
     });
 
     return {
-        options: ids.filter((option) => entities[option]!.hierarchy[0] === anchor && !exclude.includes(option)),
+        options: ids.filter(isRootCategory),
         graph,
     };
 };

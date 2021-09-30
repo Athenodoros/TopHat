@@ -82,6 +82,15 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     const editClasses = useEditStyles();
 
     const categories = useAllCategories();
+    // const categories = useMemo(
+    //     () =>
+    //         allCategories.filter((option) =>
+    //             fixed?.type === "category" && fixed.nested
+    //                 ? option.id === fixed.category || option.hierarchy.includes(fixed.category)
+    //                 : true
+    //         ),
+    //     [fixed, allCategories]
+    // );
     const accounts = useAllAccounts();
     const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
@@ -98,10 +107,13 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         onClick();
                         updaters.category(category?.id);
                     }}
+                    anchor={
+                        fixed?.type === "category" && fixed.nested ? { id: fixed.category, include: true } : undefined
+                    }
                 />
             );
         },
-        [edit.category, updaters]
+        [edit.category, updaters, fixed]
     );
 
     return (
@@ -147,7 +159,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     allowUndefinedValue={!!tx && tx.value === undefined}
                 />
             </div>
-            {fixed?.type !== "category" ? (
+            {fixed?.type !== "category" || fixed.nested === true ? (
                 <div className={classes.category}>
                     <TransactionsTableObjectDropdown
                         options={categories}

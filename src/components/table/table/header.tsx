@@ -206,7 +206,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     </Popover>
                 </div>
             </div>
-            {fixed?.type !== "category" ? (
+            {fixed?.type !== "category" || fixed.nested === true ? (
                 <div className={classes.category}>
                     <div className={classes.compound}>
                         CATEGORY
@@ -222,6 +222,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             <MultipleCategoryMenu
                                 selected={filters.category}
                                 setSelected={updaters.selectIDs.category}
+                                anchor={fixed?.type === "category" ? { id: fixed.category } : undefined}
                             />
                         </Menu>
                     </div>

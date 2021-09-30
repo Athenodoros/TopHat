@@ -154,7 +154,7 @@ export const CategoryPageHeader: React.FC = () => {
                                             close();
                                             if (category) redirect(category.id)();
                                         }}
-                                        anchor={category.id}
+                                        anchor={{ id: category.id }}
                                     />
                                 </Menu>
                             </span>

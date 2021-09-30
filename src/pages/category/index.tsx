@@ -11,6 +11,7 @@ import {
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useCategoryPageCategory, useCategoryPageState } from "../../state/app/hooks";
+import { useAllCategories } from "../../state/data/hooks";
 import { CategoryPageBudgetSummary } from "./budget";
 import { CategoryPageHeader } from "./header";
 import { CategoryPageHistory } from "./history";
@@ -32,22 +33,14 @@ export const CategoryPage: React.FC = () => {
     const classes = useStyles();
 
     const category = useCategoryPageCategory();
-    // const categories = useAllCategories();
     const table = useCategoryPageState((state) => state.table);
+
+    const hasChildren = useAllCategories().some(({ hierarchy }) => hierarchy.includes(category.id));
+
     const fixed: TransactionsTableFixedDataState = useMemo(
-        () => ({ type: "category", category: category.id }),
-        // table.nested
-        //     ? {
-        //           type: "categories",
-        //           main: category.id,
-        //           categories: categories
-        //               .filter((option) => option.id === category.id || option.hierarchy.includes(category.id))
-        //               .map((option) => option.id),
-        //       }
-        //     : { type: "category", category: category.id },
-        [category]
+        () => ({ type: "category", category: category.id, nested: table.nested && hasChildren }),
+        [category, table.nested, hasChildren]
     );
-    const filters = useMemo(() => ({ ...table.filters, category: [] }), [table.filters]);
 
     return (
         <Page title="Categories">
@@ -57,16 +50,18 @@ export const CategoryPage: React.FC = () => {
                 <CategoryPageBudgetSummary />
             </div>
             <TransactionsTable
-                filters={filters}
+                filters={table.filters}
                 state={table.state}
                 setFilters={setFilters}
                 setState={setState}
                 fixed={fixed}
                 headers={
-                    <FormControlLabel
-                        control={<Switch checked={table.nested} onChange={handleToggle} />}
-                        label="Include Subcategories"
-                    />
+                    hasChildren ? (
+                        <FormControlLabel
+                            control={<Switch checked={table.nested} onChange={handleToggle} />}
+                            label="Include Subcategories"
+                        />
+                    ) : undefined
                 }
             />
         </Page>

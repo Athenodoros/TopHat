@@ -60,7 +60,7 @@ export interface CategoryPageState {
     category: ID;
     table: {
         nested: boolean;
-        filters: Omit<TransactionsTableFilters, "category">;
+        filters: TransactionsTableFilters;
         state: TransactionsTableState;
     };
 }

@@ -3,12 +3,16 @@ import { useMemo } from "react";
 import { filterListByID } from "..";
 import { takeWithFilter } from "../../../shared/data";
 import { EditTransactionState, Transaction } from "../../../state/data";
-import { useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
-import { TransactionsTableFilters } from "./types";
+import { useAllCategories, useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
+import { TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
 
-export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
+export const useTransactionsTableData = (
+    filters: TransactionsTableFilters,
+    fixed?: TransactionsTableFixedDataState
+) => {
     const transactions = useTransactionIDs();
     const metadata = useTransactionMap();
+    const categories = useAllCategories();
 
     return useMemo(() => {
         const regex = new RegExp(filters.search);
@@ -27,8 +31,20 @@ export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
                       tx.description?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())
                     : true;
 
+            const fixedCategoryFilter =
+                fixed?.type === "category"
+                    ? fixed.nested
+                        ? categories
+                              .filter(
+                                  ({ id, hierarchy }) => id === fixed.category || hierarchy.includes(fixed.category)
+                              )
+                              .map(({ id }) => id)
+                        : [fixed.category]
+                    : [];
+
             return Boolean(
                 filterListByID(filters.account, tx.account) &&
+                    filterListByID(fixedCategoryFilter, tx.category) &&
                     filterListByID(filters.category, tx.category) &&
                     filterListByID(filters.currency, tx.currency) &&
                     filterListByID(filters.statement, tx.statement) &&
@@ -47,7 +63,7 @@ export const useTransactionsTableData = (filters: TransactionsTableFilters) => {
             metadata,
             more: included.length > filters.tableLimit,
         };
-    }, [transactions, metadata, filters]);
+    }, [transactions, metadata, filters, fixed, categories]);
 };
 
 export const getAllCommonTransactionValues = (transactions: Transaction[]) => {

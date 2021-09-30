@@ -45,4 +45,5 @@ export type TransactionsTableFixedDataState =
     | {
           type: "category";
           category: ID;
+          nested: boolean;
       };

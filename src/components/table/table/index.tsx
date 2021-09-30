@@ -40,7 +40,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 }) => {
     const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
-    const { ids, groups, metadata, more } = useTransactionsTableData(filters);
+    const { ids, groups, metadata, more } = useTransactionsTableData(filters, fixed);
 
     const [filtersRef, setFiltersPartial] = useSetPartialValue(filters, setFilters);
     const [stateRef, setStatePartial] = useSetPartialValue(state, setState);

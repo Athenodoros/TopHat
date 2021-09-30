@@ -96,7 +96,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 )}
             </div>
             <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
-            {fixed?.type !== "category" ? (
+            {fixed?.type !== "category" || fixed.nested === true ? (
                 <div className={classes.category}>
                     {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
                         <div
