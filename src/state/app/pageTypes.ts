@@ -59,6 +59,7 @@ export interface CategoryPageState {
     id: "category";
     category: ID;
     table: {
+        nested: boolean;
         filters: Omit<TransactionsTableFilters, "category">;
         state: TransactionsTableState;
     };

@@ -51,22 +51,32 @@ const makeCategory = (
         budgets,
     } as Category);
 const start = getTodayString();
-const getBaseBudget = (base: number, length: number = 24) => ({
+const getBaseBudget = (base: number, length: number = 28) => ({
     start,
     values: takeWithDefault(
         range(length).map((_) => base),
-        24,
+        Math.max(24, length),
         0
     ),
     strategy: "base" as const,
     base,
 });
 const categories = [
-    { name: "Social", budgets: getBaseBudget(-500) }, // 1
+    { name: "Social", budgets: getBaseBudget(-700) }, // 1
     { name: "Groceries", budgets: getBaseBudget(-700) }, // 2
     { name: "Transport" }, // 3
     { name: "Travel" }, // 4
-    { name: "Housing", budgets: getBaseBudget(-560) }, // 5
+    {
+        name: "Housing",
+        budgets: {
+            start,
+            strategy: "base" as const,
+            base: -560,
+            values: range(18)
+                .map((_) => -560)
+                .concat(range(6).map((_) => -70)),
+        },
+    }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
     { name: "Salary", hierarchy: [6] }, // 8
@@ -374,7 +384,10 @@ let transactions = [
         make({ months: i, days: 3 }, "Mortgage Payment", 6, { value: -1712.76, category: TRANSFER_CATEGORY_ID })
     ),
     ...range(18).map((i) =>
-        make({ months: i, days: 3 }, "Mortgage Interest", 7, { value: -466.87 * (1 - (0.06 / 18) * i), category: 11 })
+        make({ months: i, days: 3 }, "Mortgage Interest", 7, {
+            value: -466.87 * (1 - (0.06 / 18) * (17 - i)),
+            category: 11,
+        })
     ),
 ];
 transactions.sort(compareTransactionsDescendingDates).reverse();

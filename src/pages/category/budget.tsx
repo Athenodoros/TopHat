@@ -17,7 +17,6 @@ import { Greys, Intents } from "../../styles/colours";
 
 const useStyles = makeStyles({
     container: {
-        height: 340,
         display: "flex",
         flexDirection: "column",
     },
@@ -34,7 +33,7 @@ const useStyles = makeStyles({
     fillbar: {
         height: 35,
         marginTop: 10,
-        marginBottom: 30,
+        marginBottom: 20,
         flexGrow: 1,
     },
     actions: {

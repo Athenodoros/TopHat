@@ -67,7 +67,6 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
         popoverProps: {
             open: isOpen,
             anchorEl: ref.current,
-            getContentAnchorEl: null,
             onClose: useCallback(() => setIsOpen(false), [setIsOpen]),
             anchorOrigin: {
                 vertical: "bottom",

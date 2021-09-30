@@ -1,13 +1,19 @@
-import makeStyles from '@mui/styles/makeStyles';
+import { FormControlLabel, Switch } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
 import { useMemo } from "react";
-import { Page, Section, SECTION_MARGIN } from "../../components/layout";
+import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
-import { TransactionsTableFilters, TransactionsTableState } from "../../components/table/table/types";
+import {
+    TransactionsTableFilters,
+    TransactionsTableFixedDataState,
+    TransactionsTableState,
+} from "../../components/table/table/types";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useCategoryPageCategory, useCategoryPageState } from "../../state/app/hooks";
 import { CategoryPageBudgetSummary } from "./budget";
 import { CategoryPageHeader } from "./header";
+import { CategoryPageHistory } from "./history";
 
 const useStyles = makeStyles({
     middle: {
@@ -26,15 +32,28 @@ export const CategoryPage: React.FC = () => {
     const classes = useStyles();
 
     const category = useCategoryPageCategory();
+    // const categories = useAllCategories();
     const table = useCategoryPageState((state) => state.table);
-    const fixed = useMemo(() => ({ type: "category" as const, category: category.id }), [category]);
-    const filters = useMemo(() => ({ ...table.filters, category: [category.id] }), [table.filters, category.id]);
+    const fixed: TransactionsTableFixedDataState = useMemo(
+        () => ({ type: "category", category: category.id }),
+        // table.nested
+        //     ? {
+        //           type: "categories",
+        //           main: category.id,
+        //           categories: categories
+        //               .filter((option) => option.id === category.id || option.hierarchy.includes(category.id))
+        //               .map((option) => option.id),
+        //       }
+        //     : { type: "category", category: category.id },
+        [category]
+    );
+    const filters = useMemo(() => ({ ...table.filters, category: [] }), [table.filters]);
 
     return (
         <Page title="Categories">
             <CategoryPageHeader />
             <div className={classes.middle}>
-                <Section title="Transaction History" />
+                <CategoryPageHistory />
                 <CategoryPageBudgetSummary />
             </div>
             <TransactionsTable
@@ -43,6 +62,12 @@ export const CategoryPage: React.FC = () => {
                 setFilters={setFilters}
                 setState={setState}
                 fixed={fixed}
+                headers={
+                    <FormControlLabel
+                        control={<Switch checked={table.nested} onChange={handleToggle} />}
+                        label="Include Subcategories"
+                    />
+                }
             />
         </Page>
     );
@@ -53,3 +78,6 @@ const setFilters = (filters: TransactionsTableFilters) =>
 
 const setState = (state: TransactionsTableState) =>
     TopHatDispatch(AppSlice.actions.setCategoryTableStatePartial({ state }));
+
+const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) =>
+    TopHatDispatch(AppSlice.actions.setCategoryTableStatePartial({ nested: event.target.checked }));

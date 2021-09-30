@@ -1,12 +1,10 @@
-import { AttachMoney, TrendingUp } from "@mui/icons-material";
-import makeStyles from "@mui/styles/makeStyles";
+import { AttachMoney, TrendingDown, TrendingUp } from "@mui/icons-material";
 import { clone, max, min, reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
 import { useDefaultCurrency, useFormatValue } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
-import { FlexWidthChart } from "../display/FlexWidthChart";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
 import { SummaryNumber } from "../display/SummaryNumber";
 import { SnapshotSectionData } from "./data";
@@ -16,55 +14,74 @@ export interface SnapshotSectionContentsProps {
     data: SnapshotSectionData;
 }
 
-const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        width: "100%",
-        height: "100%",
-    },
-});
-export const SnapshotSectionContents: React.FC<SnapshotSectionContentsProps> = ({ data: { trends, net } }) => {
-    const classes = useStyles();
-
+export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({ data: { net } }) => {
     const currency = useDefaultCurrency().symbol;
-    const getAssetsChart = useSummaryChart(trends, net);
+
+    const average = (net[0] + net[1] + net[2]) / 3;
+    const previous = (net[3] + net[4] + net[5]) / 3;
 
     return (
-        <div className={classes.container}>
-            <div>
-                <SummaryNumber
-                    icon={AttachMoney}
-                    primary={{
-                        value: `${currency} ${numeral(net[0]).format("0,0.00")}`,
-                        positive: net[0] > 0,
-                    }}
-                    subtext="value today"
-                />
-                <SummaryNumber
-                    icon={TrendingUp}
-                    primary={{
-                        value: `${currency} ${numeral(net[0] - net[1]).format("+0,0.00")}`,
-                        positive: net[0] > net[1],
-                    }}
-                    secondary={{
-                        value: numeral((net[0] - net[1]) / net[1]).format("+0.00%"),
-                        positive: net[0] > net[1],
-                    }}
-                    subtext="in last month"
-                />
-            </div>
-            <FlexWidthChart style={{ flexGrow: 1 }} getChart={getAssetsChart} />
-        </div>
+        <>
+            <SummaryNumber
+                icon={AttachMoney}
+                primary={{
+                    value: `${currency} ${numeral(average).format("+0,0.00")}`,
+                    positive: average > 0,
+                }}
+                subtext="average, last three months"
+            />
+            <SummaryNumber
+                icon={average > previous ? TrendingUp : TrendingDown}
+                primary={{
+                    value: `${currency} ${numeral(average - previous).format("+0,0.00")}`,
+                    positive: average > previous,
+                }}
+                secondary={{
+                    value: numeral((average - previous) / previous).format("+0.00%"),
+                    positive: average > previous,
+                }}
+                subtext="vs. previous months"
+            />
+        </>
     );
 };
 
-const useSummaryChart = ({ credits, debits }: { credits: number[]; debits: number[] }, net: number[]) => {
+export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({ data: { net } }) => {
+    const currency = useDefaultCurrency().symbol;
+
+    return (
+        <>
+            <SummaryNumber
+                icon={AttachMoney}
+                primary={{
+                    value: `${currency} ${numeral(net[0]).format("0,0.00")}`,
+                    positive: net[0] > 0,
+                }}
+                subtext="value today"
+            />
+            <SummaryNumber
+                icon={TrendingUp}
+                primary={{
+                    value: `${currency} ${numeral(net[0] - net[1]).format("+0,0.00")}`,
+                    positive: net[0] > net[1],
+                }}
+                secondary={{
+                    value: numeral((net[0] - net[1]) / net[1]).format("+0.00%"),
+                    positive: net[0] > net[1],
+                }}
+                subtext="in last month"
+            />
+        </>
+    );
+};
+
+export const useGetSummaryChart = ({ trends: { credits, debits }, net }: SnapshotSectionData, height: number = 220) => {
     const format = useFormatValue("0a");
 
     return useCallback(
         () => (
             <VictoryChart
-                height={220}
+                height={height}
                 padding={{ left: 70, right: 10, top: 10, bottom: 10 }}
                 {...getChartPerformanceProps({
                     x: [-0.7, Math.max(credits.length, debits.length)],
@@ -96,6 +113,6 @@ const useSummaryChart = ({ credits, debits }: { credits: number[]; debits: numbe
                 <VictoryLine data={reverse(clone(net))} style={{ data: { stroke: AppColours.summary.main } }} />
             </VictoryChart>
         ),
-        [credits, debits, net, format]
+        [credits, debits, net, format, height]
     );
 };

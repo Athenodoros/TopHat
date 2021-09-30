@@ -2,14 +2,14 @@ import { Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { NBSP } from "../../shared/constants";
 import { IconType } from "../../shared/types";
-import { Greys, Intents, WHITE } from "../../styles/colours";
+import { AppColours, Greys, Intents, WHITE } from "../../styles/colours";
 
 const useStyles = makeStyles({
     summaryNumber: {
         display: "flex",
         width: 220,
 
-        padding: "10px 0 30px 0",
+        padding: "10px 0 20px 0",
         "&:last-child": {
             paddingBottom: 10,
         },
@@ -37,7 +37,7 @@ interface SummaryNumberProps {
     icon: IconType;
     primary: {
         value: string;
-        positive: boolean;
+        positive: boolean | null;
     };
     secondary?: {
         value: string;
@@ -54,7 +54,13 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
             <div>
                 <Typography
                     variant="h6"
-                    style={{ color: primary.positive ? Intents.success.main : Intents.danger.main, lineHeight: 1 }}
+                    style={{
+                        color:
+                            primary.positive === null
+                                ? AppColours.summary.main
+                                : Intents[primary.positive ? "success" : "danger"].main,
+                        lineHeight: 1,
+                    }}
                 >
                     {primary.value}
                 </Typography>

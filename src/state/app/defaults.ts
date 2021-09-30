@@ -39,6 +39,7 @@ export const DefaultPages = {
         id: "category" as const,
         category: PLACEHOLDER_CATEGORY_ID,
         table: {
+            nested: true,
             filters: omit(DefaultTransactionsTableFilters, "category"),
             state: DefaultTransactionsTableState,
         },

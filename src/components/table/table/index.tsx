@@ -8,6 +8,7 @@ import { flipListIncludes } from "../../../shared/data";
 import { useRefToValue } from "../../../shared/hooks";
 import { EditTransactionState } from "../../../state/data";
 import { ID } from "../../../state/shared/values";
+import { SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
@@ -23,6 +24,8 @@ export interface TransactionsTableProps {
     setState: (state: TransactionsTableState) => void;
 
     fixed?: TransactionsTableFixedDataState;
+
+    headers?: SectionProps["headers"];
 }
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
@@ -32,6 +35,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
     setFilters,
     setState,
+
+    headers,
 }) => {
     const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
@@ -42,7 +47,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     const updaters = useTableUpdateFunctions(stateRef, setStatePartial, filtersRef, setFiltersPartial);
 
     return (
-        <TableContainer title="Transaction List">
+        <TableContainer title="Transaction List" headers={headers}>
             <TableHeaderContainer
                 className={clsx(classes.container, selection.length > 0 && classes.selectedHeaderContainer)}
             >

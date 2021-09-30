@@ -64,7 +64,7 @@ export const AccountStatementTable: React.FC = () => {
     return (
         <Section
             title="Statements"
-            headers={[
+            headers={
                 <Button
                     size="small"
                     endIcon={<ChevronRight />}
@@ -73,8 +73,8 @@ export const AccountStatementTable: React.FC = () => {
                     key="create"
                 >
                     Add New
-                </Button>,
-            ]}
+                </Button>
+            }
         >
             <div className={classes.table}>
                 {statements.map((statement) => (

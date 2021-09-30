@@ -1,10 +1,18 @@
 import { ChevronRight } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import React from "react";
 import { Notifications } from "../../app/notifications";
+import { FlexWidthChart } from "../../components/display/FlexWidthChart";
 import { Page, Section, SECTION_MARGIN } from "../../components/layout";
-import { SnapshotSectionContents, useAssetsSnapshot, useTransactionsSnapshot } from "../../components/snapshot";
+import {
+    BalanceSnapshotSummaryNumbers,
+    TransactionSnapshotSummaryNumbers,
+    useAssetsSnapshot,
+    useGetSummaryChart,
+    useTransactionsSnapshot,
+} from "../../components/snapshot";
 import { OpenPageCache } from "../../state/app/actions";
 import { PageStateType } from "../../state/app/pageTypes";
 
@@ -31,15 +39,28 @@ export const SummaryPage: React.FC = () => {
     const assetSummaryData = useAssetsSnapshot();
     const transactionSummaryData = useTransactionsSnapshot();
 
+    const getAssetsChart = useGetSummaryChart(assetSummaryData);
+    const getTransactionsChart = useGetSummaryChart(assetSummaryData);
+
     return (
         <Page title="Welcome to TopHat!">
             <div className={classes.container}>
                 <div className={classes.summaryColumn}>
                     <Section title="Net Worth" headers={<SeeMore page="accounts" />}>
-                        <SnapshotSectionContents data={assetSummaryData} />
+                        <Box sx={{ display: "flex", width: "100%", height: "100%" }}>
+                            <div>
+                                <BalanceSnapshotSummaryNumbers data={assetSummaryData} />
+                            </div>
+                            <FlexWidthChart style={{ flexGrow: 1 }} getChart={getAssetsChart} />
+                        </Box>
                     </Section>
                     <Section title="Cash Flow" headers={<SeeMore page="transactions" />}>
-                        <SnapshotSectionContents data={transactionSummaryData} />
+                        <Box sx={{ display: "flex", width: "100%", height: "100%" }}>
+                            <div>
+                                <TransactionSnapshotSummaryNumbers data={transactionSummaryData} />
+                            </div>
+                            <FlexWidthChart style={{ flexGrow: 1 }} getChart={getTransactionsChart} />
+                        </Box>
                     </Section>
                 </div>
                 <Section title="Notifications" className={classes.notificationColumn}>
