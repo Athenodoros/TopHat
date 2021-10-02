@@ -16,24 +16,32 @@ export interface BalanceHistory {
     original: number[]; // Value in transaction currency
     localised: number[]; // Value in user's base currency
 }
-export const BaseBalanceValues = () =>
-    ({
-        start: getCurrentMonthString(),
-        original: [],
-        localised: [],
-    } as BalanceHistory);
+export const BaseBalanceValues = (): BalanceHistory => ({
+    start: getCurrentMonthString(),
+    original: [],
+    localised: [],
+});
 
 export interface TransactionHistory {
     start: SDate;
     credits: number[];
     debits: number[];
 }
-export const BaseTransactionHistory = () =>
-    ({
-        start: getCurrentMonthString(),
-        credits: [],
-        debits: [],
-    } as TransactionHistory);
+export const BaseTransactionHistory = (): TransactionHistory => ({
+    start: getCurrentMonthString(),
+    credits: [],
+    debits: [],
+});
+
+export interface TransactionHistoryWithLocalisation extends TransactionHistory {
+    localCredits: number[];
+    localDebits: number[];
+}
+export const BaseTransactionHistoryWithLocalisation = (): TransactionHistoryWithLocalisation => ({
+    ...BaseTransactionHistory(),
+    localCredits: [],
+    localDebits: [],
+});
 
 /**
  * Dates

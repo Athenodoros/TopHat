@@ -37,3 +37,33 @@ export const createAndDownloadFile = (name: string, contents: string) => {
     link.click();
     URL.revokeObjectURL(link.href);
 };
+
+export interface ChartDomainFunctions {
+    getPoint: (raw: number) => string;
+    getOffsetAndSizeForRange: (x: number, y?: number) => { offset: string; size: string };
+}
+export const getChartDomainFunctions = (values: number[], padding: number = 0): ChartDomainFunctions => {
+    const flip = values.every((x) => x <= 0) ? -1 : 1;
+    values = values.map((x) => x * flip);
+
+    let min = Math.min(0, ...values);
+    let max = Math.max(0, ...values);
+
+    if (min === 0 && max === 0) {
+        max = 0.1;
+    }
+
+    const valueRange = max - min;
+    min -= min ? valueRange * padding : 0;
+    max += valueRange * padding;
+
+    const scale = (raw: number) => (raw / (max - min)) * 100 + "%";
+
+    const getPoint = (raw: number) => scale(max - raw * flip);
+    const getOffsetAndSizeForRange = (x: number, y: number = 0) => ({
+        offset: scale(Math.min(x * flip, y * flip) - min),
+        size: scale(Math.abs(x - y)),
+    });
+
+    return { getPoint, getOffsetAndSizeForRange };
+};

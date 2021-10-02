@@ -31,7 +31,7 @@ const useStyles = makeStyles({
     },
 });
 
-interface SummaryBreakdownDatum {
+export interface SummaryBreakdownDatum {
     id: number;
     name: string;
     colour: string;
@@ -40,19 +40,28 @@ interface SummaryBreakdownDatum {
         debit: number;
     };
     subtitle?: string;
-    subValue?: {
-        symbol: string;
-        credit: number;
-        debit: number;
-    };
+    subValue?:
+        | {
+              type: "number";
+              symbol: string;
+              credit: number;
+              debit: number;
+          }
+        | {
+              type: "string";
+              credit: string;
+              debit: string;
+          };
     placeholder?: boolean;
+    debit?: boolean;
 }
 interface SummaryBreakdownProps {
     sign: ChartSign;
     creditsName: string;
     debitsName: string;
     data: SummaryBreakdownDatum[];
-    setFilter: (id: ID, sign?: SummaryChartSign) => void;
+    setFilter?: (id: ID, sign?: SummaryChartSign) => void;
+    colorise?: boolean;
 }
 export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     data,
@@ -60,21 +69,38 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     creditsName,
     debitsName,
     setFilter,
+    colorise,
+    children,
 }) => {
     const classes = useStyles();
 
     const points = orderBy(
         data,
-        ({ value }) => (sign !== "debits" ? -value.credit : 0) + (sign !== "credits" ? value.debit : 0)
-    ).filter(({ value }) => (sign !== "debits" && value.credit) || (sign !== "credits" && value.debit));
+        ({ value }) => (sign !== "debits" ? -value.credit : 0) + (sign !== "credits" ? -value.debit : 0)
+    ).filter(({ value, debit }) => {
+        if (sign === "credits") return debit === undefined ? value.credit !== 0 : debit === false;
+        if (sign === "debits") return debit === undefined ? value.debit !== 0 : debit === true;
+
+        return true;
+    });
 
     return (
         <div className={classes.container}>
             {sign !== "debits" ? (
-                <Value name={creditsName} values={[sumBy(data, ({ value }) => value.credit)]} title={true} />
+                <Value
+                    name={creditsName}
+                    values={[sumBy(data, ({ value }) => value.credit)]}
+                    title={true}
+                    colorise={colorise}
+                />
             ) : undefined}
             {sign !== "credits" ? (
-                <Value name={debitsName} values={[sumBy(data, ({ value }) => value.debit)]} title={true} />
+                <Value
+                    name={debitsName}
+                    values={[sumBy(data, ({ value }) => value.debit)]}
+                    title={true}
+                    colorise={colorise}
+                />
             ) : undefined}
             <div className={classes.divider} />
             <div className={classes.points}>
@@ -90,23 +116,35 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
                             }[sign]
                         }
                         subValues={
-                            p.subValue && {
-                                symbol: p.subValue.symbol,
-                                values: {
-                                    all: [p.subValue.credit, p.subValue.debit],
-                                    credits: [p.subValue.credit],
-                                    debits: [p.subValue.debit],
-                                }[sign],
-                            }
+                            p.subValue &&
+                            (p.subValue.type === "number"
+                                ? {
+                                      type: "number",
+                                      symbol: p.subValue.symbol,
+                                      values: {
+                                          all: [p.subValue.credit, p.subValue.debit],
+                                          credits: [p.subValue.credit],
+                                          debits: [p.subValue.debit],
+                                      }[sign],
+                                  }
+                                : {
+                                      type: "string",
+                                      values: {
+                                          all: [p.subValue.credit, p.subValue.debit],
+                                          credits: [p.subValue.credit],
+                                          debits: [p.subValue.debit],
+                                      }[sign],
+                                  })
                         }
                         colour={p.colour}
                         placeholder={p.placeholder}
                         key={p.id}
-                        onClick={() => setFilter(p.id!)}
+                        onClick={setFilter && (() => setFilter(p.id!))}
+                        colorise={colorise}
                     />
                 ))}
             </div>
-            <SummaryPieChart series={points} sign={sign} setFilter={setFilter} />
+            {children || <SummaryPieChart series={points} sign={sign} setFilter={setFilter} />}
         </div>
     );
 };

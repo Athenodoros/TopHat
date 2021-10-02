@@ -37,7 +37,7 @@ interface SummaryPieChartPoint {
 type SummaryPieChartProps = {
     series: SummaryPieChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID, sign?: SummaryChartSign) => void;
+    setFilter?: (id: ID, sign?: SummaryChartSign) => void;
 };
 export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, setFilter }) => {
     const classes = useStyles();
@@ -68,7 +68,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
     );
 };
 
-const useGetPie = (setFilter: (id: ID, sign?: SummaryChartSign) => void, sign: ChartSign) => {
+const useGetPie = (setFilter: ((id: ID, sign?: SummaryChartSign) => void) | undefined, sign: ChartSign) => {
     const props = useMemo<VictoryPieProps>(
         () => ({
             y: "value",
@@ -80,8 +80,9 @@ const useGetPie = (setFilter: (id: ID, sign?: SummaryChartSign) => void, sign: C
             // animate: { duration: 500, onLoad: { duration: 500 } },
             labels: () => null,
             padAngle: 5,
-            events: getChartEvents(({ datum: { id, sign: series } }: SummaryPieEventProps) =>
-                setFilter(id, sign === "all" ? series : undefined)
+            events: getChartEvents(
+                ({ datum: { id, sign: series } }: SummaryPieEventProps) =>
+                    setFilter && setFilter(id, sign === "all" ? series : undefined)
             ),
             style: CHART_SECTION_STYLE,
         }),

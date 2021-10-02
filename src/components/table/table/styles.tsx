@@ -165,7 +165,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     subtext: {
         color: Greys[500],
         alignSelf: "flex-end",
-        margin: "0 4px",
+        margin: "0 4px 1px 4px",
+        lineHeight: 1,
     },
     missing: {
         fontStyle: "italic",

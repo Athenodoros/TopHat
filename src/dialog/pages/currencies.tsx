@@ -10,7 +10,7 @@ import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Currency } from "../../state/data";
 import { getNextID } from "../../state/data/shared";
-import { BaseTransactionHistory, getRandomColour } from "../../state/shared/values";
+import { BaseTransactionHistoryWithLocalisation, getRandomColour } from "../../state/shared/values";
 import {
     BasicDialogObjectSelector,
     DialogContents,
@@ -72,7 +72,7 @@ const createNewCurrency = (): Currency => ({
     name: "New Currency",
     symbol: "$",
     exchangeRate: 1,
-    transactions: BaseTransactionHistory(),
+    transactions: BaseTransactionHistoryWithLocalisation(),
 });
 
 const useEditViewStyles = makeStyles({

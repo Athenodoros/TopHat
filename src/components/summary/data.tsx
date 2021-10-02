@@ -1,5 +1,6 @@
 import { max, mean } from "lodash";
 import { omit, toPairs, unzip, zip } from "lodash-es";
+import { SummaryBarChartPoint, SummaryBreakdownDatum } from ".";
 import { takeWithDefault, zipObject } from "../../shared/data";
 import { AccountsPageState, TransactionsPageState } from "../../state/app/pageTypes";
 import { Category, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data";
@@ -7,7 +8,9 @@ import { useAccountIDs, useAccountMap, useAllObjects, useCurrencyMap, useInstitu
 import { Account, AccountTypeMap, Currency } from "../../state/data/types";
 import { ID } from "../../state/shared/values";
 
-export const useTransactionsSummaryData = (aggregation: TransactionsPageState["chartAggregation"]) => {
+export const useTransactionsSummaryData = (
+    aggregation: TransactionsPageState["chartAggregation"]
+): (SummaryBreakdownDatum & SummaryBarChartPoint)[] => {
     let objects = useAllObjects(aggregation);
     if (aggregation === "category") {
         objects = objects.filter((category) => (category as Category).hierarchy.length === 0);
@@ -32,16 +35,37 @@ export const useTransactionsSummaryData = (aggregation: TransactionsPageState["c
         return {
             id: object.id,
             name: aggregation === "currency" ? (object as Currency).ticker : object.name,
+            subtitle:
+                aggregation === "currency"
+                    ? (object as Currency).name
+                    : aggregation === "account"
+                    ? institutions[(object as Account).institution]!.name
+                    : undefined,
             colour,
             trend: { credits, debits },
             value: { credit: mean(credits.slice(1)), debit: mean(debits.slice(1)) },
+            subValue:
+                aggregation === "currency"
+                    ? {
+                          type: "number",
+                          symbol: (object as Currency).symbol,
+                          credit: mean(
+                              takeWithDefault((object as Currency).transactions.localCredits, length, 0).slice(1)
+                          ),
+                          debit: mean(
+                              takeWithDefault((object as Currency).transactions.localDebits, length, 0).slice(1)
+                          ),
+                      }
+                    : undefined,
             placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
         };
     });
 };
 
 type HistorySummary = { credits: number[]; debits: number[]; totals: { credit: number; debit: number } };
-export function useBalanceSummaryData(aggregation: AccountsPageState["chartAggregation"]) {
+export function useBalanceSummaryData(
+    aggregation: AccountsPageState["chartAggregation"]
+): (SummaryBreakdownDatum & SummaryBarChartPoint)[] {
     const accountIDs = useAccountIDs();
     const accounts = useAccountMap();
     const institutions = useInstitutionMap();
@@ -111,7 +135,7 @@ export function useBalanceSummaryData(aggregation: AccountsPageState["chartAggre
                 name: currency.ticker,
                 colour: currency.colour,
                 subtitle: currency.name,
-                subValue: { symbol: currency.symbol, ...trend.totals },
+                subValue: { type: "number", symbol: currency.symbol, ...trend.totals },
                 ...common,
             };
         }

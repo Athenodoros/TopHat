@@ -3,7 +3,16 @@ import { random as randomInt, range, rangeRight, values } from "lodash";
 import { DurationObject } from "luxon";
 import { DataState } from ".";
 import { takeWithDefault, zipObject } from "../../shared/data";
-import { BaseTransactionHistory, formatDate, getToday, getTodayString, ID, parseDate, SDate } from "../shared/values";
+import {
+    BaseTransactionHistory,
+    BaseTransactionHistoryWithLocalisation,
+    formatDate,
+    getToday,
+    getTodayString,
+    ID,
+    parseDate,
+    SDate,
+} from "../shared/values";
 import {
     compareTransactionsDescendingDates,
     PLACEHOLDER_CATEGORY_ID,
@@ -24,7 +33,7 @@ const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
         id: id + 1,
         colour: currencyColourScale(id + 2).hex(),
-        transactions: BaseTransactionHistory(),
+        transactions: BaseTransactionHistoryWithLocalisation(),
         ...zipObject(currencyFields, args),
     } as Currency);
 const currencies = (

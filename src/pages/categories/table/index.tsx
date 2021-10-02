@@ -20,7 +20,7 @@ export const CategoryTable: React.FC = () => {
             headers={[
                 <Select value={metric} onChange={setMetric} size="small" key="metric">
                     <MenuItem value="previous">Previous Month</MenuItem>
-                    <MenuItem value="average">Average</MenuItem>
+                    <MenuItem value="average">12 Month Average</MenuItem>
                 </Select>,
                 <Select value={tableSign} onChange={setTableSign} size="small" key="sign">
                     <MenuItem value="all">All Categories</MenuItem>

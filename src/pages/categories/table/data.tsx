@@ -1,13 +1,13 @@
 import { mean, range, sum, zip } from "lodash";
 import { useMemo } from "react";
-import { getBasicChartFunctions } from "../../../components/display/BasicBarChart";
 import { useCategoryGraph } from "../../../components/display/CategoryMenu";
+import { getChartDomainFunctions } from "../../../shared/data";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { Category } from "../../../state/data";
 
-const MetricLookbackPeriods: Record<CategoriesPageState["metric"], number> = {
-    previous: 1,
-    average: 12,
+const MetricLookbackPeriods: Record<CategoriesPageState["metric"], number[]> = {
+    previous: [1],
+    average: range(1, 13),
 };
 export const useCategoriesTableData = (
     metric: CategoriesPageState["metric"],
@@ -20,12 +20,12 @@ export const useCategoriesTableData = (
         const getCategoryStatistics = (category: Category) => {
             const value =
                 mean(
-                    range(lookback).map(
+                    lookback.map(
                         (i) => (category.transactions.credits[i] || 0) + (category.transactions.debits[i] || 0)
                     )
                 ) * (tableSign === "debits" ? -1 : 1);
             const budget = category.budgets
-                ? mean(range(lookback).map((i) => category.budgets!.values[i] || 0)) * (tableSign === "debits" ? -1 : 1)
+                ? mean(lookback.map((i) => category.budgets!.values[i] || 0)) * (tableSign === "debits" ? -1 : 1)
                 : undefined;
             const success = budget !== undefined ? (tableSign !== "debits" ? value >= budget : value <= budget) : null;
 
@@ -52,7 +52,7 @@ export const useCategoriesTableData = (
         if (tableSign !== "all")
             options = options.filter((option) => option.isDebitCategory === (tableSign === "debits"));
 
-        const chartFunctions = getBasicChartFunctions(
+        const chartFunctions = getChartDomainFunctions(
             options.map(({ value, budget }) => (Math.abs(value) > Math.abs(budget || 0) ? value : budget || 0)),
             0.1
         );

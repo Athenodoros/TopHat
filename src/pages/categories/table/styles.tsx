@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 
 export const useCategoriesTableStyles = makeStyles({
     title: {
@@ -13,7 +13,6 @@ export const useCategoriesTableStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         paddingLeft: 15,
-        marginRight: 15,
     },
     subtitle: {
         flexGrow: 1,

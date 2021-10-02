@@ -11,7 +11,7 @@ import { FlexWidthChart } from "../display/FlexWidthChart";
 import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
 import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./shared";
 
-interface SummaryBarChartPoint {
+export interface SummaryBarChartPoint {
     id: ID;
     colour: string;
     value: { credit: number; debit: number };

@@ -5,9 +5,9 @@ import clsx from "clsx";
 import { reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
-import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
+import { ChartDomainFunctions } from "../../../shared/data";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
 import { Category } from "../../../state/data";
@@ -20,6 +20,7 @@ import { SubCategoryTableView } from "./SubCategory";
 const useStyles = makeStyles({
     container: {
         margin: "10px 0",
+        padding: "0 10px",
         position: "relative",
         overflow: "hidden",
     },
@@ -29,14 +30,16 @@ const useStyles = makeStyles({
         height: 280,
         borderRadius: 50,
         top: -180,
-        left: -140,
+        left: -80,
         transform: "rotate(-20deg)",
         opacity: 0.1,
         pointerEvents: "none",
     },
     toplevel: {
         display: "flex",
-        height: 60,
+        height: 50,
+        borderRadius: 10,
+        margin: "10px 0",
         width: "100%",
         alignItems: "center",
 
@@ -79,7 +82,7 @@ export interface TopLevelCategoryViewProps {
         success?: boolean | null;
     };
     graph: Record<ID, ID[]>;
-    chartFunctions: BasicChartDomainFunctions;
+    chartFunctions: ChartDomainFunctions;
     getCategoryStatistics: (category: Category) => { value: number; budget?: number; success?: boolean | null };
 }
 export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({

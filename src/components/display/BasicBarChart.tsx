@@ -1,37 +1,8 @@
 import { lighten, useTheme } from "@mui/material";
 import { identity } from "lodash";
 import React from "react";
+import { getChartDomainFunctions } from "../../shared/data";
 import { Greys, Intents } from "../../styles/colours";
-
-export interface BasicChartDomainFunctions {
-    getPoint: (raw: number) => string;
-    getOffsetAndSizeForRange: (x: number, y?: number) => { offset: string; size: string };
-}
-export const getBasicChartFunctions = (values: number[], padding: number = 0): BasicChartDomainFunctions => {
-    const flip = values.every((x) => x <= 0) ? -1 : 1;
-    values = values.map((x) => x * flip);
-
-    let min = Math.min(0, ...values);
-    let max = Math.max(0, ...values);
-
-    if (min === 0 && max === 0) {
-        max = 0.1;
-    }
-
-    const valueRange = max - min;
-    min -= min ? valueRange * padding : 0;
-    max += valueRange * padding;
-
-    const scale = (raw: number) => (raw / (max - min)) * 100 + "%";
-
-    const getPoint = (raw: number) => scale(max - raw * flip);
-    const getOffsetAndSizeForRange = (x: number, y: number = 0) => ({
-        offset: scale(max - Math.max(x * flip, y * flip)),
-        size: scale(Math.abs(x - y)),
-    });
-
-    return { getPoint, getOffsetAndSizeForRange };
-};
 
 export const getBasicBarChartColour = (success: boolean | null, stub?: boolean) =>
     stub
@@ -46,7 +17,7 @@ export const BasicBarChart: React.FC<{
 }> = ({ className, values, selected: selectedIndex, setSelected }) => {
     const theme = useTheme();
 
-    const { getPoint, getOffsetAndSizeForRange } = getBasicChartFunctions(values);
+    const { getPoint, getOffsetAndSizeForRange } = getChartDomainFunctions(values);
     const width = (1 / values.length) * 100 + "%";
 
     const getColour = (value: number) =>
@@ -60,7 +31,7 @@ export const BasicBarChart: React.FC<{
             {values.map((value, idx) => {
                 const colour = getColour(value);
                 const selected = selectedIndex === idx;
-                const { offset: top, size: height } = getOffsetAndSizeForRange(value, 0);
+                const { offset: bottom, size: height } = getOffsetAndSizeForRange(value, 0);
                 const right = (idx / values.length) * 100 + "%";
                 const common = {
                     position: "absolute" as const,
@@ -84,7 +55,7 @@ export const BasicBarChart: React.FC<{
                             style={{
                                 ...common,
                                 pointerEvents: "none",
-                                top,
+                                bottom,
                                 height,
                                 background: lighten(colour.main, selected ? 0.1 : 0.4),
                             }}

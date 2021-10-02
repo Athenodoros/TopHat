@@ -70,7 +70,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
             <div className={classes.date}>
                 {tx.date ? (
                     <div className={classes.compound}>
-                        {parseDate(tx.date).toFormat("MMM d")}
+                        <Typography variant="body1">{parseDate(tx.date).toFormat("MMM d")}</Typography>
                         <Typography variant="caption" className={classes.subtext}>
                             {parseDate(tx.date).year}
                         </Typography>

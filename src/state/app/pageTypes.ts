@@ -53,6 +53,7 @@ export interface TransactionsPageState {
 export interface CategoriesPageState {
     id: "categories";
     metric: "previous" | "average";
+    chartSign: ChartSign;
     tableSign: ChartSign;
 }
 export interface CategoryPageState {

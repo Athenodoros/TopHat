@@ -32,6 +32,7 @@ import {
     ID,
     parseDate,
     TransactionHistory,
+    TransactionHistoryWithLocalisation,
 } from "../shared/values";
 import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo";
 import {
@@ -254,13 +255,19 @@ const updateTransactionSummaryStartDates = (state: DataState) => {
             const history = state[category].entities[id]!.transactions;
             const difference = getCurrentMonth().diff(parseDate(history.start), "months").months;
             if (difference !== 0) {
+                const extend = (values: number[]) =>
+                    range(difference)
+                        .map((_) => 0)
+                        .concat(values);
+
                 history.start = getCurrentMonthString();
-                history.credits = range(difference)
-                    .map((_) => 0)
-                    .concat(history.credits);
-                history.debits = range(difference)
-                    .map((_) => 0)
-                    .concat(history.debits);
+                history.credits = extend(history.credits);
+                history.debits = extend(history.debits);
+
+                if ("localCredits" in history) {
+                    history.localCredits = extend(history.localCredits);
+                    history.localDebits = extend(history.localDebits);
+                }
             }
         });
     });
@@ -270,12 +277,17 @@ const updateTransactionSummaryStartDates = (state: DataState) => {
 const updateTransactionSummariesWithTransactions = (state: DataState, ids?: EntityId[], remove?: boolean) => {
     const userDefaultCurrency = state.currency.entities[state.user.currency]!;
 
-    const updateHistoryValue = (history: TransactionHistory, tx: Transaction) => {
+    const updateHistoryValue = (history: TransactionHistory | TransactionHistoryWithLocalisation, tx: Transaction) => {
         const bucket = getDateBucket(tx.date, history.start);
 
         if (bucket >= history.credits.length) {
             history.credits = takeWithDefault(history.credits, bucket + 1, 0);
             history.debits = takeWithDefault(history.debits, bucket + 1, 0);
+
+            if ("localCredits" in history) {
+                history.localCredits = takeWithDefault(history.localCredits, bucket + 1, 0);
+                history.localDebits = takeWithDefault(history.localDebits, bucket + 1, 0);
+            }
         }
 
         history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
@@ -283,6 +295,10 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
             state.currency.entities[tx.currency]!,
             (remove ? -1 : 1) * tx.value!
         );
+
+        if ("localCredits" in history) {
+            history[tx.value! > 0 ? "localCredits" : "localDebits"][bucket] += (remove ? -1 : 1) * tx.value!;
+        }
     };
 
     (ids || state.transaction.ids).forEach((id) => {

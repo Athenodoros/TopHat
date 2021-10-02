@@ -3,8 +3,8 @@ import makeStyles from "@mui/styles/makeStyles";
 import chroma from "chroma-js";
 import clsx from "clsx";
 import { useCallback } from "react";
-import { BasicChartDomainFunctions } from "../../../components/display/BasicBarChart";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
+import { ChartDomainFunctions } from "../../../shared/data";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
 import { useCategoryByID } from "../../../state/data/hooks";
@@ -48,7 +48,7 @@ const useStyles = makeStyles((theme) => ({
 interface SubCategoryProps {
     id: ID;
     depth: number;
-    chartFunctions: BasicChartDomainFunctions;
+    chartFunctions: ChartDomainFunctions;
     success: boolean | null;
     range: [number, number, number];
     format: (value: number) => string;

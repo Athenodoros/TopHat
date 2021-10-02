@@ -5,7 +5,7 @@ import { identity } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { suppressEvent } from "../../../shared/events";
-import { Greys } from "../../../styles/colours";
+import { Greys, Intents } from "../../../styles/colours";
 import { fadeSolidColour } from "../../display/ObjectDisplay";
 
 const useValueStyles = makeStyles({
@@ -19,13 +19,15 @@ const useValueStyles = makeStyles({
             marginTop: 0,
         },
     },
-    nonTitleContainer: {
-        padding: "5px 5px 0 5px",
+    interactiveContainer: {
         cursor: "pointer",
         borderRadius: 8,
         "&:hover": {
             backgroundColor: Greys[200],
         },
+    },
+    nonTitleContainer: {
+        padding: "5px 5px 0 5px",
     },
     colour: {
         width: 16,
@@ -44,7 +46,7 @@ const useValueStyles = makeStyles({
     },
     title: {
         fontWeight: 500,
-        color: Greys[800],
+        color: Greys[700] + " !important",
     },
     placeholder: {
         color: Greys[500],
@@ -53,7 +55,7 @@ const useValueStyles = makeStyles({
     name: {
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-        lineHeight: 1.1,
+        lineHeight: 1.2,
         textAlign: "left",
     },
     subname: {
@@ -76,6 +78,12 @@ const useValueStyles = makeStyles({
     valueWithSubValue: {
         color: Greys[800],
     },
+    valueGreen: {
+        color: Intents.success.main + " !important",
+    },
+    valueRed: {
+        color: Intents.danger.main + " !important",
+    },
 });
 export const Value: React.FC<{
     name: string;
@@ -83,13 +91,20 @@ export const Value: React.FC<{
     values: number[];
     colour?: string;
     title?: boolean;
-    subValues?: {
-        symbol: string;
-        values: number[];
-    };
+    subValues?:
+        | {
+              type: "number";
+              symbol: string;
+              values: number[];
+          }
+        | {
+              type: "string";
+              values: string[];
+          };
     placeholder?: boolean;
     onClick?: () => void;
-}> = ({ name, subtitle, values, subValues, colour, title, placeholder, onClick }) => {
+    colorise?: boolean;
+}> = ({ name, subtitle, values, subValues, colour, title, placeholder, onClick, colorise }) => {
     const classes = useValueStyles();
     const variant = title ? "body1" : "body2";
     const onClickWrapped = useCallback(
@@ -100,12 +115,8 @@ export const Value: React.FC<{
         [onClick]
     );
 
-    return (
-        <ButtonBase
-            className={clsx(classes.container, title || classes.nonTitleContainer)}
-            disabled={!onClick}
-            onClick={onClickWrapped}
-        >
+    const contents = (
+        <>
             {title ? undefined : (
                 <div
                     className={classes.colour}
@@ -130,13 +141,18 @@ export const Value: React.FC<{
             </div>
             <div className={classes.valueContainer}>
                 {values.map((value, idx) =>
-                    value || values.filter(identity).length === 0 ? (
+                    value ||
+                    (values.filter(identity).length === 0 &&
+                        ((subValues?.values as (string | number)[])?.filter(identity).length
+                            ? subValues?.values[idx]
+                            : idx === 0)) ? (
                         <div key={idx}>
                             <Typography
                                 className={clsx(
                                     classes.value,
                                     title && classes.title,
-                                    subValues && classes.valueWithSubValue
+                                    subValues && classes.valueWithSubValue,
+                                    colorise && (value >= 0 ? classes.valueGreen : classes.valueRed)
                                 )}
                                 variant={variant}
                             >
@@ -144,13 +160,27 @@ export const Value: React.FC<{
                             </Typography>
                             {subValues && (
                                 <Typography className={classes.value} variant="caption">
-                                    {subValues.symbol + " " + numeral(subValues.values[idx]).format("0.00a")}
+                                    {subValues.type === "number"
+                                        ? subValues.symbol + " " + numeral(subValues.values[idx]).format("+0.00a")
+                                        : subValues.values[idx]}
                                 </Typography>
                             )}
                         </div>
                     ) : undefined
                 )}
             </div>
+        </>
+    );
+
+    return onClick ? (
+        <ButtonBase
+            className={clsx(classes.container, classes.interactiveContainer, title || classes.nonTitleContainer)}
+            disabled={!onClick}
+            onClick={onClickWrapped}
+        >
+            {contents}
         </ButtonBase>
+    ) : (
+        <div className={clsx(classes.container, title || classes.nonTitleContainer)}>{contents}</div>
     );
 };
