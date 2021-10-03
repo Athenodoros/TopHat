@@ -22,6 +22,8 @@ import {
 } from "./shared";
 import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
 
+const INCLUDE_BUDGETS_IN_DEMO = true;
+
 const today = getToday();
 
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
@@ -60,16 +62,19 @@ const makeCategory = (
         budgets,
     } as Category);
 const start = getTodayString();
-const getBaseBudget = (base: number, length: number = 28) => ({
-    start,
-    values: takeWithDefault(
-        range(length).map((_) => base),
-        Math.max(24, length),
-        0
-    ),
-    strategy: "base" as const,
-    base,
-});
+const getBaseBudget = (base: number, length: number = 28) =>
+    INCLUDE_BUDGETS_IN_DEMO
+        ? {
+              start,
+              values: takeWithDefault(
+                  range(length).map((_) => base),
+                  Math.max(24, length),
+                  0
+              ),
+              strategy: "base" as const,
+              base,
+          }
+        : undefined;
 const categories = [
     { name: "Social", budgets: getBaseBudget(-700) }, // 1
     { name: "Groceries", budgets: getBaseBudget(-700) }, // 2
@@ -77,14 +82,16 @@ const categories = [
     { name: "Travel" }, // 4
     {
         name: "Housing",
-        budgets: {
-            start,
-            strategy: "base" as const,
-            base: -560,
-            values: range(18)
-                .map((_) => -560)
-                .concat(range(6).map((_) => -70)),
-        },
+        budgets: INCLUDE_BUDGETS_IN_DEMO
+            ? {
+                  start,
+                  strategy: "base" as const,
+                  base: -560,
+                  values: range(18)
+                      .map((_) => -560)
+                      .concat(range(6).map((_) => -70)),
+              }
+            : undefined,
     }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
@@ -513,26 +520,28 @@ export const DemoObjects = {
 };
 
 export const finishDemoInitialisation = (state: DataState) => {
-    // Travel budget
-    const travelCategory = state.category.entities[4]!;
-    const travelBudget = -250;
-    const travelBudgetHistory: number[] = [];
-    rangeRight(24).forEach((idx) => {
-        const previous = travelCategory.transactions.debits[idx + 1] || 0;
-        const budget = travelBudget + (travelBudgetHistory[0] || 0) - previous;
-        travelBudgetHistory[0] = previous;
-        travelBudgetHistory.unshift(budget);
-    });
-    travelCategory.budgets = { start, values: travelBudgetHistory, strategy: "rollover", base: travelBudget };
+    if (INCLUDE_BUDGETS_IN_DEMO) {
+        // Travel budget
+        const travelCategory = state.category.entities[4]!;
+        const travelBudget = -250;
+        const travelBudgetHistory: number[] = [];
+        rangeRight(24).forEach((idx) => {
+            const previous = travelCategory.transactions.debits[idx + 1] || 0;
+            const budget = travelBudget + (travelBudgetHistory[0] || 0) - previous;
+            travelBudgetHistory[0] = previous;
+            travelBudgetHistory.unshift(budget);
+        });
+        travelCategory.budgets = { start, values: travelBudgetHistory, strategy: "rollover", base: travelBudget };
 
-    // Income budget
-    const incomeCategory = state.category.entities[6]!;
-    incomeCategory.budgets = {
-        start,
-        values: range(24).map(
-            (i) => (incomeCategory.transactions.credits[i] || incomeCategory.transactions.credits[1]) - 10
-        ),
-        strategy: "copy",
-        base: 0,
-    };
+        // Income budget
+        const incomeCategory = state.category.entities[6]!;
+        incomeCategory.budgets = {
+            start,
+            values: range(24).map(
+                (i) => (incomeCategory.transactions.credits[i] || incomeCategory.transactions.credits[1]) - 10
+            ),
+            strategy: "copy",
+            base: 0,
+        };
+    }
 };

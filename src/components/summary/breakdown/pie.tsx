@@ -5,7 +5,7 @@ import { VictoryPie, VictoryPieProps } from "victory";
 import { ChartSign } from "../../../state/app/pageTypes";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "../shared";
+import { ChartPoint, getChartEvents, getChartSectionStyles, SummaryChartSign } from "../shared";
 
 const useStyles = makeStyles({
     container: {
@@ -79,11 +79,12 @@ const useGetPie = (setFilter: ((id: ID, sign?: SummaryChartSign) => void) | unde
             // animate: { duration: 500, onLoad: { duration: 500 } },
             labels: () => null,
             padAngle: 5,
-            events: getChartEvents(
-                ({ datum: { id, sign: series } }: SummaryPieEventProps) =>
-                    setFilter && setFilter(id, sign === "all" ? series : undefined)
-            ),
-            style: CHART_SECTION_STYLE,
+            events:
+                setFilter &&
+                getChartEvents(({ datum: { id, sign: series } }: SummaryPieEventProps) =>
+                    setFilter(id, sign === "all" ? series : undefined)
+                ),
+            style: getChartSectionStyles(setFilter !== undefined),
         }),
         [setFilter, sign]
     );

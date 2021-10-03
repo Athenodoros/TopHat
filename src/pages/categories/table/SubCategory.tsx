@@ -1,10 +1,12 @@
-import { ButtonBase, Typography } from "@mui/material";
+import { Edit } from "@mui/icons-material";
+import { ButtonBase, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import chroma from "chroma-js";
 import clsx from "clsx";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { ChartDomainFunctions } from "../../../shared/data";
+import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
 import { useCategoryByID } from "../../../state/data/hooks";
@@ -71,10 +73,18 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
         [id]
     );
 
+    const openEditView = useMemo(
+        () =>
+            withSuppressEvent(() => {
+                TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "category", category }));
+            }),
+        [category]
+    );
+
     return (
         <div className={clsx(classes.row, depth === 0 && classes.root)}>
             <div className={tableClasses.title} />
-            <ButtonBase className={clsx(tableClasses.main, classes.main)} onClick={onClick}>
+            <ButtonBase className={clsx(tableClasses.main, classes.main)} onClick={onClick} component="div">
                 <Typography
                     variant="body2"
                     className={clsx(tableClasses.subtitle, depth !== 0 ? classes.nested : classes.top)}
@@ -99,6 +109,11 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
                         format(Math.abs(range[2] - range[1]) < 0.01 ? 0 : range[2] - range[1])
                     }
                 </Typography>
+                <div className={tableClasses.action}>
+                    <IconButton size="small" onClick={openEditView}>
+                        <Edit fontSize="small" />
+                    </IconButton>
+                </div>
             </ButtonBase>
         </div>
     );

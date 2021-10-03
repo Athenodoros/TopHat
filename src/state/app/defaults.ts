@@ -40,7 +40,7 @@ export const DefaultPages = {
         summaryMetric: "current",
         tableSign: "all",
         summarySign: "debits",
-        hideEmpty: true,
+        hideEmpty: "subcategories",
     } as const,
     category: {
         id: "category" as const,

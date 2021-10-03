@@ -49,13 +49,13 @@ export const getChartEvents = <T extends ChartPointEvent>(
 
 const fadeColour = (colour: string, value: number) => colour && chroma(colour).alpha(value).hex();
 
-export const CHART_SECTION_STYLE: VictoryStyleInterface = {
+export const getChartSectionStyles = (interactive: boolean): VictoryStyleInterface => ({
     data: {
-        cursor: "pointer",
+        cursor: interactive ? "pointer" : undefined,
         // Sometimes datum.colour is stripped for zero-height sections
         fill: ({ datum }) => fadeColour(datum.colour, 0.5)!,
         stroke: ({ datum }) => datum.colour,
         strokeWidth: 1,
         transition: "fill 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
     },
-};
+});

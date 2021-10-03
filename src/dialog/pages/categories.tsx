@@ -77,7 +77,7 @@ export const DialogCategoriesView: React.FC = () => {
     );
 };
 
-const createNewCategory = () =>
+export const createNewCategory = () =>
     set({
         id: getNextID(TopHatStore.getState().data.category.ids),
         name: "New Category",

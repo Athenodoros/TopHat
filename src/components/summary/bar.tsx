@@ -12,7 +12,7 @@ import {
     getChartPerformanceProps,
     getHiddenTickZeroAxis,
 } from "../display/PerformantCharts";
-import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./shared";
+import { ChartPoint, getChartEvents, getChartSectionStyles, SummaryChartSign } from "./shared";
 
 export interface SummaryBarChartPoint {
     id: ID;
@@ -23,7 +23,7 @@ export interface SummaryBarChartPoint {
 type SummaryBarChartProps = {
     series: SummaryBarChartPoint[];
     sign: ChartSign;
-    setFilter: (id: ID, sign?: SummaryChartSign, fromDate?: string, toDate?: string) => void;
+    setFilter?: (id: ID, sign?: SummaryChartSign, fromDate?: string, toDate?: string) => void;
     id?: string;
     highlightSeries?: boolean;
 };
@@ -48,16 +48,21 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                 />
                 <VictoryStack
                     categories={[]}
-                    events={getChartEvents(
-                        (props: SummaryChartEvent) =>
-                            setFilter(
-                                props.datum.id,
-                                sign === "all" ? props.datum.sign : undefined,
-                                formatJSDate(props.datum.x),
-                                formatDate(DateTime.fromJSDate(props.datum.x).plus({ months: 1 }).minus({ days: 1 }))
-                            ),
-                        highlightSeries
-                    )}
+                    events={
+                        setFilter &&
+                        getChartEvents(
+                            (props: SummaryChartEvent) =>
+                                setFilter(
+                                    props.datum.id,
+                                    sign === "all" ? props.datum.sign : undefined,
+                                    formatJSDate(props.datum.x),
+                                    formatDate(
+                                        DateTime.fromJSDate(props.datum.x).plus({ months: 1 }).minus({ days: 1 })
+                                    )
+                                ),
+                            highlightSeries
+                        )
+                    }
                 >
                     {charts
                         .filter((_) => _.some((p) => p.y))
@@ -67,7 +72,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                                 key={points[0].id}
                                 data={points}
                                 barRatio={0.8}
-                                style={CHART_SECTION_STYLE}
+                                style={getChartSectionStyles(setFilter !== undefined)}
                                 domain={domain}
                             />
                         ))}

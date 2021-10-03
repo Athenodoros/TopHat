@@ -280,7 +280,7 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
 
     const get = (id: ID) => TopHatStore.getState().data[type].entities[Number(id)] as Option;
     const getWorking = () => cloneDeep(TopHatStore.getState().app.dialog[type] as Option);
-    const set = (option?: Option) => TopHatDispatch(AppSlice.actions.setDialogPartial({ [type]: option }));
+    const set = (option?: Option) => TopHatDispatch(AppSlice.actions.setDialogPartial({ id: type, [type]: option }));
     const setPartial = (partial?: Partial<Option>) =>
         set({ ...(TopHatStore.getState().app.dialog[type]! as Option), ...partial });
     const remove = () => set();

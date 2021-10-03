@@ -13,6 +13,10 @@ export const useCategoriesTableStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         paddingLeft: 15,
+
+        "&:hover > :nth-last-child(1), &:hover > :nth-last-child(2)": {
+            visibility: "visible",
+        },
     },
     subtitle: {
         flexGrow: 1,
@@ -31,5 +35,16 @@ export const useCategoriesTableStyles = makeStyles({
         justifyContent: "flex-end",
         alignItems: "flex-end",
         marginRight: 20,
+    },
+    icon: {
+        height: 20,
+        width: 20,
+        marginLeft: 30,
+        marginRight: 20,
+    },
+    action: {
+        marginLeft: 20,
+        width: 40,
+        visibility: "hidden",
     },
 });

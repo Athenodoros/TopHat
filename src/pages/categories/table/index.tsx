@@ -1,12 +1,13 @@
-import { FormControlLabel, MenuItem, Select, Switch } from "@mui/material";
+import { MenuItem, Select } from "@mui/material";
 import React from "react";
-import { Section } from "../../../components/layout";
+import { TableContainer } from "../../../components/table";
 import { handleSelectChange } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useCategoriesPageState } from "../../../state/app/hooks";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { useCategoriesTableData } from "./data";
+import { CategoriesPageTableHeader } from "./header";
 import { TopLevelCategoryTableView } from "./TopLevel";
 
 export const CategoryTable: React.FC = () => {
@@ -18,27 +19,17 @@ export const CategoryTable: React.FC = () => {
     );
 
     return (
-        <Section
+        <TableContainer
             title="All Categories"
-            emptyBody={true}
-            headers={[
-                <FormControlLabel
-                    control={<Switch checked={hideEmpty} onChange={handleToggle} />}
-                    label="Filter Empty"
-                    key="hideEmpty"
-                />,
-                <Select value={metric} onChange={setMetric} size="small" key="metric">
+            headers={
+                <Select value={metric} onChange={setMetric} size="small">
                     <MenuItem value="current">Current Month</MenuItem>
                     <MenuItem value="previous">Previous Month</MenuItem>
                     <MenuItem value="average">12 Month Average</MenuItem>
-                </Select>,
-                <Select value={tableSign} onChange={setTableSign} size="small" key="sign">
-                    <MenuItem value="all">All Categories</MenuItem>
-                    <MenuItem value="debits">Expense Categories</MenuItem>
-                    <MenuItem value="credits">Income Categories</MenuItem>
-                </Select>,
-            ]}
+                </Select>
+            }
         >
+            <CategoriesPageTableHeader tableSign={tableSign} hideEmpty={hideEmpty} />
             {options.map((option) => (
                 <TopLevelCategoryTableView
                     key={option.id}
@@ -46,18 +37,13 @@ export const CategoryTable: React.FC = () => {
                     graph={graph}
                     chartFunctions={chartFunctions}
                     getCategoryStatistics={getCategoryStatistics}
+                    hideEmpty={hideEmpty}
                 />
             ))}
-        </Section>
+        </TableContainer>
     );
 };
 
 const setMetric = handleSelectChange((tableMetric: CategoriesPageState["tableMetric"]) =>
     TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableMetric }))
 );
-const setTableSign = handleSelectChange((tableSign: CategoriesPageState["tableSign"]) =>
-    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableSign }))
-);
-
-const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) =>
-    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ hideEmpty: event.target.checked }));

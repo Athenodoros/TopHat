@@ -54,7 +54,7 @@ export interface CategoriesPageState {
     id: "categories";
     summaryMetric: "current" | "previous" | "average";
     tableMetric: "current" | "previous" | "average";
-    hideEmpty: boolean;
+    hideEmpty: "none" | "subcategories" | "all";
     summarySign: ChartSign;
     tableSign: ChartSign;
 }

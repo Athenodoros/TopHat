@@ -1,15 +1,18 @@
-import { ButtonBase, Card, Typography } from "@mui/material";
+import { Edit } from "@mui/icons-material";
+import { ButtonBase, Card, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import chroma from "chroma-js";
 import clsx from "clsx";
 import { reverse } from "lodash";
 import numeral from "numeral";
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
 import { ChartDomainFunctions } from "../../../shared/data";
+import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
+import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { Category } from "../../../state/data";
 import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
@@ -48,12 +51,6 @@ const useStyles = makeStyles({
         },
     },
     fillbar: { height: 35 },
-    icon: {
-        height: 20,
-        width: 20,
-        marginLeft: 30,
-        marginRight: 20,
-    },
     blue: {
         color: Intents.primary.main,
         lineHeight: 1,
@@ -84,12 +81,14 @@ export interface TopLevelCategoryViewProps {
     graph: Record<ID, ID[]>;
     chartFunctions: ChartDomainFunctions;
     getCategoryStatistics: (category: Category) => { value: number; budget?: number; success?: boolean | null };
+    hideEmpty: CategoriesPageState["hideEmpty"];
 }
 export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     category,
     graph,
     chartFunctions,
     getCategoryStatistics,
+    hideEmpty,
 }) => {
     const tableClasses = useCategoriesTableStyles();
     const classes = useStyles();
@@ -99,10 +98,12 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     const categories = useCategoryMap();
     let running: Record<number, number> = { 0: 0 }; // Depth -> Running Total
     const getNestedSubcategoryNodes = (id: ID, depth: number = 0): JSX.Element[] => {
+        const statistic = getCategoryStatistics(categories[id]!).value;
+        if (hideEmpty !== "none" && !statistic) return [];
+
         running[depth + 1] = running[depth];
         const children = graph[id].flatMap((child) => getNestedSubcategoryNodes(child, depth + 1));
 
-        const statistic = getCategoryStatistics(categories[id]!).value;
         const results = [
             <SubCategoryTableView
                 key={id}
@@ -126,11 +127,21 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
         [category.id]
     );
 
+    const openEditView = useMemo(
+        () =>
+            withSuppressEvent(() => {
+                TopHatDispatch(
+                    AppSlice.actions.setDialogPartial({ id: "category", category: categories[category.id]! })
+                );
+            }),
+        [categories, category.id]
+    );
+
     return (
         <Card className={classes.container}>
-            <ButtonBase className={classes.toplevel} onClick={onClick}>
+            <ButtonBase className={classes.toplevel} onClick={onClick} component="div">
                 <div className={tableClasses.title}>
-                    {getCategoryIcon(category, classes.icon)}
+                    {getCategoryIcon(category, tableClasses.icon)}
                     <Typography variant="h5" noWrap={true}>
                         {category.name}
                     </Typography>
@@ -165,6 +176,11 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
                                 / {numeral(category.budget).format("0,0.00")}
                             </Typography>
                         ) : undefined}
+                    </div>
+                    <div className={tableClasses.action}>
+                        <IconButton size="small" onClick={openEditView}>
+                            <Edit />
+                        </IconButton>
                     </div>
                 </div>
             </ButtonBase>

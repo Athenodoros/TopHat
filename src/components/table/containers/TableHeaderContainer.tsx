@@ -1,5 +1,6 @@
 import { Card } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { SxProps } from "@mui/system";
 import React from "react";
 
 const useStyles = makeStyles((theme) => ({
@@ -18,12 +19,12 @@ const useStyles = makeStyles((theme) => ({
     },
 }));
 
-export const TableHeaderContainer: React.FC<{ className?: string }> = ({ children, className }) => {
+export const TableHeaderContainer: React.FC<{ className?: string; sx?: SxProps }> = ({ children, className, sx }) => {
     const classes = useStyles();
 
     return (
         <div className={classes.container}>
-            <Card elevation={2} className={className || classes.card}>
+            <Card elevation={2} className={className || classes.card} sx={sx}>
                 {children}
             </Card>
         </div>

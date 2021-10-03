@@ -10,6 +10,7 @@ import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { CategoriesBarSummary } from "./budget";
 import { CategoriesBarChart } from "./chart";
 import { useCategoryBudgetSummaryData } from "./data";
+import { CategoriesPageNoBudgetSummary } from "./placeholder";
 
 const HelpText: Record<CategoriesPageState["summaryMetric"], string> = {
     current: "All transactions in current month",
@@ -20,6 +21,8 @@ const HelpText: Record<CategoriesPageState["summaryMetric"], string> = {
 export const CategoriesPageSummary: React.FC = () => {
     const { summaryMetric: metric } = useCategoriesPageState((state) => state);
     const data = useCategoryBudgetSummaryData(metric);
+
+    if (!data.some((category) => category.budget)) return <CategoriesPageNoBudgetSummary />;
 
     return (
         <Box

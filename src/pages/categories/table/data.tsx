@@ -53,7 +53,7 @@ export const useCategoriesTableData = (
         });
         if (tableSign !== "all")
             options = options.filter((option) => option.isDebitCategory === (tableSign === "debits"));
-        if (hideEmpty) options = options.filter((option) => option.value);
+        if (hideEmpty === "all") options = options.filter((option) => option.value);
 
         const chartFunctions = getChartDomainFunctions(
             options.map(({ value, budget }) => (Math.abs(value) > Math.abs(budget || 0) ? value : budget || 0)),

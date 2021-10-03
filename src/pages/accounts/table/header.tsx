@@ -16,6 +16,7 @@ import {
     MenuItem,
     ToggleButton,
     ToggleButtonGroup,
+    Tooltip,
     Typography,
 } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
@@ -185,13 +186,19 @@ export const AccountsTableHeader: React.FC = () => {
                                 onChange={onSetBalances}
                             >
                                 <ToggleButton value="all">
-                                    <Exposure fontSize="small" />
+                                    <Tooltip title="All Accounts">
+                                        <Exposure fontSize="small" />
+                                    </Tooltip>
                                 </ToggleButton>
                                 <ToggleButton value="credits">
-                                    <AddCircleOutline fontSize="small" />
+                                    <Tooltip title="Positive Balances">
+                                        <AddCircleOutline fontSize="small" />
+                                    </Tooltip>
                                 </ToggleButton>
                                 <ToggleButton value="debits">
-                                    <IndeterminateCheckBox fontSize="small" />
+                                    <Tooltip title="Negative Balances">
+                                        <IndeterminateCheckBox fontSize="small" />
+                                    </Tooltip>
                                 </ToggleButton>
                             </ToggleButtonGroup>
                         </ListItem>
