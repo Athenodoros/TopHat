@@ -6,9 +6,8 @@ import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/shared/values";
-import { BLACK } from "../../styles/colours";
 import { FlexWidthChart } from "../display/FlexWidthChart";
-import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
+import { getChartPerformanceProps } from "../display/PerformantCharts";
 import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./shared";
 
 export interface SummaryBarChartPoint {
@@ -27,7 +26,7 @@ type SummaryBarChartProps = {
 export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, setFilter, id, highlightSeries }) => {
     const { symbol } = useDefaultCurrency();
 
-    const { charts, domain } = useChartData(series, sign);
+    const { charts, domain } = useSummaryChartData(series, sign);
     const getChart = useCallback(
         () => (
             <VictoryChart
@@ -37,7 +36,11 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                 {...getChartPerformanceProps(domain, { x: "time", y: "linear" })}
                 key={id} // This stupid trick (often?) prevents a bug with events when chart props change
             >
-                {getHiddenTickAxis(BLACK, { orientation: sign === "debits" ? "bottom" : undefined })}
+                {/* {getHiddenTickAxis(BLACK, { orientation: sign === "debits" ? "bottom" : undefined })} */}
+                <VictoryAxis
+                    tickFormat={(value: Date) => DateTime.fromJSDate(value).toFormat("LLL yyyy")}
+                    orientation="bottom"
+                />
                 <VictoryAxis
                     dependentAxis={true}
                     tickFormat={(value: number) => symbol + " " + numeral(value).format("0.00a")}
@@ -89,7 +92,7 @@ interface SummaryChartEvent {
     index: number;
 }
 
-const useChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
+export const useSummaryChartData = (series: SummaryBarChartPoint[], sign: ChartSign) =>
     useMemo(() => {
         const sorted = sortBy(
             series,

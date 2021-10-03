@@ -18,7 +18,7 @@ export const CategoryPageHistory: React.FC = () => {
 
     const category = useCategoryPageCategory();
     const history = useTransactionsSnapshot(category.id);
-    const getTransactionsChart = useGetSummaryChart(
+    const getChart = useGetSummaryChart(
         {
             trends: history.trends,
             net: category.budgets ? takeWithDefault(category.budgets.values, history.net.length, 0) : history.net,
@@ -47,7 +47,7 @@ export const CategoryPageHistory: React.FC = () => {
                         />
                     ) : undefined}
                 </Box>
-                <FlexWidthChart style={{ flexGrow: 1 }} getChart={getTransactionsChart} />
+                <FlexWidthChart style={{ flexGrow: 1 }} getChart={getChart} />
             </Box>
         </Section>
     );

@@ -20,7 +20,7 @@ export const AccountPageBalances: React.FC = () => {
     );
 
     const balanceData = useAssetsSnapshot(account.id, currency === "all" ? undefined : currency);
-    const getAssetsChart = useGetSummaryChart(balanceData);
+    const getChart = useGetSummaryChart(balanceData);
 
     return (
         <Section
@@ -40,7 +40,7 @@ export const AccountPageBalances: React.FC = () => {
                 <div>
                     <BalanceSnapshotSummaryNumbers data={balanceData} />
                 </div>
-                <FlexWidthChart style={{ flexGrow: 1 }} getChart={getAssetsChart} />
+                <FlexWidthChart style={{ flexGrow: 1 }} getChart={getChart} />
             </Box>
         </Section>
     );

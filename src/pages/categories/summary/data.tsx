@@ -4,9 +4,12 @@ import { useMemo } from "react";
 import { SummaryBreakdownDatum } from "../../../components/summary";
 import { useAllCategories } from "../../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
-import { CategoriesBarSummaryPoint } from "./CategoriesBarSummary";
+import { CategoriesBarSummaryPoint } from "./bars";
+import { CategoriesBarChartPoint } from "./chart";
 
-export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum & CategoriesBarSummaryPoint)[] => {
+export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum &
+    CategoriesBarSummaryPoint &
+    CategoriesBarChartPoint)[] => {
     const categories = useAllCategories();
 
     return useMemo(() => {
@@ -23,9 +26,12 @@ export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum & Categor
                 const debit = value < 0;
 
                 return {
+                    // Common data
                     id: category.id,
                     name: category.name,
                     colour: category.colour,
+
+                    // SummaryBreakdownDatum
                     value: {
                         credit: 0,
                         debit: 0,
@@ -47,8 +53,16 @@ export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum & Categor
                         }`,
                     },
                     debit,
+
+                    // CategoriesBarSummaryPoint
                     total: value,
                     budget,
+
+                    // CategoriesBarChartPoint, which includes latest month
+                    values: range(13).map(
+                        (i) => (category.transactions.credits[i] || 0) + (category.transactions.debits[i] || 0)
+                    ),
+                    budgets: range(13).map((i) => category.budgets?.values[i] || 0),
                 };
             });
     }, [categories]);

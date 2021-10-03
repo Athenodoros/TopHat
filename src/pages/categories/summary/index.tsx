@@ -6,7 +6,8 @@ import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useCategoriesPageState } from "../../../state/app/hooks";
 import { TransactionsPageState } from "../../../state/app/pageTypes";
-import { CategoriesBarSummary } from "./CategoriesBarSummary";
+import { CategoriesBarSummary } from "./bars";
+import { CategoriesBarChart } from "./chart";
 import { useCategoryBudgetSummaryData } from "./data";
 
 export const CategoriesPageSummary: React.FC = () => {
@@ -36,12 +37,7 @@ export const CategoriesPageSummary: React.FC = () => {
                     </Select>,
                 ]}
             >
-                {/* <SummaryBarChart
-                    series={data}
-                    sign={sign}
-                    setFilter={setFilterID[aggregation]}
-                    id={aggregation + sign}
-                /> */}
+                <CategoriesBarChart series={data} sign={sign} id={sign} />
             </Section>
         </SummarySection>
     );
