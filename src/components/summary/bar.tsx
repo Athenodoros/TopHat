@@ -7,7 +7,11 @@ import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/shared/values";
 import { FlexWidthChart } from "../display/FlexWidthChart";
-import { getChartPerformanceProps } from "../display/PerformantCharts";
+import {
+    getBottomAlignedDateAxisFromDomain,
+    getChartPerformanceProps,
+    getHiddenTickZeroAxis,
+} from "../display/PerformantCharts";
 import { ChartPoint, CHART_SECTION_STYLE, getChartEvents, SummaryChartSign } from "./shared";
 
 export interface SummaryBarChartPoint {
@@ -31,16 +35,11 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
         () => (
             <VictoryChart
                 height={310}
-                animate={false} // {{ duration: 500, onLoad: { duration: 500 } }}
+                // animate={{ duration: 500, onLoad: { duration: 500 } }}
                 padding={{ left: 100, top: 20, bottom: 20, right: 20 }}
                 {...getChartPerformanceProps(domain, { x: "time", y: "linear" })}
                 key={id} // This stupid trick (often?) prevents a bug with events when chart props change
             >
-                {/* {getHiddenTickAxis(BLACK, { orientation: sign === "debits" ? "bottom" : undefined })} */}
-                <VictoryAxis
-                    tickFormat={(value: Date) => DateTime.fromJSDate(value).toFormat("LLL yyyy")}
-                    orientation="bottom"
-                />
                 <VictoryAxis
                     dependentAxis={true}
                     tickFormat={(value: number) => symbol + " " + numeral(value).format("0.00a")}
@@ -73,6 +72,8 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
                             />
                         ))}
                 </VictoryStack>
+                {getHiddenTickZeroAxis()}
+                {getBottomAlignedDateAxisFromDomain(domain.y, sign === "debits")}
             </VictoryChart>
         ),
         [charts, sign, setFilter, symbol, domain, id, highlightSeries]

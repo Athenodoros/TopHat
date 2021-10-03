@@ -20,8 +20,9 @@ export const AccountsPageSummary: React.FC = () => {
                 <SummaryBreakdown
                     data={data}
                     sign={sign}
-                    creditsName="Total Assets"
-                    debitsName="Total Liabilities"
+                    creditsName="Assets"
+                    debitsName="Liabilities"
+                    help="Value at most recent update"
                     setFilter={setFilterID[aggregation]}
                 />
             </Section>

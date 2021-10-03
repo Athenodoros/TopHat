@@ -5,16 +5,18 @@ import { getChartDomainFunctions } from "../../../shared/data";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { Category } from "../../../state/data";
 
-const MetricLookbackPeriods: Record<CategoriesPageState["metric"], number[]> = {
+export const CategoriesMetricLookbackPeriods: Record<CategoriesPageState["tableMetric"], number[]> = {
+    current: [0],
     previous: [1],
     average: range(1, 13),
 };
 export const useCategoriesTableData = (
-    metric: CategoriesPageState["metric"],
+    hideEmpty: CategoriesPageState["hideEmpty"],
+    metric: CategoriesPageState["tableMetric"],
     tableSign: CategoriesPageState["tableSign"]
 ) => {
     const { options: ids, graph, entities } = useCategoryGraph();
-    const lookback = MetricLookbackPeriods[metric];
+    const lookback = CategoriesMetricLookbackPeriods[metric];
 
     const { options, chartFunctions, getCategoryStatistics } = useMemo(() => {
         const getCategoryStatistics = (category: Category) => {
@@ -51,6 +53,7 @@ export const useCategoriesTableData = (
         });
         if (tableSign !== "all")
             options = options.filter((option) => option.isDebitCategory === (tableSign === "debits"));
+        if (hideEmpty) options = options.filter((option) => option.value);
 
         const chartFunctions = getChartDomainFunctions(
             options.map(({ value, budget }) => (Math.abs(value) > Math.abs(budget || 0) ? value : budget || 0)),
@@ -58,7 +61,7 @@ export const useCategoriesTableData = (
         );
 
         return { options, chartFunctions, getCategoryStatistics };
-    }, [ids, entities, lookback, tableSign]);
+    }, [ids, entities, lookback, tableSign, hideEmpty]);
 
     return { options, graph, chartFunctions, getCategoryStatistics };
 };

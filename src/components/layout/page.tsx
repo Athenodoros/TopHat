@@ -15,7 +15,7 @@ const usePageStyles = makeStyles((theme) => ({
         alignItems: "stretch",
         flexGrow: 1,
         overflowY: "auto",
-        padding: "0 60px 30px 60px",
+        padding: "0 60px 200px 60px",
     },
 
     title: {
@@ -36,13 +36,13 @@ const usePageStyles = makeStyles((theme) => ({
     },
 }));
 
-export const Page: React.FC<{ title: string; padding?: number }> = ({ children, title, padding }) => {
+export const Page: React.FC<{ title: string }> = ({ children, title }) => {
     const notifications = useNotificationCount();
     const classes = usePageStyles();
     const { buttonProps, popoverProps } = usePopoverProps();
 
     return (
-        <div className={classes.page} style={padding ? { paddingBottom: padding } : undefined}>
+        <div className={classes.page}>
             <div className={classes.title}>
                 <Typography variant="h3">{title}</Typography>
                 <div className={classes.titleButtons}>

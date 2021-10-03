@@ -94,7 +94,10 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
                         depth !== 0 ? classes.nested : classes.top
                     )}
                 >
-                    {format(range[2] - range[1])}
+                    {
+                        // This is to avoid numerical precision errors - otherwise NaNs show up in the UI
+                        format(Math.abs(range[2] - range[1]) < 0.01 ? 0 : range[2] - range[1])
+                    }
                 </Typography>
             </ButtonBase>
         </div>

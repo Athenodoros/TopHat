@@ -5,7 +5,7 @@ import { Greys } from "../../styles/colours";
 
 export const AnalysisPage: React.FC = () => {
     return (
-        <Page title="Analysis" padding={200}>
+        <Page title="Analysis">
             <Section
                 title="Transactions Histories"
                 headers={

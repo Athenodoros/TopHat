@@ -5,7 +5,7 @@ import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
 import { useDefaultCurrency, useFormatValue } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
-import { getChartPerformanceProps, getHiddenTickAxis } from "../display/PerformantCharts";
+import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../display/PerformantCharts";
 import { SummaryNumber } from "../display/SummaryNumber";
 import { SnapshotSectionData } from "./data";
 export * from "./data";
@@ -88,7 +88,7 @@ export const useGetSummaryChart = ({ trends: { credits, debits }, net }: Snapsho
                     y: [(min(debits) || 0) * 1.02, (max(credits) || 0) * 1.02],
                 })}
             >
-                {getHiddenTickAxis(Greys[600])}
+                {getHiddenTickZeroAxis(Greys[600])}
                 <VictoryAxis
                     dependentAxis={true}
                     tickFormat={format}

@@ -52,8 +52,10 @@ export interface TransactionsPageState {
 }
 export interface CategoriesPageState {
     id: "categories";
-    metric: "previous" | "average";
-    chartSign: ChartSign;
+    summaryMetric: "current" | "previous" | "average";
+    tableMetric: "current" | "previous" | "average";
+    hideEmpty: boolean;
+    summarySign: ChartSign;
     tableSign: ChartSign;
 }
 export interface CategoryPageState {

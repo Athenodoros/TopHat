@@ -1,4 +1,4 @@
-import { MenuItem, Select } from "@mui/material";
+import { FormControlLabel, MenuItem, Select, Switch } from "@mui/material";
 import React from "react";
 import { Section } from "../../../components/layout";
 import { handleSelectChange } from "../../../shared/events";
@@ -10,22 +10,32 @@ import { useCategoriesTableData } from "./data";
 import { TopLevelCategoryTableView } from "./TopLevel";
 
 export const CategoryTable: React.FC = () => {
-    const { metric, tableSign } = useCategoriesPageState();
-    const { options, graph, chartFunctions, getCategoryStatistics } = useCategoriesTableData(metric, tableSign);
+    const { hideEmpty, tableMetric: metric, tableSign } = useCategoriesPageState();
+    const { options, graph, chartFunctions, getCategoryStatistics } = useCategoriesTableData(
+        hideEmpty,
+        metric,
+        tableSign
+    );
 
     return (
         <Section
             title="All Categories"
             emptyBody={true}
             headers={[
+                <FormControlLabel
+                    control={<Switch checked={hideEmpty} onChange={handleToggle} />}
+                    label="Filter Empty"
+                    key="hideEmpty"
+                />,
                 <Select value={metric} onChange={setMetric} size="small" key="metric">
+                    <MenuItem value="current">Current Month</MenuItem>
                     <MenuItem value="previous">Previous Month</MenuItem>
                     <MenuItem value="average">12 Month Average</MenuItem>
                 </Select>,
                 <Select value={tableSign} onChange={setTableSign} size="small" key="sign">
                     <MenuItem value="all">All Categories</MenuItem>
                     <MenuItem value="debits">Expense Categories</MenuItem>
-                    <MenuItem value="credits">Credit Categories</MenuItem>
+                    <MenuItem value="credits">Income Categories</MenuItem>
                 </Select>,
             ]}
         >
@@ -42,9 +52,12 @@ export const CategoryTable: React.FC = () => {
     );
 };
 
-const setMetric = handleSelectChange((metric: CategoriesPageState["metric"]) =>
-    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ metric }))
+const setMetric = handleSelectChange((tableMetric: CategoriesPageState["tableMetric"]) =>
+    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableMetric }))
 );
 const setTableSign = handleSelectChange((tableSign: CategoriesPageState["tableSign"]) =>
     TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableSign }))
 );
+
+const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) =>
+    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ hideEmpty: event.target.checked }));

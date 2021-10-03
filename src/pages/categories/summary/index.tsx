@@ -1,48 +1,61 @@
 import { MenuItem, Select } from "@mui/material";
-import { Section } from "../../../components/layout";
-import { SummaryBreakdown, SummarySection } from "../../../components/summary";
+import { Box } from "@mui/system";
+import { Section, SECTION_MARGIN } from "../../../components/layout";
+import { SummaryBreakdown } from "../../../components/summary";
 import { handleSelectChange } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useCategoriesPageState } from "../../../state/app/hooks";
-import { TransactionsPageState } from "../../../state/app/pageTypes";
-import { CategoriesBarSummary } from "./bars";
+import { CategoriesPageState } from "../../../state/app/pageTypes";
+import { CategoriesBarSummary } from "./budget";
 import { CategoriesBarChart } from "./chart";
 import { useCategoryBudgetSummaryData } from "./data";
 
+const HelpText: Record<CategoriesPageState["summaryMetric"], string> = {
+    current: "All transactions in current month",
+    previous: "All transactions in previous month",
+    average: "Monthly average over previous 12 months",
+};
+
 export const CategoriesPageSummary: React.FC = () => {
-    const sign = useCategoriesPageState((state) => state.chartSign);
-    const data = useCategoryBudgetSummaryData();
+    const { summaryMetric: metric } = useCategoriesPageState((state) => state);
+    const data = useCategoryBudgetSummaryData(metric);
 
     return (
-        <SummarySection>
-            <Section title="Budgets">
-                <SummaryBreakdown
-                    data={data}
-                    sign={sign}
-                    creditsName="Income vs. Budget"
-                    debitsName="Expenses vs. Budget"
-                    colorise={true}
-                >
-                    <CategoriesBarSummary points={data} sign={sign} />
-                </SummaryBreakdown>
-            </Section>
+        <Box
+            sx={{
+                display: "flex",
+                "& > div:first-child": { width: 350, marginRight: SECTION_MARGIN / 8 },
+                "& > div:last-child": { flexGrow: 1 },
+            }}
+        >
             <Section
-                title=""
+                title="Budget"
                 headers={[
-                    <Select value={sign} onChange={setChartSign} size="small" key="sign">
-                        <MenuItem value="all">All Categories</MenuItem>
-                        <MenuItem value="credits">Income</MenuItem>
-                        <MenuItem value="debits">Expenses</MenuItem>
+                    <Select value={metric} onChange={setMetric} size="small" key="metric">
+                        <MenuItem value="current">Current Month</MenuItem>
+                        <MenuItem value="previous">Previous Month</MenuItem>
+                        <MenuItem value="average">12 Month Average</MenuItem>
                     </Select>,
                 ]}
+                sx={{ height: 410, display: "flex", flexDirection: "column" }}
             >
-                <CategoriesBarChart series={data} sign={sign} id={sign} />
+                <SummaryBreakdown
+                    data={data}
+                    sign="all"
+                    creditsName="Income vs. Budget"
+                    debitsName="Expenses vs. Budget"
+                    help={HelpText[metric]}
+                    colorise={true}
+                >
+                    <CategoriesBarSummary points={data} />
+                </SummaryBreakdown>
             </Section>
-        </SummarySection>
+            <CategoriesBarChart />
+        </Box>
     );
 };
 
-const setChartSign = handleSelectChange((chartSign: TransactionsPageState["chartSign"]) =>
-    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ chartSign }))
+const setMetric = handleSelectChange((tableMetric: CategoriesPageState["tableMetric"]) =>
+    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableMetric }))
 );

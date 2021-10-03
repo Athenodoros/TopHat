@@ -3,7 +3,7 @@ import { AccountsPageSummary } from "./summary";
 import { AccountsTable } from "./table";
 
 export const AccountsPage: React.FC = () => (
-    <Page title="Accounts" padding={200}>
+    <Page title="Accounts">
         <AccountsPageSummary />
         <AccountsTable />
     </Page>

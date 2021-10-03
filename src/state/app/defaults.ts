@@ -34,7 +34,14 @@ export const DefaultPages = {
             state: DefaultTransactionsTableState,
         },
     },
-    categories: { id: "categories", metric: "average", tableSign: "all", chartSign: "debits" } as const,
+    categories: {
+        id: "categories",
+        tableMetric: "average",
+        summaryMetric: "current",
+        tableSign: "all",
+        summarySign: "debits",
+        hideEmpty: true,
+    } as const,
     category: {
         id: "category" as const,
         category: PLACEHOLDER_CATEGORY_ID,

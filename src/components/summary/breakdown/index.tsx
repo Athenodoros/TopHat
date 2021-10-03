@@ -15,10 +15,11 @@ const useStyles = makeStyles({
         justifyContent: "stretch",
         margin: -5,
         height: 330,
+        flexGrow: 1,
     },
     divider: {
         height: 1,
-        margin: "15px 50px 5px 50px",
+        margin: "7px 50px 5px 50px",
         backgroundColor: Greys[400],
     },
     points: {
@@ -59,6 +60,7 @@ interface SummaryBreakdownProps {
     sign: ChartSign;
     creditsName: string;
     debitsName: string;
+    help?: string;
     data: SummaryBreakdownDatum[];
     setFilter?: (id: ID, sign?: SummaryChartSign) => void;
     colorise?: boolean;
@@ -68,15 +70,15 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     sign,
     creditsName,
     debitsName,
+    help,
     setFilter,
     colorise,
     children,
 }) => {
     const classes = useStyles();
 
-    const points = orderBy(
-        data,
-        ({ value }) => (sign !== "debits" ? -value.credit : 0) + (sign !== "credits" ? -value.debit : 0)
+    const points = orderBy(data, ({ value }) =>
+        sign === "credits" ? -value.credit : sign === "all" ? -value.credit - value.debit : value.debit
     ).filter(({ value, debit }) => {
         if (sign === "credits") return debit === undefined ? value.credit !== 0 : debit === false;
         if (sign === "debits") return debit === undefined ? value.debit !== 0 : debit === true;
@@ -89,17 +91,27 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
             {sign !== "debits" ? (
                 <Value
                     name={creditsName}
-                    values={[sumBy(data, ({ value }) => value.credit)]}
+                    values={[
+                        sumBy(data, ({ debit, value }) =>
+                            debit === undefined ? value.credit : debit ? 0 : value.credit
+                        ),
+                    ]}
                     title={true}
+                    help={help}
                     colorise={colorise}
                 />
             ) : undefined}
             {sign !== "credits" ? (
                 <Value
                     name={debitsName}
-                    values={[sumBy(data, ({ value }) => value.debit)]}
+                    values={[
+                        sumBy(data, ({ debit, value }) =>
+                            debit === undefined ? value.debit : debit ? value.debit : 0
+                        ),
+                    ]}
                     title={true}
                     colorise={colorise}
+                    help={help}
                 />
             ) : undefined}
             <div className={classes.divider} />

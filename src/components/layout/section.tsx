@@ -1,5 +1,6 @@
-import { Paper, Typography } from "@mui/material";
-import makeStyles from '@mui/styles/makeStyles';
+import { Paper, Theme, Typography } from "@mui/material";
+import makeStyles from "@mui/styles/makeStyles";
+import { Box, SxProps } from "@mui/system";
 import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../styles/colours";
@@ -47,6 +48,7 @@ export interface SectionProps {
     headers?: React.ReactNode | React.ReactNode[];
     emptyBody?: boolean;
     onClick?: () => void;
+    sx?: SxProps<Theme>;
 }
 export const Section: React.FC<SectionProps> = ({
     className,
@@ -56,6 +58,7 @@ export const Section: React.FC<SectionProps> = ({
     children,
     emptyBody,
     onClick,
+    sx,
 }) => {
     const classes = useSectionStyles();
 
@@ -64,13 +67,18 @@ export const Section: React.FC<SectionProps> = ({
             {title || headers ? (
                 <div className={classes.sectionHeader}>
                     <Typography variant="h6">{title}</Typography>
-                    <div>{headers}</div>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>{headers}</Box>
                 </div>
             ) : undefined}
             {emptyBody ? (
                 children
             ) : (
-                <Paper className={clsx(classes.sectionBody, PaperClassName)} variant="outlined" onClick={onClick}>
+                <Paper
+                    className={clsx(classes.sectionBody, PaperClassName)}
+                    variant="outlined"
+                    onClick={onClick}
+                    sx={sx}
+                >
                     {children}
                 </Paper>
             )}

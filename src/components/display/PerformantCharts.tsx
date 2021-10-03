@@ -1,15 +1,32 @@
+import { DateTime } from "luxon";
 import React from "react";
-import { DomainTuple, VictoryAxis, VictoryAxisProps, VictoryChartProps } from "victory";
+import { DomainTuple, VictoryAxis, VictoryChartProps } from "victory";
 import { DomainPropObjectType } from "victory-core";
+import { BLACK } from "../../styles/colours";
 
 const DummyComponent: React.FC<any> = () => <div />;
 
-export const getHiddenTickAxis = (stroke: string, props?: VictoryAxisProps) => (
+export const getHiddenTickZeroAxis = (stroke: string = BLACK) => (
     <VictoryAxis
         style={{ axis: { stroke } }}
         tickComponent={<DummyComponent style={{ stroke: "none" }} />}
         tickLabelComponent={<DummyComponent style={{ stroke: "none" }} />}
-        {...props}
+        axisValue={0.001} // There seems to be a bad falsiness check here, thus 0.001
+    />
+);
+
+export const getBottomAlignedDateAxisFromDomain = (yDomain: [number, number], flip?: boolean) =>
+    getBottomAlignedDateAxis(yDomain[flip ? 1 : 0]);
+export const getBottomAlignedDateAxis = (value: number) => (
+    <VictoryAxis
+        tickFormat={(value: Date) => DateTime.fromJSDate(value).toFormat("LLL yyyy")}
+        axisValue={value || 0.001} // Avoid Victory's dodgy falsiness check
+        orientation="bottom"
+        style={{
+            axis: {
+                visibility: "hidden",
+            },
+        }}
     />
 );
 

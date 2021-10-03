@@ -121,7 +121,7 @@ export const BasicFillbar: React.FC<BasicFillbarProps> = ({
                     className={classes.value}
                     style={{
                         background: colour.main,
-                        right: functions.getPoint(range[2]),
+                        left: functions.getPoint(range[2]),
                     }}
                 />
             ) : undefined}
@@ -129,7 +129,7 @@ export const BasicFillbar: React.FC<BasicFillbarProps> = ({
                 <div
                     className={classes.secondary}
                     style={{
-                        right: functions.getPoint(secondary),
+                        left: functions.getPoint(secondary),
                     }}
                 />
             ) : undefined}

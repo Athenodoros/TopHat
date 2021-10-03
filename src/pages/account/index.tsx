@@ -1,4 +1,4 @@
-import makeStyles from '@mui/styles/makeStyles';
+import makeStyles from "@mui/styles/makeStyles";
 import { useMemo } from "react";
 import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
@@ -32,7 +32,7 @@ export const AccountPage: React.FC = () => {
     const filters = useMemo(() => ({ ...table.filters, account: [account.id] }), [table.filters, account.id]);
 
     return (
-        <Page title="Accounts" padding={200}>
+        <Page title="Accounts">
             <AccountPageHeader />
             <div className={classes.middle}>
                 <AccountPageBalances />

@@ -63,7 +63,7 @@ export const BasicBarChart: React.FC<{
                         <div
                             style={{
                                 ...common,
-                                top: getPoint(value),
+                                bottom: getPoint(value),
                                 height: 2,
                                 marginTop: -1,
                                 background: colour[selected ? "dark" : "main"],

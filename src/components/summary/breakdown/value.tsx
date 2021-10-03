@@ -1,4 +1,5 @@
-import { ButtonBase, Typography } from "@mui/material";
+import { HelpOutlined } from "@mui/icons-material";
+import { ButtonBase, Tooltip, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { identity } from "lodash";
@@ -12,7 +13,7 @@ const useValueStyles = makeStyles({
     container: {
         display: "flex",
         padding: "2px 5px 0 5px",
-        margin: "5px 0 0 0",
+        margin: "2px 0 0 0",
         alignItems: "flex-start",
 
         "&:first-child": {
@@ -38,7 +39,6 @@ const useValueStyles = makeStyles({
         border: "1px solid transparent",
     },
     nameContainer: {
-        flexGrow: 1,
         marginBottom: 5,
         display: "flex",
         flexDirection: "column",
@@ -62,6 +62,7 @@ const useValueStyles = makeStyles({
         color: Greys[600],
     },
     valueContainer: {
+        flexGrow: 1,
         flexShrink: 0,
         "& > div": {
             display: "flex",
@@ -91,6 +92,7 @@ export const Value: React.FC<{
     values: number[];
     colour?: string;
     title?: boolean;
+    help?: string;
     subValues?:
         | {
               type: "number";
@@ -104,7 +106,7 @@ export const Value: React.FC<{
     placeholder?: boolean;
     onClick?: () => void;
     colorise?: boolean;
-}> = ({ name, subtitle, values, subValues, colour, title, placeholder, onClick, colorise }) => {
+}> = ({ name, subtitle, values, subValues, colour, title, help, placeholder, onClick, colorise }) => {
     const classes = useValueStyles();
     const variant = title ? "body1" : "body2";
     const onClickWrapped = useCallback(
@@ -139,6 +141,11 @@ export const Value: React.FC<{
                     </Typography>
                 )}
             </div>
+            {title && help ? (
+                <Tooltip title={help}>
+                    <HelpOutlined sx={{ fontSize: 12, margin: "4px 6px 4px 6px" }} htmlColor={Greys[400]} />
+                </Tooltip>
+            ) : undefined}
             <div className={classes.valueContainer}>
                 {values.map((value, idx) =>
                     value ||

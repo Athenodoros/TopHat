@@ -19,7 +19,7 @@ import { ID } from "../../state/shared/values";
 export const TransactionsPageSummary: React.FC = () => {
     const aggregation = useTransactionsPageState((state) => state.chartAggregation);
     const sign = useTransactionsPageState((state) => state.chartSign);
-    const data = useTransactionsSummaryData(aggregation);
+    const { data, length } = useTransactionsSummaryData(aggregation);
 
     return (
         <SummarySection>
@@ -29,6 +29,7 @@ export const TransactionsPageSummary: React.FC = () => {
                     sign={sign}
                     creditsName="Monthly Income"
                     debitsName="Monthly Expenses"
+                    help={length === 25 ? "Average over previous 24 months" : "Average over all history"}
                     setFilter={setFilterID[aggregation]}
                 />
             </Section>

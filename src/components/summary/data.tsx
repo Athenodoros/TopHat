@@ -10,7 +10,7 @@ import { ID } from "../../state/shared/values";
 
 export const useTransactionsSummaryData = (
     aggregation: TransactionsPageState["chartAggregation"]
-): (SummaryBreakdownDatum & SummaryBarChartPoint)[] => {
+): { length: number; data: (SummaryBreakdownDatum & SummaryBarChartPoint)[] } => {
     let objects = useAllObjects(aggregation);
     if (aggregation === "category") {
         objects = objects.filter((category) => (category as Category).hierarchy.length === 0);
@@ -19,47 +19,50 @@ export const useTransactionsSummaryData = (
     const institutions = useInstitutionMap();
 
     const length = Math.min(
-        max(objects.flatMap((_) => [_.transactions.credits.length, _.transactions.debits.length])) || 24,
-        24
+        max(objects.flatMap((_) => [_.transactions.credits.length, _.transactions.debits.length])) || 25,
+        25
     );
 
-    return objects.map((object) => {
-        const credits = takeWithDefault(object.transactions.credits, length, 0);
-        const debits = takeWithDefault(object.transactions.debits, length, 0);
+    return {
+        length,
+        data: objects.map((object) => {
+            const credits = takeWithDefault(object.transactions.credits, length, 0);
+            const debits = takeWithDefault(object.transactions.debits, length, 0);
 
-        const colour =
-            aggregation === "account"
-                ? institutions[(object as Account).institution!]!.colour
-                : (object as Exclude<typeof objects[number], Account>).colour;
+            const colour =
+                aggregation === "account"
+                    ? institutions[(object as Account).institution!]!.colour
+                    : (object as Exclude<typeof objects[number], Account>).colour;
 
-        return {
-            id: object.id,
-            name: aggregation === "currency" ? (object as Currency).ticker : object.name,
-            subtitle:
-                aggregation === "currency"
-                    ? (object as Currency).name
-                    : aggregation === "account"
-                    ? institutions[(object as Account).institution]!.name
-                    : undefined,
-            colour,
-            trend: { credits, debits },
-            value: { credit: mean(credits.slice(1)), debit: mean(debits.slice(1)) },
-            subValue:
-                aggregation === "currency"
-                    ? {
-                          type: "number",
-                          symbol: (object as Currency).symbol,
-                          credit: mean(
-                              takeWithDefault((object as Currency).transactions.localCredits, length, 0).slice(1)
-                          ),
-                          debit: mean(
-                              takeWithDefault((object as Currency).transactions.localDebits, length, 0).slice(1)
-                          ),
-                      }
-                    : undefined,
-            placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
-        };
-    });
+            return {
+                id: object.id,
+                name: aggregation === "currency" ? (object as Currency).ticker : object.name,
+                subtitle:
+                    aggregation === "currency"
+                        ? (object as Currency).name
+                        : aggregation === "account"
+                        ? institutions[(object as Account).institution]!.name
+                        : undefined,
+                colour,
+                trend: { credits, debits },
+                value: { credit: mean(credits.slice(1)), debit: mean(debits.slice(1)) },
+                subValue:
+                    aggregation === "currency"
+                        ? {
+                              type: "number",
+                              symbol: (object as Currency).symbol,
+                              credit: mean(
+                                  takeWithDefault((object as Currency).transactions.localCredits, length, 0).slice(1)
+                              ),
+                              debit: mean(
+                                  takeWithDefault((object as Currency).transactions.localDebits, length, 0).slice(1)
+                              ),
+                          }
+                        : undefined,
+                placeholder: aggregation === "category" && object.id === PLACEHOLDER_CATEGORY_ID,
+            };
+        }),
+    };
 };
 
 type HistorySummary = { credits: number[]; debits: number[]; totals: { credit: number; debit: number } };

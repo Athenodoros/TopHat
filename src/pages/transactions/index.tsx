@@ -11,7 +11,7 @@ export const TransactionsPage: React.FC = () => {
     const { filters, state } = useTransactionsPageState((state) => state.table);
 
     return (
-        <Page title="Transactions" padding={200}>
+        <Page title="Transactions">
             <TransactionsPageSummary />
             <TransactionsTable filters={filters} state={state} setFilters={setFilters} setState={setState} />
         </Page>

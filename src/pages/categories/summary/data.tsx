@@ -1,29 +1,31 @@
-import { mean, range } from "lodash";
+import { mean } from "lodash";
 import numeral from "numeral";
 import { useMemo } from "react";
 import { SummaryBreakdownDatum } from "../../../components/summary";
+import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { useAllCategories } from "../../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
-import { CategoriesBarSummaryPoint } from "./bars";
-import { CategoriesBarChartPoint } from "./chart";
+import { CategoriesMetricLookbackPeriods } from "../table/data";
+import { CategoriesBarSummaryPoint } from "./budget";
 
-export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum &
-    CategoriesBarSummaryPoint &
-    CategoriesBarChartPoint)[] => {
+export const useCategoryBudgetSummaryData = (
+    metric: CategoriesPageState["tableMetric"]
+): (SummaryBreakdownDatum & CategoriesBarSummaryPoint)[] => {
     const categories = useAllCategories();
+    const lookback = CategoriesMetricLookbackPeriods[metric];
 
     return useMemo(() => {
         return categories
             .filter(({ id, hierarchy }) => hierarchy.length === 0 && id !== TRANSFER_CATEGORY_ID)
             .map((category) => {
                 const value = mean(
-                    range(1, 13).map(
+                    lookback.map(
                         (i) => (category.transactions.credits[i] || 0) + (category.transactions.debits[i] || 0)
                     )
                 );
-                const budget = mean(range(1, 13).map((i) => category.budgets?.values[i] || 0));
+                const budget = mean(lookback.map((i) => category.budgets?.values[i] || 0));
 
-                const debit = value < 0;
+                const debit = budget !== 0 ? budget < 0 : value < 0;
 
                 return {
                     // Common data
@@ -57,13 +59,7 @@ export const useCategoryBudgetSummaryData = (): (SummaryBreakdownDatum &
                     // CategoriesBarSummaryPoint
                     total: value,
                     budget,
-
-                    // CategoriesBarChartPoint, which includes latest month
-                    values: range(13).map(
-                        (i) => (category.transactions.credits[i] || 0) + (category.transactions.debits[i] || 0)
-                    ),
-                    budgets: range(13).map((i) => category.budgets?.values[i] || 0),
                 };
             });
-    }, [categories]);
+    }, [categories, lookback]);
 };

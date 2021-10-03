@@ -59,7 +59,7 @@ export const getChartDomainFunctions = (values: number[], padding: number = 0): 
 
     const scale = (raw: number) => (raw / (max - min)) * 100 + "%";
 
-    const getPoint = (raw: number) => scale(max - raw * flip);
+    const getPoint = (raw: number) => scale(raw * flip - min);
     const getOffsetAndSizeForRange = (x: number, y: number = 0) => ({
         offset: scale(Math.min(x * flip, y * flip) - min),
         size: scale(Math.abs(x - y)),

@@ -8,7 +8,7 @@ import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
-import { getChartPerformanceProps, getHiddenTickAxis } from "../../../components/display/PerformantCharts";
+import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../../../components/display/PerformantCharts";
 import { suppressEvent, withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
@@ -164,7 +164,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
                     domainPadding={{ y: 3 }}
                     {...getChartPerformanceProps(domain)}
                 >
-                    {getHiddenTickAxis(Greys[400])}
+                    {getHiddenTickZeroAxis(Greys[400])}
                     {charts}
                 </VictoryChart>
             </div>

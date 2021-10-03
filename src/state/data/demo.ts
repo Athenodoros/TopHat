@@ -529,7 +529,9 @@ export const finishDemoInitialisation = (state: DataState) => {
     const incomeCategory = state.category.entities[6]!;
     incomeCategory.budgets = {
         start,
-        values: range(24).map((i) => (incomeCategory.transactions.credits[i] || 10) - 10),
+        values: range(24).map(
+            (i) => (incomeCategory.transactions.credits[i] || incomeCategory.transactions.credits[1]) - 10
+        ),
         strategy: "copy",
         base: 0,
     };
