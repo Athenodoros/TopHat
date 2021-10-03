@@ -63,14 +63,9 @@ export const AppColours = {
         main: "#D99E0B",
         dark: "#BF8C0A",
     },
-    analysis: {
+    forecasts: {
         light: "#EB532D",
         main: "#D13913",
         dark: "#B83211",
-    },
-    forecasts: {
-        light: "#B07B46",
-        main: "#96622D",
-        dark: "#7D5125",
     },
 };

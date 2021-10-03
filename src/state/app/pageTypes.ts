@@ -67,9 +67,6 @@ export interface CategoryPageState {
         state: TransactionsTableState;
     };
 }
-export interface AnalysisPageState {
-    id: "analysis";
-}
 export interface ForecastsPageState {
     id: "forecasts";
 }
@@ -81,5 +78,4 @@ export type PageStateType =
     | TransactionsPageState
     | CategoriesPageState
     | CategoryPageState
-    | AnalysisPageState
     | ForecastsPageState;

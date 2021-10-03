@@ -110,10 +110,6 @@ export const useNumericInputHandler = (
     }, [id]);
     return { text, setText, setValue, onTextChange };
 };
-export const useNumericInputHandlerState = () => {
-    const [value, setValue] = useState<number | null>(null);
-    return { value, onTextChange: useNumericInputHandler(value, setValue).onTextChange };
-};
 
 export const useRefToValue = <T>(t: T) => {
     const ref = useRef(t);

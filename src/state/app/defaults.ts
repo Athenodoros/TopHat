@@ -51,7 +51,6 @@ export const DefaultPages = {
             state: DefaultTransactionsTableState,
         },
     },
-    analysis: { id: "analysis" as const },
     forecasts: { id: "forecasts" as const },
 };
 

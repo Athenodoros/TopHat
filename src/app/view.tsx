@@ -2,7 +2,6 @@ import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
 import { AccountPage } from "../pages/account";
 import { AccountsPage } from "../pages/accounts";
-import { AnalysisPage } from "../pages/analysis";
 import { CategoriesPage } from "../pages/categories";
 import { CategoryPage } from "../pages/category";
 import { ForecastPage } from "../pages/forecasts";
@@ -36,7 +35,6 @@ export const View: React.FC = () => {
             {page === "transactions" ? <TransactionsPage /> : undefined}
             {page === "categories" ? <CategoriesPage /> : undefined}
             {page === "category" ? <CategoryPage /> : undefined}
-            {page === "analysis" ? <AnalysisPage /> : undefined}
             {page === "forecasts" ? <ForecastPage /> : undefined}
         </div>
     );

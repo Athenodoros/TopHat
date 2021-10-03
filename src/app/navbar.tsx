@@ -1,7 +1,6 @@
 import {
     AccountBalanceWalletTwoTone,
     Camera,
-    InsertChartTwoTone,
     PaymentTwoTone,
     SettingsTwoTone,
     ShoppingBasketTwoTone,
@@ -132,7 +131,6 @@ export const NavBar: React.FC = () => {
                 {getTab("accounts", AccountBalanceWalletTwoTone)}
                 {getTab("transactions", PaymentTwoTone)}
                 {getTab("categories", ShoppingBasketTwoTone)}
-                {getTab("analysis", InsertChartTwoTone)}
                 {getTab("forecasts", TrendingUpTwoTone)}
             </div>
             <div className={classes.admin}>{getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}</div>

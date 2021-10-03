@@ -218,7 +218,7 @@ export const DataSlice = createSlice({
     },
 });
 
-const getDateBucket = (date: string, start: string) =>
+export const getDateBucket = (date: string, start: string) =>
     parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
 
 type BalanceSubset = { account: ID; currency: ID }[];

@@ -15,11 +15,12 @@ export const getHiddenTickZeroAxis = (stroke: string = BLACK) => (
     />
 );
 
+const formatDateValuesForAxis = (value: Date) => DateTime.fromJSDate(value).toFormat("LLL yyyy");
 export const getBottomAlignedDateAxisFromDomain = (yDomain: [number, number], flip?: boolean) =>
     getBottomAlignedDateAxis(yDomain[flip ? 1 : 0]);
-export const getBottomAlignedDateAxis = (value: number) => (
+export const getBottomAlignedDateAxis = (value: number = 0) => (
     <VictoryAxis
-        tickFormat={(value: Date) => DateTime.fromJSDate(value).toFormat("LLL yyyy")}
+        tickFormat={formatDateValuesForAxis}
         axisValue={value || 0.001} // Avoid Victory's dodgy falsiness check
         orientation="bottom"
         style={{
