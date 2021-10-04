@@ -1,3 +1,4 @@
+import { Box, SxProps } from "@mui/system";
 import React, { useMemo } from "react";
 import { VictoryChart } from "victory";
 import { useDivBoundingRect } from "../../shared/hooks";
@@ -5,8 +6,9 @@ import { useDivBoundingRect } from "../../shared/hooks";
 interface FlexWidthChartProps {
     getChart: (width: number) => React.ReactElement<VictoryChart>;
     style?: React.CSSProperties;
+    sx?: SxProps;
 }
-export const FlexWidthChart: React.FC<FlexWidthChartProps> = ({ getChart, style = {} }) => {
+export const FlexWidthChart: React.FC<FlexWidthChartProps> = ({ getChart, style = {}, sx }) => {
     const [{ width }, ref] = useDivBoundingRect();
 
     const chart = useMemo(() => {
@@ -20,8 +22,8 @@ export const FlexWidthChart: React.FC<FlexWidthChartProps> = ({ getChart, style 
     }, [width, getChart]);
 
     return (
-        <div style={style} ref={ref}>
+        <Box style={style} ref={ref} sx={sx}>
             {chart}
-        </div>
+        </Box>
     );
 };
