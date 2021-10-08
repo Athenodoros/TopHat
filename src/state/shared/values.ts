@@ -26,11 +26,13 @@ export interface TransactionHistory {
     start: SDate;
     credits: number[];
     debits: number[];
+    count: number;
 }
 export const BaseTransactionHistory = (): TransactionHistory => ({
     start: getCurrentMonthString(),
     credits: [],
     debits: [],
+    count: 0,
 });
 
 export interface TransactionHistoryWithLocalisation extends TransactionHistory {

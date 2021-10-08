@@ -5,9 +5,11 @@ import { getChartDomainFunctions } from "../../shared/data";
 import { Greys, Intents } from "../../styles/colours";
 
 export const getBasicBarChartColour = (success: boolean | null, stub?: boolean) =>
-    stub
-        ? { main: Greys[700], dark: Greys[700] }
-        : Intents[success === null ? "primary" : success ? "success" : "danger"];
+    success === null
+        ? stub
+            ? { main: Greys[700], dark: Greys[700] }
+            : Intents.primary
+        : Intents[success ? "success" : "danger"];
 
 export const BasicBarChart: React.FC<{
     className?: string;

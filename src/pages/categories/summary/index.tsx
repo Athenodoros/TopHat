@@ -59,6 +59,6 @@ export const CategoriesPageSummary: React.FC = () => {
     );
 };
 
-const setMetric = handleSelectChange((tableMetric: CategoriesPageState["tableMetric"]) =>
-    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ tableMetric }))
+const setMetric = handleSelectChange((summaryMetric: CategoriesPageState["summaryMetric"]) =>
+    TopHatDispatch(AppSlice.actions.setCategoriesPagePartial({ summaryMetric }))
 );

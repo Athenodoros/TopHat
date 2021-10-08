@@ -116,9 +116,7 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
                                     key={option.id}
                                     className={selectorClasses.item}
                                     selected={option.id === selected}
-                                    onClick={withSuppressEvent<HTMLLIElement>(() =>
-                                        set(option.id === selected ? undefined : option)
-                                    )}
+                                    onClick={withSuppressEvent<HTMLLIElement>(() => set(option))}
                                 >
                                     {render(option)}
                                 </MenuItem>

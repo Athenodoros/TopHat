@@ -1,8 +1,8 @@
 import { AddCircleOutline, DeleteForeverTwoTone, DeleteTwoTone, Menu, SaveTwoTone } from "@mui/icons-material";
-import { Button, List, MenuItem, MenuList, TextField } from "@mui/material";
+import { Button, List, MenuItem, MenuList, TextField, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { cloneDeep, isEqual, upperFirst } from "lodash";
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
     DragDropContext,
     Draggable,
@@ -16,6 +16,7 @@ import { handleTextFieldChange, withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useDialogState } from "../../state/app/hooks";
+import { DataSlice, useDeleteObjectError } from "../../state/data";
 import { useAllObjects, useObjectByID } from "../../state/data/hooks";
 import { BasicObjectName, BasicObjectType } from "../../state/data/types";
 import { ID } from "../../state/shared/values";
@@ -81,9 +82,7 @@ export const BasicDialogObjectSelector = <Name extends BasicObjectName>({
                         <MenuItem
                             key={option.id}
                             selected={option.id === selected}
-                            onClick={withSuppressEvent<HTMLLIElement>(() =>
-                                functions.set(option.id === selected ? undefined : option)
-                            )}
+                            onClick={withSuppressEvent<HTMLLIElement>(() => functions.set(option))}
                         >
                             {render(option)}
                         </MenuItem>
@@ -120,9 +119,7 @@ export const HeaderDialogObjectSelector = <Name extends BasicObjectName>({
                         <MenuItem
                             key={option.id}
                             selected={option.id === selected}
-                            onClick={withSuppressEvent<HTMLLIElement>(() =>
-                                functions.set(option.id === selected ? undefined : option)
-                            )}
+                            onClick={withSuppressEvent<HTMLLIElement>(() => functions.set(option))}
                         >
                             {render(option)}
                         </MenuItem>
@@ -158,9 +155,7 @@ export const DraggableDialogObjectSelector = <Name extends "rule">({
                 <MenuItem
                     key={option.id}
                     selected={option.id === selected || snapshot.isDragging}
-                    onClick={withSuppressEvent<HTMLLIElement>(() =>
-                        functions.set(option.id === selected ? undefined : option)
-                    )}
+                    onClick={withSuppressEvent<HTMLLIElement>(() => functions.set(option))}
                     {...provided.draggableProps}
                     ref={provided.innerRef}
                 >
@@ -233,7 +228,12 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     const working = useDialogState(type) as BasicObjectType[Type];
     const actual = useObjectByID(type, working.id);
 
-    const { handleNameChange, reset } = useMemo(() => {
+    const {
+        handleNameChange,
+        reset,
+        destroy,
+        save: saveRaw,
+    } = useMemo(() => {
         const functions = getUpdateFunctions(type);
         return {
             handleNameChange: handleTextFieldChange(functions.update("name")),
@@ -242,8 +242,15 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
                 functions.set(actual);
                 if (actual && onReset) onReset();
             },
+            destroy: () => functions.destroy(working.id),
+            save: functions.save,
         };
     }, [type, working.id, onReset]);
+    const save = useCallback(() => saveRaw(working), [saveRaw, working]);
+
+    const deleteObjectError = useDeleteObjectError(type, working.id);
+    const [deleteEnabled, setDeleteEnabled] = useState(false);
+    const enableDelete = useCallback(() => setDeleteEnabled(true), []);
 
     return (
         <div className={classes.edit}>
@@ -260,13 +267,24 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
                 >
                     Reset
                 </Button>
-                <Button color="error" disabled={!actual} startIcon={<DeleteForeverTwoTone fontSize="small" />}>
-                    Delete
-                </Button>
+                <Tooltip title={deleteObjectError || ""}>
+                    <span>
+                        <Button
+                            color="error"
+                            disabled={deleteObjectError !== undefined}
+                            startIcon={<DeleteForeverTwoTone fontSize="small" />}
+                            onClick={deleteEnabled ? destroy : enableDelete}
+                            variant={deleteEnabled ? "contained" : undefined}
+                        >
+                            {deleteEnabled ? "Confirm" : "Delete"}
+                        </Button>
+                    </span>
+                </Tooltip>
                 <Button
                     disabled={isEqual(working, actual)}
                     variant="outlined"
                     startIcon={<SaveTwoTone fontSize="small" />}
+                    onClick={save}
                 >
                     Save
                 </Button>
@@ -289,5 +307,13 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
         (value: Option[K]) =>
             setPartial({ [key]: value } as any);
 
-    return { get, getWorking, set, setPartial, remove, update };
+    // Delete is a JS keyword
+    const destroy = (id: ID) => {
+        remove();
+        TopHatDispatch(DataSlice.actions.deleteObject({ type, id }));
+    };
+
+    const save = (working: Option) => TopHatDispatch(DataSlice.actions.saveObject({ type, working }));
+
+    return { get, getWorking, set, setPartial, remove, update, destroy, save };
 };

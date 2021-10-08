@@ -91,7 +91,7 @@ export const CategoriesPageTableHeader: React.FC<Pick<CategoriesPageState, "tabl
                                     </Tooltip>
                                 </ToggleButton>
                                 <ToggleButton value="subcategories">
-                                    <Tooltip title="Hide empty eubcategories">
+                                    <Tooltip title="Hide empty subcategories">
                                         <PlaylistAdd fontSize="small" />
                                     </Tooltip>
                                 </ToggleButton>

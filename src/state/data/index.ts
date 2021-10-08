@@ -9,6 +9,8 @@ import {
     PayloadAction,
     Update,
 } from "@reduxjs/toolkit";
+import { createDraft } from "immer";
+import { WritableDraft } from "immer/dist/internal";
 import {
     clone,
     cloneDeep,
@@ -22,8 +24,10 @@ import {
     toPairs,
     uniq,
     uniqWith,
+    upperFirst,
 } from "lodash";
 import { takeWithDefault } from "../../shared/data";
+import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
     getCurrentMonth,
@@ -41,10 +45,20 @@ import {
     PLACEHOLDER_CATEGORY,
     PLACEHOLDER_INSTITUTION,
     PLACEHOLDER_STATEMENT,
+    PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY,
     TRANSFER_CATEGORY_ID,
 } from "./shared";
-import { Account, BasicObjectType, DataState, EditTransactionState, Transaction } from "./types";
+import {
+    Account,
+    BasicObjectName,
+    BasicObjectType,
+    Category,
+    Currency,
+    DataState,
+    EditTransactionState,
+    Transaction,
+} from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./shared";
 export type {
     Account,
@@ -114,6 +128,7 @@ export const DataSlice = createSlice({
                 user: { ...defaults.user, isDemo: true },
             } as DataState;
 
+            // This is necessary because the EntityAdapters freeze objects when they are added
             return createNextState(state, (state) => {
                 updateTransactionSummariesWithTransactions(state, state.transaction.ids);
 
@@ -212,11 +227,136 @@ export const DataSlice = createSlice({
             updateBalancesAndAccountSummaries(state, balanceSubset);
         },
 
+        saveObject: <Type extends BasicObjectName>(
+            state: WritableDraft<DataState>,
+            { payload: { type, working } }: PayloadAction<{ type: Type; working: BasicObjectType[Type] }>
+        ) => {
+            const original = state[type].entities[working.id] as BasicObjectType[Type] | undefined;
+
+            // Updating existing
+            if (
+                original &&
+                type === "currency" &&
+                (working as Currency).exchangeRate !== (original as Currency).exchangeRate
+            ) {
+                // Update local values if exchange rate changes
+                const transactions = state.transaction.ids.filter(
+                    (id) => state.transaction.entities[id]!.currency === working.id
+                );
+
+                updateTransactionSummariesWithTransactions(state, transactions, true);
+
+                adapters[type].upsertOne(state[type], createDraft(working));
+
+                updateTransactionSummariesWithTransactions(state, transactions);
+                updateBalancesAndAccountSummaries(state, getBalanceSubset(transactions, state.transaction.entities));
+            } else if (
+                original &&
+                type === "category" &&
+                (working as Category).hierarchy[0] !== (original as Category).hierarchy[0]
+            ) {
+                // TODO: Update transaction summaries for parent categories
+                updateTransactionSummaryStartDates(state);
+                const { transactions } = original as Category;
+                (original as Category).hierarchy.forEach((id) => {
+                    // Remove old hierarchy
+                    const parent = state.category.entities[id]!;
+
+                    transactions.credits.forEach((credit, idx) => {
+                        parent.transactions.credits[idx] -= credit;
+                    });
+                    transactions.debits.forEach((debit, idx) => {
+                        parent.transactions.debits[idx] -= debit;
+                    });
+                    parent.transactions.count -= transactions.count;
+                });
+                (working as Category).hierarchy.forEach((id) => {
+                    // Add old hierarchy
+                    const parent = state.category.entities[id]!;
+
+                    transactions.credits.forEach((credit, idx) => {
+                        parent.transactions.credits[idx] += credit;
+                    });
+                    transactions.debits.forEach((debit, idx) => {
+                        parent.transactions.debits[idx] += debit;
+                    });
+                    parent.transactions.count += transactions.count;
+                });
+
+                state.category.ids.forEach((id) => {
+                    const candidate = state.category.entities[id]!;
+
+                    if (candidate.hierarchy.includes(working.id)) {
+                        candidate.hierarchy = candidate.hierarchy
+                            .slice(0, candidate.hierarchy.indexOf(working.id) + 1)
+                            .concat((working as Category).hierarchy);
+                    }
+                });
+
+                adapters[type].upsertOne(state[type], working);
+            } else {
+                adapters[type].upsertOne(state[type], working);
+            }
+        },
+        deleteObject: (state, { payload: { type, id } }: PayloadAction<{ type: BasicObjectName; id: ID }>) => {
+            if (deleteObjectError(state, type, id) !== undefined) return;
+
+            adapters[type].removeOne(state[type], id);
+
+            if (type === "rule") {
+                const { index } = state.rule.entities[id]!;
+                adapters.rule.updateMany(
+                    state.rule,
+                    state.rule.ids
+                        .filter((ruleID) => state.rule.entities[ruleID]!.index > index)
+                        .map((ruleID) => ({ id: ruleID, changes: { index: state.rule.entities[ruleID]!.index - 1 } }))
+                );
+            }
+
+            if (type === "statement") {
+                state.transaction.ids.forEach((txID) => {
+                    const tx = state.transaction.entities[txID]!;
+                    if (tx.statement === id) {
+                        tx.statement = PLACEHOLDER_STATEMENT_ID;
+                    }
+                });
+            }
+        },
+
         // Notifications
         deleteNotification: (state, { payload }: PayloadAction<ID>) =>
             void BaseAdapter.removeOne(state.notification, payload),
     },
 });
+
+export const useDeleteObjectError = <Type extends BasicObjectName>(type: Type, id: ID) =>
+    useSelector((state) => deleteObjectError(state.data, type, id));
+
+const deleteObjectError = <Type extends BasicObjectName>(state: DataState, type: Type, id: ID) => {
+    if (!(id in state[type].entities)) return upperFirst(type) + " is newly created";
+
+    if (type === "account") {
+        if (state.account.entities[id]!.transactions.count !== 0) return "Account has linked transactions";
+        if (state.statement.ids.some((candidate) => state.statement.entities[candidate]!.account === id))
+            return "Account has linked statements";
+    }
+
+    if (type === "institution") {
+        if (state.account.ids.some((candidate) => state.account.entities[candidate]!.institution === id))
+            return "Institution has linked accounts";
+    }
+
+    if (type === "category") {
+        if (state.category.ids.some((candidate) => state.category.entities[candidate]!.hierarchy.includes(id)))
+            return "category has children" as const;
+        if (state.category.entities[id]!.transactions.count !== 0) return "Category has linked transactions";
+    }
+
+    if (type === "currency") {
+        if (state.currency.entities[id]!.transactions.count !== 0) return "Currency has linked transactions";
+        if (state.user.currency === id) return "Can't delete default currency";
+    }
+};
 
 export const getDateBucket = (date: string, start: string) =>
     parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
@@ -278,6 +418,10 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
     const userDefaultCurrency = state.currency.entities[state.user.currency]!;
 
     const updateHistoryValue = (history: TransactionHistory | TransactionHistoryWithLocalisation, tx: Transaction) => {
+        history.count = history.count + (remove ? -1 : 1);
+
+        if (!tx.value || tx.category === TRANSFER_CATEGORY_ID) return;
+
         const bucket = getDateBucket(tx.date, history.start);
 
         if (bucket >= history.credits.length) {
@@ -303,7 +447,6 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
 
     (ids || state.transaction.ids).forEach((id) => {
         const tx = state.transaction.entities[id]!;
-        if (!tx.value || tx.category === TRANSFER_CATEGORY_ID) return;
 
         TransactionSummaries.forEach((summary) => {
             if (tx[summary] === null) return;
