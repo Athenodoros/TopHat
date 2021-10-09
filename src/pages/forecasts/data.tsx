@@ -39,7 +39,7 @@ export const CalculatorEstimates = {
             }
         }
 
-        return mean(dropRightWhile(repayments, (x) => !x));
+        return mean(dropRightWhile(repayments, (x) => !x)) || 0;
     },
     income: () => sumAccounts(({ transactions }) => sample(transactions.credits)),
     expenses: () => sumAccounts(({ transactions }) => -sample(transactions.debits)),

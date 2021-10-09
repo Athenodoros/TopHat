@@ -17,8 +17,8 @@ export interface SnapshotSectionContentsProps {
 export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({ data: { net } }) => {
     const currency = useDefaultCurrency().symbol;
 
-    const average = (net[0] + net[1] + net[2]) / 3;
-    const previous = (net[3] + net[4] + net[5]) / 3;
+    const average = ((net[0] || 0) + (net[1] || 0) + (net[2] || 0)) / 3;
+    const previous = ((net[3] || 0) + (net[4] || 0) + (net[5] || 0)) / 3;
 
     return (
         <>
@@ -26,7 +26,7 @@ export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContents
                 icon={AttachMoney}
                 primary={{
                     value: `${currency} ${numeral(average).format("+0,0.00")}`,
-                    positive: average > 0,
+                    positive: !average ? null : average > 0,
                 }}
                 subtext="average, last three months"
             />
@@ -34,11 +34,11 @@ export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContents
                 icon={average > previous ? TrendingUp : TrendingDown}
                 primary={{
                     value: `${currency} ${numeral(average - previous).format("+0,0.00")}`,
-                    positive: average > previous,
+                    positive: average === previous ? null : average > previous,
                 }}
                 secondary={{
                     value: numeral((average - previous) / previous).format("+0.00%"),
-                    positive: average > previous,
+                    positive: average === previous ? null : average > previous,
                 }}
                 subtext="vs. previous months"
             />
@@ -55,7 +55,7 @@ export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProp
                 icon={AttachMoney}
                 primary={{
                     value: `${currency} ${numeral(net[0]).format("0,0.00")}`,
-                    positive: net[0] > 0,
+                    positive: !net[0] ? null : net[0] > 0,
                 }}
                 subtext="value today"
             />
@@ -63,11 +63,11 @@ export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProp
                 icon={TrendingUp}
                 primary={{
                     value: `${currency} ${numeral(net[0] - net[1]).format("+0,0.00")}`,
-                    positive: net[0] > net[1],
+                    positive: net[0] === net[1] ? null : net[0] > net[1],
                 }}
                 secondary={{
                     value: numeral((net[0] - net[1]) / net[1]).format("+0.00%"),
-                    positive: net[0] > net[1],
+                    positive: net[0] === net[1] ? null : net[0] > net[1],
                 }}
                 subtext="in last month"
             />

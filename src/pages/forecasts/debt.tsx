@@ -1,4 +1,4 @@
-import { range } from "lodash";
+import { dropRightWhile, range } from "lodash";
 import numeral from "numeral";
 import React, { useMemo } from "react";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
@@ -132,7 +132,7 @@ const useSimulationResults = (
                         intent={result === "success" ? "primary" : result === "indeterminate" ? "warning" : "danger"}
                         value={
                             result === "success"
-                                ? Math.round((balances.length / 12) * 10) / 10 + " Years"
+                                ? Math.round((dropRightWhile(balances, (x) => !x).length / 12) * 10) / 10 + " Years"
                                 : result === "indeterminate"
                                 ? `>${years} Years`
                                 : "Infinity"

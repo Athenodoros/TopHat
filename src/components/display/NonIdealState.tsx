@@ -1,8 +1,9 @@
 import { Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import chroma from "chroma-js";
 import React from "react";
 import { IconType } from "../../shared/types";
-import { Greys } from "../../styles/colours";
+import { Intents } from "../../styles/colours";
 
 const useStyles = makeStyles({
     container: {
@@ -29,19 +30,27 @@ const useStyles = makeStyles({
 interface NonIdealStateProps {
     icon: IconType;
     title: string;
-    subtitle: string;
+    intent?: keyof typeof Intents;
+    subtitle?: string;
     action?: React.ReactNode;
 }
-export const NonIdealState: React.FC<NonIdealStateProps> = ({ icon: Icon, title, subtitle, action }) => {
+export const NonIdealState: React.FC<NonIdealStateProps> = ({ icon: Icon, title, subtitle, intent, action }) => {
     const classes = useStyles();
 
     return (
         <div className={classes.container}>
-            <Icon htmlColor={Greys[400]} className={classes.icon} />
+            <Icon
+                htmlColor={chroma(Intents[intent || "default"].light)
+                    .alpha(0.5)
+                    .hex()}
+                className={classes.icon}
+            />
             <Typography variant="h6">{title}</Typography>
-            <Typography variant="body2" className={classes.subtitle}>
-                {subtitle}
-            </Typography>
+            {subtitle ? (
+                <Typography variant="body2" className={classes.subtitle}>
+                    {subtitle}
+                </Typography>
+            ) : undefined}
             {action}
         </div>
     );

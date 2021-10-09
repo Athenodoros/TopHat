@@ -3,9 +3,9 @@ import { Badge, IconButton, Popover, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
 import { Notifications } from "../../app/notifications";
-import { createAndDownloadFile } from "../../shared/data";
 import { usePopoverProps } from "../../shared/hooks";
-import { DemoStatementFiles } from "../../state/data/demo";
+import { TopHatDispatch } from "../../state";
+import { DataSlice } from "../../state/data";
 import { useNotificationCount } from "../../state/data/hooks";
 
 const usePageStyles = makeStyles((theme) => ({
@@ -58,7 +58,7 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
                     >
                         <Notifications />
                     </Popover>
-                    <IconButton onClick={downloadExampleStatements} size="large">
+                    <IconButton onClick={topLayoutTestingButtonOnClick} size="large">
                         <Camera />
                     </IconButton>
                 </div>
@@ -68,6 +68,4 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
     );
 };
 
-// const openDialog = () => TopHatDispatch(AppSlice.actions.setDialogPage("account"));
-const downloadExampleStatements = () =>
-    DemoStatementFiles.forEach(({ name, contents }) => createAndDownloadFile(name, contents));
+const topLayoutTestingButtonOnClick = () => TopHatDispatch(DataSlice.actions.reset());

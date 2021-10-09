@@ -1,7 +1,9 @@
-import { Clear } from "@mui/icons-material";
+import { CheckCircleOutline, Clear } from "@mui/icons-material";
 import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import React, { useState } from "react";
+import { NonIdealState } from "../components/display/NonIdealState";
 import { useAllNotifications } from "../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../state/logic/notifications";
 
@@ -21,7 +23,7 @@ const useStyles = makeStyles({
         overflow: "hidden",
         padding: "0 17px",
         fontSize: 20,
-        width: 350,
+        // width: 350,
     },
 
     backdrop: {
@@ -96,10 +98,18 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     );
 };
 
-export const Notifications: React.FC = () => (
-    <>
-        {useAllNotifications().map((notification) => (
-            <NotificationDisplay key={notification.id} {...getNotificationDisplayMetadata(notification)} />
-        ))}
-    </>
-);
+export const Notifications: React.FC = () => {
+    const notifications = useAllNotifications();
+
+    return (
+        <Box sx={{ width: 350 }}>
+            {notifications.length ? (
+                notifications.map((notification) => (
+                    <NotificationDisplay key={notification.id} {...getNotificationDisplayMetadata(notification)} />
+                ))
+            ) : (
+                <NonIdealState icon={CheckCircleOutline} title="No Notifications!" intent="app" />
+            )}
+        </Box>
+    );
+};

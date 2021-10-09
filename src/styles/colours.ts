@@ -15,6 +15,11 @@ export const Greys = {
 export const MissingValueColour = Greys[600];
 
 export const Intents = {
+    app: {
+        light: "#9179F2",
+        main: "#7157D9",
+        dark: "#634DBF",
+    },
     primary: {
         light: "#48AFF0",
         main: "#137CBD",
@@ -36,7 +41,7 @@ export const Intents = {
         dark: "#A82A2A",
     },
     default: {
-        light: Greys[300],
+        light: Greys[400],
         main: Greys[500],
         dark: Greys[700],
     },

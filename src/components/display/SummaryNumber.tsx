@@ -41,7 +41,7 @@ interface SummaryNumberProps {
     };
     secondary?: {
         value: string;
-        positive: boolean;
+        positive: boolean | null;
     };
     subtext: string;
 }
@@ -69,7 +69,10 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
                         <Typography
                             variant="caption"
                             style={{
-                                color: secondary.positive ? Intents.success.main : Intents.danger.main,
+                                color:
+                                    secondary.positive === null
+                                        ? AppColours.summary.main
+                                        : Intents[secondary.positive ? "success" : "danger"].main,
                                 fontWeight: 500,
                             }}
                         >

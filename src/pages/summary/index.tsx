@@ -40,7 +40,7 @@ export const SummaryPage: React.FC = () => {
     const transactionSummaryData = useTransactionsSnapshot();
 
     const getAssetsChart = useGetSummaryChart(assetSummaryData);
-    const getTransactionsChart = useGetSummaryChart(assetSummaryData);
+    const getTransactionsChart = useGetSummaryChart(transactionSummaryData);
 
     return (
         <Page title="Welcome to TopHat!">
