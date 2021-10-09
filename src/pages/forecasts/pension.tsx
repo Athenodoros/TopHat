@@ -1,4 +1,4 @@
-import { last, range } from "lodash";
+import { range } from "lodash";
 import numeral from "numeral";
 import React, { useMemo } from "react";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
@@ -15,7 +15,7 @@ import {
     useNominalValueToggle,
 } from "./display";
 
-export const ForecastPageRetirementCalculator: React.FC = () => {
+export const ForecastPagePensionCalculator: React.FC = () => {
     const currency = useDefaultCurrency();
 
     const netWorth = useCalculatorInputDisplay(
@@ -38,7 +38,7 @@ export const ForecastPageRetirementCalculator: React.FC = () => {
     );
     const inflation = useCalculatorInputDisplay(
         "Inflation",
-        "Annual rate of inflation",
+        "Annual growth in savings and withdrawals",
         "% pa.",
         CalculatorEstimates.constant(1.5)
     );
@@ -48,11 +48,12 @@ export const ForecastPageRetirementCalculator: React.FC = () => {
         "yrs",
         CalculatorEstimates.constant(30)
     );
-    const expenses = useCalculatorInputDisplay(
-        "Expenses",
-        "Monthly expenses during retirement in today's values",
-        currency.symbol,
-        CalculatorEstimates.expenses
+    const length = useCalculatorInputDisplay(
+        "Length",
+        "Length of retirement in years",
+        "yrs",
+        CalculatorEstimates.constant(0),
+        "Indefinite"
     );
 
     const nominalValueToggle = useNominalValueToggle();
@@ -61,7 +62,7 @@ export const ForecastPageRetirementCalculator: React.FC = () => {
         netWorth.value,
         interest.value,
         savings.value,
-        expenses.value,
+        length.value,
         horizon.value,
         inflation.value,
         currency.symbol,
@@ -70,14 +71,14 @@ export const ForecastPageRetirementCalculator: React.FC = () => {
 
     return (
         <CalculatorContainer>
-            <Section title="Retirement Length">
+            <Section title="Retirement Income">
                 <CalculatorInputGrid>
                     {netWorth.input}
                     {interest.input}
                     {savings.input}
                     {inflation.input}
                     {horizon.input}
-                    {expenses.input}
+                    {length.input}
                 </CalculatorInputGrid>
                 {nominalValueToggle.node}
                 <CalculatorInputDivider />
@@ -94,17 +95,31 @@ const useSimulationResults = (
     netWorth: number,
     interest: number,
     savings: number,
-    expenses: number,
+    retirementLength: number,
     horizon: number,
     inflation: number,
     symbol: string,
     showNominalValues: boolean
 ) =>
     useMemo(() => {
-        const years = horizon + 100;
+        const months = horizon * 12 + (retirementLength ? Math.min(retirementLength * 12, 100 * 12 + 1) : 100 * 12 + 1);
 
         let balances = [netWorth];
-        for (let month of range(years * 12)) {
+        let expenses = 0;
+        for (let month of range(months)) {
+            if (month === horizon * 12) {
+                // See also: https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
+                const principal = balances[0];
+                const rate = (1 + interest / 12 / 100) / (1 + inflation / 12 / 100);
+
+                let nominalExpenses: number;
+                if (!retirementLength) nominalExpenses = ((interest - inflation) / 12 / 100) * principal;
+                else if (interest === 0) nominalExpenses = principal / (retirementLength * 12 - 1);
+                else nominalExpenses = ((rate - 1) * principal) / (1 - Math.pow(rate, -(retirementLength * 12 - 1)));
+
+                expenses = nominalExpenses / Math.pow(1 + inflation / 12 / 100, month);
+            }
+
             const balance = balances[0] * (1 + interest / 12 / 100);
             const credit = month < horizon * 12 ? savings * Math.pow(1 + inflation / 12 / 100, month) : 0;
             const debit = month < horizon * 12 ? 0 : expenses * Math.pow(1 + inflation / 12 / 100, month);
@@ -122,7 +137,6 @@ const useSimulationResults = (
             balances.forEach((_, idx) => (balances[idx] /= Math.pow(1 + inflation / 12 / 100, idx)));
 
         const retirement = balances[horizon * 12];
-        const length = balances.length - 1 - horizon * 12;
 
         const chart = getCalculatorBalanceDisplayChart(balances, symbol, horizon);
 
@@ -136,23 +150,19 @@ const useSimulationResults = (
                             symbol + " " + numeral(retirement || 0).format(retirement > 1000000 ? "0.00a" : "0,0.00")
                         }
                     />
-                    {(retirement || 0) <= 0 ? (
-                        <CalculatorResultDisplay title="Length of Retirement" value="N/A" />
-                    ) : last(balances)! > 0.0001 ? (
-                        <CalculatorResultDisplay title="Length of Retirement" intent="success" value=">100 Years" />
-                    ) : (
-                        <CalculatorResultDisplay
-                            title="Length of Retirement"
-                            intent="primary"
-                            value={
-                                length >= 12
-                                    ? Math.round((length / 12) * 10) / 10 + " year" + (length > 12 ? "s" : "")
-                                    : length + " month" + (length !== 1 ? "s" : "")
-                            }
-                        />
-                    )}
+                    <CalculatorResultDisplay
+                        title="Monthly Income"
+                        intent={retirement > 0 ? "primary" : "danger"}
+                        value={
+                            symbol +
+                            " " +
+                            numeral(
+                                expenses * (showNominalValues ? Math.pow(1 + inflation / 12 / 100, horizon * 12) : 1)
+                            ).format(retirement > 1000000 ? "0.00a" : "0,0.00")
+                        }
+                    />
                 </>
             ),
             getChart: () => chart,
         };
-    }, [netWorth, interest, savings, expenses, horizon, inflation, symbol, showNominalValues]);
+    }, [netWorth, interest, savings, retirementLength, horizon, inflation, symbol, showNominalValues]);

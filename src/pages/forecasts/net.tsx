@@ -13,6 +13,7 @@ import {
     CalculatorTickLengthCandidates,
     getCalculatorBalanceDisplayChart,
     useCalculatorInputDisplay,
+    useNominalValueToggle,
 } from "./display";
 
 export const ForecastPageNetWorthCalculator: React.FC = () => {
@@ -55,6 +56,8 @@ export const ForecastPageNetWorthCalculator: React.FC = () => {
         CalculatorEstimates.constant(1.5)
     );
 
+    const nominalValueToggle = useNominalValueToggle();
+
     const results = useSimulationResults(
         savings.value,
         interest.value,
@@ -62,7 +65,8 @@ export const ForecastPageNetWorthCalculator: React.FC = () => {
         expenses.value,
         length.value,
         inflation.value,
-        currency.symbol
+        currency.symbol,
+        nominalValueToggle.value
     );
 
     return (
@@ -76,6 +80,7 @@ export const ForecastPageNetWorthCalculator: React.FC = () => {
                     {length.input}
                     {inflation.input}
                 </CalculatorInputGrid>
+                {nominalValueToggle.node}
                 <CalculatorInputDivider />
                 <CalculatorInputGrid>{results.results}</CalculatorInputGrid>
             </Section>
@@ -93,11 +98,12 @@ const useSimulationResults = (
     expenses: number,
     years: number,
     inflation: number,
-    symbol: string
+    symbol: string,
+    showNominalValues: boolean
 ) =>
     useMemo(() => {
         let balances = [savings];
-        for (let month of range(years * 12 + 1)) {
+        for (let month of range(years * 12)) {
             const balance = balances[0] * (1 + interest / 12 / 100);
             const credit = income * Math.pow(1 + inflation / 12 / 100, month);
             const debit = expenses * Math.pow(1 + inflation / 12 / 100, month);
@@ -106,7 +112,10 @@ const useSimulationResults = (
         }
         balances.reverse();
 
-        const getRawCheckinDisplay = (month: number) => getCheckinDisplay(month, balances[month + 1]);
+        if (!showNominalValues)
+            balances.forEach((_, idx) => (balances[idx] /= Math.pow(1 + inflation / 12 / 100, idx)));
+
+        const getRawCheckinDisplay = (month: number) => getCheckinDisplay(month, balances[month]);
         const getCheckinDisplay = (month: number, value: number) => {
             const colour =
                 savings > 0
@@ -151,4 +160,4 @@ const useSimulationResults = (
             ),
             getChart: () => chart,
         };
-    }, [savings, interest, income, expenses, years, inflation, symbol]);
+    }, [savings, interest, income, expenses, years, inflation, symbol, showNominalValues]);

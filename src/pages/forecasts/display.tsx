@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
 import { HelpOutlined } from "@mui/icons-material";
-import { Grid, TextField, Tooltip, Typography } from "@mui/material";
+import { FormControlLabel, Grid, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { max, min, range } from "lodash";
 import numeral from "numeral";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { VictoryAxis, VictoryChart, VictoryLine, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer } from "victory";
 import { getChartPerformanceProps } from "../../components/display/PerformantCharts";
 import { SECTION_MARGIN } from "../../components/layout";
@@ -23,15 +23,21 @@ export const CalculatorInputGrid: React.FC = ({ children }) => (
     </Grid>
 );
 
-export const useCalculatorInputDisplay = (title: string, help: string, measure: string, estimate: () => number) => {
+export const useCalculatorInputDisplay = (
+    title: string,
+    help: string,
+    measure: string,
+    estimate: () => number,
+    placeholder?: string
+) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const placeholder = useMemo(() => Math.round(estimate() * 100) / 100, []);
+    const defaultValue = useMemo(() => Math.round(estimate() * 100) / 100, []);
 
     const [value, setValue] = useState<number | null>(null);
     const handler = useNumericInputHandler(value, setValue);
 
     return {
-        value: value ?? placeholder,
+        value: value ?? defaultValue,
         input: (
             <Grid
                 item={true}
@@ -57,7 +63,7 @@ export const useCalculatorInputDisplay = (title: string, help: string, measure: 
                 </Box>
                 <TextField
                     size="small"
-                    placeholder={"" + placeholder}
+                    placeholder={placeholder || "" + defaultValue}
                     sx={{ width: "100%" }}
                     value={handler.text}
                     onChange={handler.onTextChange}
@@ -87,6 +93,30 @@ export const CalculatorResultDisplay: React.FC<{ title: string; intent?: keyof t
     </Grid>
 );
 
+export const useNominalValueToggle = (disabled?: boolean) => {
+    const [showNominalValues, setShowNominalValues] = useState(true);
+    const toggleShowNominalValues = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => setShowNominalValues(event.target.checked),
+        []
+    );
+    const node = (
+        <Box sx={{ display: "flex", justifyContent: "flex-end", margin: "8px 8px -20px 0", color: Greys[600] }}>
+            <FormControlLabel
+                control={<Switch size="small" checked={showNominalValues} onChange={toggleShowNominalValues} />}
+                label={
+                    <Typography variant="caption">
+                        {showNominalValues ? "Show Nominal Values" : "Show Real Values"}
+                    </Typography>
+                }
+                labelPlacement="start"
+                disabled={disabled}
+            />
+        </Box>
+    );
+
+    return { value: showNominalValues, node };
+};
+
 export const CalculatorTickLengthCandidates = [1, 2, 4, 6, 12, 24, 60, 120, 240, 600];
 export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: string, horizon?: number) => {
     const getTicks = (step: number) => range(step, balances.length, step);
@@ -108,6 +138,7 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
                         `${Math.round((datum.x / 12) * 10) / 10} Years: ${symbol} ${numeral(datum.y).format("0.0a")}`
                     }
                     labelComponent={<VictoryTooltip flyoutStyle={{ fill: "white" }} />}
+                    voronoiBlacklist={["horizon"]}
                 />
             }
         >
@@ -124,7 +155,7 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
                 }
                 orientation="bottom"
             />
-            {horizon ? <VictoryLine x={() => horizon * 12} /> : undefined}
+            {horizon ? <VictoryLine name="horizon" x={() => horizon * 12} /> : undefined}
             <VictoryLine
                 data={balances.map((y, x) => ({ x, y }))}
                 style={{

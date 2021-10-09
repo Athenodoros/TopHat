@@ -12,6 +12,7 @@ import {
     CalculatorResultDisplay,
     getCalculatorBalanceDisplayChart,
     useCalculatorInputDisplay,
+    useNominalValueToggle,
 } from "./display";
 
 export const ForecastPageDebtCalculator: React.FC = () => {
@@ -31,13 +32,22 @@ export const ForecastPageDebtCalculator: React.FC = () => {
         CalculatorEstimates.repayments
     );
     const growth = useCalculatorInputDisplay(
-        "Growth",
+        "Inflation",
         "Annual growth rate of monthly repayments",
         "% pa.",
         CalculatorEstimates.constant(0)
     );
 
-    const results = useSimulationResults(debt.value, interest.value, repayments.value, growth.value, currency.symbol);
+    const nominalValueToggle = useNominalValueToggle(growth.value === 0);
+
+    const results = useSimulationResults(
+        debt.value,
+        interest.value,
+        repayments.value,
+        growth.value,
+        currency.symbol,
+        nominalValueToggle.value
+    );
 
     return (
         <CalculatorContainer>
@@ -48,6 +58,7 @@ export const ForecastPageDebtCalculator: React.FC = () => {
                     {repayments.input}
                     {growth.input}
                 </CalculatorInputGrid>
+                {nominalValueToggle.node}
                 <CalculatorInputDivider />
                 <CalculatorInputGrid>{results.results}</CalculatorInputGrid>
             </Section>
@@ -59,7 +70,14 @@ export const ForecastPageDebtCalculator: React.FC = () => {
 };
 
 // Perform simulation and render chart
-const useSimulationResults = (debt: number, interest: number, repayments: number, growth: number, symbol: string) =>
+const useSimulationResults = (
+    debt: number,
+    interest: number,
+    repayments: number,
+    growth: number,
+    symbol: string,
+    showNominalValues: boolean
+) =>
     useMemo(() => {
         const years = 100;
 
@@ -82,6 +100,8 @@ const useSimulationResults = (debt: number, interest: number, repayments: number
             balances.unshift(balance - payment);
         }
         balances.reverse();
+
+        if (!showNominalValues) balances.forEach((_, idx) => (balances[idx] /= Math.pow(1 + growth / 12 / 100, idx)));
 
         const getCheckinDisplay = (year: number) => {
             const value: number | undefined = balances[12 * year + 1];
@@ -122,4 +142,4 @@ const useSimulationResults = (debt: number, interest: number, repayments: number
             ),
             getChart: () => chart,
         };
-    }, [debt, interest, repayments, growth, symbol]);
+    }, [debt, interest, repayments, growth, symbol, showNominalValues]);
