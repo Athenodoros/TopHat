@@ -1,11 +1,11 @@
-import { CloudDone, Edit, GetApp, ListAlt, Timeline } from "@mui/icons-material";
+import { CloudDone, Edit, GetApp, ListAlt } from "@mui/icons-material";
 import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
 import React from "react";
 import { zipObject } from "../../shared/data";
 import { withSuppressEvent } from "../../shared/events";
-import { TopHatDispatch, TopHatStore } from "../../state";
+import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useDialogState } from "../../state/app/hooks";
 import { useSelector } from "../../state/shared/hooks";
@@ -62,12 +62,6 @@ export const DialogSettingsView: React.FC = () => {
                         </ListItemIcon>
                         <ListItemText className={classes.text}>Storage and Services</ListItemText>
                     </MenuItem>
-                    <MenuItem onClick={setPage["budgeting"]} selected={page === "budgeting"}>
-                        <ListItemIcon>
-                            <Timeline fontSize="small" />
-                        </ListItemIcon>
-                        <ListItemText className={classes.text}>Budgeting</ListItemText>
-                    </MenuItem>
                 </List>
             </DialogOptions>
             <DialogContents>{get(Pages, page || "", <DialogSummaryContents />)}</DialogContents>
@@ -75,22 +69,15 @@ export const DialogSettingsView: React.FC = () => {
     );
 };
 
-const pages = ["import", "export", "storage", "budgeting"] as const;
+const pages = ["import", "export", "storage"] as const;
 const setPage = zipObject(
     pages,
-    pages.map((page) =>
-        withSuppressEvent(() =>
-            TopHatDispatch(
-                AppSlice.actions.setDialogPartial({
-                    settings: page === TopHatStore.getState().app.dialog.settings ? undefined : page,
-                })
-            )
-        )
-    )
+    pages.map((settings) => withSuppressEvent(() => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings }))))
 );
 const setEmptyPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: undefined }));
 
 const Pages = {
     import: <DialogImportContents />,
     export: <DialogExportContents />,
+    storage: null,
 };
