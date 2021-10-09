@@ -1,9 +1,12 @@
-import { ChevronRight, Description, Edit, Payment } from "@mui/icons-material";
+import { ChevronRight, Description, Edit, FolderOpen, OpenInNew, Payment } from "@mui/icons-material";
 import { Button, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { useCallback } from "react";
+import { NonIdealState } from "../../components/display/NonIdealState";
 import { Section } from "../../components/layout";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
+import { DefaultDialogs } from "../../state/app/defaults";
 import { useAccountPageAccount } from "../../state/app/hooks";
 import { Account, Statement } from "../../state/data";
 import { useAllStatements } from "../../state/data/hooks";
@@ -60,6 +63,30 @@ export const AccountStatementTable: React.FC = () => {
 
     const account = useAccountPageAccount();
     const statements = useAllStatements().filter((statement) => statement.account === account.id);
+
+    const uploadStatementView = useCallback(
+        () =>
+            TopHatDispatch(
+                AppSlice.actions.setDialogPartial({ id: "import", import: { ...DefaultDialogs.import, account } })
+            ),
+        [account]
+    );
+
+    if (statements.length === 0)
+        return (
+            <Section title="Budget" sx={{ display: "flex", flexDirection: "column" }}>
+                <NonIdealState
+                    icon={FolderOpen}
+                    title="No Statements Uploaded"
+                    subtitle="This account has no statements imported - import files to start automatically tracking transactions"
+                    action={
+                        <Button onClick={uploadStatementView} startIcon={<OpenInNew />}>
+                            Import Statement
+                        </Button>
+                    }
+                />
+            </Section>
+        );
 
     return (
         <Section
