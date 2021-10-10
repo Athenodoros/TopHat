@@ -11,8 +11,8 @@ import reportWebVitals from "./reportWebVitals";
 import { debug } from "./state/logic/debug";
 import { startup } from "./state/logic/startup";
 
-startup();
 debug();
+startup();
 
 ReactDOM.render(
     <React.StrictMode>

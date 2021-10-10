@@ -7,6 +7,7 @@ import Papa from "papaparse";
 import { TopHatStore } from "..";
 import { AppSlice } from "../app";
 import { DataSlice } from "../data";
+import { db } from "./database";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
@@ -21,6 +22,10 @@ export const debug = () => {
     (window as any).AppSlice = AppSlice;
     (window as any).DataSlice = DataSlice;
     (window as any).Statement = { ...Statement, ...Parsing };
+    (window as any).db = db;
+
+    db.delete();
+    db.open();
 
     console.log("Setting up debug variables...");
 };
