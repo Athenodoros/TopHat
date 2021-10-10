@@ -1,20 +1,33 @@
-import { Euro, Sync } from "@mui/icons-material";
+import { AddCircleOutline, Clear, Euro, Sync } from "@mui/icons-material";
+import { DatePickerProps } from "@mui/lab";
 import { IconButton, ListItemText, TextField, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
+import { cloneDeep, sortBy } from "lodash";
+import { DateTime } from "luxon";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
+import { AutoClosingDatePicker } from "../../components/inputs";
 import { handleTextFieldChange } from "../../shared/events";
 import { useNumericInputHandler } from "../../shared/hooks";
-import { TopHatStore } from "../../state";
+import { TopHatDispatch, TopHatStore } from "../../state";
+import { AppSlice } from "../../state/app";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Currency } from "../../state/data";
 import { getNextID } from "../../state/data/shared";
-import { BaseTransactionHistoryWithLocalisation, getRandomColour } from "../../state/shared/values";
+import { CurrencyExchangeRate } from "../../state/data/types";
+import {
+    BaseTransactionHistoryWithLocalisation,
+    formatDate,
+    getRandomColour,
+    getTodayString,
+} from "../../state/shared/values";
 import {
     BasicDialogObjectSelector,
     DialogContents,
     DialogMain,
+    EditTitleContainer,
     EditValueContainer,
     getUpdateFunctions,
     ObjectEditContainer,
@@ -71,7 +84,7 @@ const createNewCurrency = (): Currency => ({
     colour: getRandomColour(),
     name: "New Currency",
     symbol: "$",
-    exchangeRate: 1,
+    rates: [{ date: getTodayString(), value: 1 }],
     transactions: BaseTransactionHistoryWithLocalisation(),
 });
 
@@ -80,53 +93,31 @@ const useEditViewStyles = makeStyles({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        width: 90,
 
-        "& input": { width: 50, height: 50 },
+        "& input": { width: 40, height: 40 },
     },
 });
 const EditCurrencyView: React.FC = () => {
     const classes = useEditViewStyles();
     const working = useDialogState("currency")!;
-    const exchange = useNumericInputHandler(working.exchangeRate, updateWorkingExchangeRate, working.id);
-
-    // The dummy is to help ESLint work out the dependencies of the callback
-    const setExchangeValue = exchange.setValue;
-    const onReset = useCallback(() => {
-        const actual = TopHatStore.getState().data.currency.entities[working.id];
-        if (actual) {
-            setExchangeValue(actual.exchangeRate);
-        }
-    }, [setExchangeValue, working.id]);
 
     return (
-        <ObjectEditContainer type="currency" onReset={onReset}>
-            <EditValueContainer label="Exchange Rate">
-                <TextField
-                    value={exchange.text}
-                    onChange={exchange.onTextChange}
-                    size="small"
-                    style={{ width: 120 }}
-                    placeholder="1.00"
-                />
-            </EditValueContainer>
+        <ObjectEditContainer type="currency">
             <EditValueContainer label="Display">
                 <TextField
                     value={working.symbol || ""}
                     onChange={updateWorkingSymbol}
                     size="small"
-                    style={{ width: 80, marginRight: 20 }}
+                    sx={{ width: 80 }}
                     label="Symbol"
                 />
                 <TextField
                     value={working.ticker || ""}
                     onChange={updateWorkingTicker}
                     size="small"
-                    style={{ width: 120 }}
+                    sx={{ width: 120, margin: "0 20px" }}
                     label="Ticker"
                 />
-            </EditValueContainer>
-            <EditValueContainer label="Colour">
                 <div className={classes.colourContainer}>
                     <input type="color" value={working.colour} onChange={handleColorChange} />
                     <IconButton size="small" onClick={generateRandomColour}>
@@ -136,7 +127,82 @@ const EditCurrencyView: React.FC = () => {
                     </IconButton>
                 </div>
             </EditValueContainer>
+            <EditTitleContainer title="Exchange Rates" />
+            {working.rates.map((rate, idx) => (
+                <EditableRateDisplay rate={rate} index={idx} key={idx} id={working.id} />
+            ))}
+            <EditValueContainer>
+                <IconButton size="small" onClick={addNewRate}>
+                    <AddCircleOutline fontSize="small" color="primary" />
+                </IconButton>
+            </EditValueContainer>
         </ObjectEditContainer>
+    );
+};
+
+const addNewRate = () =>
+    updateWithEdit((working) => {
+        working.rates.unshift({ date: getTodayString(), value: working.rates[0].value });
+    });
+const updateWithEdit = (edit: (currency: Currency) => void) => {
+    const currency = cloneDeep(TopHatStore.getState().app.dialog.currency!);
+    edit(currency);
+    currency.rates = sortBy(currency.rates, (rate) => -new Date(rate.date));
+    TopHatDispatch(AppSlice.actions.setDialogPartial({ currency }));
+};
+const EditableRateDisplay: React.FC<{ rate: CurrencyExchangeRate; index: number; id?: any }> = ({
+    rate,
+    index,
+    id,
+}) => {
+    const updateValue = useCallback(
+        (value: number | null) =>
+            updateWithEdit((working) => {
+                working.rates[index].value = value || 0;
+            }),
+        [index]
+    );
+    const updateDate = useCallback(
+        (date: DateTime) =>
+            updateWithEdit((working) => {
+                working.rates[index].date = formatDate(date);
+            }),
+        [index]
+    );
+    const remove = useCallback(
+        () =>
+            updateWithEdit((working) => {
+                working.rates = working.rates.filter((_, idx) => idx !== index);
+            }),
+        [index]
+    );
+
+    const value = useNumericInputHandler(rate.value, updateValue, `${index} - ${id}`);
+
+    return (
+        <EditValueContainer
+            label={
+                <IconButton size="small" onClick={remove}>
+                    <Clear fontSize="small" color="error" />
+                </IconButton>
+            }
+        >
+            <Box sx={{ display: "flex" }}>
+                <TextField
+                    value={value.text}
+                    onChange={value.onTextChange}
+                    size="small"
+                    sx={{ width: 100, marginRight: 20 / 8 }}
+                    label="Value"
+                />
+                <AutoClosingDatePicker
+                    value={rate.date}
+                    onChange={updateDate as DatePickerProps["onChange"]}
+                    inputFormat="yyyy-MM-dd"
+                    renderInput={(params) => <TextField {...params} sx={{ width: 160 }} size="small" label="Date" />}
+                />
+            </Box>
+        </EditValueContainer>
     );
 };
 
@@ -147,4 +213,3 @@ const generateRandomColour = () => update("colour")(getRandomColour());
 
 const updateWorkingSymbol = handleTextFieldChange(update("symbol"));
 const updateWorkingTicker = handleTextFieldChange(update("ticker"));
-const updateWorkingExchangeRate = (value: number | null) => update("exchangeRate")(value || 1);

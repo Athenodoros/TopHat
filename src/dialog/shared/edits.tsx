@@ -14,15 +14,16 @@ const useEditValueContainerStyles = makeStyles({
         display: "flex",
         alignItems: "center",
     },
-    label: {
+    labelContainer: {
         flex: "0 0 150px",
-        textAlign: "right",
-        paddingRight: 30,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        paddingRight: "30px",
+    },
+    label: {
         color: Greys[600],
         textTransform: "uppercase",
-    },
-    labelWrapper: {
-        paddingRight: 30,
     },
     title: {
         color: Greys[600],
@@ -34,7 +35,7 @@ const useEditValueContainerStyles = makeStyles({
         opacity: 0.3,
     },
 });
-export const EditValueContainer: React.FC<{ label: React.ReactNode; className?: string; disabled?: string }> = ({
+export const EditValueContainer: React.FC<{ label?: React.ReactNode; className?: string; disabled?: string }> = ({
     label,
     children,
     className,
@@ -46,13 +47,15 @@ export const EditValueContainer: React.FC<{ label: React.ReactNode; className?: 
         <Tooltip title={disabled || ""}>
             <div className={classes.outer}>
                 <div className={clsx(classes.container, disabled && classes.disabled, className)}>
-                    {typeof label === "string" ? (
-                        <Typography variant="subtitle2" noWrap={true} className={classes.label}>
-                            {label}
-                        </Typography>
-                    ) : (
-                        <div className={classes.labelWrapper}>{label}</div>
-                    )}
+                    <div className={classes.labelContainer}>
+                        {typeof label === "string" ? (
+                            <Typography variant="subtitle2" noWrap={true} className={classes.label}>
+                                {label}
+                            </Typography>
+                        ) : (
+                            label
+                        )}
+                    </div>
                     {children}
                 </div>
             </div>

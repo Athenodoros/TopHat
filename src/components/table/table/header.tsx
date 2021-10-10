@@ -317,7 +317,7 @@ const useTransactionValueRange = () => {
             const tx = transactions.entities[id!]!;
             if (!tx.value) return;
 
-            const value = localiseCurrencyValue(tx.value, tx.currency);
+            const value = localiseCurrencyValue(tx.value, tx.currency, tx.date);
             if (!min || value < min) min = value;
             if (!max || value > max) max = value;
         });

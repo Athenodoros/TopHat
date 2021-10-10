@@ -29,24 +29,29 @@ const today = getToday();
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
 const currencyColourScale = chroma.scale("set1").domain([0, 4]);
-type CurrencyArgs = [string, string, number, string];
-const currencyFields = ["symbol", "name", "exchangeRate", "ticker"] as const;
+type CurrencyArgs = [string, string, string, number];
+const currencyFields = ["symbol", "name", "ticker"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
         id: id + 1,
         colour: currencyColourScale(id + 2).hex(),
         transactions: BaseTransactionHistoryWithLocalisation(),
+        rates: [{ date: getTodayString(), value: args[3] }],
         ...zipObject(currencyFields, args),
     } as Currency);
+// These rates are all relative to XDR, but needn't be
 const currencies = (
     [
-        ["AU$", "Australian Dollars", 0.5, "AUD"],
-        ["£", "Pounds Sterling", 0.92, "GBP"],
-        ["€", "Euros", 0.83, "EUR"],
-        ["US$", "US Dollars", 0.73, "USD"],
+        ["AU$", "Australian Dollars", "AUD", 0.5],
+        ["£", "Pounds Sterling", "GBP", 0.92],
+        ["€", "Euros", "EUR", 0.83],
+        ["US$", "US Dollars", "USD", 0.73],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
 export const DEFAULT_CURRENCY = currencies[0];
+
+currencies[1].rates.push({ date: formatDate(today.minus({ months: 8 })), value: 1.02 });
+currencies[1].rates.push({ date: formatDate(today.minus({ months: 12, days: 7 })), value: 0.78 });
 
 let cateogryColourScale = chroma.scale("set1").domain([0, 6]);
 const makeCategory = (

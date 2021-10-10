@@ -81,6 +81,11 @@ export interface Category {
     };
 }
 
+export interface CurrencyExchangeRate {
+    date: SDate;
+    value: number;
+}
+
 /**
  * A unit of financial asset - a currency (fiat or crypto), or share/bond
  */
@@ -91,7 +96,7 @@ export interface Currency {
     symbol: string;
     colour: string;
 
-    exchangeRate: number;
+    rates: CurrencyExchangeRate[]; // Sorted, most recent first
 
     transactions: TransactionHistoryWithLocalisation;
 }

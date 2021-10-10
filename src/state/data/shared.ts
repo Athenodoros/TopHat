@@ -1,8 +1,8 @@
 import { EntityId } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
-import { chunk, countBy, max, maxBy, toPairs } from "lodash";
+import { chunk, countBy, last, max, maxBy, toPairs } from "lodash";
 import { BLACK, Greys } from "../../styles/colours";
-import { BaseTransactionHistory } from "../shared/values";
+import { BaseTransactionHistory, SDate } from "../shared/values";
 import { Category, Currency, Institution, Statement, Transaction } from "./types";
 
 export const PLACEHOLDER_CATEGORY_ID = 0;
@@ -38,8 +38,11 @@ export const PLACEHOLDER_STATEMENT: Statement = {
     account: -1,
 };
 
-export const changeCurrencyValue = (to: Currency, from: Currency, value: number) =>
-    (value * from.exchangeRate) / to.exchangeRate;
+const getCurrencyValue = (currency: Currency, date: SDate) =>
+    (currency.rates.find((rate) => rate.date < date) || last(currency.rates))?.value || 1;
+
+export const changeCurrencyValue = (to: Currency, from: Currency, value: number, date: SDate) =>
+    (value * getCurrencyValue(from, date)) / getCurrencyValue(to, date);
 
 export const compareTransactionsDescendingDates = (a: Transaction, b: Transaction) => -a.date.localeCompare(b.date);
 

@@ -237,7 +237,7 @@ export const DataSlice = createSlice({
             if (
                 original &&
                 type === "currency" &&
-                (working as Currency).exchangeRate !== (original as Currency).exchangeRate
+                !isEqual((working as Currency).rates, (original as Currency).rates)
             ) {
                 // Update local values if exchange rate changes
                 const transactions = state.transaction.ids.filter(
@@ -437,7 +437,8 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
         history[tx.value! > 0 ? "credits" : "debits"][bucket] += changeCurrencyValue(
             userDefaultCurrency,
             state.currency.entities[tx.currency]!,
-            (remove ? -1 : 1) * tx.value!
+            (remove ? -1 : 1) * tx.value!,
+            tx.date
         );
 
         if ("localCredits" in history) {
@@ -572,7 +573,7 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
             history.localised = takeWithDefault(
                 history.localised,
                 bucket + 1,
-                changeCurrencyValue(userDefaultCurrency, data.currency.entities[tx.currency]!, tx.balance)
+                changeCurrencyValue(userDefaultCurrency, data.currency.entities[tx.currency]!, tx.balance, tx.date)
             );
             history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
         }

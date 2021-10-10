@@ -213,6 +213,7 @@ const useObjectContainerStyles = makeStyles({
         marginTop: "auto",
         display: "flex",
         alignSelf: "flex-end",
+        paddingTop: 8,
         "& > *": { marginLeft: 10 },
     },
     subtitleStub: { height: 15 },
