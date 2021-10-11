@@ -1,18 +1,30 @@
 import * as Comlink from "comlink";
-import { db, TestObject } from "./database";
+import { TestObject, TopHatDexie } from "./database";
 
-export interface TopHatWorker {
+export interface TopHatWorkerService {
     addNumbers: (x: number, y: number) => number;
+    initialiseAsWorker: (persistent?: boolean) => void;
 }
 
-const worker: TopHatWorker = {
+let db: TopHatDexie;
+
+export const TopHatWorker: TopHatWorkerService = {
     addNumbers: (x, y) => x + y,
+    initialiseAsWorker: (persistent: boolean = true) => {
+        if (persistent) {
+            db = new TopHatDexie();
+        } else {
+            db = new TopHatDexie({
+                indexedDB: require("fake-indexeddb"),
+                IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
+            });
+        }
+
+        db.open();
+        db.on("changes", () => {
+            db.test.put(new TestObject(234, "Updated Value"));
+        });
+    },
 };
 
-db.open();
-db.on("changes", () => {
-    console.log("Creating new test");
-    db.test.put(new TestObject(345, "Updated Value"));
-});
-
-Comlink.expose(worker);
+Comlink.expose(TopHatWorker);

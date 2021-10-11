@@ -33,6 +33,3 @@ export class TestObject {
         console.log(JSON.stringify(this));
     }
 }
-
-console.log("Creating Dexie");
-export let db = new TopHatDexie();

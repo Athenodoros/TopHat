@@ -8,11 +8,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { App } from "./app";
 import reportWebVitals from "./reportWebVitals";
-import { debug } from "./state/logic/debug";
-import { startup } from "./state/logic/startup";
+import { initialiseAndGetDBConnection } from "./state/logic/startup";
 
-debug();
-startup();
+initialiseAndGetDBConnection(true);
 
 ReactDOM.render(
     <React.StrictMode>
