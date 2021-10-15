@@ -171,7 +171,9 @@ export interface Statement {
 /**
  * User-specific data persisted between sessions
  */
+export const DBUserID = 0;
 export interface UserState {
+    id: ID; // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
     currency: ID;
     isDemo: boolean;
     start: SDate;

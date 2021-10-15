@@ -56,6 +56,7 @@ import {
     Category,
     Currency,
     DataState,
+    DBUserID,
     EditTransactionState,
     Transaction,
 } from "./types";
@@ -96,36 +97,50 @@ const adapters: Record<keyof Omit<DataState, "user">, EntityAdapter<any>> = {
     notification: BaseAdapter,
 };
 
-const defaults = {
+export const DataDefaults = {
     ...fromPairs(
         toPairs(adapters).map(([name, adapter]) => [
             name,
             adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, [])),
         ])
     ),
-    user: { currency: 1, isDemo: false, start: getTodayString() },
+    user: { id: DBUserID, currency: 1, isDemo: false, start: getTodayString() },
 } as DataState;
+
+export type ListDataState = {
+    [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
+};
 
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
     name: "data",
-    initialState: defaults,
+    initialState: DataDefaults,
     reducers: {
-        reset: () => defaults,
-        set: (_, action: PayloadAction<DataState>) => action.payload,
+        reset: () => DataDefaults,
+        set: (_, { payload }: PayloadAction<DataState>) => payload,
+        setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
+            ({
+                user: payload.user,
+                ...fromPairs(
+                    toPairs(adapters).map(([name, adapter]) => [
+                        name,
+                        adapter.addMany(adapter.getInitialState(), payload[name as keyof typeof adapters]),
+                    ])
+                ),
+            } as DataState),
         setUpDemo: () => {
             const state = {
                 ...fromPairs(
                     toPairs(adapters).map(([name, adapter]) => [
                         name,
                         adapter.addMany(
-                            defaults[name as keyof typeof adapters],
+                            cloneDeep(DataDefaults[name as keyof typeof adapters]),
                             DemoObjects[name as keyof typeof adapters]
                         ),
                     ])
                 ),
-                user: { ...defaults.user, isDemo: true },
+                user: { ...DataDefaults.user, isDemo: true },
             } as DataState;
 
             // This is necessary because the EntityAdapters freeze objects when they are added
@@ -326,6 +341,19 @@ export const DataSlice = createSlice({
         // Notifications
         deleteNotification: (state, { payload }: PayloadAction<ID>) =>
             void BaseAdapter.removeOne(state.notification, payload),
+
+        // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
+        //     changes.forEach((change) => {
+        //         const table = (change.table === "transaction_" ? "transaction" : change.table) as keyof DataState;
+
+        //         if (table === "user") {
+        //             if (change.type === 2) state.user = change.obj;
+        //             return;
+        //         }
+        //         if (change.type === 3) adapters[table].removeOne(state[table], change.key);
+        //         else adapters[table].upsertOne(state[table], change.obj);
+        //     });
+        // },
     },
 });
 

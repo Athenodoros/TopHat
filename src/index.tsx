@@ -10,14 +10,14 @@ import { App } from "./app";
 import reportWebVitals from "./reportWebVitals";
 import { initialiseAndGetDBConnection } from "./state/logic/startup";
 
-initialiseAndGetDBConnection(true);
-
-ReactDOM.render(
-    <React.StrictMode>
-        <App />
-    </React.StrictMode>,
-    document.getElementById("root")
-);
+initialiseAndGetDBConnection(true).then(() => {
+    ReactDOM.render(
+        <React.StrictMode>
+            <App />
+        </React.StrictMode>,
+        document.getElementById("root")
+    );
+});
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
