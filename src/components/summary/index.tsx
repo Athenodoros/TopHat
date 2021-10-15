@@ -11,7 +11,7 @@ const useStyles = makeStyles({
         display: "flex",
 
         "& > div:first-child": {
-            width: 300,
+            flex: "300px 0 0",
             marginRight: SECTION_MARGIN,
         },
 

@@ -42,16 +42,16 @@ const makeCurrency = (args: CurrencyArgs, id: number) =>
 // These rates are all relative to XDR, but needn't be
 const currencies = (
     [
-        ["AU$", "Australian Dollars", "AUD", 0.5],
-        ["£", "Pounds Sterling", "GBP", 0.92],
-        ["€", "Euros", "EUR", 0.83],
-        ["US$", "US Dollars", "USD", 0.73],
+        ["AU$", "Australian Dollars", "AUD", 0.75],
+        ["£", "Pounds Sterling", "GBP", 1.35],
+        ["€", "Euros", "EUR", 1.15],
+        ["US$", "US Dollars", "USD", 1],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
 export const DEFAULT_CURRENCY = currencies[0];
 
-currencies[1].rates.push({ date: formatDate(today.minus({ months: 8 })), value: 1.02 });
-currencies[1].rates.push({ date: formatDate(today.minus({ months: 12, days: 7 })), value: 0.78 });
+// currencies[1].rates.push({ date: formatDate(today.minus({ months: 8 })), value: 1.02 });
+// currencies[1].rates.push({ date: formatDate(today.minus({ months: 12, days: 7 })), value: 0.78 });
 
 let cateogryColourScale = chroma.scale("set1").domain([0, 6]);
 const makeCategory = (

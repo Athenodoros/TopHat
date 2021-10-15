@@ -25,6 +25,12 @@ export const initialiseAndGetDBConnection = async (debug: boolean = false) => {
             // const worker = getWorker();
             // await worker.run();
 
+            if (debug) {
+                console.log("In debug mode - bypassing IndexedDB...");
+                TopHatDispatch(DataSlice.actions.setUpDemo());
+                return;
+            }
+
             if (user) {
                 // IDB contains existing TopHat state
                 if (debug) console.log("Hydrating store from IndexedDB...");

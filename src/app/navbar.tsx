@@ -23,7 +23,7 @@ import { AppColours, Greys, WHITE } from "../styles/colours";
 export const NAVBAR_LOGO_HEIGHT = 156;
 const useStyles = makeStyles((theme) => ({
     navbar: {
-        width: 80,
+        flex: "80px 0 0",
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
