@@ -40,14 +40,14 @@ export const initialiseAndGetDBConnection = async (debug: boolean = false) => {
         })
         .catch(async () => {
             // IDB isn't working, probably Firefox incognito => set up demo
-            if (debug) console.log("Can't use IndexedDB - setting up demo with mock...");
+            if (debug) console.log("Can't use IndexedDB - setting up demo without syncing...");
 
-            db = new TopHatDexie({
-                indexedDB: require("fake-indexeddb"),
-                IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
-            });
+            // db = new TopHatDexie({
+            //     indexedDB: require("fake-indexeddb"),
+            //     IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
+            // });
 
-            initialiseIDBSyncFromRedux(TopHatStore, db);
+            // initialiseIDBSyncFromRedux(TopHatStore, db);
             TopHatDispatch(DataSlice.actions.setUpDemo());
 
             // const worker = getMockWorker();
