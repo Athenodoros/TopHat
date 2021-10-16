@@ -8,10 +8,11 @@ import { useSelector } from "../shared/hooks";
 import { ID } from "../shared/values";
 import { Account, BasicObjectName, BasicObjectType, Category, Currency, Institution, Statement } from "./types";
 
-export const useDefaultCurrency = () =>
-    useSelector(({ data }) => data.currency.entities[data.user.currency]!, shallowEqual);
-export const useFormatValue = (format: string) => {
-    const { symbol } = useDefaultCurrency();
+export const useDefaultCurrency = () => useMaybeDefaultCurrency();
+export const useMaybeDefaultCurrency = (currency?: ID) =>
+    useSelector(({ data }) => data.currency.entities[currency ?? data.user.currency]!, shallowEqual);
+export const useFormatValue = (format: string, currency?: ID) => {
+    const { symbol } = useMaybeDefaultCurrency(currency);
     return useCallback((value: number) => symbol + " " + numeral(value).format(format), [symbol, format]);
 };
 

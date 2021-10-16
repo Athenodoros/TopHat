@@ -3,7 +3,7 @@ import { clone, max, min, reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
-import { useDefaultCurrency, useFormatValue } from "../../state/data/hooks";
+import { useFormatValue, useMaybeDefaultCurrency } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
 import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../display/PerformantCharts";
 import { SummaryNumber } from "../display/SummaryNumber";
@@ -14,8 +14,10 @@ export interface SnapshotSectionContentsProps {
     data: SnapshotSectionData;
 }
 
-export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({ data: { net } }) => {
-    const currency = useDefaultCurrency().symbol;
+export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({
+    data: { net, currency: currencyID },
+}) => {
+    const currency = useMaybeDefaultCurrency(currencyID).symbol;
 
     const average = ((net[0] || 0) + (net[1] || 0) + (net[2] || 0)) / 3;
     const previous = ((net[3] || 0) + (net[4] || 0) + (net[5] || 0)) / 3;
@@ -46,8 +48,10 @@ export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContents
     );
 };
 
-export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({ data: { net } }) => {
-    const currency = useDefaultCurrency().symbol;
+export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProps> = ({
+    data: { net, currency: currencyID },
+}) => {
+    const currency = useMaybeDefaultCurrency(currencyID).symbol;
 
     return (
         <>
@@ -75,8 +79,11 @@ export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProp
     );
 };
 
-export const useGetSummaryChart = ({ trends: { credits, debits }, net }: SnapshotSectionData, height: number = 220) => {
-    const format = useFormatValue("0a");
+export const useGetSummaryChart = (
+    { trends: { credits, debits }, net, currency }: SnapshotSectionData,
+    height: number = 220
+) => {
+    const format = useFormatValue("0a", currency);
 
     return useCallback(
         () => (

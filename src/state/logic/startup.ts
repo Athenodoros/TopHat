@@ -13,7 +13,7 @@ import { TopHatDexie } from "./database";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
-const debug = process.env.NODE_ENV === "production";
+const debug = process.env.NODE_ENV !== "production";
 
 export const initialiseAndGetDBConnection = async () => {
     // Set up listener for forward/back browser buttons, correct initial path if necessary

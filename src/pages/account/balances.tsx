@@ -30,7 +30,7 @@ export const AccountPageBalances: React.FC = () => {
                     <MenuItem value="all">All Currencies</MenuItem>
                     {keys(account.balances).map((id) => (
                         <MenuItem value={id} key={id}>
-                            {currencies[id]!.symbol}
+                            ({currencies[id]!.ticker}) {currencies[id]!.name}
                         </MenuItem>
                     ))}
                 </Select>

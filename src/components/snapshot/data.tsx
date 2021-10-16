@@ -10,6 +10,7 @@ export interface SnapshotSectionData {
         debits: number[];
     };
     net: number[];
+    currency?: ID;
 }
 
 export const useAssetsSnapshot = (account?: ID, currency?: ID) => {
@@ -23,7 +24,7 @@ export const useAssetsSnapshot = (account?: ID, currency?: ID) => {
                     .flatMap(({ balances }) =>
                         toPairs(balances)
                             .filter(([id, _]) => currency === undefined || currency === Number(id))
-                            .map(([_, balance]) => balance.localised)
+                            .map(([_, balance]) => balance[currency === undefined ? "localised" : "original"])
                     )
                     .reduce(
                         (accs, balances) =>
@@ -35,7 +36,8 @@ export const useAssetsSnapshot = (account?: ID, currency?: ID) => {
                                 ];
                             }),
                         [] as [number, number][]
-                    )
+                    ),
+                currency
             ),
         [accounts, account, currency]
     );
@@ -65,8 +67,8 @@ export const useTransactionsSnapshot = (category?: ID): SnapshotSectionData => {
     );
 };
 
-const getSnapshotDisplayValues = (trends: [number, number][]) => {
+const getSnapshotDisplayValues = (trends: [number, number][], currency?: ID) => {
     const [credits, debits] = trends.length ? unzip(trends) : [range(12).map((_) => 0), range(12).map((_) => 0)];
     const net = equalZip(credits, debits).map(sum);
-    return { trends: { credits, debits }, net };
+    return { trends: { credits, debits }, net, currency };
 };
