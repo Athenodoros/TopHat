@@ -171,8 +171,8 @@ export interface Statement {
 /**
  * User-specific data persisted between sessions
  */
-export const DBUserID = 0;
-export interface UserState {
+export const StubUserID = 0;
+export interface User {
     id: ID; // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
     currency: ID;
     isDemo: boolean;
@@ -211,6 +211,6 @@ export interface DataState {
     rule: EntityState<Rule>;
     transaction: EntityState<Transaction>;
     statement: EntityState<Statement>;
-    user: UserState;
+    user: EntityState<User>;
     notification: EntityState<Notification>;
 }

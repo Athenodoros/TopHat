@@ -10,6 +10,7 @@ import { TopHatStore } from "../../../state";
 import { EditTransactionState } from "../../../state/data";
 import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
+import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
 import { getTodayString, ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
@@ -342,7 +343,7 @@ const useCreateNewTransaction = (
             balance: null,
             account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
             category: fixed?.type === "category" ? fixed.category : PLACEHOLDER_CATEGORY_ID,
-            currency: data.user.currency,
+            currency: data.user.entities[StubUserID]!.currency,
             statement: PLACEHOLDER_STATEMENT_ID,
         });
     }, [setEdit, fixed]);

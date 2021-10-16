@@ -9,13 +9,13 @@ import {
     Rule,
     Statement,
     Transaction,
-    UserState,
+    User,
 } from "../data/types";
 import { ID } from "../shared/values";
 
 // This class is so Typescript understands the shape of the DB connection
 export class TopHatDexie extends Dexie {
-    user: Dexie.Table<UserState, ID>;
+    user: Dexie.Table<User, ID>;
     account: Dexie.Table<Account, ID>;
     category: Dexie.Table<Category, ID>;
     currency: Dexie.Table<Currency, ID>;

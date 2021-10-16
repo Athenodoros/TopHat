@@ -26,7 +26,7 @@ import {
     uniqWith,
     upperFirst,
 } from "lodash";
-import { takeWithDefault } from "../../shared/data";
+import { mapValuesWithKeys, takeWithDefault } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -56,8 +56,8 @@ import {
     Category,
     Currency,
     DataState,
-    DBUserID,
     EditTransactionState,
+    StubUserID,
     Transaction,
 } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./shared";
@@ -80,13 +80,14 @@ const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
 
 const BaseObjects = {
+    user: [{ id: StubUserID, currency: 1, isDemo: false, start: getTodayString() }],
     category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
     currency: [DEFAULT_CURRENCY],
     institution: [PLACEHOLDER_INSTITUTION],
     statement: [PLACEHOLDER_STATEMENT],
 };
 
-const adapters: Record<keyof Omit<DataState, "user">, EntityAdapter<any>> = {
+const adapters: Record<keyof DataState, EntityAdapter<any>> = {
     account: BaseAdapter,
     category: BaseAdapter,
     currency: NameAdapter,
@@ -95,17 +96,12 @@ const adapters: Record<keyof Omit<DataState, "user">, EntityAdapter<any>> = {
     transaction: DateAdapter,
     statement: BaseAdapter,
     notification: BaseAdapter,
+    user: BaseAdapter,
 };
 
-export const DataDefaults = {
-    ...fromPairs(
-        toPairs(adapters).map(([name, adapter]) => [
-            name,
-            adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, [])),
-        ])
-    ),
-    user: { id: DBUserID, currency: 1, isDemo: false, start: getTodayString() },
-} as DataState;
+export const DataDefaults: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
+    adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, []))
+);
 
 export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
@@ -120,28 +116,11 @@ export const DataSlice = createSlice({
         reset: () => DataDefaults,
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
-            ({
-                user: payload.user,
-                ...fromPairs(
-                    toPairs(adapters).map(([name, adapter]) => [
-                        name,
-                        adapter.addMany(adapter.getInitialState(), payload[name as keyof typeof adapters]),
-                    ])
-                ),
-            } as DataState),
+            mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
         setUpDemo: () => {
-            const state = {
-                ...fromPairs(
-                    toPairs(adapters).map(([name, adapter]) => [
-                        name,
-                        adapter.addMany(
-                            cloneDeep(DataDefaults[name as keyof typeof adapters]),
-                            DemoObjects[name as keyof typeof adapters]
-                        ),
-                    ])
-                ),
-                user: { ...DataDefaults.user, isDemo: true },
-            } as DataState;
+            const state = mapValuesWithKeys(adapters, (name, adapter) =>
+                adapter.addMany(cloneDeep(DataDefaults[name]), DemoObjects[name])
+            ) as DataState;
 
             // This is necessary because the EntityAdapters freeze objects when they are added
             return createNextState(state, (state) => {
@@ -381,7 +360,7 @@ const deleteObjectError = <Type extends BasicObjectName>(state: DataState, type:
 
     if (type === "currency") {
         if (state.currency.entities[id]!.transactions.count !== 0) return "Currency has linked transactions";
-        if (state.user.currency === id) return "Can't delete default currency";
+        if (state.user.entities[StubUserID]!.currency === id) return "Can't delete default currency";
     }
 };
 
@@ -442,7 +421,7 @@ const updateTransactionSummaryStartDates = (state: DataState) => {
 
 // This extends history into the past, but assumes that `history.start` is up-to-date
 const updateTransactionSummariesWithTransactions = (state: DataState, ids?: EntityId[], remove?: boolean) => {
-    const userDefaultCurrency = state.currency.entities[state.user.currency]!;
+    const userDefaultCurrency = state.currency.entities[state.user.entities[StubUserID]!.currency]!;
 
     const updateHistoryValue = (history: TransactionHistory | TransactionHistoryWithLocalisation, tx: Transaction) => {
         history.count = history.count + (remove ? -1 : 1);
@@ -586,7 +565,7 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
         data.account.entities[account]!.balances[currency] = BaseBalanceValues();
     });
 
-    const userDefaultCurrency = data.currency.entities[data.user.currency]!;
+    const userDefaultCurrency = data.currency.entities[data.user.entities[StubUserID]!.currency]!;
     data.transaction.ids.forEach((id) => {
         const tx = data.transaction.entities[id]!;
         if (tx.balance === null) return;

@@ -1,4 +1,4 @@
-import { range, zip, zipObject as zipObjectRaw } from "lodash-es";
+import { fromPairs, range, toPairs, zip, zipObject as zipObjectRaw } from "lodash-es";
 
 export const equalZip = <S, T>(s: S[], t: T[]) => zip(s, t) as [S, T][];
 
@@ -67,3 +67,6 @@ export const getChartDomainFunctions = (values: number[], padding: number = 0): 
 
     return { getPoint, getOffsetAndSizeForRange };
 };
+
+export const mapValuesWithKeys = <K extends string | number, V, O>(object: Record<K, V>, fn: (k: K, v: V) => O) =>
+    fromPairs(toPairs(object).map(([k, v]) => [k, fn(k as K, v as V)])) as Record<K, O>;

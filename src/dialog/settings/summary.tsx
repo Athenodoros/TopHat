@@ -7,6 +7,7 @@ import { shallowEqual } from "react-redux";
 import { zipObject } from "../../shared/data";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
+import { StubUserID } from "../../state/data/types";
 import { useSelector } from "../../state/shared/hooks";
 import { parseDate } from "../../state/shared/values";
 import { AppColours, Greys } from "../../styles/colours";
@@ -44,8 +45,10 @@ const useStyles = makeStyles({
 const fields = ["account", "institution", "category", "currency", "rule", "transaction", "statement"] as const;
 export const DialogSummaryContents: React.FC = () => {
     const classes = useStyles();
-    const start = parseDate(useSelector((state) => state.data.user.start)).toLocaleString(DateTime.DATE_FULL);
-    const isDemo = useSelector((state) => state.data.user.isDemo);
+    const start = parseDate(useSelector((state) => state.data.user.entities[StubUserID]!.start)).toLocaleString(
+        DateTime.DATE_FULL
+    );
+    const isDemo = useSelector((state) => state.data.user.entities[StubUserID]!.isDemo);
 
     const counts = useSelector(
         (state) =>

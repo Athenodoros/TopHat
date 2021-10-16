@@ -25,6 +25,7 @@ import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
 import { DataSlice, Statement, Transaction } from "../../data";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
+import { StubUserID } from "../../data/types";
 import { getTodayString, ID, SDate } from "../../shared/values";
 import {
     getCombinedColumnProperties,
@@ -206,7 +207,9 @@ export const goToStatementMappingScreen = () => {
     if (canGoToStatementMappingScreen(current) !== null) return;
 
     const columns = current.columns as unknown as DialogColumnParseResult;
-    const currency = (current.account && Number(keys(current.account.balances)[0])) || getDataState().user.currency;
+    const currency =
+        (current.account && Number(keys(current.account.balances)[0])) ||
+        getDataState().user.entities[StubUserID]!.currency;
     setStatementState({
         ...current,
         page: "mapping",
@@ -238,7 +241,7 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
         state.import.mapping.currency.type === "column" &&
         state.import.mapping.currency.column === value
     )
-        current.currency = { type: "constant", currency: getDataState().user.currency };
+        current.currency = { type: "constant", currency: getDataState().user.entities[StubUserID]!.currency };
 
     if (["date", "reference", "balance"].includes(key)) {
         set(current, key, value);
@@ -366,7 +369,7 @@ export const changeStatementMappingCurrencyType = (isColumn: boolean) => {
                   }
                 : {
                       type: "constant",
-                      currency: getDataState().user.currency,
+                      currency: getDataState().user.entities[StubUserID]!.currency,
                   },
         },
     });

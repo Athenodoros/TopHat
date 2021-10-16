@@ -20,7 +20,7 @@ import {
     PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY_ID,
 } from "./shared";
-import { Account, Category, Currency, Institution, Rule, Statement, Transaction } from "./types";
+import { Account, Category, Currency, Institution, Rule, Statement, StubUserID, Transaction } from "./types";
 
 const INCLUDE_BUDGETS_IN_DEMO = true;
 
@@ -514,6 +514,7 @@ const notifications = [
 
 // Initialise Demo
 export const DemoObjects = {
+    user: [{ id: StubUserID, currency: 1, isDemo: true, start: getTodayString() }],
     account: accounts,
     institution: institutions,
     category: categories,

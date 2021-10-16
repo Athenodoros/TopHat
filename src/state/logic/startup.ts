@@ -1,14 +1,14 @@
 import axios from "axios";
 import chroma from "chroma-js";
 import Dexie from "dexie";
-import _, { isEqual, keys, uniq, zipObject } from "lodash-es";
+import _, { keys, uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
 import { DataDefaults, DataSlice, DataState, ListDataState } from "../data";
-import { DBUserID } from "../data/types";
+import { StubUserID } from "../data/types";
 import { TopHatDexie } from "./database";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
@@ -22,7 +22,7 @@ export const initialiseAndGetDBConnection = async () => {
     // Initial hydration of DB and Redux store
     let db = new TopHatDexie();
     await db.user
-        .get(DBUserID)
+        .get(StubUserID)
         .then(async (user) => {
             // const worker = getWorker();
             // await worker.run();
@@ -81,39 +81,31 @@ const initialiseIDBSyncFromRedux = (store: typeof TopHatStore, db: TopHatDexie) 
         const current = store.getState().data;
 
         DataKeys.forEach((key) => {
-            if (key === "user") {
-                if (!isEqual(previous.user, current.user)) {
-                    db.user.put(current.user);
-                }
-            } else {
-                if (previous[key] === current[key]) return;
+            if (previous[key] === current[key]) return;
 
-                const ids = uniq(previous[key].ids.concat(current[key].ids));
-                const deleted = ids.filter(
-                    (id) => previous[key].entities[id] !== undefined && current[key].entities[id] === undefined
-                );
-                const updated = ids.filter(
-                    (id) => current[key].entities[id] && previous[key].entities[id] !== current[key].entities[id]
-                );
+            const ids = uniq(previous[key].ids.concat(current[key].ids));
+            const deleted = ids.filter(
+                (id) => previous[key].entities[id] !== undefined && current[key].entities[id] === undefined
+            );
+            const updated = ids.filter(
+                (id) => current[key].entities[id] && previous[key].entities[id] !== current[key].entities[id]
+            );
 
-                if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
-                if (updated.length)
-                    (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
-                        updated.map((id) => current[key].entities[id]!)
-                    );
-            }
+            if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
+            if (updated.length)
+                (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
+                    updated.map((id) => current[key].entities[id]!)
+                );
         });
     });
 };
 
-type DBDataTables = keyof Omit<DataState, "transaction" | "user"> | "transaction_";
+type DBDataTables = keyof Omit<DataState, "transaction"> | "transaction_";
 const hydrateReduxFromIDB = async (store: typeof TopHatStore, db: TopHatDexie) => {
     const values = await Promise.all(
-        DataKeys.map((name) => {
-            if (name === "user") return db.user.get(DBUserID);
-
-            return db[name === "transaction" ? "transaction_" : (name as DBDataTables)].toArray() as Promise<unknown>;
-        })
+        DataKeys.map(
+            (name) => db[name === "transaction" ? "transaction_" : (name as DBDataTables)].toArray() as Promise<unknown>
+        )
     );
 
     store.dispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
