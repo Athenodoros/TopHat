@@ -13,7 +13,9 @@ import { TopHatDexie } from "./database";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
-export const initialiseAndGetDBConnection = async (debug: boolean = false) => {
+const debug = process.env.NODE_ENV === "production";
+
+export const initialiseAndGetDBConnection = async () => {
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
