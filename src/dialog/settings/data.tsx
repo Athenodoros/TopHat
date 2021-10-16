@@ -1,11 +1,14 @@
 import { Button, TextField, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
-import React, { useCallback, useState } from "react";
+import JSZip from "jszip";
+import { toPairs } from "lodash";
+import Papa from "papaparse";
+import React, { useState } from "react";
 import { createAndDownloadFile } from "../../shared/data";
 import { handleTextFieldChange } from "../../shared/events";
-import { TopHatDispatch } from "../../state";
+import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
-import { useSelector } from "../../state/shared/hooks";
+import { DataKeys } from "../../state/logic/startup";
 import { Greys } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
 
@@ -43,12 +46,6 @@ const useStyles = makeStyles({
 export const DialogExportContents: React.FC = () => {
     const classes = useStyles();
 
-    const data = useSelector((state) => state.data);
-    const createJSONDownload = useCallback(
-        () => createAndDownloadFile("TopHat Data.json", JSON.stringify(data)),
-        [data]
-    );
-
     // TODO: This
     return (
         <div className={classes.container}>
@@ -59,7 +56,7 @@ export const DialogExportContents: React.FC = () => {
             <div className={classes.divider} />
             <EditValueContainer
                 label={
-                    <Button variant="outlined" className={classes.largeButton} disabled={true}>
+                    <Button variant="outlined" className={classes.largeButton} onClick={createCSVDownload}>
                         Export CSV
                     </Button>
                 }
@@ -85,6 +82,21 @@ export const DialogExportContents: React.FC = () => {
     );
 };
 
+const createJSONDownload = () => createAndDownloadFile("TopHat Data.json", JSON.stringify(TopHatStore.getState()));
+const createCSVDownload = () => {
+    const state = TopHatStore.getState().data;
+
+    const zip = new JSZip();
+    DataKeys.forEach((key) => {
+        zip.file(
+            `${key}.csv`,
+            Papa.unparse(key === "user" ? toPairs(state[key]) : state[key].ids.map((id) => state[key].entities[id]!))
+        );
+    });
+
+    zip.generateAsync({ type: "blob" }).then((blob) => createAndDownloadFile("TopHat Data.zip", blob));
+};
+
 export const DialogImportContents: React.FC = () => {
     const classes = useStyles();
 
@@ -96,7 +108,6 @@ export const DialogImportContents: React.FC = () => {
         disabled: text.toUpperCase() !== "PERMANENTLY DELETE ALL DATA",
     } as const;
 
-    // TODO: This
     return (
         <div className={classes.container}>
             <Typography variant="body2">

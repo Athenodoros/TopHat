@@ -46,8 +46,6 @@ const setStatementState = (state: DialogFileState) =>
 const getDialogState = () => TopHatStore.getState().app.dialog;
 const getDataState = () => TopHatStore.getState().data;
 
-// TODO: All of these should almost certainly just be async actions
-
 export const removeAllStatementFiles = () => setStatementState({ page: "file", rejections: [] });
 export const goBackToStatementParsing = () => {
     const dialog = getDialogState();

@@ -270,7 +270,6 @@ export const DataSlice = createSlice({
                 type === "category" &&
                 (working as Category).hierarchy[0] !== (original as Category).hierarchy[0]
             ) {
-                // TODO: Update transaction summaries for parent categories
                 updateTransactionSummaryStartDates(state);
                 const { transactions } = original as Category;
                 (original as Category).hierarchy.forEach((id) => {

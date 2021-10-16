@@ -28,7 +28,7 @@ export const takeWithFilter = <T>(array: T[], count: number, filter: (t: T) => b
 export const zipObject = <K extends string | number, V>(keys: readonly K[], values: readonly V[]) =>
     zipObjectRaw(keys, values) as Record<K, V>;
 
-export const createAndDownloadFile = (name: string, contents: string) => {
+export const createAndDownloadFile = (name: string, contents: string | Blob) => {
     const blob = new Blob([contents], { type: "text/plain" });
 
     const link = document.createElement("a");

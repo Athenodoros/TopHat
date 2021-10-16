@@ -73,7 +73,7 @@ export const initialiseAndGetDBConnection = async () => {
 // const handleIDBChanges = (dispatch: typeof TopHatDispatch) => (changes: IDatabaseChange[]) =>
 //     dispatch(DataSlice.actions.syncIDBChanges(changes));
 
-const DataKeys = keys(DataDefaults) as (keyof DataState)[];
+export const DataKeys = keys(DataDefaults) as (keyof DataState)[];
 
 const initialiseIDBSyncFromRedux = (store: typeof TopHatStore, db: TopHatDexie) => {
     let previous = store.getState().data;
