@@ -12,6 +12,7 @@ import { ChartDomainFunctions } from "../../../shared/data";
 import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
+import { openNewPage } from "../../../state/app/actions";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { Category } from "../../../state/data";
 import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
@@ -123,7 +124,7 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     const subcategories = reverse(graph[category.id].map((child) => getNestedSubcategoryNodes(child)));
 
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.category, category: category.id })),
+        (event: React.MouseEvent) => openNewPage({ ...DefaultPages.category, category: category.id }, event),
         [category.id]
     );
 

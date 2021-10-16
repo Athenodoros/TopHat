@@ -100,7 +100,13 @@ export const NavBar: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
     const classes = useStyles();
 
-    const getIcon = (colour: string, Icon: IconType, onClick: () => void, selected?: boolean, logo?: boolean) => (
+    const getIcon = (
+        colour: string,
+        Icon: IconType,
+        onClick: (event: React.MouseEvent<HTMLButtonElement>) => void,
+        selected?: boolean,
+        logo?: boolean
+    ) => (
         <IconButton
             className={clsx(classes.button, selected && classes.selected)}
             style={{

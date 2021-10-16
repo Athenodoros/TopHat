@@ -12,6 +12,7 @@ import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../../../compon
 import { suppressEvent, withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
+import { openNewPage } from "../../../state/app/actions";
 import { DataSlice } from "../../../state/data";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
@@ -118,7 +119,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
     const currencies = useCurrencyMap();
     const defaultCurrency = useDefaultCurrency();
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.account, account: account.id })),
+        (event: React.MouseEvent) => openNewPage({ ...DefaultPages.account, account: account.id }, event),
         [account.id]
     );
 

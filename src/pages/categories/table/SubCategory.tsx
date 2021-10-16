@@ -9,6 +9,7 @@ import { ChartDomainFunctions } from "../../../shared/data";
 import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
+import { openNewPage } from "../../../state/app/actions";
 import { useCategoryByID } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
@@ -69,7 +70,7 @@ export const SubCategoryTableView: React.FC<SubCategoryProps> = ({
     const classes = useStyles();
 
     const onClick = useCallback(
-        () => TopHatDispatch(AppSlice.actions.setPageState({ ...DefaultPages.category, category: id })),
+        (event: React.MouseEvent) => openNewPage({ ...DefaultPages.category, category: id }, event),
         [id]
     );
 
