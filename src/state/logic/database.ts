@@ -34,7 +34,7 @@ export class TopHatDexie extends Dexie {
             currency: "id",
             institution: "id",
             rule: "id",
-            transaction_: "id, statement",
+            transaction_: "id, statement, [currency+account], date",
             statement: "id",
             notification: "id",
         });

@@ -1,10 +1,14 @@
 import axios from "axios";
 import chroma from "chroma-js";
+import * as Comlink from "comlink";
 import Dexie from "dexie";
-import _, { keys, uniq, zipObject } from "lodash-es";
+import _, { keys, mapValues, uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
+// @ts-ignore
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import Worker from "worker-loader!./worker.ts";
 import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
 import { DataDefaults, DataSlice, DataState, ListDataState } from "../data";
@@ -12,6 +16,7 @@ import { StubUserID } from "../data/types";
 import { TopHatDexie } from "./database";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
+import { TopHatWorker, TopHatWorkerService } from "./worker";
 
 const debug = process.env.NODE_ENV !== "production";
 
@@ -24,8 +29,8 @@ export const initialiseAndGetDBConnection = async () => {
     await db.user
         .get(StubUserID)
         .then(async (user) => {
-            // const worker = getWorker();
-            // await worker.run();
+            const worker = getWorker();
+            await worker.run();
 
             if (debug) {
                 console.log("In debug mode - bypassing IndexedDB...");
@@ -50,16 +55,16 @@ export const initialiseAndGetDBConnection = async () => {
             // IDB isn't working, probably Firefox incognito => set up demo
             if (debug) console.log("Can't use IndexedDB - setting up demo without syncing...");
 
-            // db = new TopHatDexie({
-            //     indexedDB: require("fake-indexeddb"),
-            //     IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
-            // });
+            db = new TopHatDexie({
+                indexedDB: require("fake-indexeddb"),
+                IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
+            });
 
             // initialiseIDBSyncFromRedux(TopHatStore, db);
             TopHatDispatch(DataSlice.actions.setUpDemo());
 
-            // const worker = getMockWorker();
-            // await worker.run(false);
+            const worker = getMockWorker();
+            await worker.run(false);
 
             // await worker.initialiseDemoData();
         });
@@ -111,19 +116,19 @@ const hydrateReduxFromIDB = async (store: typeof TopHatStore, db: TopHatDexie) =
     store.dispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
-// type AsyncTopHatWorkerService = {
-//     [Key in keyof TopHatWorkerService]: TopHatWorkerService[Key] extends (...args: infer T) => infer U
-//         ? (...args: T) => Promise<U>
-//         : never;
-// };
-// const getMockWorker = () =>
-//     mapValues(
-//         TopHatWorker,
-//         <T extends Array<any>, U>(fn: (...args: T) => U) =>
-//             (...args: T): Promise<U> =>
-//                 new Promise((resolve) => resolve(fn(...args)))
-//     ) as unknown as AsyncTopHatWorkerService;
-// const getWorker = () => Comlink.wrap<TopHatWorkerService>(new Worker());
+type AsyncTopHatWorkerService = {
+    [Key in keyof TopHatWorkerService]: TopHatWorkerService[Key] extends (...args: infer T) => infer U
+        ? (...args: T) => Promise<U>
+        : never;
+};
+const getMockWorker = () =>
+    mapValues(
+        TopHatWorker,
+        <T extends Array<any>, U>(fn: (...args: T) => U) =>
+            (...args: T): Promise<U> =>
+                new Promise((resolve) => resolve(fn(...args)))
+    ) as unknown as AsyncTopHatWorkerService;
+const getWorker = () => Comlink.wrap<TopHatWorkerService>(new Worker());
 
 const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Papa = Papa;
