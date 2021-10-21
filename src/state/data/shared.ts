@@ -13,9 +13,8 @@ export const DEFAULT_USER_VALUE: User = {
     alphavantage: "demo",
 
     milestone: 0,
-    // reducedExpensesDate: undefined,
     // milestoneInSight: 0,
-    // debt: 0,
+    debt: 0,
     accountOutOfDate: [],
     uncategorisedTransactionsAlerted: false,
 };

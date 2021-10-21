@@ -88,15 +88,22 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                         <Typography variant="subtitle2" className={classes.headerTitle}>
                             {title}
                         </Typography>
-                        <IconButton onClick={() => setGrow(false)} size="small">
-                            <Clear fontSize="inherit" />
-                        </IconButton>
+                        {dismiss && (
+                            <IconButton onClick={() => setGrow(false)} size="small">
+                                <Clear fontSize="inherit" />
+                            </IconButton>
+                        )}
                     </div>
                     {children}
                     {buttons ? (
                         <div className={classes.buttons}>
                             {buttons.map(({ text, onClick }, idx) => (
-                                <Button onClick={onClick} size="small" key={idx} color="inherit">
+                                <Button
+                                    onClick={() => onClick(() => setGrow(false))}
+                                    size="small"
+                                    key={idx}
+                                    color="inherit"
+                                >
                                     {text}
                                 </Button>
                             ))}

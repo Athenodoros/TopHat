@@ -1,11 +1,15 @@
 import { zipObject } from "../../../shared/data";
 import { Notification } from "../../data/types";
 import { AccountNotificationDefinition } from "./variants/accounts";
+import { DebtNotificationDefinition } from "./variants/debt";
+import { DemoNotificationDefinition } from "./variants/demo";
 import { MilestoneNotificationDefinition } from "./variants/milestone";
 import { UncategorisedNotificationDefinition } from "./variants/uncategorised";
 export type { NotificationDisplayMetadata } from "./types";
 
 const rules = [
+    DemoNotificationDefinition,
+    DebtNotificationDefinition,
     AccountNotificationDefinition,
     MilestoneNotificationDefinition,
     UncategorisedNotificationDefinition,

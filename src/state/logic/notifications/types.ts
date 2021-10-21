@@ -8,7 +8,7 @@ export interface NotificationDisplayMetadata {
     colour: string;
     buttons?: {
         text: string;
-        onClick: () => void;
+        onClick: (close: () => void) => void;
     }[];
     children: React.ReactNode;
 }

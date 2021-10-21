@@ -78,9 +78,9 @@ const openStatementDialog = (id: ID) => () => {
         })
     );
 };
-const markAccountCurrent = (id: ID) => () => {
+const markAccountCurrent = (id: ID) => (close: () => void) => {
     TopHatDispatch(DataSlice.actions.updateAccount({ id, changes: { lastUpdate: getTodayString() } }));
-    DefaultDismissNotificationThunk(ACCOUNTS_NOTIFICATION_ID)();
+    close();
 };
 
 const OldAccountContents: React.FC<{ id: ID; age: number }> = ({ id, age }) => {

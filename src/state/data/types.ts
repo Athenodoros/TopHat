@@ -194,9 +194,8 @@ export interface User {
 
     // Notification State
     milestone: number; // Milestone of last notification
-    // reducedExpensesDate?: SDate; // Date of last notification
     // milestoneInSight: number; // Milestone of last notification
-    // debt: number; // Debt Milestone of last notification
+    debt: number; // Debt Milestone of last notification
     accountOutOfDate: ID[]; // Accounts already flagged
     uncategorisedTransactionsAlerted: boolean; // Whether notification has been generated since backlog last cleared
 }
