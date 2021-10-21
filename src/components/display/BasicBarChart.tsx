@@ -1,4 +1,5 @@
 import { lighten, useTheme } from "@mui/material";
+import { Box, SxProps } from "@mui/system";
 import { identity } from "lodash";
 import React from "react";
 import { getChartDomainFunctions } from "../../shared/data";
@@ -14,9 +15,10 @@ export const getBasicBarChartColour = (success: boolean | null, stub?: boolean) 
 export const BasicBarChart: React.FC<{
     className?: string;
     values: number[];
-    selected: number;
-    setSelected: (index: number) => void;
-}> = ({ className, values, selected: selectedIndex, setSelected }) => {
+    selected?: number;
+    setSelected?: (index: number) => void;
+    sx?: SxProps;
+}> = ({ className, sx, values, selected: selectedIndex, setSelected }) => {
     const theme = useTheme();
 
     const { getPoint, getOffsetAndSizeForRange } = getChartDomainFunctions(values);
@@ -29,7 +31,7 @@ export const BasicBarChart: React.FC<{
         );
 
     return (
-        <div className={className} style={{ position: "relative" }}>
+        <Box sx={sx} className={className} style={{ position: "relative" }}>
             {values.map((value, idx) => {
                 const colour = getColour(value);
                 const selected = selectedIndex === idx;
@@ -47,11 +49,11 @@ export const BasicBarChart: React.FC<{
                         <div
                             style={{
                                 ...common,
-                                cursor: "pointer",
+                                cursor: setSelected && "pointer",
                                 height: "100%",
                                 background: selected ? Greys[300] : undefined,
                             }}
-                            onClick={() => setSelected(idx)}
+                            onClick={setSelected && (() => setSelected(idx))}
                         />
                         <div
                             style={{
@@ -74,6 +76,6 @@ export const BasicBarChart: React.FC<{
                     </React.Fragment>
                 );
             })}
-        </div>
+        </Box>
     );
 };

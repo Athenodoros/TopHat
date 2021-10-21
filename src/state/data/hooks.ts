@@ -28,6 +28,8 @@ export const useFormatValue = (format: string, currency?: ID) => {
     return useCallback((value: number) => symbol + " " + numeral(value).format(format), [symbol, format]);
 };
 
+export const useAlphaVantageToken = () => useSelector(({ data }) => data.user.entities[StubUserID]!.alphavantage);
+
 export function useAccountByID(id: ID): Account;
 export function useAccountByID(id: ID | undefined): Account | undefined;
 export function useAccountByID(id: ID | undefined): Account | undefined {

@@ -302,6 +302,8 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
 //     return { value, summary, charts };
 // };
 
+export const OLD_ACCOUNT_AGE_LIMIT = 60;
+
 const getAccountSummary = (
     balances: [string, BalanceHistory][],
     currencies: Dictionary<Currency>,
@@ -346,12 +348,14 @@ const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
                         ? Greys[700]
                         : age > -30
                         ? Intents.success.main
-                        : age > -60
+                        : age > -OLD_ACCOUNT_AGE_LIMIT
                         ? Intents.warning.main
                         : Intents.danger.main,
             }}
         >
-            {date ? "Updated " + date.toRelative({ unit: ["years", "months", "weeks", "days"] }) : "Never Updated"}
+            {date
+                ? "Updated " + (age! <= -1 ? date.toRelative({ unit: ["years", "months", "weeks", "days"] }) : "today")
+                : "Never Updated"}
         </Typography>
     );
 };

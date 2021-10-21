@@ -1,25 +1,14 @@
 import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@mui/icons-material";
-import {
-    Button,
-    IconButton,
-    List,
-    TextField,
-    ToggleButton,
-    ToggleButtonGroup,
-    Tooltip,
-    Typography,
-} from "@mui/material";
+import { Button, IconButton, List, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { range } from "lodash";
-import React, { useCallback, useMemo, useState } from "react";
-import { BasicBarChart } from "../../components/display/BasicBarChart";
+import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCategoryIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange } from "../../shared/events";
-import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatStore } from "../../state";
 import { useDialogState } from "../../state/app/hooks";
 import { Category } from "../../state/data";
@@ -43,6 +32,7 @@ import {
     ObjectEditContainer,
     useDialogObjectSelectorStyles,
 } from "../shared";
+import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
 
 export const DialogCategoriesView: React.FC = () => {
     const classes = useDialogObjectSelectorStyles();
@@ -162,46 +152,23 @@ const EditCategoryView: React.FC = () => {
     );
     const parent: Category | undefined = useCategoryByID(working.hierarchy[0]);
 
-    const [selectedMonth, setSelectedMonthRaw] = useState(0);
-    const month = useNumericInputHandler(
-        working.budgets?.values[selectedMonth] ?? null,
-        updateMonthsBudget(selectedMonth),
-        working.id
-    );
-    const base = useNumericInputHandler(working.budgets?.base ?? null, updateBaseBudget, working.id);
-    const setSelectedMonth = useCallback(
-        (value: number) => {
-            setSelectedMonthRaw(value);
-            month.setValue(working.budgets?.values[value] ?? null);
-        },
-        [month, working.budgets?.values]
-    );
-
-    // These dummies are to help ESLint work out the dependencies of the callback
-    const setMonthValue = month.setValue;
-    const setBaseValue = base.setValue;
-    const onReset = useCallback(() => {
-        const actual = TopHatStore.getState().data.category.entities[working.id];
-        if (actual) {
-            setMonthValue(actual.budgets?.values[selectedMonth] ?? null);
-            setBaseValue(actual.budgets?.base ?? null);
-        }
-    }, [setMonthValue, setBaseValue, working.id, selectedMonth]);
+    const timeSeriesInput = useCategoryBudgetInput(working);
 
     const updateBudgetStrategy = useMemo(
         () =>
             handleButtonGroupChange((strategy: NonNullable<Category["budgets"]>["strategy"] | "none") => {
+                if (!strategy) return;
+
                 if (strategy === "none") {
-                    setMonthValue(0);
-                    setBaseValue(0);
+                    timeSeriesInput.setValues(0);
                 }
                 updateBudget(strategy !== "none" ? { strategy } : undefined);
             }),
-        [setBaseValue, setMonthValue]
+        [timeSeriesInput]
     );
 
     return (
-        <ObjectEditContainer type="category" onReset={onReset}>
+        <ObjectEditContainer type="category" onReset={timeSeriesInput.onReset}>
             <EditValueContainer label="Parent">
                 <ObjectSelector<true, Category>
                     options={parentOptions}
@@ -292,35 +259,13 @@ const EditCategoryView: React.FC = () => {
                         : ""
                 }
             >
-                <div className={classes.valueContainer}>
-                    <BasicBarChart
-                        className={classes.valueChart}
-                        values={working.budgets ? working.budgets.values.map((x) => -x) : BaseBudget}
-                        selected={selectedMonth}
-                        setSelected={setSelectedMonth}
-                    />
-                    <div className={classes.values}>
-                        <TextField
-                            value={month.text}
-                            onChange={month.onTextChange}
-                            size="small"
-                            label="Current Month"
-                        />
-                        <TextField
-                            value={base.text}
-                            onChange={base.onTextChange}
-                            size="small"
-                            label={working.budgets?.strategy !== "rollover" ? "Monthly Budget" : "Monthly Increase"}
-                            disabled={working.budgets?.strategy === "copy"}
-                        />
-                    </div>
-                </div>
+                {timeSeriesInput.component}
             </EditValueContainer>
         </ObjectEditContainer>
     );
 };
 
-const { update, remove, set, getWorking } = getUpdateFunctions("category");
+const { update, remove, set, getWorkingCopy: getWorking } = getUpdateFunctions("category");
 const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) => update("colour")(event.target.value);
 const generateRandomColour = () => update("colour")(getRandomColour());
 const updateWorkingParent = (id?: ID) => {
@@ -344,9 +289,46 @@ const updateBudget = (partial?: Partial<NonNullable<Category["budgets"]>>) => {
         }
     );
 };
-const updateMonthsBudget = (index: number) => (value: number | null) => {
+
+const updateMonthsBudgetFlipped = (index: number, value: number | null) => updateMonthsBudget(index, value && -value);
+const updateMonthsBudget = (index: number, value: number | null) => {
     const current = getWorking().budgets?.values || BaseBudget;
     current[index] = value ?? 0;
     updateBudget({ values: current });
 };
+const updateBaseBudgetFlipped = (value: number | null) => updateBaseBudget(value && -value);
 const updateBaseBudget = (value: number | null) => updateBudget({ base: value || 0 });
+
+const useCategoryBudgetInput = (working: Category) => {
+    const getOriginalBudget = useCallback(() => {
+        const actual = TopHatStore.getState().data.category.entities[working.id];
+        return actual?.budgets?.values;
+    }, [working.id]);
+    const getOriginalBase = useCallback(() => {
+        const actual = TopHatStore.getState().data.category.entities[working.id];
+        return actual?.budgets?.base;
+    }, [working.id]);
+
+    let budgets = working.budgets ? working.budgets.values : BaseBudget;
+    let base = working.budgets?.base ?? null;
+    let flipped = false;
+    if (!budgets.some((x) => x > 0) && (base === null || base <= 0)) {
+        flipped = true;
+        budgets = budgets.map((x) => -x);
+        if (base) base *= -1;
+    }
+
+    return useTimeSeriesInput({
+        values: budgets,
+        getOriginals: getOriginalBudget,
+        update: flipped ? updateMonthsBudgetFlipped : updateMonthsBudget,
+        secondary: {
+            value: base,
+            update: flipped ? updateBaseBudgetFlipped : updateBaseBudget,
+            label: working.budgets?.strategy !== "rollover" ? "Monthly Budget" : "Monthly Increase",
+            disabled: working.budgets?.strategy === "copy",
+            getOriginal: getOriginalBase,
+        },
+        id: working.id + "-" + flipped,
+    });
+};

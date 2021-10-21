@@ -7,6 +7,7 @@ import {
     BaseTransactionHistory,
     BaseTransactionHistoryWithLocalisation,
     formatDate,
+    getCurrentMonthString,
     getToday,
     getTodayString,
     ID,
@@ -15,12 +16,13 @@ import {
 } from "../shared/values";
 import {
     compareTransactionsDescendingDates,
+    DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY_ID,
 } from "./shared";
-import { Account, Category, Currency, Institution, Rule, Statement, StubUserID, Transaction } from "./types";
+import { Account, Category, Currency, CurrencySyncType, Institution, Rule, Statement, Transaction } from "./types";
 
 const INCLUDE_BUDGETS_IN_DEMO = true;
 
@@ -29,22 +31,23 @@ const today = getToday();
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
 const currencyColourScale = chroma.scale("set1").domain([0, 4]);
-type CurrencyArgs = [string, string, string, number];
+type CurrencyArgs = [string, string, string, number, CurrencySyncType | undefined];
 const currencyFields = ["symbol", "name", "ticker"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
         id: id + 1,
         colour: currencyColourScale(id + 2).hex(),
         transactions: BaseTransactionHistoryWithLocalisation(),
-        rates: [{ date: getTodayString(), value: args[3] }],
+        start: getCurrentMonthString(),
+        rates: [{ month: getCurrentMonthString(), value: args[3] }],
+        sync: args[4],
         ...zipObject(currencyFields, args),
     } as Currency);
-// These rates are all relative to XDR, but needn't be
 const currencies = (
     [
         ["AU$", "Australian Dollars", "AUD", 0.75],
         ["£", "Pounds Sterling", "GBP", 1.35],
-        ["€", "Euros", "EUR", 1.15],
+        ["€", "Euros", "EUR", 1.15, { type: "currency", ticker: "EUR" }],
         ["US$", "US Dollars", "USD", 1],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
@@ -506,15 +509,9 @@ export const DemoStatementFiles = [statementMap.international[1]];
 //     values(statementMap.everyday).filter(({ id }) => lastEverydayStatements.includes(id))
 // );
 
-const notifications = [
-    { id: 1, type: "new-milestone", contents: 200000 },
-    { id: 2, type: "uncategorised-transactions", contents: 3 },
-    { id: 3, type: "statement-ready", contents: 4 },
-] as const;
-
 // Initialise Demo
 export const DemoObjects = {
-    user: [{ id: StubUserID, currency: 1, isDemo: true, start: getTodayString() }],
+    user: [{ ...DEFAULT_USER_VALUE, isDemo: true }],
     account: accounts,
     institution: institutions,
     category: categories,
@@ -522,7 +519,7 @@ export const DemoObjects = {
     rule: rules,
     transaction: transactions,
     statement: statements,
-    notification: notifications,
+    notification: [],
 };
 
 export const finishDemoInitialisation = (state: DataState) => {
@@ -550,4 +547,10 @@ export const finishDemoInitialisation = (state: DataState) => {
             base: 0,
         };
     }
+
+    state.account.ids.forEach(
+        (id) =>
+            (state.account.entities[id]!.lastUpdate =
+                state.account.entities[id]!.lastTransactionDate || getTodayString())
+    );
 };

@@ -30,9 +30,9 @@ import { mapValuesWithKeys, takeWithDefault } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
+    formatDate,
     getCurrentMonth,
     getCurrentMonthString,
-    getTodayString,
     ID,
     parseDate,
     TransactionHistory,
@@ -42,6 +42,7 @@ import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo"
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
+    DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY,
     PLACEHOLDER_INSTITUTION,
     PLACEHOLDER_STATEMENT,
@@ -59,6 +60,7 @@ import {
     EditTransactionState,
     StubUserID,
     Transaction,
+    User,
 } from "./types";
 export { changeCurrencyValue, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_INSTITUTION_ID } from "./shared";
 export type {
@@ -80,7 +82,6 @@ const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
 
 const BaseObjects = {
-    user: [{ id: StubUserID, currency: 1, isDemo: false, start: getTodayString() }],
     category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
     currency: [DEFAULT_CURRENCY],
     institution: [PLACEHOLDER_INSTITUTION],
@@ -113,7 +114,10 @@ export const DataSlice = createSlice({
     name: "data",
     initialState: DataDefaults,
     reducers: {
-        reset: () => DataDefaults,
+        reset: () => ({
+            ...DataDefaults,
+            user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
+        }),
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
             mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
@@ -240,7 +244,10 @@ export const DataSlice = createSlice({
 
                 updateTransactionSummariesWithTransactions(state, transactions, true);
 
-                adapters[type].upsertOne(state[type], createDraft(working));
+                // Don't overwrite transaction summary with old version
+                const draft = createDraft(working as Currency);
+                draft.transactions = state.currency.entities[working.id]!.transactions;
+                adapters.currency.upsertOne(state.currency, draft);
 
                 updateTransactionSummariesWithTransactions(state, transactions);
                 updateBalancesAndAccountSummaries(state, getBalanceSubset(transactions, state.transaction.entities));
@@ -317,8 +324,18 @@ export const DataSlice = createSlice({
         },
 
         // Notifications
-        deleteNotification: (state, { payload }: PayloadAction<ID>) =>
-            void BaseAdapter.removeOne(state.notification, payload),
+        updateNotificationState: (
+            state,
+            {
+                payload: { user, id, contents },
+            }: PayloadAction<{ user: Partial<User>; id: string; contents?: string | null }>
+        ) => {
+            adapters.user.updateOne(state.user, { id: StubUserID, changes: user });
+            if (contents === null) adapters.notification.removeOne(state.notification, id);
+            else if (contents !== undefined) adapters.notification.upsertOne(state.notification, { id, contents });
+        },
+        deleteNotification: (state, { payload }: PayloadAction<string>) =>
+            void adapters.notification.removeOne(state.notification, payload),
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {
@@ -467,6 +484,7 @@ const updateTransactionSummariesWithTransactions = (state: DataState, ids?: Enti
 
 const updateBalancesAndAccountSummaries = (state: DataState, subset?: BalanceSubset) => {
     fillTransactionBalances(state.transaction, subset);
+    updateCurrencyStartDates(state, subset && uniq(subset.map(({ currency }) => currency)));
     updateAccountTransactionDates(state, subset && uniq(subset.map(({ account }) => account)));
     updateBalanceSummaries(state, subset);
 };
@@ -521,6 +539,22 @@ const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, su
     statefullyUpdateBalances(reverse(clone(ids)), 0, (tx, acc) =>
         tx?.balance !== null ? tx.balance : acc.balance === null ? null : acc.balance + (tx.value || 0)
     );
+};
+
+const updateCurrencyStartDates = (data: DataState, subset?: EntityId[]) => {
+    const placeholder = getCurrentMonthString();
+    (subset || data.currency.ids).forEach((id) => {
+        data.currency.entities[id]!.start = placeholder;
+    });
+
+    data.transaction.ids.forEach((id) => {
+        const tx = data.transaction.entities[id]!;
+        if (subset && !subset.includes(tx.currency)) return;
+        const currency = data.currency.entities[tx.currency]!;
+
+        if (!currency.start || currency.start > tx.date)
+            currency.start = formatDate(parseDate(tx.date).startOf("month"));
+    });
 };
 
 const updateAccountTransactionDates = (data: DataState, subset?: EntityId[]) => {

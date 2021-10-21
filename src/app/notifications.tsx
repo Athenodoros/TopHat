@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
 import { useAllNotifications } from "../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../state/logic/notifications";
+import { Greys } from "../styles/colours";
 
 const useStyles = makeStyles({
     container: {
@@ -44,16 +45,25 @@ const useStyles = makeStyles({
         margin: "9px 0 7px 0",
     },
     headerIcon: {
+        margin: 3,
         marginRight: 23,
     },
     headerTitle: {
         flexGrow: 1,
     },
 
+    padding: {
+        height: 20,
+    },
+
     buttons: {
         display: "flex",
         justifyContent: "flex-end",
         margin: 5,
+
+        "& > *": {
+            marginLeft: 10,
+        },
     },
 });
 
@@ -74,7 +84,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                 <div className={classes.notification} style={{ borderColor: colour }}>
                     <div className={classes.backdrop} style={{ backgroundColor: colour }} />
                     <div className={classes.header}>
-                        <Icon className={classes.headerIcon} />
+                        <Icon className={classes.headerIcon} htmlColor={Greys[800]} fontSize="small" />
                         <Typography variant="subtitle2" className={classes.headerTitle}>
                             {title}
                         </Typography>
@@ -83,7 +93,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                         </IconButton>
                     </div>
                     {children}
-                    {buttons && (
+                    {buttons ? (
                         <div className={classes.buttons}>
                             {buttons.map(({ text, onClick }, idx) => (
                                 <Button onClick={onClick} size="small" key={idx} color="inherit">
@@ -91,6 +101,8 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                                 </Button>
                             ))}
                         </div>
+                    ) : (
+                        <div className={classes.padding} />
                     )}
                 </div>
             </Fade>

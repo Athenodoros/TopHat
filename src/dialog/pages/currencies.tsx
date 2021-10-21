@@ -1,28 +1,37 @@
-import { AddCircleOutline, Clear, Euro, Sync } from "@mui/icons-material";
-import { DatePickerProps } from "@mui/lab";
-import { IconButton, ListItemText, TextField, Tooltip } from "@mui/material";
+import { Cached, Cancel, CheckCircle, Clear, Euro, EuroSymbol, Money, ShowChart, Sync } from "@mui/icons-material";
+import {
+    CircularProgress,
+    IconButton,
+    ListItemText,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography,
+} from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { Box } from "@mui/system";
-import { cloneDeep, sortBy } from "lodash";
-import { DateTime } from "luxon";
-import React, { useCallback } from "react";
+import { last, range } from "lodash";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
-import { AutoClosingDatePicker } from "../../components/inputs";
-import { handleTextFieldChange } from "../../shared/events";
-import { useNumericInputHandler } from "../../shared/hooks";
-import { TopHatDispatch, TopHatStore } from "../../state";
-import { AppSlice } from "../../state/app";
+import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
+import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Currency } from "../../state/data";
+import { useAlphaVantageToken } from "../../state/data/hooks";
 import { getNextID } from "../../state/data/shared";
-import { CurrencyExchangeRate } from "../../state/data/types";
+import { CurrencySyncType } from "../../state/data/types";
+import { getCurrencyRates } from "../../state/logic/currencies";
 import {
     BaseTransactionHistoryWithLocalisation,
     formatDate,
+    getCurrentMonth,
+    getCurrentMonthString,
     getRandomColour,
     getTodayString,
 } from "../../state/shared/values";
+import { Greys, Intents } from "../../styles/colours";
 import {
     BasicDialogObjectSelector,
     DialogContents,
@@ -32,12 +41,14 @@ import {
     getUpdateFunctions,
     ObjectEditContainer,
 } from "../shared";
+import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
 
 const useMainStyles = makeStyles({
     base: {
         display: "flex",
         alignItems: "center",
         height: 32,
+        flexGrow: 1,
     },
     icon: {
         height: 24,
@@ -55,6 +66,11 @@ export const DialogCurrenciesView: React.FC = () => {
             <div className={classes.base}>
                 {getCurrencyIcon(currency, classes.icon)}
                 <ListItemText>{currency.name}</ListItemText>
+                {currency.sync && (
+                    <Tooltip title="Automatic Exchange Rates">
+                        <Cached htmlColor={Greys[500]} fontSize="small" />
+                    </Tooltip>
+                )}
             </div>
         ),
         [classes]
@@ -84,7 +100,8 @@ const createNewCurrency = (): Currency => ({
     colour: getRandomColour(),
     name: "New Currency",
     symbol: "$",
-    rates: [{ date: getTodayString(), value: 1 }],
+    start: getCurrentMonthString(),
+    rates: [{ month: getTodayString(), value: 1 }],
     transactions: BaseTransactionHistoryWithLocalisation(),
 });
 
@@ -101,8 +118,83 @@ const EditCurrencyView: React.FC = () => {
     const classes = useEditViewStyles();
     const working = useDialogState("currency")!;
 
+    const [ticker, setTicker] = useState(working.sync?.ticker || "");
+    const [syncStatus, setSyncStatus] = useState<"fail" | "loading" | "success">("fail");
+    useEffect(() => {
+        setTicker(working.sync?.ticker || "");
+        setSyncStatus(working.sync ? "success" : "fail");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [working.id]);
+
+    const alphavantage = useAlphaVantageToken();
+
+    const updateSyncType = useMemo(
+        () =>
+            handleButtonGroupChange(async (strategy: CurrencySyncType["type"] | "none") => {
+                if (!strategy) return;
+
+                if (strategy === "none") update("sync")(undefined);
+                else {
+                    setSyncStatus("loading");
+                    update("sync")({ type: strategy, ticker });
+
+                    const values = await getCurrencyRates(strategy, ticker, alphavantage, working.start);
+                    if (values === undefined) setSyncStatus("fail");
+                    else {
+                        update("rates")(values);
+                        setSyncStatus("success");
+                    }
+                }
+            }),
+        [ticker, alphavantage, working.start]
+    );
+
+    const handleTickerChange = useMemo(
+        () =>
+            handleTextFieldChange(async (value) => {
+                setSyncStatus("loading");
+                setTicker(value);
+
+                const values = await getCurrencyRates(working.sync!.type, value, alphavantage, working.start);
+                if (values === undefined) setSyncStatus("fail");
+                else {
+                    update("rates")(values);
+                    setSyncStatus("success");
+                }
+            }),
+        [setTicker, alphavantage, working.sync, working.start]
+    );
+
+    const timeSeriesInput = useCurrencyBudgetInput(
+        working,
+        working.sync?.type && (
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <TextField
+                    value={ticker}
+                    onChange={handleTickerChange}
+                    size="small"
+                    label={TickerDescriptions[working.sync?.type || "currency"]}
+                    placeholder={TickerPlaceholders[working.sync?.type || "currency"]}
+                    disabled={working.sync === undefined}
+                    key={working.id + "-" + working.sync?.type}
+                />
+                {syncStatus === "fail" ? (
+                    <Cancel htmlColor={Intents.danger.light} />
+                ) : syncStatus === "success" ? (
+                    <CheckCircle htmlColor={Intents.success.light} />
+                ) : (
+                    <CircularProgress />
+                )}
+            </Box>
+        )
+    );
+
     return (
-        <ObjectEditContainer type="currency">
+        <ObjectEditContainer
+            type="currency"
+            onReset={timeSeriesInput.onReset}
+            valid={syncStatus === "success" || working.sync === undefined}
+        >
             <EditValueContainer label="Display">
                 <TextField
                     value={working.symbol || ""}
@@ -128,88 +220,148 @@ const EditCurrencyView: React.FC = () => {
                 </div>
             </EditValueContainer>
             <EditTitleContainer title="Exchange Rates" />
-            {working.rates.map((rate, idx) => (
-                <EditableRateDisplay rate={rate} index={idx} key={idx} id={working.id} />
-            ))}
-            <EditValueContainer>
-                <IconButton size="small" onClick={addNewRate}>
-                    <AddCircleOutline fontSize="small" color="primary" />
-                </IconButton>
+            <EditValueContainer label="Source">
+                <ToggleButtonGroup
+                    size="small"
+                    value={working.sync?.type || "none"}
+                    exclusive={true}
+                    onChange={updateSyncType}
+                    sx={{
+                        flexGrow: 1,
+                        "& > button": {
+                            flexGrow: 1,
+                            padding: 5 / 8,
+                        },
+                    }}
+                >
+                    <ToggleButton
+                        value="none"
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            width: 60,
+                        }}
+                    >
+                        <Tooltip title="Manual Rates">
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <Clear fontSize="small" />
+                                <Typography variant="caption">None</Typography>
+                            </Box>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton
+                        value="currency"
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            width: 60,
+                        }}
+                    >
+                        <Tooltip title="Pin to Currency">
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <EuroSymbol fontSize="small" />
+                                <Typography variant="caption">Currency</Typography>
+                            </Box>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton
+                        value="crypto"
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            width: 60,
+                        }}
+                    >
+                        <Tooltip title="Pin to Crypto">
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <Money fontSize="small" />
+                                <Typography variant="caption">Crypto</Typography>
+                            </Box>
+                        </Tooltip>
+                    </ToggleButton>
+                    <ToggleButton
+                        value="stock"
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            width: 60,
+                        }}
+                    >
+                        <Tooltip title="Pin to Stock">
+                            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                <ShowChart fontSize="small" />
+                                <Typography variant="caption">Stock</Typography>
+                            </Box>
+                        </Tooltip>
+                    </ToggleButton>
+                </ToggleButtonGroup>
             </EditValueContainer>
+            <EditValueContainer label="Data">{timeSeriesInput.component}</EditValueContainer>
         </ObjectEditContainer>
     );
 };
 
-const addNewRate = () =>
-    updateWithEdit((working) => {
-        working.rates.unshift({ date: getTodayString(), value: working.rates[0].value });
-    });
-const updateWithEdit = (edit: (currency: Currency) => void) => {
-    const currency = cloneDeep(TopHatStore.getState().app.dialog.currency!);
-    edit(currency);
-    currency.rates = sortBy(currency.rates, (rate) => -new Date(rate.date));
-    TopHatDispatch(AppSlice.actions.setDialogPartial({ currency }));
+const TickerDescriptions = {
+    currency: "Symbol",
+    crypto: "Symbol",
+    stock: "Ticker",
 };
-const EditableRateDisplay: React.FC<{ rate: CurrencyExchangeRate; index: number; id?: any }> = ({
-    rate,
-    index,
-    id,
-}) => {
-    const updateValue = useCallback(
-        (value: number | null) =>
-            updateWithEdit((working) => {
-                working.rates[index].value = value || 0;
-            }),
-        [index]
-    );
-    const updateDate = useCallback(
-        (date: DateTime) =>
-            updateWithEdit((working) => {
-                working.rates[index].date = formatDate(date);
-            }),
-        [index]
-    );
-    const remove = useCallback(
-        () =>
-            updateWithEdit((working) => {
-                working.rates = working.rates.filter((_, idx) => idx !== index);
-            }),
-        [index]
-    );
-
-    const value = useNumericInputHandler(rate.value, updateValue, `${index} - ${id}`);
-
-    return (
-        <EditValueContainer
-            label={
-                <IconButton size="small" onClick={remove}>
-                    <Clear fontSize="small" color="error" />
-                </IconButton>
-            }
-        >
-            <Box sx={{ display: "flex" }}>
-                <TextField
-                    value={value.text}
-                    onChange={value.onTextChange}
-                    size="small"
-                    sx={{ width: 100, marginRight: 20 / 8 }}
-                    label="Value"
-                />
-                <AutoClosingDatePicker
-                    value={rate.date}
-                    onChange={updateDate as DatePickerProps["onChange"]}
-                    inputFormat="yyyy-MM-dd"
-                    renderInput={(params) => <TextField {...params} sx={{ width: 160 }} size="small" label="Date" />}
-                />
-            </Box>
-        </EditValueContainer>
-    );
+const TickerPlaceholders = {
+    currency: "USD",
+    crypto: "BTC",
+    stock: "AAPL",
 };
 
-const { update, remove } = getUpdateFunctions("currency");
+const { update, remove, getWorkingCopy: getWorking } = getUpdateFunctions("currency");
 
 const handleColorChange: React.ChangeEventHandler<HTMLInputElement> = (event) => update("colour")(event.target.value);
 const generateRandomColour = () => update("colour")(getRandomColour());
 
 const updateWorkingSymbol = handleTextFieldChange(update("symbol"));
 const updateWorkingTicker = handleTextFieldChange(update("ticker"));
+
+const getTimeSeriesFromRates = (rates: Currency["rates"]) => {
+    return range(24).map((months) => {
+        const month = formatDate(getCurrentMonth().minus({ months }));
+        return (rates.find((rate) => rate.month <= month) || last(rates))?.value || 0;
+    });
+};
+
+const useCurrencyBudgetInput = (working: Currency, inputs?: React.ReactNode) => {
+    const getOriginalBudget = useCallback(() => {
+        const actual = TopHatStore.getState().data.currency.entities[working.id];
+        return actual && getTimeSeriesFromRates(actual.rates);
+    }, [working.id]);
+
+    const budgets = getTimeSeriesFromRates(working.rates);
+
+    return useTimeSeriesInput({
+        values: budgets,
+        getOriginals: getOriginalBudget,
+        update: updateMonthsRate,
+        id: working.id,
+        inputs,
+    });
+};
+
+const updateMonthsRate = (index: number, value: number | null) => {
+    const month = formatDate(getCurrentMonth().minus({ months: index }));
+    const { rates } = getWorking();
+
+    const number = rates.findIndex((rate) => rate.month === month);
+    if (number !== -1) {
+        if (value !== null) {
+            rates[number].value = value;
+        } else {
+            rates.splice(number, 1);
+        }
+    } else if (value !== null) {
+        rates.push({ month, value });
+    }
+
+    update("rates")(rates);
+};

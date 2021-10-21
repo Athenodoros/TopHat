@@ -223,7 +223,8 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     children,
     subtitle,
     onReset,
-}: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode; onReset?: () => void }>) => {
+    valid,
+}: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode; onReset?: () => void; valid?: boolean }>) => {
     const classes = useObjectContainerStyles();
 
     const working = useDialogState(type) as BasicObjectType[Type];
@@ -282,7 +283,7 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
                     </span>
                 </Tooltip>
                 <Button
-                    disabled={isEqual(working, actual)}
+                    disabled={isEqual(working, actual) || valid === false}
                     variant="outlined"
                     startIcon={<SaveTwoTone fontSize="small" />}
                     onClick={save}
@@ -298,7 +299,7 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
     type Option = BasicObjectType[Type];
 
     const get = (id: ID) => TopHatStore.getState().data[type].entities[Number(id)] as Option;
-    const getWorking = () => cloneDeep(TopHatStore.getState().app.dialog[type] as Option);
+    const getWorkingCopy = () => cloneDeep(TopHatStore.getState().app.dialog[type] as Option);
     const set = (option?: Option) => TopHatDispatch(AppSlice.actions.setDialogPartial({ id: type, [type]: option }));
     const setPartial = (partial?: Partial<Option>) =>
         set({ ...(TopHatStore.getState().app.dialog[type]! as Option), ...partial });
@@ -314,7 +315,11 @@ export const getUpdateFunctions = <Type extends BasicObjectName>(type: Type) => 
         TopHatDispatch(DataSlice.actions.deleteObject({ type, id }));
     };
 
-    const save = (working: Option) => TopHatDispatch(DataSlice.actions.saveObject({ type, working }));
+    const save = (working: Option) => {
+        TopHatDispatch(DataSlice.actions.saveObject({ type, working }));
+        // Sometimes calculated properties can change in saveObject - this updates the working state
+        TopHatDispatch(AppSlice.actions.setDialogPartial({ [type]: get(working.id) }));
+    };
 
-    return { get, getWorking, set, setPartial, remove, update, destroy, save };
+    return { get, getWorkingCopy, set, setPartial, remove, update, destroy, save };
 };

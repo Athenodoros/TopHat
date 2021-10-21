@@ -2,8 +2,23 @@ import { EntityId } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { chunk, countBy, last, max, maxBy, toPairs } from "lodash";
 import { BLACK, Greys } from "../../styles/colours";
-import { BaseTransactionHistory, SDate } from "../shared/values";
-import { Category, Currency, Institution, Statement, Transaction } from "./types";
+import { BaseTransactionHistory, getTodayString, SDate } from "../shared/values";
+import { Category, Currency, Institution, Statement, StubUserID, Transaction, User } from "./types";
+
+export const DEFAULT_USER_VALUE: User = {
+    id: StubUserID,
+    currency: 1,
+    isDemo: false,
+    start: getTodayString(),
+    alphavantage: "demo",
+
+    milestone: 0,
+    // reducedExpensesDate: undefined,
+    // milestoneInSight: 0,
+    // debt: 0,
+    accountOutOfDate: [],
+    uncategorisedTransactionsAlerted: false,
+};
 
 export const PLACEHOLDER_CATEGORY_ID = 0;
 export const PLACEHOLDER_CATEGORY: Category = {
@@ -39,7 +54,7 @@ export const PLACEHOLDER_STATEMENT: Statement = {
 };
 
 const getCurrencyValue = (currency: Currency, date: SDate) =>
-    (currency.rates.find((rate) => rate.date < date) || last(currency.rates))?.value || 1;
+    (currency.rates.find((rate) => rate.month <= date) || last(currency.rates))?.value || 1;
 
 export const changeCurrencyValue = (to: Currency, from: Currency, value: number, date: SDate) =>
     (value * getCurrencyValue(from, date)) / getCurrencyValue(to, date);

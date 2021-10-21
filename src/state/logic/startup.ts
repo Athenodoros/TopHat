@@ -9,7 +9,9 @@ import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
 import { DataDefaults, DataSlice, DataState, ListDataState } from "../data";
 import { StubUserID } from "../data/types";
+import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
+import { updateNotificationState } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
@@ -65,6 +67,8 @@ export const initialiseAndGetDBConnection = async () => {
         });
 
     // attachIDBChangeHandler(db, handleIDBChanges(TopHatStore.dispatch));
+
+    runUpdates();
 
     // Debug variables
     if (debug) attachDebugVariablesToWindow(db);
@@ -139,4 +143,11 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).db = db;
 
     console.log("Setting up debug variables...");
+};
+
+const runUpdates = () => {
+    updateSyncedCurrencies();
+    updateNotificationState();
+
+    setTimeout(runUpdates, 24 * 60 * 60 * 1000);
 };

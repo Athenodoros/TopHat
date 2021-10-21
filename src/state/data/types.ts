@@ -82,13 +82,17 @@ export interface Category {
 }
 
 export interface CurrencyExchangeRate {
-    date: SDate;
-    value: number;
+    month: SDate;
+    value: number; // Relative to USD
 }
 
 /**
  * A unit of financial asset - a currency (fiat or crypto), or share/bond
  */
+export interface CurrencySyncType {
+    type: "currency" | "crypto" | "stock";
+    ticker: string;
+}
 export interface Currency {
     id: ID;
     ticker: string;
@@ -96,7 +100,9 @@ export interface Currency {
     symbol: string;
     colour: string;
 
+    start: SDate; // Month of first transaction
     rates: CurrencyExchangeRate[]; // Sorted, most recent first
+    sync?: CurrencySyncType;
 
     transactions: TransactionHistoryWithLocalisation;
 }
@@ -173,21 +179,31 @@ export interface Statement {
  */
 export const StubUserID = 0;
 export interface User {
-    id: ID; // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
-    currency: ID;
+    // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
+    id: ID;
+
+    // Instance metadata
     isDemo: boolean;
     start: SDate;
+
+    // Display
+    currency: ID;
+
+    // External Services
+    alphavantage: string;
+
+    // Notification State
+    milestone: number; // Milestone of last notification
+    // reducedExpensesDate?: SDate; // Date of last notification
+    // milestoneInSight: number; // Milestone of last notification
+    // debt: number; // Debt Milestone of last notification
+    accountOutOfDate: ID[]; // Accounts already flagged
+    uncategorisedTransactionsAlerted: boolean; // Whether notification has been generated since backlog last cleared
 }
 
-export interface NotificationRuleDefinitions {
-    "new-milestone": number;
-    "uncategorised-transactions": number;
-    "statement-ready": ID;
-}
-export interface Notification<K extends keyof NotificationRuleDefinitions = keyof NotificationRuleDefinitions> {
-    id: ID;
-    type: K;
-    contents: NotificationRuleDefinitions[K];
+export interface Notification {
+    id: string;
+    contents: string;
 }
 
 /**
