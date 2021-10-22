@@ -9,37 +9,16 @@ import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { DataKeys } from "../../state/logic/startup";
-import { Greys } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
+import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        flexDirection: "column",
-        width: 450,
-        margin: "40px auto",
-    },
     input: {
-        margin: "10px 50px 30px 50px",
-    },
-    divider: {
-        background: Greys[300],
-        height: 1,
-        width: "60%",
-        margin: "20px auto 20px auto",
+        margin: "10px 50px 0 50px",
     },
     button: {
         textAlign: "center",
         width: 100,
-    },
-    largeButton: {
-        alignSelf: "flex-end",
-        marginTop: 10,
-        marginBottom: 40,
-
-        "&:last-child": {
-            marginBottom: 10,
-        },
     },
 });
 
@@ -48,37 +27,35 @@ export const DialogExportContents: React.FC = () => {
 
     // TODO: This
     return (
-        <div className={classes.container}>
+        <SettingsDialogPage title="Export Data to Files">
             <Typography variant="body2">
                 All data in TopHat can be exported in standard data formats: after all, it's all your data! Choose
                 between the formats below - the buttons will download all data to your computer.
             </Typography>
-            <div className={classes.divider} />
+            <SettingsDialogDivider />
             <EditValueContainer
                 label={
-                    <Button variant="outlined" className={classes.largeButton} onClick={createCSVDownload}>
+                    <Button variant="outlined" className={classes.button} onClick={createCSVDownload}>
                         Export CSV
                     </Button>
                 }
             >
                 <Typography variant="body1">
-                    Good for Excel analysis or uploads to other personal finance applications. Exports as a ZIP file of
-                    CSVs.
+                    Good for Excel analysis or uploads to other personal finance applications.
                 </Typography>
             </EditValueContainer>
             <EditValueContainer
                 label={
-                    <Button variant="outlined" className={classes.largeButton} onClick={createJSONDownload}>
+                    <Button variant="outlined" className={classes.button} onClick={createJSONDownload}>
                         Export JSON
                     </Button>
                 }
             >
                 <Typography variant="body1">
-                    Used to restore information to TopHat, and useful for some analytical tools and programming
-                    languages.
+                    Used to restore information to TopHat, or for analytical and programming tools.
                 </Typography>
             </EditValueContainer>
-        </div>
+        </SettingsDialogPage>
     );
 };
 
@@ -109,7 +86,7 @@ export const DialogImportContents: React.FC = () => {
     } as const;
 
     return (
-        <div className={classes.container}>
+        <SettingsDialogPage title="Data Import and Deletion">
             <Typography variant="body2">
                 These actions will <strong>permanently</strong> remove all data stored in TopHat. To enable them, type
                 "PERMANENTLY DELETE ALL DATA" in the box:
@@ -121,6 +98,7 @@ export const DialogImportContents: React.FC = () => {
                 className={classes.input}
                 onChange={handleTextFieldChange(setText)}
             />
+            <SettingsDialogDivider />
             <EditValueContainer
                 label={
                     <Button {...ButtonProps} component="label">
@@ -155,7 +133,7 @@ export const DialogImportContents: React.FC = () => {
                     <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty state.
                 </Typography>
             </EditValueContainer>
-        </div>
+        </SettingsDialogPage>
     );
 };
 

@@ -12,7 +12,7 @@ import {
 } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
-const MILESTONE_NOTIFICATION_ID = "new-milestone";
+export const MILESTONE_NOTIFICATION_ID = "new-milestone";
 
 const update = () => {
     const { data } = TopHatStore.getState();

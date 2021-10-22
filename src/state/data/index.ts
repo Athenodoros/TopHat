@@ -26,7 +26,7 @@ import {
     uniqWith,
     upperFirst,
 } from "lodash";
-import { mapValuesWithKeys, takeWithDefault } from "../../shared/data";
+import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -336,6 +336,17 @@ export const DataSlice = createSlice({
         },
         deleteNotification: (state, { payload }: PayloadAction<string>) =>
             void adapters.notification.removeOne(state.notification, payload),
+        toggleNotification: (state, { payload }: PayloadAction<string>) => {
+            adapters.user.updateOne(state.user, {
+                id: StubUserID,
+                changes: {
+                    disabled: updateListSelection(payload, state.user.entities[StubUserID]!.disabled),
+                },
+            });
+        },
+
+        updateUserPartial: (state, { payload }: PayloadAction<Partial<User>>) =>
+            void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {

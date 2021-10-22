@@ -193,6 +193,7 @@ export interface User {
     alphavantage: string;
 
     // Notification State
+    disabled: string[]; // Disabled alert IDs
     milestone: number; // Milestone of last notification
     // milestoneInSight: number; // Milestone of last notification
     debt: number; // Debt Milestone of last notification

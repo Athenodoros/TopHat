@@ -53,7 +53,7 @@ const useStyles = makeStyles({
     },
 
     padding: {
-        height: 20,
+        height: 25,
     },
 
     buttons: {

@@ -1,18 +1,19 @@
-import { CloudDone, Edit, GetApp, ListAlt } from "@mui/icons-material";
+import { Cached, CloudDone, Edit, GetApp, ListAlt, Notifications } from "@mui/icons-material";
 import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
-import { get } from "lodash";
 import React from "react";
 import { zipObject } from "../../shared/data";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
-import { AppSlice } from "../../state/app";
+import { AppSlice, DialogState } from "../../state/app";
 import { useDialogState } from "../../state/app/hooks";
 import { StubUserID } from "../../state/data/types";
 import { useSelector } from "../../state/shared/hooks";
 import { Greys } from "../../styles/colours";
 import { DialogContents, DialogMain, DialogOptions } from "../shared";
+import { DialogCurrencyContents } from "./currency";
 import { DialogExportContents, DialogImportContents } from "./data";
+import { DialogNotificationsContents } from "./notifications";
 import { DialogSummaryContents } from "./summary";
 
 const useStyles = makeStyles({
@@ -57,6 +58,18 @@ export const DialogSettingsView: React.FC = () => {
                         <ListItemText className={classes.text}>Export</ListItemText>
                     </MenuItem>
                     <ListSubheader className={classes.subheader}>Settings</ListSubheader>
+                    <MenuItem onClick={setPage["notifications"]} selected={page === "notifications"}>
+                        <ListItemIcon>
+                            <Notifications fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText className={classes.text}>Notifications</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={setPage["currency"]} selected={page === "currency"}>
+                        <ListItemIcon>
+                            <Cached fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText className={classes.text}>Currency Sync</ListItemText>
+                    </MenuItem>
                     <MenuItem onClick={setPage["storage"]} selected={page === "storage"}>
                         <ListItemIcon>
                             <CloudDone fontSize="small" />
@@ -65,20 +78,22 @@ export const DialogSettingsView: React.FC = () => {
                     </MenuItem>
                 </List>
             </DialogOptions>
-            <DialogContents>{get(Pages, page || "", <DialogSummaryContents />)}</DialogContents>
+            <DialogContents>{page ? Pages[page] : <DialogSummaryContents />}</DialogContents>
         </DialogMain>
     );
 };
 
-const pages = ["import", "export", "storage"] as const;
+const pages = ["import", "export", "storage", "notifications", "currency"] as const;
 const setPage = zipObject(
     pages,
     pages.map((settings) => withSuppressEvent(() => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings }))))
 );
 const setEmptyPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: undefined }));
 
-const Pages = {
+const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
     import: <DialogImportContents />,
     export: <DialogExportContents />,
     storage: null,
+    notifications: <DialogNotificationsContents />,
+    currency: <DialogCurrencyContents />,
 };

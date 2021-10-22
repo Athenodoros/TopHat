@@ -12,6 +12,7 @@ export const DEFAULT_USER_VALUE: User = {
     start: getTodayString(),
     alphavantage: "demo",
 
+    disabled: [],
     milestone: 0,
     // milestoneInSight: 0,
     debt: 0,

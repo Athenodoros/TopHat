@@ -12,7 +12,7 @@ import {
 } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
-const DEBT_NOTIFICATION_ID = "debt-level";
+export const DEBT_NOTIFICATION_ID = "debt-level";
 
 const update = () => {
     const { data } = TopHatStore.getState();

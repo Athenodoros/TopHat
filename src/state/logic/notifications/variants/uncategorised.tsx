@@ -12,7 +12,7 @@ import {
 } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
-const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
+export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
 
 const update = () => {
     const { data } = TopHatStore.getState();

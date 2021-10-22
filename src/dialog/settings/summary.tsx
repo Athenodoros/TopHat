@@ -11,14 +11,11 @@ import { StubUserID } from "../../state/data/types";
 import { useSelector } from "../../state/shared/hooks";
 import { parseDate } from "../../state/shared/values";
 import { AppColours, Greys } from "../../styles/colours";
+import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 const useStyles = makeStyles({
-    container: {
-        width: 450,
-        margin: "40px auto",
-    },
     text: {
-        marginBottom: 30,
+        // marginBottom: 30,
     },
     storedDataEntry: {
         display: "flex",
@@ -73,10 +70,11 @@ export const DialogSummaryContents: React.FC = () => {
     );
 
     return (
-        <div className={classes.container}>
+        <SettingsDialogPage title={isDemo ? "Demo Data Summary" : "Data Summary"}>
             <Typography variant="body2" className={classes.text}>
                 {intro}
             </Typography>
+            <SettingsDialogDivider />
             <div className={classes.storedDataEntry}>
                 <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
                 <Table
@@ -101,7 +99,7 @@ export const DialogSummaryContents: React.FC = () => {
                 <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
                 <Table points={[["Categories", counts.category - 2]]} />
             </div>
-        </div>
+        </SettingsDialogPage>
     );
 };
 
@@ -111,6 +109,7 @@ const useTableStyles = makeStyles({
     container: {
         marginLeft: 20,
         marginRight: 10,
+        marginTop: 3,
         flexGrow: 1,
 
         display: "flex",
@@ -128,8 +127,12 @@ export const Table: React.FC<{ points: [string, number][] }> = ({ points }) => {
         <div className={classes.container}>
             {points.map(([label, value], idx) => (
                 <div key={idx} className={classes.row}>
-                    <Typography variant={idx ? "body1" : "h6"}>{label}</Typography>
-                    <Typography variant={idx ? "body1" : "h6"}>{value}</Typography>
+                    <Typography variant={idx ? "body2" : "body1"} sx={idx ? undefined : { fontWeight: 500 }}>
+                        {label}
+                    </Typography>
+                    <Typography variant={idx ? "body2" : "body1"} sx={idx ? undefined : { fontWeight: 500 }}>
+                        {value}
+                    </Typography>
                 </div>
             ))}
         </div>

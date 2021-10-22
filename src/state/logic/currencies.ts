@@ -41,7 +41,12 @@ const getFromAPI = (query: string, token: string, key: string, value: string) =>
     });
 
 let cancel: (() => void) | undefined = undefined;
-export const getCurrencyRates = async (type: CurrencySyncType["type"], ticker: string, token: string, start: SDate) => {
+export const getCurrencyRates = async (
+    type: CurrencySyncType["type"],
+    ticker: string,
+    token: string,
+    start?: SDate
+) => {
     if (cancel) cancel();
 
     let cancelled = false;
@@ -56,7 +61,7 @@ export const getCurrencyRates = async (type: CurrencySyncType["type"], ticker: s
     )(ticker, token);
 
     start = min([start, formatDate(getCurrentMonth().minus({ months: 24 }))])!;
-    if (results) results = results.filter(({ month }) => month >= start);
+    if (results) results = results.filter(({ month }) => month >= start!);
 
     if (!cancelled) return results;
 };

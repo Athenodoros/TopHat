@@ -19,7 +19,8 @@ import {
 } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
-const ACCOUNTS_NOTIFICATION_ID = "old-accounts";
+export const ACCOUNTS_NOTIFICATION_ID = "old-accounts";
+
 interface AccountNotificationContents {
     id: ID;
     age: number;

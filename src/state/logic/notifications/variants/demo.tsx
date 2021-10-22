@@ -8,7 +8,7 @@ import { StubUserID } from "../../../data/types";
 import { NotificationContents, updateNotificationState } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
-const DEMO_NOTIFICATION_ID = "demo";
+export const DEMO_NOTIFICATION_ID = "demo";
 
 const update = () => {
     const { data } = TopHatStore.getState();
