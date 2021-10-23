@@ -11,7 +11,7 @@ import { Greys } from "../styles/colours";
 const useStyles = makeStyles({
     container: {
         marginBottom: 20,
-        "&:first-child": {
+        "&:first-of-type": {
             marginTop: 20,
         },
     },

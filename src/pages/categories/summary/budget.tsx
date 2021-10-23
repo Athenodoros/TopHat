@@ -23,7 +23,7 @@ const ValueRow = styled("div")({
     position: "relative",
     marginLeft: -1,
     "& > *": { height: "100%", position: "absolute" },
-    "& > *:first-child": { borderLeftColor: "black" },
+    "& > :first-of-type": { borderLeftColor: "black" },
     "&:not(:last-child)": { marginBottom: 1 },
 });
 

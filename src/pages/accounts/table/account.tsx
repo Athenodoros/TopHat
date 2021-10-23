@@ -83,10 +83,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-
-        "& > *:first-child": {
-            marginLeft: 6,
-        },
     },
     accountUpdateAge: {},
     accountUpdateActions: {
@@ -342,7 +338,8 @@ const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
     return (
         <Typography
             variant="subtitle2"
-            style={{
+            sx={{
+                marginLeft: 6 / 8,
                 color:
                     age === undefined
                         ? Greys[700]

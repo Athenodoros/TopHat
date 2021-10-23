@@ -16,7 +16,7 @@ const useValueStyles = makeStyles({
         margin: "2px 0 0 0",
         alignItems: "flex-start",
 
-        "&:first-child": {
+        "&:first-of-type": {
             marginTop: 0,
         },
     },

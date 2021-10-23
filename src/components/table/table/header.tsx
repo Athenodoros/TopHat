@@ -1,6 +1,7 @@
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import clsx from "clsx";
 import { last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
@@ -24,6 +25,9 @@ import { useTransactionsTableStyles } from "./styles";
 import { TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
 
 const useHeaderStyles = makeStyles({
+    text: {
+        marginTop: 9,
+    },
     description: {
         display: "flex",
         flexDirection: "column",
@@ -31,7 +35,7 @@ const useHeaderStyles = makeStyles({
         padding: 20,
         width: 350,
 
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -48,7 +52,7 @@ const useHeaderStyles = makeStyles({
         padding: "15px 25px",
         width: 300,
 
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             display: "flex",
             justifyContent: "space-between",
         },
@@ -132,7 +136,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     </Popover>
                 </div>
             </div>
-            <div className={classes.text}>
+            <div className={clsx(classes.text, headerClasses.text)}>
                 <div className={classes.compound}>
                     <Typography variant="body1" noWrap={true} className={classes.summary}>
                         DESCRIPTION

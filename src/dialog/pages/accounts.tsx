@@ -111,7 +111,7 @@ const useEditViewStyles = makeStyles({
         justifyContent: "space-between",
         marginTop: 5,
 
-        "& > :first-child": {
+        "& > :first-of-type": {
             marginRight: 30,
         },
     },

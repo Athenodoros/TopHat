@@ -1,6 +1,6 @@
 import { FormControlLabel, Switch } from "@mui/material";
 import React from "react";
-import { TableContainer } from "../../../components/table";
+import { Section } from "../../../components/layout";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useAccountsPageState } from "../../../state/app/hooks";
@@ -13,7 +13,7 @@ export const AccountsTable: React.FC = () => {
     const institutions = useAccountsTableData();
 
     return (
-        <TableContainer
+        <Section
             title="All Accounts"
             headers={
                 <FormControlLabel
@@ -21,12 +21,13 @@ export const AccountsTable: React.FC = () => {
                     label="Filter Inactive"
                 />
             }
+            emptyBody={true}
         >
             <AccountsTableHeader />
             {institutions.map((institution) => (
                 <AccountsInstitutionDisplay key={institution.id} institution={institution} />
             ))}
-        </TableContainer>
+        </Section>
     );
 };
 

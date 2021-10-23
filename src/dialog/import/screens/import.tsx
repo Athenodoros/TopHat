@@ -72,7 +72,7 @@ const useStyles = makeStyles({
         // justifyContent: "space-between",
         alignItems: "center",
         "& p": { color: Greys[900] },
-        "& > :first-child": { flexGrow: 1 },
+        "& > p:first-of-type": { flexGrow: 1 },
     },
     delimiter: { width: 120 },
     dateFormat: { width: 120 },
@@ -81,6 +81,7 @@ const useStyles = makeStyles({
         "& .MuiInput-input": { textAlign: "center" },
     },
     title: {
+        flexGrow: 1,
         display: "flex",
         alignItems: "center",
         "& p": { marginRight: 3 },

@@ -32,7 +32,7 @@ const useEditStyles = makeStyles({
         "& > div": {
             width: "100%",
         },
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             marginBottom: 5,
         },
     },

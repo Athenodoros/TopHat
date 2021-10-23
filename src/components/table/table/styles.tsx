@@ -34,6 +34,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
 
         "& p": {
             lineHeight: "1 !important",
+            padding: "3px 0",
         },
     },
     selectedHeaderContainer: {
@@ -67,7 +68,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     text: {
         width: 150,
         flexGrow: 4,
-        margin: "17px 10px 10px 0",
+        margin: "14px 10px 10px 0",
     },
     summary: { fontWeight: 500 },
     description: {
@@ -161,11 +162,12 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
         alignItems: "center",
         overflow: "hidden",
         whiteSpace: "nowrap",
+        height: 32,
     },
     subtext: {
         color: Greys[500],
         alignSelf: "flex-end",
-        margin: "0 4px 1px 4px",
+        margin: "0 4px 9px 4px",
         lineHeight: 1,
     },
     missing: {

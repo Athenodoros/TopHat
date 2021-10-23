@@ -87,7 +87,7 @@ const useEditViewStyles = makeStyles((theme) => ({
         position: "relative",
 
         "&:hover": {
-            // "& > div:first-child": { opacity: 0.7, transition: "none" },
+            // "& > div:first -child": { opacity: 0.7, transition: "none" },
             "& > div:last-child": { opacity: 1, transition: "none" },
         },
     },

@@ -7,7 +7,7 @@ import { Greys } from "../../styles/colours";
 const useEditValueContainerStyles = makeStyles({
     outer: {
         margin: "15px 0",
-        "&:first-child": { marginTop: 10 },
+        "&:first-of-type": { marginTop: 10 },
         "&:last-child": { marginBottom: 10 },
     },
     container: {

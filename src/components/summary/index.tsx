@@ -10,7 +10,7 @@ const useStyles = makeStyles({
     container: {
         display: "flex",
 
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             flex: "300px 0 0",
             marginRight: SECTION_MARGIN,
         },

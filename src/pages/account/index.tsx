@@ -13,7 +13,7 @@ import { AccountStatementTable } from "./statements";
 const useStyles = makeStyles({
     middle: {
         display: "flex",
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             flex: "2 0 700px",
             marginRight: SECTION_MARGIN,
         },

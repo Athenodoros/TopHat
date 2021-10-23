@@ -3,12 +3,12 @@ import { Button, Card, Checkbox } from "@mui/material";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
-import { TableContainer, TableHeaderContainer } from "..";
+import { TableHeaderContainer } from "..";
 import { flipListIncludes } from "../../../shared/data";
 import { useRefToValue } from "../../../shared/hooks";
 import { EditTransactionState } from "../../../state/data";
 import { ID } from "../../../state/shared/values";
-import { SectionProps } from "../../layout";
+import { Section, SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
@@ -47,7 +47,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     const updaters = useTableUpdateFunctions(stateRef, setStatePartial, filtersRef, setFiltersPartial);
 
     return (
-        <TableContainer title="Transaction List" headers={headers}>
+        <Section title="Transaction List" headers={headers} emptyBody={true}>
             <TableHeaderContainer
                 className={clsx(classes.container, selection.length > 0 && classes.selectedHeaderContainer)}
             >
@@ -142,7 +142,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             >
                 Load More
             </Button>
-        </TableContainer>
+        </Section>
     );
 };
 

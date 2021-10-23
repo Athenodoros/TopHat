@@ -28,7 +28,7 @@ export const DialogStorageContents: React.FC = () => {
                     alignItems: "center",
                     margin: "10px 50px",
                     padding: "20px 0 40px 0",
-                    "& > svg:first-child": {
+                    "& > svg:first-of-type": {
                         width: 150,
                     },
                     "& > button": {

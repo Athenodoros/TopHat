@@ -21,7 +21,7 @@ const useStyles = makeStyles({
         display: "flex",
         padding: 10,
 
-        "& > svg:first-child": {
+        "& > svg": {
             marginTop: 3,
         },
     },

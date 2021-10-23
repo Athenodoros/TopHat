@@ -33,7 +33,7 @@ const useMainStyles = makeStyles((theme) => ({
         flexGrow: 1,
         height: 32,
 
-        "& > div:first-child": {
+        "& > div:first-of-type": {
             marginLeft: 10,
             color: Greys[500],
             width: 40,
@@ -161,7 +161,7 @@ const useEditViewStyles = makeStyles((theme) => ({
         flexGrow: 1,
         justifyContent: "space-between",
 
-        "& > :first-child": {
+        "& > :first-of-type": {
             marginRight: 30,
         },
     },

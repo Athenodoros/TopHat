@@ -70,7 +70,7 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
 
-        "& > *:first-child": {
+        "& > svg": {
             marginRight: 10,
         },
     },

@@ -1,6 +1,6 @@
 import { MenuItem, Select } from "@mui/material";
 import React from "react";
-import { TableContainer } from "../../../components/table";
+import { Section } from "../../../components/layout";
 import { handleSelectChange } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
@@ -19,7 +19,7 @@ export const CategoryTable: React.FC = () => {
     );
 
     return (
-        <TableContainer
+        <Section
             title="All Categories"
             headers={
                 <Select value={metric} onChange={setMetric} size="small">
@@ -28,6 +28,7 @@ export const CategoryTable: React.FC = () => {
                     <MenuItem value="average">12 Month Average</MenuItem>
                 </Select>
             }
+            emptyBody={true}
         >
             <CategoriesPageTableHeader tableSign={tableSign} hideEmpty={hideEmpty} />
             {options.map((option) => (
@@ -40,7 +41,7 @@ export const CategoryTable: React.FC = () => {
                     hideEmpty={hideEmpty}
                 />
             ))}
-        </TableContainer>
+        </Section>
     );
 };
 

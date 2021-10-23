@@ -20,6 +20,7 @@ const useSectionStyles = makeStyles((theme) => ({
         marginBottom: 12,
         height: 32,
         flexShrink: 0,
+        zIndex: 2, // For tables, so that the title is visible over the raised header
 
         "& > h6": {
             color: Greys[600],
