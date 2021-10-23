@@ -90,28 +90,34 @@ export const initialiseAndGetDBConnection = async () => {
 export const DataKeys = keys(DataDefaults) as (keyof DataState)[];
 
 const initialiseIDBSyncFromRedux = (db: TopHatDexie) =>
-    subscribeToDataUpdates((previous, state) => {
-        DataKeys.forEach((key) => {
-            if (previous && previous[key] === state[key]) return;
+    subscribeToDataUpdates((previous) =>
+        setTimeout(() => {
+            const state = TopHatStore.getState().data;
+            DataKeys.forEach((key) => {
+                if (previous && previous[key] === state[key]) return;
 
-            const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids));
-            const deleted = previous
-                ? ids.filter((id) => previous[key].entities[id] !== undefined && state[key].entities[id] === undefined)
-                : [];
-            const updated = ids.filter(
-                (id) => state[key].entities[id] && (!previous || previous[key].entities[id] !== state[key].entities[id])
-            );
-
-            if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
-            if (updated.length)
-                (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
-                    updated.map((id) => state[key].entities[id]!)
+                const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids));
+                const deleted = previous
+                    ? ids.filter(
+                          (id) => previous[key].entities[id] !== undefined && state[key].entities[id] === undefined
+                      )
+                    : [];
+                const updated = ids.filter(
+                    (id) =>
+                        state[key].entities[id] && (!previous || previous[key].entities[id] !== state[key].entities[id])
                 );
-        });
-    });
+
+                if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
+                if (updated.length)
+                    (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
+                        updated.map((id) => state[key].entities[id]!)
+                    );
+            });
+        }, 0)
+    );
 
 const initialiseMaybeDropboxSyncFromRedux = () =>
-    subscribeToDataUpdates((_, state) => DBUtils.maybeSaveDataToDropbox(state));
+    subscribeToDataUpdates(() => setTimeout(() => DBUtils.maybeSaveDataToDropbox(), 0));
 
 type DBDataTables = keyof Omit<DataState, "transaction"> | "transaction_";
 const hydrateReduxFromIDB = async (store: typeof TopHatStore, db: TopHatDexie) => {

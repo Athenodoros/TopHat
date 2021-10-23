@@ -1,7 +1,7 @@
 import { Dropbox, DropboxAuth } from "dropbox";
 import JSZip from "jszip";
 import { TopHatDispatch, TopHatStore } from "..";
-import { DataSlice, DataState } from "../data";
+import { DataSlice } from "../data";
 import { StubUserID } from "../data/types";
 import { DROPBOX_NOTIFICATION_ID } from "./notifications/variants/dropbox";
 
@@ -38,14 +38,14 @@ export class DBWrapper {
     }
 }
 
-export const maybeSaveDataToDropbox = async (state: DataState) => {
+export const maybeSaveDataToDropbox = async () => {
     if (!window.navigator.onLine) return;
 
     const db = DBWrapper.get();
     if (db === null) return;
 
     const zip = new JSZip();
-    zip.file("data.json", JSON.stringify(state));
+    zip.file("data.json", JSON.stringify(TopHatStore.getState().data));
     const data = await zip.generateAsync({
         type: "binarystring",
         compression: "DEFLATE",
