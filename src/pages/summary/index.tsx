@@ -28,8 +28,15 @@ const useStyles = makeStyles({
         flexShrink: 0,
         alignSelf: "flex-start",
 
+        // This is the hard-coded height of the other panels on the page
+        // A proper solution was beyond my CSS skills
+        maxHeight: 725,
+
         "& > div": {
             padding: 0,
+            minHeight: 0,
+            display: "flex",
+            flexDirection: "column",
         },
     },
 });

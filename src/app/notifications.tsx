@@ -1,7 +1,7 @@
 import { CheckCircleOutline, Clear } from "@mui/icons-material";
 import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
-import { Box } from "@mui/system";
+import { Box, SxProps } from "@mui/system";
 import React, { useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
 import { useAllNotifications } from "../state/data/hooks";
@@ -117,11 +117,11 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     );
 };
 
-export const Notifications: React.FC = () => {
+export const Notifications: React.FC<{ sx?: SxProps }> = ({ sx }) => {
     const notifications = useAllNotifications();
 
     return (
-        <Box sx={{ width: 350 }}>
+        <Box sx={{ width: 350, overflowY: "auto", ...sx }}>
             {notifications.length ? (
                 notifications.map((notification) => (
                     <NotificationDisplay key={notification.id} {...getNotificationDisplayMetadata(notification)} />

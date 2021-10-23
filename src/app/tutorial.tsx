@@ -52,7 +52,7 @@ export const TopHatTutorial: React.FC = () => {
                     </Typography>
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", "& > button": { width: 150 } }}>
-                    <Button size="large" color="app" variant="outlined" onClick={closeTutorial}>
+                    <Button color="app" variant="outlined" onClick={closeTutorial}>
                         Start Fresh
                     </Button>
                     <Button
@@ -70,7 +70,7 @@ export const TopHatTutorial: React.FC = () => {
                             "Begin Demo"
                         )}
                     </Button>
-                    <Button size="large" color="app" variant="outlined">
+                    <Button color="app" variant="outlined">
                         Upload Data
                     </Button>
                 </Box>

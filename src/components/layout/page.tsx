@@ -54,7 +54,7 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
                         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                         transformOrigin={{ vertical: "top", horizontal: "right" }}
                     >
-                        <Notifications />
+                        <Notifications sx={{ maxHeight: 350 }} />
                     </Popover>
                 </div>
             </div>
