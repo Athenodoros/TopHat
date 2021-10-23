@@ -19,7 +19,7 @@ import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/eve
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Currency } from "../../state/data";
-import { useAlphaVantageToken } from "../../state/data/hooks";
+import { useUserData } from "../../state/data/hooks";
 import { getNextID } from "../../state/data/shared";
 import { CurrencySyncType } from "../../state/data/types";
 import { getCurrencyRates } from "../../state/logic/currencies";
@@ -126,7 +126,7 @@ const EditCurrencyView: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [working.id]);
 
-    const alphavantage = useAlphaVantageToken();
+    const alphavantage = useUserData((user) => user.alphavantage);
 
     const updateSyncType = useMemo(
         () =>

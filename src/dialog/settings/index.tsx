@@ -7,8 +7,7 @@ import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
 import { AppSlice, DialogState } from "../../state/app";
 import { useDialogState } from "../../state/app/hooks";
-import { StubUserID } from "../../state/data/types";
-import { useSelector } from "../../state/shared/hooks";
+import { useUserData } from "../../state/data/hooks";
 import { Greys } from "../../styles/colours";
 import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogCurrencyContents } from "./currency";
@@ -33,7 +32,7 @@ const useStyles = makeStyles({
 export const DialogSettingsView: React.FC = () => {
     const classes = useStyles();
     const page = useDialogState("settings");
-    const isDemo = useSelector((state) => state.data.user.entities[StubUserID]!.isDemo);
+    const isDemo = useUserData((user) => user.isDemo);
 
     return (
         <DialogMain>

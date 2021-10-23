@@ -4,15 +4,14 @@ import { Box } from "@mui/system";
 import React from "react";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
-import { StubUserID } from "../../state/data/types";
+import { useUserData } from "../../state/data/hooks";
 import { redirectToDropboxAuthURI } from "../../state/logic/dropbox";
-import { useSelector } from "../../state/shared/hooks";
 import { Greys, Intents } from "../../styles/colours";
 import { ReactComponent as DropboxLogo } from "./dropbox.svg";
 import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogStorageContents: React.FC = () => {
-    const config = useSelector((state) => state.data.user.entities[StubUserID]!.dropbox);
+    const config = useUserData((user) => user.dropbox);
 
     return (
         <SettingsDialogPage title="Cloud Data Storage">

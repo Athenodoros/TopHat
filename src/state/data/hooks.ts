@@ -1,5 +1,5 @@
 import { Dictionary } from "@reduxjs/toolkit";
-import { last } from "lodash";
+import { identity, last } from "lodash";
 import numeral from "numeral";
 import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
@@ -15,7 +15,11 @@ import {
     Institution,
     Statement,
     StubUserID,
+    User,
 } from "./types";
+
+export const useUserData = <T = User>(selector: (user: User) => T = identity, equality?: (t1: T, t2: T) => boolean) =>
+    useSelector((state) => selector(state.data.user.entities[StubUserID]!), equality);
 
 export const useDefaultCurrency = () => useMaybeDefaultCurrency();
 export const useMaybeDefaultCurrency = (currency?: ID) =>
@@ -27,8 +31,6 @@ export const useFormatValue = (format: string, currency?: ID) => {
     const { symbol } = useMaybeDefaultCurrency(currency);
     return useCallback((value: number) => symbol + " " + numeral(value).format(format), [symbol, format]);
 };
-
-export const useAlphaVantageToken = () => useSelector(({ data }) => data.user.entities[StubUserID]!.alphavantage);
 
 export function useAccountByID(id: ID): Account;
 export function useAccountByID(id: ID | undefined): Account | undefined;

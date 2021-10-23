@@ -7,13 +7,11 @@ import { useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
-import { useAllAccounts } from "../../state/data/hooks";
-import { StubUserID } from "../../state/data/types";
+import { useAllAccounts, useUserData } from "../../state/data/hooks";
 import { ACCOUNTS_NOTIFICATION_ID } from "../../state/logic/notifications/variants/accounts";
 import { DEBT_NOTIFICATION_ID } from "../../state/logic/notifications/variants/debt";
 import { MILESTONE_NOTIFICATION_ID } from "../../state/logic/notifications/variants/milestone";
 import { UNCATEGORISED_NOTIFICATION_ID } from "../../state/logic/notifications/variants/uncategorised";
-import { useSelector } from "../../state/shared/hooks";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
@@ -48,7 +46,7 @@ const NotificationToggle: React.FC<{ id: string; title: string; control?: React.
     title,
     control,
 }) => {
-    const disabled = useSelector((state) => state.data.user.entities[StubUserID]!.disabled.includes(id));
+    const disabled = useUserData((user) => user.disabled.includes(id));
     const toggle = useCallback(() => TopHatDispatch(DataSlice.actions.toggleNotification(id)), [id]);
 
     return (
@@ -86,7 +84,7 @@ const useAutocompleteStyles = makeStyles({
 const useAccountsAutocomplete = () => {
     const classes = useAutocompleteStyles();
     const accounts = useAllAccounts();
-    const selected = useSelector((state) => state.data.user.entities[StubUserID]!.accountOutOfDate);
+    const selected = useUserData((user) => user.accountOutOfDate);
     const getAccountIcon = useGetAccountIcon();
 
     return (
@@ -131,7 +129,7 @@ const useAccountsAutocomplete = () => {
 const setNetWorthMilestone = (value: number | null) =>
     TopHatDispatch(DataSlice.actions.updateUserPartial({ milestone: value ?? 10000 }));
 const useNetWorthInput = () => {
-    const milestone = useSelector((state) => state.data.user.entities[StubUserID]!.milestone);
+    const milestone = useUserData((user) => user.milestone);
     const input = useNumericInputHandler(milestone, setNetWorthMilestone);
 
     return (
@@ -150,7 +148,7 @@ const useNetWorthInput = () => {
 const setDebtMilestone = (value: number | null) =>
     TopHatDispatch(DataSlice.actions.updateUserPartial({ debt: value ?? 10000 }));
 const useDebtInput = () => {
-    const debt = useSelector((state) => state.data.user.entities[StubUserID]!.debt);
+    const debt = useUserData((user) => user.debt);
     const input = useNumericInputHandler(debt, setDebtMilestone);
 
     return (

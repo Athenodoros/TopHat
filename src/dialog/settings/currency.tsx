@@ -4,15 +4,14 @@ import React, { useEffect, useState } from "react";
 import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
-import { StubUserID } from "../../state/data/types";
+import { useUserData } from "../../state/data/hooks";
 import { getCurrencyRates } from "../../state/logic/currencies";
-import { useSelector } from "../../state/shared/hooks";
 import { Intents } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogCurrencyContents: React.FC = () => {
-    const key = useSelector((state) => state.data.user.entities[StubUserID]!.alphavantage);
+    const key = useUserData((user) => user.alphavantage);
     const [syncStatus, setSyncStatus] = useState<"fail" | "loading" | "success" | "demo">(
         key === "demo" ? "demo" : "loading"
     );
