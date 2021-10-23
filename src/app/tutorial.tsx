@@ -1,7 +1,7 @@
 import { Camera } from "@mui/icons-material";
 import { Button, CircularProgress, Dialog, Link, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
@@ -10,6 +10,9 @@ import { AppColours, WHITE } from "../styles/colours";
 export const TopHatTutorial: React.FC = () => {
     const open = useUserData((user) => user.tutorial);
     const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        if (open) setLoading(false);
+    }, [open]);
 
     const startDemo = useCallback(() => {
         setLoading(true);
@@ -18,7 +21,7 @@ export const TopHatTutorial: React.FC = () => {
 
     return (
         <Dialog open={open} maxWidth="md" fullWidth={true}>
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: 0 }}>
                 <Box sx={{ flex: "1 1 100px" }} />
                 <Box
                     sx={{
@@ -38,7 +41,8 @@ export const TopHatTutorial: React.FC = () => {
                 <Typography variant="h5" sx={{ fontWeight: 500 }}>
                     Welcome to TopHat!
                 </Typography>
-                <Box sx={{ maxWidth: 500, margin: "40px 150px 80px 150px", textAlign: "center" }}>
+                <Box sx={{ flex: "1 1 40px" }} />
+                <Box sx={{ maxWidth: 500, margin: "0 150px", textAlign: "center" }}>
                     <Typography variant="body1" sx={{ marginBottom: 15 / 8 }}>
                         TopHat is a Personal Finance application which runs in the browser.
                     </Typography>
@@ -51,6 +55,7 @@ export const TopHatTutorial: React.FC = () => {
                         .
                     </Typography>
                 </Box>
+                <Box sx={{ flex: "1 1 80px" }} />
                 <Box sx={{ display: "flex", alignItems: "center", "& > button": { width: 150 } }}>
                     <Button color="app" variant="outlined" onClick={closeTutorial}>
                         Start Fresh

@@ -119,15 +119,18 @@ export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
 };
 
+const initialTutorialState = {
+    ...DataBaseline,
+    user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
+};
+
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
     name: "data",
-    initialState: {
-        ...DataBaseline,
-        user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
-    },
+    initialState: initialTutorialState,
     reducers: {
+        restartTutorial: () => initialTutorialState,
         reset: () => ({
             ...DataBaseline,
             user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
