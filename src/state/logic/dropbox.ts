@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { TopHatDispatch, TopHatStore } from "..";
 import { DataSlice, DataState } from "../data";
 import { StubUserID } from "../data/types";
+import { DROPBOX_NOTIFICATION_ID } from "./notifications/variants/dropbox";
 
 const APP_KEY = "7ru69iyjvo0wz6t";
 const REDIRECT_URI = `${window.location.origin}/dropbox`;
@@ -53,7 +54,25 @@ export const maybeSaveDataToDropbox = async (state: DataState) => {
             mode: { ".tag": "overwrite" },
             contents: data,
         })
-        .catch((error) => console.error(error));
+        .then(() => {
+            TopHatDispatch(
+                DataSlice.actions.updateNotificationState({
+                    user: {},
+                    id: DROPBOX_NOTIFICATION_ID,
+                    contents: null,
+                })
+            );
+        })
+        .catch((error) => {
+            TopHatDispatch(
+                DataSlice.actions.updateNotificationState({
+                    user: {},
+                    id: DROPBOX_NOTIFICATION_ID,
+                    contents: "",
+                })
+            );
+            console.error(error);
+        });
 };
 
 export const getMaybeDropboxRedirectCode = () => {

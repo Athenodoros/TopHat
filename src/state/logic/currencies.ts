@@ -5,6 +5,7 @@ import { TopHatDispatch, TopHatStore } from "..";
 import { formatDate, getCurrentMonth, SDate } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
+import { CURRENCY_NOTIFICATION_ID } from "./notifications/variants/currency";
 
 const AlphaVantage = "https://www.alphavantage.co/query?function=";
 const CurrencyRateRules = {
@@ -77,12 +78,29 @@ export const updateSyncedCurrencies = () => {
         const currency = entities[id]!;
         if (currency.sync) {
             const rates = await getCurrencyRates(currency.sync.type, currency.sync.ticker, token, currency.start);
-            TopHatDispatch(
-                DataSlice.actions.saveObject({
-                    type: "currency",
-                    working: { ...currency, rates },
-                })
-            );
+            if (rates) {
+                TopHatDispatch(
+                    DataSlice.actions.saveObject({
+                        type: "currency",
+                        working: { ...currency, rates },
+                    })
+                );
+                TopHatDispatch(
+                    DataSlice.actions.updateNotificationState({
+                        user: {},
+                        id: CURRENCY_NOTIFICATION_ID,
+                        contents: null,
+                    })
+                );
+            } else {
+                TopHatDispatch(
+                    DataSlice.actions.updateNotificationState({
+                        user: {},
+                        id: CURRENCY_NOTIFICATION_ID,
+                        contents: "",
+                    })
+                );
+            }
         }
     });
 };
