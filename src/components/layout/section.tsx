@@ -19,6 +19,7 @@ const useSectionStyles = makeStyles((theme) => ({
         alignItems: "center",
         marginBottom: 12,
         height: 32,
+        flexShrink: 0,
 
         "& > h6": {
             color: Greys[600],
