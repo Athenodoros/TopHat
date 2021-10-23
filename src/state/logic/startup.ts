@@ -28,6 +28,7 @@ export const initialiseAndGetDBConnection = async () => {
 
     // Set up IDB, if present
     let db = new TopHatDexie();
+    let loadedStateFromIDB = false;
     await db.user
         .get(StubUserID)
         .then(async (user) => {
@@ -35,6 +36,7 @@ export const initialiseAndGetDBConnection = async () => {
                 // IDB contains existing TopHat state
                 if (debug) console.log("Hydrating store from IndexedDB...");
                 await hydrateReduxFromIDB(TopHatStore, db);
+                loadedStateFromIDB = true;
             }
 
             initialiseIDBSyncFromRedux(db);
@@ -42,10 +44,10 @@ export const initialiseAndGetDBConnection = async () => {
         })
         .catch(async () => {
             if (debug) console.log("IndexedDB connection failed - bypassing initial load...");
-
-            // If we're in a dropbox redirect loop, we don't want the initial empty state and popup - set up demo
-            if (maybeDropboxCode) TopHatDispatch(DataSlice.actions.setUpDemo());
         });
+
+    // If we're in a dropbox redirect loop, we don't want the initial empty state and popup - set up demo
+    if (!loadedStateFromIDB && maybeDropboxCode) TopHatDispatch(DataSlice.actions.setUpDemo());
 
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
