@@ -110,7 +110,8 @@ export const ensureNotificationExists = (data: DataState, id: string, contents: 
 export const removeNotification = (data: DataState, id: string) =>
     (data.notification = adapters.notification.removeOne(data.notification, id));
 
-export const DataDefaults: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
+// Does not contain a user object
+const DataBaseline: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
     adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, []))
 );
 
@@ -118,24 +119,25 @@ export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
 };
 
-const InitialState = {
-    ...DataDefaults,
-    user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
-};
-
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
     name: "data",
-    initialState: InitialState,
+    initialState: {
+        ...DataBaseline,
+        user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
+    },
     reducers: {
-        reset: () => InitialState,
+        reset: () => ({
+            ...DataBaseline,
+            user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
+        }),
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
             mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
         setUpDemo: () => {
             const state = mapValuesWithKeys(adapters, (name, adapter) =>
-                adapter.addMany(cloneDeep(DataDefaults[name]), DemoObjects[name])
+                adapter.addMany(cloneDeep(DataBaseline[name]), DemoObjects[name])
             ) as DataState;
 
             // This is necessary because the EntityAdapters freeze objects when they are added

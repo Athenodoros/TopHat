@@ -43,7 +43,7 @@ export const SummaryPage: React.FC = () => {
     const getTransactionsChart = useGetSummaryChart(transactionSummaryData);
 
     return (
-        <Page title="Welcome to TopHat!">
+        <Page title="TopHat Finance">
             <div className={classes.container}>
                 <div className={classes.summaryColumn}>
                     <Section title="Net Worth" headers={<SeeMore page="accounts" />}>

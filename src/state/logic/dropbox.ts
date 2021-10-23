@@ -97,27 +97,36 @@ export const dealWithDropboxRedirect = (code: string) => {
     const verifier = window.sessionStorage.getItem("codeVerifier");
     if (verifier) dbxAuth.setCodeVerifier(verifier);
 
-    dbxAuth
-        .getAccessTokenFromCode(REDIRECT_URI, code)
-        .then(async (request) => {
-            const refreshToken = (request.result as any).refresh_token as string;
-            const db = new Dropbox({ clientId: APP_KEY, refreshToken });
+    try {
+        dbxAuth
+            .getAccessTokenFromCode(REDIRECT_URI, code)
+            .then(async (request) => {
+                const refreshToken = (request.result as any).refresh_token as string;
+                const db = new Dropbox({ clientId: APP_KEY, refreshToken });
 
-            const account = (await db.usersGetCurrentAccount()).result;
-            TopHatDispatch(
-                DataSlice.actions.updateUserPartial({
-                    dropbox: {
-                        refreshToken,
-                        email: account.email,
-                        name: account.name.display_name,
-                    },
-                })
-            );
+                const account = (await db.usersGetCurrentAccount()).result;
+                TopHatDispatch(
+                    DataSlice.actions.updateUserPartial({
+                        dropbox: {
+                            refreshToken,
+                            email: account.email,
+                            name: account.name.display_name,
+                        },
+                    })
+                );
 
-            DBWrapper.set(db);
-        })
-        .catch((error) => {
-            TopHatDispatch(DataSlice.actions.updateUserPartial({ dropbox: undefined }));
-            console.error(error);
-        });
+                DBWrapper.set(db);
+            })
+            .catch((error) => {
+                TopHatDispatch(DataSlice.actions.updateUserPartial({ dropbox: undefined }));
+                console.error(error);
+            });
+    } catch (err) {
+        TopHatDispatch(
+            DataSlice.actions.updateUserPartial({
+                dropbox: undefined,
+            })
+        );
+        console.error(err);
+    }
 };

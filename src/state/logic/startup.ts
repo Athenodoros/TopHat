@@ -2,78 +2,55 @@ import axios from "axios";
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { Dropbox, DropboxAuth } from "dropbox";
-import _, { keys, uniq, zipObject } from "lodash-es";
+import _, { uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
-import { DataDefaults, DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
-import { StubUserID } from "../data/types";
+import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
+import { DataKeys, StubUserID } from "../data/types";
 import { TopHatDexie } from "./database";
 import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
+import { setIDBConnectionExists } from "./notifications/variants/idb";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
 const debug = process.env.NODE_ENV !== "production";
 
 export const initialiseAndGetDBConnection = async () => {
+    // AppSlice changes the URL as soon as any action is fired and the reducer runs, so this has to be saved first
     const maybeDropboxCode = DBUtils.getMaybeDropboxRedirectCode();
 
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
-    // Initial hydration of DB and Redux store
+    // Set up IDB, if present
     let db = new TopHatDexie();
     await db.user
         .get(StubUserID)
         .then(async (user) => {
-            // const worker = getWorker();
-            // await worker.run();
-
-            if (debug) {
-                console.log("In debug mode - bypassing IndexedDB...");
-                TopHatDispatch(DataSlice.actions.setUpDemo());
-                return;
-            }
-
             if (user) {
                 // IDB contains existing TopHat state
                 if (debug) console.log("Hydrating store from IndexedDB...");
                 await hydrateReduxFromIDB(TopHatStore, db);
-                initialiseNotificationUpdateHook();
-                initialiseIDBSyncFromRedux(db);
-            } else {
-                // Nothing in IDB - set up demo
-                if (debug) console.log("No data found in IndexedDB - setting up demo...");
-                initialiseIDBSyncFromRedux(db);
-                initialiseNotificationUpdateHook();
-                TopHatDispatch(DataSlice.actions.setUpDemo());
-                // await worker.initialiseDemoData();
             }
+
+            initialiseIDBSyncFromRedux(db);
+            setIDBConnectionExists(true);
         })
         .catch(async () => {
-            // IDB isn't working, probably Firefox incognito => set up demo
-            if (debug) console.log("Can't use IndexedDB - setting up demo without syncing...");
+            if (debug) console.log("IndexedDB connection failed - bypassing initial load...");
 
-            // db = new TopHatDexie({
-            //     indexedDB: require("fake-indexeddb"),
-            //     IDBKeyRange: require("fake-indexeddb/lib/FDBKeyRange"),
-            // });
-
-            // initialiseIDBSyncFromRedux(TopHatStore, db);
-            initialiseNotificationUpdateHook();
-            TopHatDispatch(DataSlice.actions.setUpDemo());
-
-            // const worker = getMockWorker();
-            // await worker.run(false);
-
-            // await worker.initialiseDemoData();
+            // If we're in a dropbox redirect loop, we don't want the initial empty state and popup - set up demo
+            if (maybeDropboxCode) TopHatDispatch(DataSlice.actions.setUpDemo());
         });
 
-    // attachIDBChangeHandler(db, handleIDBChanges(TopHatStore.dispatch));
+    // Add notification hook to data updates
+    initialiseNotificationUpdateHook();
 
+    // Dropbox setup
     if (maybeDropboxCode) {
         if (debug) console.log("Initialising Dropbox state from redirect...");
         DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
@@ -83,11 +60,6 @@ export const initialiseAndGetDBConnection = async () => {
     // Debug variables
     if (debug) attachDebugVariablesToWindow(db);
 };
-
-// const handleIDBChanges = (dispatch: typeof TopHatDispatch) => (changes: IDatabaseChange[]) =>
-//     dispatch(DataSlice.actions.syncIDBChanges(changes));
-
-export const DataKeys = keys(DataDefaults) as (keyof DataState)[];
 
 const initialiseIDBSyncFromRedux = (db: TopHatDexie) =>
     subscribeToDataUpdates((previous) =>
@@ -129,20 +101,6 @@ const hydrateReduxFromIDB = async (store: typeof TopHatStore, db: TopHatDexie) =
 
     store.dispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
 };
-
-// type AsyncTopHatWorkerService = {
-//     [Key in keyof TopHatWorkerService]: TopHatWorkerService[Key] extends (...args: infer T) => infer U
-//         ? (...args: T) => Promise<U>
-//         : never;
-// };
-// const getMockWorker = () =>
-//     mapValues(
-//         TopHatWorker,
-//         <T extends Array<any>, U>(fn: (...args: T) => U) =>
-//             (...args: T): Promise<U> =>
-//                 new Promise((resolve) => resolve(fn(...args)))
-//     ) as unknown as AsyncTopHatWorkerService;
-// const getWorker = () => Comlink.wrap<TopHatWorkerService>(new Worker());
 
 const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Papa = Papa;

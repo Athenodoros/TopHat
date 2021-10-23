@@ -8,7 +8,7 @@ import { createAndDownloadFile } from "../../shared/data";
 import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
-import { DataKeys } from "../../state/logic/startup";
+import { DataKeys } from "../../state/data/types";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
 

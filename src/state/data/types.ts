@@ -190,6 +190,7 @@ export interface User {
     // Instance metadata
     isDemo: boolean;
     start: SDate;
+    tutorial: boolean;
 
     // Display
     currency: ID;
@@ -236,3 +237,15 @@ export interface DataState {
     user: EntityState<User>;
     notification: EntityState<Notification>;
 }
+
+export const DataKeys: (keyof DataState)[] = [
+    "account",
+    "category",
+    "currency",
+    "institution",
+    "rule",
+    "transaction",
+    "statement",
+    "user",
+    "notification",
+];

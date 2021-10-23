@@ -9,6 +9,7 @@ export const DEFAULT_USER_VALUE: User = {
     id: StubUserID,
     currency: 1,
     isDemo: false,
+    tutorial: false,
     start: getTodayString(),
     alphavantage: "demo",
 

@@ -1,5 +1,5 @@
 import { Theme, unstable_createMuiStrictModeTheme as createMuiTheme } from "@mui/material";
-import { Greys, Intents } from "./colours";
+import { AppColours, Greys, Intents } from "./colours";
 
 // declare module "@mui/material/styles" {
 //     interface Palette {
@@ -30,6 +30,10 @@ export const theme = createMuiTheme({
         },
     },
     palette: {
+        app: {
+            ...AppColours.summary,
+            contrastText: "white",
+        },
         background: {
             default: Greys[100],
         },
@@ -53,3 +57,18 @@ export const theme = createMuiTheme({
         },
     },
 });
+
+declare module "@mui/material/styles" {
+    interface Palette {
+        app: Palette["primary"];
+    }
+    interface PaletteOptions {
+        app: PaletteOptions["primary"];
+    }
+}
+
+declare module "@mui/material/Button" {
+    interface ButtonPropsColorOverrides {
+        app: true;
+    }
+}

@@ -6,12 +6,14 @@ import { CurrencyNotificationDefinition } from "./variants/currency";
 import { DebtNotificationDefinition } from "./variants/debt";
 import { DemoNotificationDefinition } from "./variants/demo";
 import { DropboxNotificationDefinition } from "./variants/dropbox";
+import { IDBNotificationDefinition } from "./variants/idb";
 import { MilestoneNotificationDefinition } from "./variants/milestone";
 import { UncategorisedNotificationDefinition } from "./variants/uncategorised";
 export type { NotificationDisplayMetadata } from "./types";
 
 const rules = [
     DemoNotificationDefinition,
+    IDBNotificationDefinition,
     DebtNotificationDefinition,
     AccountNotificationDefinition,
     MilestoneNotificationDefinition,

@@ -9,6 +9,7 @@ import { TopHatDialog } from "../dialog";
 import { TopHatStore } from "../state";
 import { handleStatementFileUpload } from "../state/logic/statement";
 import { theme } from "../styles/theme";
+import { TopHatTutorial } from "./tutorial";
 
 export const FileHandlerContext = React.createContext<{
     openFileDialog: () => void;
@@ -56,6 +57,7 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
                             <Provider store={TopHatStore}>
                                 <div {...omit(getRootProps(), ["onClick"])}>
                                     <TopHatDialog />
+                                    <TopHatTutorial />
                                     <input
                                         id="file-upload-dropzone"
                                         {...getInputProps({ style: { display: "none" } })}

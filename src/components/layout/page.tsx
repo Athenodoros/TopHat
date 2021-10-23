@@ -1,11 +1,9 @@
-import { Camera, Notifications as NotificationsIcon } from "@mui/icons-material";
+import { Notifications as NotificationsIcon } from "@mui/icons-material";
 import { Badge, IconButton, Popover, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
 import { Notifications } from "../../app/notifications";
 import { usePopoverProps } from "../../shared/hooks";
-import { TopHatDispatch } from "../../state";
-import { DataSlice } from "../../state/data";
 import { useNotificationCount } from "../../state/data/hooks";
 
 const usePageStyles = makeStyles((theme) => ({
@@ -58,14 +56,9 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
                     >
                         <Notifications />
                     </Popover>
-                    <IconButton onClick={topLayoutTestingButtonOnClick} size="large">
-                        <Camera />
-                    </IconButton>
                 </div>
             </div>
             {children}
         </div>
     );
 };
-
-const topLayoutTestingButtonOnClick = () => TopHatDispatch(DataSlice.actions.reset());
