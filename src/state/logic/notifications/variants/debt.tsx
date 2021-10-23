@@ -1,7 +1,8 @@
 import { TrendingDown } from "@mui/icons-material";
-import { sum, values } from "lodash";
+import { isEqual, sum, values } from "lodash";
 import { TopHatStore } from "../../..";
 import { Intents } from "../../../../styles/colours";
+import { DataState } from "../../../data";
 import { useFormatValue } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
 import {
@@ -14,8 +15,7 @@ import { NotificationRuleDefinition } from "../types";
 
 export const DEBT_NOTIFICATION_ID = "debt-level";
 
-const update = () => {
-    const { data } = TopHatStore.getState();
+const update = (data: DataState) => {
     const user = data.user.entities[StubUserID]!;
 
     // Balance milestones
@@ -28,8 +28,8 @@ const update = () => {
 
     // If there is no debt and previous milestone existed, send notification
     if (debt <= 0) {
-        if (user.milestone < 0) updateNotificationState({ milestone: 0 }, DEBT_NOTIFICATION_ID, "0");
-        else updateNotificationState({ milestone: 0 }, DEBT_NOTIFICATION_ID, null);
+        if (user.debt > 0) updateNotificationState({ milestone: 0 }, DEBT_NOTIFICATION_ID, "0");
+        else updateNotificationState({ debt: 0 }, DEBT_NOTIFICATION_ID, null);
         return;
     }
 
@@ -38,13 +38,13 @@ const update = () => {
     else if (debt <= milestone / 2) milestone /= 2;
 
     // If debt has shrunk, send alert
-    if (milestone < user.milestone && milestone >= 1000) {
-        updateNotificationState({ milestone }, DEBT_NOTIFICATION_ID, "" + milestone);
+    if (milestone < user.debt && milestone >= 1000) {
+        updateNotificationState({ debt: milestone }, DEBT_NOTIFICATION_ID, "" + milestone);
         return;
     }
 
     // If debt has increased, remove alert and update milestone
-    if (milestone > user.milestone) {
+    if (milestone > user.debt) {
         // updateNotificationState({ milestone }, DEBT_NOTIFICATION_ID, null);
         return;
     }
@@ -52,7 +52,7 @@ const update = () => {
 
 export const DebtNotificationDefinition: NotificationRuleDefinition = {
     id: DEBT_NOTIFICATION_ID,
-    updateNotificationState: update,
+    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: TrendingDown,
         title: alert.contents === "0" ? "Debt Fully Paid!" : "Debt Shrinking!",
@@ -60,6 +60,13 @@ export const DebtNotificationDefinition: NotificationRuleDefinition = {
         colour: Intents.success.main,
         children: <DebtMilestoneContents value={Number(alert.contents)} />,
     }),
+    maybeUpdateState: (previous, current) => {
+        if (
+            !isEqual(previous.account, current.account) ||
+            !isEqual(previous.user.entities[StubUserID]!.debt, current.user.entities[StubUserID]!.debt)
+        )
+            update(current);
+    },
 };
 
 const DebtMilestoneContents: React.FC<{ value: number }> = ({ value }) => {

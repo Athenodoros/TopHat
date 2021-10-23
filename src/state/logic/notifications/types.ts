@@ -1,5 +1,6 @@
 import React from "react";
 import { IconType } from "../../../shared/types";
+import { DataState } from "../../data";
 
 export interface NotificationDisplayMetadata {
     icon: IconType;
@@ -15,6 +16,7 @@ export interface NotificationDisplayMetadata {
 
 export interface NotificationRuleDefinition {
     id: string;
-    updateNotificationState: () => void;
+    updateNotificationState?: () => void;
     display: (alert: { id: string; contents: string }) => NotificationDisplayMetadata;
+    maybeUpdateState?: (previous: DataState, current: DataState) => void;
 }

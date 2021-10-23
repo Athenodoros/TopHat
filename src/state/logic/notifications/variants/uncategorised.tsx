@@ -1,8 +1,9 @@
 import { Payment } from "@mui/icons-material";
+import { isEqual } from "lodash";
 import { TopHatDispatch, TopHatStore } from "../../..";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice, DefaultPages } from "../../../app";
-import { PLACEHOLDER_CATEGORY_ID } from "../../../data";
+import { DataState, PLACEHOLDER_CATEGORY_ID } from "../../../data";
 import { StubUserID } from "../../../data/types";
 import {
     DefaultDismissNotificationThunk,
@@ -14,8 +15,7 @@ import { NotificationRuleDefinition } from "../types";
 
 export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
 
-const update = () => {
-    const { data } = TopHatStore.getState();
+const update = (data: DataState) => {
     const { uncategorisedTransactionsAlerted } = data.user.entities[StubUserID]!;
 
     const uncategorised = data.category.entities[PLACEHOLDER_CATEGORY_ID]!.transactions.count;
@@ -33,7 +33,7 @@ const update = () => {
 
 export const UncategorisedNotificationDefinition: NotificationRuleDefinition = {
     id: UNCATEGORISED_NOTIFICATION_ID,
-    updateNotificationState: update,
+    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: Payment,
         title: "Uncategorised Transactions",
@@ -47,6 +47,9 @@ export const UncategorisedNotificationDefinition: NotificationRuleDefinition = {
             </NotificationContents>
         ),
     }),
+    maybeUpdateState: (previous, current) => {
+        if (!isEqual(previous.category, current.category)) update(current);
+    },
 };
 
 const viewUncategorisedTransactions = () => {

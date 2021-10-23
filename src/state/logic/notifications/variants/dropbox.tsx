@@ -1,5 +1,4 @@
 import { CloudOff } from "@mui/icons-material";
-import { noop } from "lodash";
 import { TopHatDispatch } from "../../..";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
@@ -10,7 +9,6 @@ export const DROPBOX_NOTIFICATION_ID = "dropbox-sync-broken";
 
 export const DropboxNotificationDefinition: NotificationRuleDefinition = {
     id: DROPBOX_NOTIFICATION_ID,
-    updateNotificationState: noop,
     display: () => ({
         icon: CloudOff,
         title: "Dropbox Sync Failed",

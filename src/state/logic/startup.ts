@@ -13,7 +13,7 @@ import { StubUserID } from "../data/types";
 import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
 import * as DBUtils from "./dropbox";
-import { updateNotificationState } from "./notifications";
+import { initialiseNotificationUpdateHook, updateNotificationState } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
@@ -72,8 +72,12 @@ export const initialiseAndGetDBConnection = async () => {
 
     // attachIDBChangeHandler(db, handleIDBChanges(TopHatStore.dispatch));
 
-    if (maybeDropboxCode) DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
+    if (maybeDropboxCode) {
+        if (debug) console.log("Initialising Dropbox state from redirect...");
+        DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
+    }
     initialiseMaybeDropboxSyncFromRedux(TopHatStore);
+    initialiseNotificationUpdateHook();
     runUpdates();
 
     // Debug variables
@@ -167,6 +171,8 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
 };
 
 const runUpdates = () => {
+    if (debug) console.log("Running regular updates to data state...");
+
     updateSyncedCurrencies();
     updateNotificationState();
 

@@ -1,13 +1,13 @@
 import { AccountBalance, AccountBalanceWallet } from "@mui/icons-material";
 import { Avatar } from "@mui/material";
 import { Box } from "@mui/system";
-import { sortBy } from "lodash";
+import { isEqual, sortBy } from "lodash";
 import { TopHatDispatch, TopHatStore } from "../../..";
 import { OLD_ACCOUNT_AGE_LIMIT } from "../../../../pages/accounts/table/account";
 import { Greys, Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
 import { DefaultDialogs } from "../../../app/defaults";
-import { DataSlice } from "../../../data";
+import { DataSlice, DataState } from "../../../data";
 import { useAccountByID, useInstitutionByID } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
 import { getTodayString, ID, parseDate } from "../../../shared/values";
@@ -26,8 +26,7 @@ interface AccountNotificationContents {
     age: number;
 }
 
-const update = () => {
-    const { data } = TopHatStore.getState();
+const update = (data: DataState) => {
     const { accountOutOfDate } = data.user.entities[StubUserID]!;
 
     const account = sortBy(
@@ -44,14 +43,11 @@ const update = () => {
             updateNotificationState({}, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
         }
     }
-
-    if (account) {
-    }
 };
 
 export const AccountNotificationDefinition: NotificationRuleDefinition = {
     id: ACCOUNTS_NOTIFICATION_ID,
-    updateNotificationState: update,
+    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => {
         const contents = JSON.parse(alert.contents) as AccountNotificationContents;
         return {
@@ -65,6 +61,16 @@ export const AccountNotificationDefinition: NotificationRuleDefinition = {
             ],
             children: <OldAccountContents id={contents.id} age={contents.age} />,
         };
+    },
+    maybeUpdateState: (previous, current) => {
+        if (
+            !isEqual(previous.account, current.account) ||
+            !isEqual(
+                previous.user.entities[StubUserID]!.accountOutOfDate,
+                current.user.entities[StubUserID]!.accountOutOfDate
+            )
+        )
+            update(current);
     },
 };
 

@@ -1,3 +1,4 @@
+import { TopHatStore } from "../..";
 import { zipObject } from "../../../shared/data";
 import { Notification } from "../../data/types";
 import { AccountNotificationDefinition } from "./variants/accounts";
@@ -26,8 +27,20 @@ const definitions = zipObject(
 export const getNotificationDisplayMetadata = (notification: Notification) =>
     definitions[notification.id].display(notification);
 
-/**
- * Eventually, there will be a function to loop through all notification types and look for hits.
- * It will need to store state for each type between sessions
- */
-export const updateNotificationState = () => rules.forEach((rule) => rule.updateNotificationState());
+export const initialiseNotificationUpdateHook = () => {
+    let previous = TopHatStore.getState().data;
+    TopHatStore.subscribe(() => {
+        const current = TopHatStore.getState().data;
+
+        // This is to prevent infinite recursion
+        const cache = previous;
+        previous = current;
+
+        console.log(previous, cache, current);
+
+        rules.forEach((rule) => rule.maybeUpdateState && rule.maybeUpdateState(cache, current));
+    });
+};
+
+export const updateNotificationState = () =>
+    rules.forEach((rule) => rule.updateNotificationState && rule.updateNotificationState());

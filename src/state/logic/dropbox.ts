@@ -39,6 +39,8 @@ export class DBWrapper {
 }
 
 export const maybeSaveDataToDropbox = async (state: DataState) => {
+    if (!window.navigator.onLine) return;
+
     const db = DBWrapper.get();
     if (db === null) return;
 

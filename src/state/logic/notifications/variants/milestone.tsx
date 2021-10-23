@@ -1,7 +1,8 @@
 import { TrendingUp } from "@mui/icons-material";
-import { sum, values } from "lodash";
+import { isEqual, sum, values } from "lodash";
 import { TopHatStore } from "../../..";
 import { Intents } from "../../../../styles/colours";
+import { DataState } from "../../../data";
 import { useFormatValue } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
 import {
@@ -14,8 +15,7 @@ import { NotificationRuleDefinition } from "../types";
 
 export const MILESTONE_NOTIFICATION_ID = "new-milestone";
 
-const update = () => {
-    const { data } = TopHatStore.getState();
+const update = (data: DataState) => {
     const user = data.user.entities[StubUserID]!;
 
     // Balance milestones
@@ -41,7 +41,7 @@ const update = () => {
 
 export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
     id: MILESTONE_NOTIFICATION_ID,
-    updateNotificationState: update,
+    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: TrendingUp,
         title: "New Milestone Reached!",
@@ -49,6 +49,13 @@ export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
         colour: Intents.success.main,
         children: <NewMilestoneContents value={Number(alert.contents)} />,
     }),
+    maybeUpdateState: (previous, current) => {
+        if (
+            !isEqual(previous.account, current.account) ||
+            !isEqual(previous.user.entities[StubUserID]!.milestone, current.user.entities[StubUserID]!.milestone)
+        )
+            update(current);
+    },
 };
 
 const NewMilestoneContents: React.FC<{ value: number }> = ({ value }) => {

@@ -3,6 +3,7 @@ import { TopHatDispatch, TopHatStore } from "../../..";
 import { createAndDownloadFile } from "../../../../shared/data";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
+import { DataState } from "../../../data";
 import { DemoStatementFiles } from "../../../data/demo";
 import { StubUserID } from "../../../data/types";
 import { NotificationContents, updateNotificationState } from "../shared";
@@ -10,8 +11,7 @@ import { NotificationRuleDefinition } from "../types";
 
 export const DEMO_NOTIFICATION_ID = "demo";
 
-const update = () => {
-    const { data } = TopHatStore.getState();
+const update = (data: DataState) => {
     const { isDemo } = data.user.entities[StubUserID]!;
 
     updateNotificationState({}, DEMO_NOTIFICATION_ID, isDemo ? "" : null);
@@ -19,7 +19,7 @@ const update = () => {
 
 export const DemoNotificationDefinition: NotificationRuleDefinition = {
     id: DEMO_NOTIFICATION_ID,
-    updateNotificationState: update,
+    updateNotificationState: () => update(TopHatStore.getState().data),
     display: () => ({
         icon: ListAlt,
         title: "Demo Data",
@@ -34,6 +34,9 @@ export const DemoNotificationDefinition: NotificationRuleDefinition = {
             </NotificationContents>
         ),
     }),
+    maybeUpdateState: (previous, current) => {
+        if (previous.user.entities[StubUserID]!.isDemo !== current.user.entities[StubUserID]!.isDemo) update(current);
+    },
 };
 
 const manageData = () => {

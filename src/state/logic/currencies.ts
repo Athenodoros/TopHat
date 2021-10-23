@@ -68,39 +68,49 @@ export const getCurrencyRates = async (
 };
 
 export const updateSyncedCurrencies = () => {
+    if (!window.navigator.onLine) return;
+
     const {
         currency: { ids, entities },
         user,
     } = TopHatStore.getState().data;
     const token = user.entities[StubUserID]!.alphavantage;
 
-    ids.forEach(async (id) => {
-        const currency = entities[id]!;
-        if (currency.sync) {
-            const rates = await getCurrencyRates(currency.sync.type, currency.sync.ticker, token, currency.start);
-            if (rates) {
-                TopHatDispatch(
-                    DataSlice.actions.saveObject({
-                        type: "currency",
-                        working: { ...currency, rates },
-                    })
-                );
-                TopHatDispatch(
-                    DataSlice.actions.updateNotificationState({
-                        user: {},
-                        id: CURRENCY_NOTIFICATION_ID,
-                        contents: null,
-                    })
-                );
-            } else {
-                TopHatDispatch(
-                    DataSlice.actions.updateNotificationState({
-                        user: {},
-                        id: CURRENCY_NOTIFICATION_ID,
-                        contents: "",
-                    })
+    Promise.all(
+        ids.map(async (id) => {
+            const currency = entities[id]!;
+            if (currency.sync) {
+                return getCurrencyRates(currency.sync.type, currency.sync.ticker, token, currency.start).then(
+                    (rates) => {
+                        if (rates) {
+                            TopHatDispatch(
+                                DataSlice.actions.saveObject({
+                                    type: "currency",
+                                    working: { ...currency, rates },
+                                })
+                            );
+                        }
+                    }
                 );
             }
-        }
-    });
+        })
+    )
+        .then(() =>
+            TopHatDispatch(
+                DataSlice.actions.updateNotificationState({
+                    user: {},
+                    id: CURRENCY_NOTIFICATION_ID,
+                    contents: null,
+                })
+            )
+        )
+        .catch(() =>
+            TopHatDispatch(
+                DataSlice.actions.updateNotificationState({
+                    user: {},
+                    id: CURRENCY_NOTIFICATION_ID,
+                    contents: "",
+                })
+            )
+        );
 };
