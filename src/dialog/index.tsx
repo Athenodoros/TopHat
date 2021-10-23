@@ -12,7 +12,7 @@ import {
 import { Dialog, Divider, IconButton, ListItemIcon, ListItemText, MenuItem, Select } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { get } from "lodash";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { FileHandlerContext } from "../app/context";
 import { handleSelectChange } from "../shared/events";
 import { IconType } from "../shared/types";
@@ -73,6 +73,10 @@ export const TopHatDialog: React.FC = () => {
     const classes = useStyles();
 
     const onClose = useCallback(() => !isDragActive && closeDialog(), [isDragActive]);
+
+    // This triggers a re-render after initial load, once the ref is populated
+    const reRender = useState(false)[1];
+    useEffect(() => void setTimeout(() => reRender(true), 0.1), [reRender]);
 
     if (!dropzoneRef?.current) return null;
 

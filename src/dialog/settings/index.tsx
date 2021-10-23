@@ -14,6 +14,7 @@ import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogCurrencyContents } from "./currency";
 import { DialogExportContents, DialogImportContents } from "./data";
 import { DialogNotificationsContents } from "./notifications";
+import { DialogStorageContents } from "./storage";
 import { DialogSummaryContents } from "./summary";
 
 const useStyles = makeStyles({
@@ -93,7 +94,7 @@ const setEmptyPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ se
 const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
     import: <DialogImportContents />,
     export: <DialogExportContents />,
-    storage: null,
+    storage: <DialogStorageContents />,
     notifications: <DialogNotificationsContents />,
     currency: <DialogCurrencyContents />,
 };

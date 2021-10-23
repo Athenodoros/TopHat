@@ -178,6 +178,11 @@ export interface Statement {
  * User-specific data persisted between sessions
  */
 export const StubUserID = 0;
+export interface DropboxSpec {
+    refreshToken: string;
+    name: string;
+    email: string;
+}
 export interface User {
     // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
     id: ID;
@@ -191,6 +196,7 @@ export interface User {
 
     // External Services
     alphavantage: string;
+    dropbox?: DropboxSpec | "loading";
 
     // Notification State
     disabled: string[]; // Disabled alert IDs

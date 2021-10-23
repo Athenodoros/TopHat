@@ -25,21 +25,29 @@ export const getPagePathForPageState = (state: PageStateType) => {
     if (state.id === "category") path += "/" + state.category;
     return path;
 };
-export const getPageStateFromPagePath = (path: string) => {
-    const [_, page, id] = trimEnd(path, "#").split("/");
+const getDefaultPageState = (page: PageStateType | null) => ({
+    dialog: DefaultDialogs,
+    page: page || DefaultPages["summary"],
+});
+export const getAppStateFromPagePath = (location: Location): AppState => {
+    const [_, page, id] = trimEnd(location.pathname, "#").split("/");
 
-    if (page === "account") return ObjectIDRegex.test(id) ? { ...DefaultPages.account, account: Number(id) } : null;
-    if (page === "category") return ObjectIDRegex.test(id) ? { ...DefaultPages.category, category: Number(id) } : null;
+    if (page === "dropbox")
+        return {
+            dialog: { ...DefaultDialogs, id: "settings", settings: "storage" },
+            page: DefaultPages["summary"],
+        };
+    if (page === "account")
+        return getDefaultPageState(ObjectIDRegex.test(id) ? { ...DefaultPages.account, account: Number(id) } : null);
+    if (page === "category")
+        return getDefaultPageState(ObjectIDRegex.test(id) ? { ...DefaultPages.category, category: Number(id) } : null);
 
-    return get(DefaultPages, trimStart(path, "/"), null) as PageStateType | null;
+    return getDefaultPageState(get(DefaultPages, trimStart(location.pathname, "/"), null));
 };
 
 export const AppSlice = createSlice({
     name: "app",
-    initialState: {
-        dialog: DefaultDialogs,
-        page: getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"],
-    } as AppState,
+    initialState: getAppStateFromPagePath(window.location),
     reducers: {
         setPage: (state, { payload }: PayloadAction<PageStateType["id"]>) => {
             state.page = DefaultPages[payload];
@@ -47,9 +55,7 @@ export const AppSlice = createSlice({
         setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => {
             state.page = page;
         },
-        setPageStateFromPath: (state) => {
-            state.page = getPageStateFromPagePath(window.location.pathname) || DefaultPages["summary"];
-        },
+        setPageStateFromPath: () => getAppStateFromPagePath(window.location),
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),

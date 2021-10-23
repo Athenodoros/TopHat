@@ -1,7 +1,8 @@
 import axios from "axios";
 import chroma from "chroma-js";
 import Dexie from "dexie";
-import _, { keys, uniq, zipObject } from "lodash-es";
+import { Dropbox, DropboxAuth } from "dropbox";
+import _, { isEqual, keys, uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
@@ -11,6 +12,7 @@ import { DataDefaults, DataSlice, DataState, ListDataState } from "../data";
 import { StubUserID } from "../data/types";
 import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
+import * as DBUtils from "./dropbox";
 import { updateNotificationState } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
@@ -18,6 +20,8 @@ import * as Parsing from "./statement/parsing";
 const debug = process.env.NODE_ENV !== "production";
 
 export const initialiseAndGetDBConnection = async () => {
+    const maybeDropboxCode = DBUtils.getMaybeDropboxRedirectCode();
+
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
@@ -68,6 +72,8 @@ export const initialiseAndGetDBConnection = async () => {
 
     // attachIDBChangeHandler(db, handleIDBChanges(TopHatStore.dispatch));
 
+    if (maybeDropboxCode) DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
+    initialiseMaybeDropboxSyncFromRedux(TopHatStore);
     runUpdates();
 
     // Debug variables
@@ -101,6 +107,18 @@ const initialiseIDBSyncFromRedux = (store: typeof TopHatStore, db: TopHatDexie) 
                     updated.map((id) => current[key].entities[id]!)
                 );
         });
+    });
+};
+
+const initialiseMaybeDropboxSyncFromRedux = (store: typeof TopHatStore) => {
+    let previous = store.getState().data;
+    store.subscribe(() => {
+        const current = store.getState().data;
+
+        if (!isEqual(previous, current)) {
+            previous = current;
+            DBUtils.maybeSaveDataToDropbox(current);
+        }
     });
 };
 
@@ -141,6 +159,9 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).DataSlice = DataSlice;
     (window as any).Statement = { ...Statement, ...Parsing };
     (window as any).db = db;
+    (window as any).DBUtils = DBUtils;
+    (window as any).Dropbox = Dropbox;
+    (window as any).DropboxAuth = DropboxAuth;
 
     console.log("Setting up debug variables...");
 };
