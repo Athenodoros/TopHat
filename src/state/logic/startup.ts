@@ -2,18 +2,17 @@ import axios from "axios";
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { Dropbox, DropboxAuth } from "dropbox";
-import _, { isEqual, keys, uniq, zipObject } from "lodash-es";
+import _, { keys, uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import numeral from "numeral";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
-import { DataDefaults, DataSlice, DataState, ListDataState } from "../data";
+import { DataDefaults, DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
 import { StubUserID } from "../data/types";
-import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
 import * as DBUtils from "./dropbox";
-import { initialiseNotificationUpdateHook, updateNotificationState } from "./notifications";
+import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
@@ -43,11 +42,13 @@ export const initialiseAndGetDBConnection = async () => {
                 // IDB contains existing TopHat state
                 if (debug) console.log("Hydrating store from IndexedDB...");
                 await hydrateReduxFromIDB(TopHatStore, db);
-                initialiseIDBSyncFromRedux(TopHatStore, db);
+                initialiseNotificationUpdateHook();
+                initialiseIDBSyncFromRedux(db);
             } else {
                 // Nothing in IDB - set up demo
                 if (debug) console.log("No data found in IndexedDB - setting up demo...");
-                initialiseIDBSyncFromRedux(TopHatStore, db);
+                initialiseIDBSyncFromRedux(db);
+                initialiseNotificationUpdateHook();
                 TopHatDispatch(DataSlice.actions.setUpDemo());
                 // await worker.initialiseDemoData();
             }
@@ -62,6 +63,7 @@ export const initialiseAndGetDBConnection = async () => {
             // });
 
             // initialiseIDBSyncFromRedux(TopHatStore, db);
+            initialiseNotificationUpdateHook();
             TopHatDispatch(DataSlice.actions.setUpDemo());
 
             // const worker = getMockWorker();
@@ -76,9 +78,7 @@ export const initialiseAndGetDBConnection = async () => {
         if (debug) console.log("Initialising Dropbox state from redirect...");
         DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
     }
-    initialiseMaybeDropboxSyncFromRedux(TopHatStore);
-    initialiseNotificationUpdateHook();
-    runUpdates();
+    initialiseMaybeDropboxSyncFromRedux();
 
     // Debug variables
     if (debug) attachDebugVariablesToWindow(db);
@@ -89,42 +89,29 @@ export const initialiseAndGetDBConnection = async () => {
 
 export const DataKeys = keys(DataDefaults) as (keyof DataState)[];
 
-const initialiseIDBSyncFromRedux = (store: typeof TopHatStore, db: TopHatDexie) => {
-    let previous = store.getState().data;
-    store.subscribe(async () => {
-        const current = store.getState().data;
-
+const initialiseIDBSyncFromRedux = (db: TopHatDexie) =>
+    subscribeToDataUpdates((previous, state) => {
         DataKeys.forEach((key) => {
-            if (previous[key] === current[key]) return;
+            if (previous && previous[key] === state[key]) return;
 
-            const ids = uniq(previous[key].ids.concat(current[key].ids));
-            const deleted = ids.filter(
-                (id) => previous[key].entities[id] !== undefined && current[key].entities[id] === undefined
-            );
+            const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids));
+            const deleted = previous
+                ? ids.filter((id) => previous[key].entities[id] !== undefined && state[key].entities[id] === undefined)
+                : [];
             const updated = ids.filter(
-                (id) => current[key].entities[id] && previous[key].entities[id] !== current[key].entities[id]
+                (id) => state[key].entities[id] && (!previous || previous[key].entities[id] !== state[key].entities[id])
             );
 
             if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
             if (updated.length)
                 (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
-                    updated.map((id) => current[key].entities[id]!)
+                    updated.map((id) => state[key].entities[id]!)
                 );
         });
     });
-};
 
-const initialiseMaybeDropboxSyncFromRedux = (store: typeof TopHatStore) => {
-    let previous = store.getState().data;
-    store.subscribe(() => {
-        const current = store.getState().data;
-
-        if (!isEqual(previous, current)) {
-            previous = current;
-            DBUtils.maybeSaveDataToDropbox(current);
-        }
-    });
-};
+const initialiseMaybeDropboxSyncFromRedux = () =>
+    subscribeToDataUpdates((_, state) => DBUtils.maybeSaveDataToDropbox(state));
 
 type DBDataTables = keyof Omit<DataState, "transaction"> | "transaction_";
 const hydrateReduxFromIDB = async (store: typeof TopHatStore, db: TopHatDexie) => {
@@ -168,13 +155,4 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).DropboxAuth = DropboxAuth;
 
     console.log("Setting up debug variables...");
-};
-
-const runUpdates = () => {
-    if (debug) console.log("Running regular updates to data state...");
-
-    updateSyncedCurrencies();
-    updateNotificationState();
-
-    setTimeout(runUpdates, 24 * 60 * 60 * 1000);
 };

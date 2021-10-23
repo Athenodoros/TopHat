@@ -1,16 +1,10 @@
 import { TrendingDown } from "@mui/icons-material";
 import { isEqual, sum, values } from "lodash";
-import { TopHatStore } from "../../..";
 import { Intents } from "../../../../styles/colours";
-import { DataState } from "../../../data";
+import { DataState, ensureNotificationExists, removeNotification, updateUserData } from "../../../data";
 import { useFormatValue } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
-import {
-    DefaultDismissNotificationThunk,
-    GreenNotificationText,
-    NotificationContents,
-    updateNotificationState,
-} from "../shared";
+import { DefaultDismissNotificationThunk, GreenNotificationText, NotificationContents } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
 export const DEBT_NOTIFICATION_ID = "debt-level";
@@ -28,8 +22,13 @@ const update = (data: DataState) => {
 
     // If there is no debt and previous milestone existed, send notification
     if (debt <= 0) {
-        if (user.debt > 0) updateNotificationState({ milestone: 0 }, DEBT_NOTIFICATION_ID, "0");
-        else updateNotificationState({ debt: 0 }, DEBT_NOTIFICATION_ID, null);
+        if (user.debt > 0) {
+            ensureNotificationExists(data, DEBT_NOTIFICATION_ID, "0");
+            updateUserData(data, { debt: 0 });
+        } else {
+            removeNotification(data, DEBT_NOTIFICATION_ID);
+            updateUserData(data, { debt: 0 });
+        }
         return;
     }
 
@@ -39,20 +38,21 @@ const update = (data: DataState) => {
 
     // If debt has shrunk, send alert
     if (milestone < user.debt && milestone >= 1000) {
-        updateNotificationState({ debt: milestone }, DEBT_NOTIFICATION_ID, "" + milestone);
+        ensureNotificationExists(data, DEBT_NOTIFICATION_ID, "" + milestone);
+        updateUserData(data, { debt: milestone });
         return;
     }
 
     // If debt has increased, remove alert and update milestone
     if (milestone > user.debt) {
-        // updateNotificationState({ milestone }, DEBT_NOTIFICATION_ID, null);
+        removeNotification(data, DEBT_NOTIFICATION_ID);
+        updateUserData(data, { debt: milestone });
         return;
     }
 };
 
 export const DebtNotificationDefinition: NotificationRuleDefinition = {
     id: DEBT_NOTIFICATION_ID,
-    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: TrendingDown,
         title: alert.contents === "0" ? "Debt Fully Paid!" : "Debt Shrinking!",
@@ -62,8 +62,8 @@ export const DebtNotificationDefinition: NotificationRuleDefinition = {
     }),
     maybeUpdateState: (previous, current) => {
         if (
-            !isEqual(previous.account, current.account) ||
-            !isEqual(previous.user.entities[StubUserID]!.debt, current.user.entities[StubUserID]!.debt)
+            !isEqual(previous?.account, current.account) ||
+            !isEqual(previous?.user.entities[StubUserID]!.debt, current.user.entities[StubUserID]!.debt)
         )
             update(current);
     },

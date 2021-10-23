@@ -1,5 +1,5 @@
-import { TopHatStore } from "../..";
 import { zipObject } from "../../../shared/data";
+import { subscribeToDataUpdates } from "../../data";
 import { Notification } from "../../data/types";
 import { AccountNotificationDefinition } from "./variants/accounts";
 import { CurrencyNotificationDefinition } from "./variants/currency";
@@ -27,20 +27,7 @@ const definitions = zipObject(
 export const getNotificationDisplayMetadata = (notification: Notification) =>
     definitions[notification.id].display(notification);
 
-export const initialiseNotificationUpdateHook = () => {
-    let previous = TopHatStore.getState().data;
-    TopHatStore.subscribe(() => {
-        const current = TopHatStore.getState().data;
-
-        // This is to prevent infinite recursion
-        const cache = previous;
-        previous = current;
-
-        console.log(previous, cache, current);
-
-        rules.forEach((rule) => rule.maybeUpdateState && rule.maybeUpdateState(cache, current));
-    });
-};
-
-export const updateNotificationState = () =>
-    rules.forEach((rule) => rule.updateNotificationState && rule.updateNotificationState());
+export const initialiseNotificationUpdateHook = () =>
+    subscribeToDataUpdates((previous, current) =>
+        rules.forEach((rule) => rule.maybeUpdateState && rule.maybeUpdateState(previous, current))
+    );

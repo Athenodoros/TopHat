@@ -7,16 +7,11 @@ import { OLD_ACCOUNT_AGE_LIMIT } from "../../../../pages/accounts/table/account"
 import { Greys, Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
 import { DefaultDialogs } from "../../../app/defaults";
-import { DataSlice, DataState } from "../../../data";
+import { DataSlice, DataState, ensureNotificationExists, removeNotification } from "../../../data";
 import { useAccountByID, useInstitutionByID } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
 import { getTodayString, ID, parseDate } from "../../../shared/values";
-import {
-    DefaultDismissNotificationThunk,
-    NotificationContents,
-    OrangeNotificationText,
-    updateNotificationState,
-} from "../shared";
+import { DefaultDismissNotificationThunk, NotificationContents, OrangeNotificationText } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
 export const ACCOUNTS_NOTIFICATION_ID = "old-accounts";
@@ -35,19 +30,18 @@ const update = (data: DataState) => {
     )[0];
 
     if (!account) {
-        updateNotificationState({}, ACCOUNTS_NOTIFICATION_ID, null);
+        removeNotification(data, ACCOUNTS_NOTIFICATION_ID);
     } else {
         const age = -Math.floor(parseDate(account.lastUpdate).diffNow("days").days);
         if (age >= OLD_ACCOUNT_AGE_LIMIT) {
             const contents: AccountNotificationContents = { id: account.id, age };
-            updateNotificationState({}, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
+            ensureNotificationExists(data, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
         }
     }
 };
 
 export const AccountNotificationDefinition: NotificationRuleDefinition = {
     id: ACCOUNTS_NOTIFICATION_ID,
-    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => {
         const contents = JSON.parse(alert.contents) as AccountNotificationContents;
         return {
@@ -64,9 +58,9 @@ export const AccountNotificationDefinition: NotificationRuleDefinition = {
     },
     maybeUpdateState: (previous, current) => {
         if (
-            !isEqual(previous.account, current.account) ||
+            !isEqual(previous?.account, current.account) ||
             !isEqual(
-                previous.user.entities[StubUserID]!.accountOutOfDate,
+                previous?.user.entities[StubUserID]!.accountOutOfDate,
                 current.user.entities[StubUserID]!.accountOutOfDate
             )
         )

@@ -1,16 +1,17 @@
 import { Payment } from "@mui/icons-material";
 import { isEqual } from "lodash";
-import { TopHatDispatch, TopHatStore } from "../../..";
+import { TopHatDispatch } from "../../..";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice, DefaultPages } from "../../../app";
-import { DataState, PLACEHOLDER_CATEGORY_ID } from "../../../data";
-import { StubUserID } from "../../../data/types";
 import {
-    DefaultDismissNotificationThunk,
-    NotificationContents,
-    OrangeNotificationText,
-    updateNotificationState,
-} from "../shared";
+    DataState,
+    ensureNotificationExists,
+    PLACEHOLDER_CATEGORY_ID,
+    removeNotification,
+    updateUserData,
+} from "../../../data";
+import { StubUserID } from "../../../data/types";
+import { DefaultDismissNotificationThunk, NotificationContents, OrangeNotificationText } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
 export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
@@ -22,18 +23,16 @@ const update = (data: DataState) => {
     const notification = data.notification.entities[UNCATEGORISED_NOTIFICATION_ID];
 
     if (uncategorised === 0) {
-        updateNotificationState({ uncategorisedTransactionsAlerted: false }, UNCATEGORISED_NOTIFICATION_ID, null);
-    } else if (!uncategorisedTransactionsAlerted || notification)
-        updateNotificationState(
-            { uncategorisedTransactionsAlerted: true },
-            UNCATEGORISED_NOTIFICATION_ID,
-            "" + uncategorised
-        );
+        updateUserData(data, { uncategorisedTransactionsAlerted: false });
+        removeNotification(data, UNCATEGORISED_NOTIFICATION_ID);
+    } else if (!uncategorisedTransactionsAlerted || notification) {
+        updateUserData(data, { uncategorisedTransactionsAlerted: true });
+        ensureNotificationExists(data, UNCATEGORISED_NOTIFICATION_ID, "" + uncategorised);
+    }
 };
 
 export const UncategorisedNotificationDefinition: NotificationRuleDefinition = {
     id: UNCATEGORISED_NOTIFICATION_ID,
-    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: Payment,
         title: "Uncategorised Transactions",
@@ -48,7 +47,7 @@ export const UncategorisedNotificationDefinition: NotificationRuleDefinition = {
         ),
     }),
     maybeUpdateState: (previous, current) => {
-        if (!isEqual(previous.category, current.category)) update(current);
+        if (!isEqual(previous?.category, current.category)) update(current);
     },
 };
 

@@ -16,7 +16,6 @@ export interface NotificationDisplayMetadata {
 
 export interface NotificationRuleDefinition {
     id: string;
-    updateNotificationState?: () => void;
     display: (alert: { id: string; contents: string }) => NotificationDisplayMetadata;
-    maybeUpdateState?: (previous: DataState, current: DataState) => void;
+    maybeUpdateState?: (previous: DataState | undefined, current: DataState) => void;
 }

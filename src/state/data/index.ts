@@ -26,6 +26,7 @@ import {
     uniqWith,
     upperFirst,
 } from "lodash";
+import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import {
@@ -100,6 +101,15 @@ const adapters: Record<keyof DataState, EntityAdapter<any>> = {
     user: BaseAdapter,
 };
 
+export const updateUserData = (state: DataState, changes: Partial<User>) =>
+    adapters.user.updateOne(state.user, { id: StubUserID, changes });
+
+export const ensureNotificationExists = (data: DataState, id: string, contents: string) =>
+    (data.notification = adapters.notification.upsertOne(data.notification, { id, contents }));
+
+export const removeNotification = (data: DataState, id: string) =>
+    (data.notification = adapters.notification.removeOne(data.notification, id));
+
 export const DataDefaults: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
     adapter.addMany(adapter.getInitialState(), get(BaseObjects, name, []))
 );
@@ -108,16 +118,18 @@ export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
 };
 
+const InitialState = {
+    ...DataDefaults,
+    user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
+};
+
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
     name: "data",
-    initialState: DataDefaults,
+    initialState: InitialState,
     reducers: {
-        reset: () => ({
-            ...DataDefaults,
-            user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
-        }),
+        reset: () => InitialState,
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
             mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
@@ -362,6 +374,20 @@ export const DataSlice = createSlice({
         // },
     },
 });
+
+export type DataUpdateListener = (previous: DataState | undefined, next: DataState) => void;
+const listeners: DataUpdateListener[] = [];
+const oldReducer = DataSlice.reducer; // Separate assignment to prevent infinite recursion
+DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
+    const newState = oldReducer(state, action);
+    if (!isEqual(state, newState)) {
+        return createNextState(newState, (newState) => {
+            listeners.forEach((listener) => listener(state, newState));
+        });
+    }
+    return newState;
+};
+export const subscribeToDataUpdates = (listener: DataUpdateListener) => void listeners.push(listener);
 
 export const useDeleteObjectError = <Type extends BasicObjectName>(type: Type, id: ID) =>
     useSelector((state) => deleteObjectError(state.data, type, id));

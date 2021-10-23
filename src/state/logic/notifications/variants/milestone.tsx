@@ -1,18 +1,11 @@
 import { TrendingUp } from "@mui/icons-material";
 import { isEqual, sum, values } from "lodash";
-import { TopHatStore } from "../../..";
 import { Intents } from "../../../../styles/colours";
-import { DataState } from "../../../data";
+import { DataState, ensureNotificationExists, removeNotification, updateUserData } from "../../../data";
 import { useFormatValue } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
-import {
-    DefaultDismissNotificationThunk,
-    GreenNotificationText,
-    NotificationContents,
-    updateNotificationState,
-} from "../shared";
+import { DefaultDismissNotificationThunk, GreenNotificationText, NotificationContents } from "../shared";
 import { NotificationRuleDefinition } from "../types";
-
 export const MILESTONE_NOTIFICATION_ID = "new-milestone";
 
 const update = (data: DataState) => {
@@ -26,7 +19,8 @@ const update = (data: DataState) => {
     );
 
     if (balance <= 0) {
-        updateNotificationState({ milestone: 0 }, MILESTONE_NOTIFICATION_ID, null);
+        removeNotification(data, MILESTONE_NOTIFICATION_ID);
+        updateUserData(data, { milestone: 0 });
         return;
     }
 
@@ -34,14 +28,17 @@ const update = (data: DataState) => {
     if (balance >= milestone * 5) milestone *= 5;
     else if (balance >= milestone * 2) milestone *= 2;
 
-    if (milestone > user.milestone && milestone >= 10000)
-        updateNotificationState({ milestone }, MILESTONE_NOTIFICATION_ID, "" + milestone);
-    else if (milestone < user.milestone) updateNotificationState({ milestone }, MILESTONE_NOTIFICATION_ID, null);
+    if (milestone > user.milestone && milestone >= 10000) {
+        ensureNotificationExists(data, MILESTONE_NOTIFICATION_ID, "" + milestone);
+        updateUserData(data, { milestone });
+    } else if (milestone < user.milestone) {
+        removeNotification(data, MILESTONE_NOTIFICATION_ID);
+        updateUserData(data, { milestone });
+    }
 };
 
 export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
     id: MILESTONE_NOTIFICATION_ID,
-    updateNotificationState: () => update(TopHatStore.getState().data),
     display: (alert) => ({
         icon: TrendingUp,
         title: "New Milestone Reached!",
@@ -51,8 +48,8 @@ export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
     }),
     maybeUpdateState: (previous, current) => {
         if (
-            !isEqual(previous.account, current.account) ||
-            !isEqual(previous.user.entities[StubUserID]!.milestone, current.user.entities[StubUserID]!.milestone)
+            !isEqual(previous?.account, current.account) ||
+            !isEqual(previous?.user.entities[StubUserID]!.milestone, current.user.entities[StubUserID]!.milestone)
         )
             update(current);
     },
