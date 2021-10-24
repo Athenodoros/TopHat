@@ -339,7 +339,7 @@ const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
         <Typography
             variant="subtitle2"
             sx={{
-                marginLeft: 6 / 8,
+                marginLeft: 6,
                 color:
                     age === undefined
                         ? Greys[700]

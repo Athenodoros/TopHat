@@ -3,7 +3,7 @@ import { Greys } from "../../styles/colours";
 
 export const SettingsDialogPage: React.FC<{ title: string }> = ({ title, children }) => (
     <Box sx={{ width: 450, margin: "30px auto", display: "flex", flexDirection: "column", flexGrow: 1 }}>
-        <Typography variant="h6" sx={{ marginBottom: 20 / 8, color: Greys[600] }}>
+        <Typography variant="h6" sx={{ marginBottom: 20, color: Greys[600] }}>
             {title}
         </Typography>
         {children}

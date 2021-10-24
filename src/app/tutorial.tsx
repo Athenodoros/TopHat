@@ -23,7 +23,7 @@ export const TopHatTutorial: React.FC = () => {
     return (
         <Dialog open={open} maxWidth="md" fullWidth={true}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: 0 }}>
-                <Box sx={{ flex: "1 1 100px" }} />
+                <Box sx={{ flex: "1 1 90px" }} />
                 <Box
                     sx={{
                         background: AppColours.summary.main,
@@ -34,7 +34,7 @@ export const TopHatTutorial: React.FC = () => {
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
-                        marginBottom: 10 / 8,
+                        marginBottom: 10,
                     }}
                 >
                     <Camera htmlColor={WHITE} sx={{ fontSize: "2rem", strokeWidth: 1 }} />
@@ -42,30 +42,31 @@ export const TopHatTutorial: React.FC = () => {
                 <Typography variant="h5" sx={{ fontWeight: 500 }}>
                     Welcome to TopHat!
                 </Typography>
-                <Box sx={{ flex: "1 1 40px" }} />
+                <Box sx={{ flex: "1 1 50px" }} />
                 <Box sx={{ maxWidth: 500, margin: "0 150px", textAlign: "center" }}>
-                    <Typography variant="body1" sx={{ marginBottom: 15 / 8 }}>
+                    <Typography variant="body1" sx={{ marginBottom: 20 }}>
                         TopHat is a Personal Finance application which runs in the browser.
                     </Typography>
                     <Typography variant="body1">
                         It lets you track balances and expenses across multiple currencies, while preserving your
-                        privacy: your data is stored on your computer, and is completely under your control. Learn more{" "}
+                        privacy: your data is stored on your computer, and you manage any external connections. Learn
+                        more{" "}
                         <Link href="https://github.com/Athenodoros/TopHat" underline="hover" target="_blank">
                             here
                         </Link>
                         .
                     </Typography>
                 </Box>
-                <Box sx={{ flex: "1 1 80px" }} />
-                <Box sx={{ display: "flex", alignItems: "center", "& > button": { width: 150 } }}>
-                    <Button color="app" variant="outlined" onClick={closeTutorial}>
+                <Box sx={{ flex: "1 1 60px" }} />
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Button color="app" variant="outlined" onClick={closeTutorial} sx={{ width: 150, height: 40 }}>
                         Start Fresh
                     </Button>
                     <Button
                         size="large"
                         color="app"
                         variant="contained"
-                        sx={{ height: 55, width: 180, margin: "0 50px" }}
+                        sx={{ height: 55, width: 180, margin: "0 40px" }}
                         onClick={startDemo}
                     >
                         {loading ? (
@@ -76,11 +77,11 @@ export const TopHatTutorial: React.FC = () => {
                             "Begin Demo"
                         )}
                     </Button>
-                    <Button color="app" variant="outlined">
+                    <Button color="app" variant="outlined" sx={{ width: 150, height: 40 }}>
                         Upload Data
                     </Button>
                 </Box>
-                <Box sx={{ flex: "1 1 80px" }} />
+                <Box sx={{ flex: "1 1 90px" }} />
             </Box>
         </Dialog>
     );

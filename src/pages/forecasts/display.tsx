@@ -47,10 +47,10 @@ export const useCalculatorInputDisplay = (
                     flexDirection: "column",
                 }}
             >
-                <Box sx={{ display: "flex", alignItems: "center", marginBottom: 4 / 8 }}>
+                <Box sx={{ display: "flex", alignItems: "center", marginBottom: 4 }}>
                     <Typography
                         variant="subtitle2"
-                        sx={{ textTransform: "uppercase", color: Greys[700], marginRight: 8 / 8 }}
+                        sx={{ textTransform: "uppercase", color: Greys[700], marginRight: 8 }}
                     >
                         {title}
                     </Typography>
@@ -58,7 +58,7 @@ export const useCalculatorInputDisplay = (
                         ({measure})
                     </Typography>
                     <Tooltip title={help}>
-                        <HelpOutlined sx={{ fontSize: 16, marginLeft: 10 / 8 }} htmlColor={Greys[400]} />
+                        <HelpOutlined sx={{ fontSize: 16, marginLeft: 10 }} htmlColor={Greys[400]} />
                     </Tooltip>
                 </Box>
                 <TextField

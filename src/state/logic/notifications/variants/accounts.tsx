@@ -124,7 +124,7 @@ const OldAccountContents: React.FC<{ id: ID; age: number }> = ({ id, age }) => {
                         height: 16,
                         width: 16,
                         borderRadius: 3,
-                        marginRight: 5 / 8,
+                        marginRight: 5,
                     }}
                 >
                     <AccountBalance style={{ height: "60%" }} />

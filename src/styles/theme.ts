@@ -56,6 +56,7 @@ export const theme = createMuiTheme({
             main: Intents.danger.main,
         },
     },
+    spacing: 1,
 });
 
 declare module "@mui/material/styles" {

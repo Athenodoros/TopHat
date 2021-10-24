@@ -230,7 +230,7 @@ const EditCurrencyView: React.FC = () => {
                         flexGrow: 1,
                         "& > button": {
                             flexGrow: 1,
-                            padding: 5 / 8,
+                            padding: 5,
                         },
                     }}
                 >
