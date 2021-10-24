@@ -61,7 +61,7 @@ export const useTimeSeriesInput = ({ values, update, secondary, id, getOriginals
                 <BasicBarChart
                     sx={{
                         height: 30,
-                        marginBottom: 15 / 8,
+                        marginBottom: 15,
                     }}
                     values={values}
                     selected={inputs ? undefined : selectedMonth}

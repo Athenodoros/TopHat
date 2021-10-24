@@ -113,7 +113,7 @@ const OldAccountContents: React.FC<{ id: ID; age: number }> = ({ id, age }) => {
                     padding: "1px 6px 1px 3px",
                     background: Greys[100],
                     border: "1px solid " + Greys[300],
-                    borderRadius: 4,
+                    borderRadius: 100,
                     alignItems: "center",
                     verticalAlign: "middle",
                 }}
@@ -123,8 +123,8 @@ const OldAccountContents: React.FC<{ id: ID; age: number }> = ({ id, age }) => {
                     sx={{
                         height: 16,
                         width: 16,
-                        borderRadius: 3,
-                        marginRight: 5 / 8,
+                        borderRadius: "50%",
+                        marginRight: 5,
                     }}
                 >
                     <AccountBalance style={{ height: "60%" }} />

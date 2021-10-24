@@ -50,10 +50,10 @@ const NotificationToggle: React.FC<{ id: string; title: string; control?: React.
     const toggle = useCallback(() => TopHatDispatch(DataSlice.actions.toggleNotification(id)), [id]);
 
     return (
-        <Box sx={{ marginBottom: 20 / 8 }}>
+        <Box sx={{ marginBottom: 20 }}>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <Typography variant="button">{title}</Typography>
-                <Switch checked={!disabled} onChange={toggle} sx={{ margin: -5 / 8 }} />
+                <Switch checked={!disabled} onChange={toggle} sx={{ margin: -5 }} />
             </Box>
             {control && (
                 <Collapse in={!disabled} sx={{ "& .MuiCollapse-wrapperInner > div": { margin: 0 } }}>

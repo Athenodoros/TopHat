@@ -49,7 +49,7 @@ export const DialogCurrencyContents: React.FC = () => {
             <SettingsDialogDivider />
             <SettingsDialogContents>
                 <EditValueContainer label="API Key">
-                    <TextField value={key} onChange={setKeyValue} size="small" sx={{ marginRight: 12 / 8 }} />
+                    <TextField value={key} onChange={setKeyValue} size="small" sx={{ marginRight: 12 }} />
                     {syncStatus === "fail" ? (
                         <Cancel htmlColor={Intents.danger.light} />
                     ) : syncStatus === "success" ? (

@@ -34,7 +34,7 @@ export const DialogStorageContents: React.FC = () => {
                             width: 150,
                         },
                         "& > button": {
-                            marginTop: 10 / 8,
+                            marginTop: 10,
                         },
                     }}
                 >
@@ -44,7 +44,7 @@ export const DialogStorageContents: React.FC = () => {
                     ) : config ? (
                         <>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Typography variant="subtitle2" marginRight={10 / 8}>
+                                <Typography variant="subtitle2" marginRight={10}>
                                     {config.name}
                                 </Typography>
                                 <CheckCircle htmlColor={Intents.success.light} fontSize="small" />

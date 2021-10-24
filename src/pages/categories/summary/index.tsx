@@ -28,7 +28,7 @@ export const CategoriesPageSummary: React.FC = () => {
         <Box
             sx={{
                 display: "flex",
-                "& > div:first-of-type": { flex: "350px 0 0", marginRight: SECTION_MARGIN / 8 },
+                "& > div:first-of-type": { flex: "350px 0 0", marginRight: SECTION_MARGIN },
                 "& > div:last-child": { flexGrow: 1 },
             }}
         >

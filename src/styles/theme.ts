@@ -56,7 +56,14 @@ export const theme = createMuiTheme({
             main: Intents.danger.main,
         },
     },
+    spacing: 1,
+    // This messes with the default MUI component styling - better to manage manually
+    // shape: {
+    //     borderRadius: 1,
+    // },
 });
+
+export const DEFAULT_RADIUS = 4;
 
 declare module "@mui/material/styles" {
     interface Palette {

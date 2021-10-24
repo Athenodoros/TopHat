@@ -10,6 +10,7 @@ import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartDomainFunctions } from "../../../shared/data";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
+import { DEFAULT_RADIUS } from "../../../styles/theme";
 
 const BarContainer = styled("div")({
     display: "flex",
@@ -88,15 +89,15 @@ export const CategoriesBarSummary: React.FC<{ points: CategoriesBarSummaryPoint[
                 flexDirection: "column",
                 alignItems: "stretch",
                 background: Greys[100],
-                borderRadius: 2,
-                paddingBottom: 1,
-                marginTop: 1,
-                marginBottom: -0.75,
+                borderRadius: 8 / DEFAULT_RADIUS,
+                paddingBottom: 8,
+                marginTop: 8,
+                marginBottom: -6,
             }}
         >
             <BarContainer>
                 <Tooltip title="Income">
-                    <FileDownload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 1 }} />
+                    <FileDownload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 8 }} />
                 </Tooltip>
                 <StackedBar>
                     <ValueRow>{positiveValueNodes}</ValueRow>
@@ -105,7 +106,7 @@ export const CategoriesBarSummary: React.FC<{ points: CategoriesBarSummaryPoint[
             </BarContainer>
             <BarContainer>
                 <Tooltip title="Expenses">
-                    <FileUpload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 1 }} />
+                    <FileUpload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 8 }} />
                 </Tooltip>
                 <StackedBar>
                     <ValueRow>{negativeValueNodes}</ValueRow>
