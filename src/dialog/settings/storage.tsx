@@ -8,7 +8,7 @@ import { useUserData } from "../../state/data/hooks";
 import { redirectToDropboxAuthURI } from "../../state/logic/dropbox";
 import { Greys, Intents } from "../../styles/colours";
 import { ReactComponent as DropboxLogo } from "./dropbox.svg";
-import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
+import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogStorageContents: React.FC = () => {
     const config = useUserData((user) => user.dropbox);
@@ -21,43 +21,46 @@ export const DialogStorageContents: React.FC = () => {
                 online.
             </Typography>
             <SettingsDialogDivider />
-            <Card
-                sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    margin: "10px 50px",
-                    padding: "20px 0 40px 0",
-                    "& > svg:first-of-type": {
-                        width: 150,
-                    },
-                    "& > button": {
-                        marginTop: 10 / 8,
-                    },
-                }}
-            >
-                <DropboxLogo />
-                {config === "loading" ? (
-                    <CircularProgress />
-                ) : config ? (
-                    <>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <Typography variant="subtitle2" marginRight={10 / 8}>
-                                {config.name}
+            <SettingsDialogContents>
+                <Card
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        margin: "10px 50px",
+                        padding: "20px 0 40px 0",
+                        flexShrink: 0,
+                        "& > svg:first-of-type": {
+                            width: 150,
+                        },
+                        "& > button": {
+                            marginTop: 10 / 8,
+                        },
+                    }}
+                >
+                    <DropboxLogo />
+                    {config === "loading" ? (
+                        <CircularProgress />
+                    ) : config ? (
+                        <>
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Typography variant="subtitle2" marginRight={10 / 8}>
+                                    {config.name}
+                                </Typography>
+                                <CheckCircle htmlColor={Intents.success.light} fontSize="small" />
+                            </Box>
+                            <Typography variant="caption" color={Greys[700]}>
+                                {config.email}
                             </Typography>
-                            <CheckCircle htmlColor={Intents.success.light} fontSize="small" />
-                        </Box>
-                        <Typography variant="caption" color={Greys[700]}>
-                            {config.email}
-                        </Typography>
-                        <Button onClick={removeDropboxSync}>Remove</Button>
-                    </>
-                ) : (
-                    <Button size="large" onClick={redirectToDropboxAuthURI} variant="outlined">
-                        Link Account
-                    </Button>
-                )}
-            </Card>
+                            <Button onClick={removeDropboxSync}>Remove</Button>
+                        </>
+                    ) : (
+                        <Button size="large" onClick={redirectToDropboxAuthURI} variant="outlined">
+                            Link Account
+                        </Button>
+                    )}
+                </Card>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };

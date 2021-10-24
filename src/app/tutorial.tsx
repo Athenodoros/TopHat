@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
+import { initialiseDemoData } from "../state/logic/startup";
 import { AppColours, WHITE } from "../styles/colours";
 
 export const TopHatTutorial: React.FC = () => {
@@ -16,7 +17,7 @@ export const TopHatTutorial: React.FC = () => {
 
     const startDemo = useCallback(() => {
         setLoading(true);
-        setTimeout(() => TopHatDispatch(DataSlice.actions.setUpDemo()), 0);
+        setTimeout(initialiseDemoData, 0);
     }, []);
 
     return (

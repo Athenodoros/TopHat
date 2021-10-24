@@ -10,7 +10,7 @@ import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { DataKeys } from "../../state/data/types";
 import { EditValueContainer } from "../shared";
-import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
+import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 const useStyles = makeStyles({
     input: {
@@ -33,28 +33,30 @@ export const DialogExportContents: React.FC = () => {
                 between the formats below - the buttons will download all data to your computer.
             </Typography>
             <SettingsDialogDivider />
-            <EditValueContainer
-                label={
-                    <Button variant="outlined" className={classes.button} onClick={createCSVDownload}>
-                        Export CSV
-                    </Button>
-                }
-            >
-                <Typography variant="body1">
-                    Good for Excel analysis or uploads to other personal finance applications.
-                </Typography>
-            </EditValueContainer>
-            <EditValueContainer
-                label={
-                    <Button variant="outlined" className={classes.button} onClick={createJSONDownload}>
-                        Export JSON
-                    </Button>
-                }
-            >
-                <Typography variant="body1">
-                    Used to restore information to TopHat, or for analytical and programming tools.
-                </Typography>
-            </EditValueContainer>
+            <SettingsDialogContents>
+                <EditValueContainer
+                    label={
+                        <Button variant="outlined" className={classes.button} onClick={createCSVDownload}>
+                            Export CSV
+                        </Button>
+                    }
+                >
+                    <Typography variant="body1">
+                        Good for Excel analysis or uploads to other personal finance applications.
+                    </Typography>
+                </EditValueContainer>
+                <EditValueContainer
+                    label={
+                        <Button variant="outlined" className={classes.button} onClick={createJSONDownload}>
+                            Export JSON
+                        </Button>
+                    }
+                >
+                    <Typography variant="body1">
+                        Used to restore information to TopHat, or for analytical and programming tools.
+                    </Typography>
+                </EditValueContainer>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };
@@ -99,40 +101,43 @@ export const DialogImportContents: React.FC = () => {
                 onChange={handleTextFieldChange(setText)}
             />
             <SettingsDialogDivider />
-            <EditValueContainer
-                label={
-                    <Button {...ButtonProps} component="label">
-                        Import JSON
-                        <input hidden={true} type="file" ref={onCreateFileInput} />
-                    </Button>
-                }
-            >
-                <Typography variant="body1">
-                    <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
-                </Typography>
-            </EditValueContainer>
-            <EditValueContainer
-                label={
-                    <Button {...ButtonProps} onClick={resetDemoData}>
-                        Restart Demo
-                    </Button>
-                }
-            >
-                <Typography variant="body1">
-                    <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
-                </Typography>
-            </EditValueContainer>
-            <EditValueContainer
-                label={
-                    <Button {...ButtonProps} onClick={deleteAllData}>
-                        Wipe Data
-                    </Button>
-                }
-            >
-                <Typography variant="body1">
-                    <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty state.
-                </Typography>
-            </EditValueContainer>
+            <SettingsDialogContents>
+                <EditValueContainer
+                    label={
+                        <Button {...ButtonProps} component="label">
+                            Import JSON
+                            <input hidden={true} type="file" ref={onCreateFileInput} />
+                        </Button>
+                    }
+                >
+                    <Typography variant="body1">
+                        <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
+                    </Typography>
+                </EditValueContainer>
+                <EditValueContainer
+                    label={
+                        <Button {...ButtonProps} onClick={resetDemoData}>
+                            Restart Demo
+                        </Button>
+                    }
+                >
+                    <Typography variant="body1">
+                        <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
+                    </Typography>
+                </EditValueContainer>
+                <EditValueContainer
+                    label={
+                        <Button {...ButtonProps} onClick={deleteAllData}>
+                            Wipe Data
+                        </Button>
+                    }
+                >
+                    <Typography variant="body1">
+                        <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty
+                        state.
+                    </Typography>
+                </EditValueContainer>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };

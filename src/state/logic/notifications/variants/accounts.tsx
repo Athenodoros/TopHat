@@ -47,7 +47,7 @@ export const AccountNotificationDefinition: NotificationRuleDefinition = {
         return {
             icon: AccountBalanceWallet,
             title: "Account Not Updated",
-            dismiss: DefaultDismissNotificationThunk(alert.id),
+            dismiss: dismiss(contents.id),
             colour: Intents.warning.main,
             buttons: [
                 { text: "Upload Statement", onClick: openStatementDialog(contents.id) },
@@ -62,10 +62,25 @@ export const AccountNotificationDefinition: NotificationRuleDefinition = {
             !isEqual(
                 previous?.user.entities[StubUserID]!.accountOutOfDate,
                 current.user.entities[StubUserID]!.accountOutOfDate
-            )
+            ) ||
+            previous?.notification.entities[ACCOUNTS_NOTIFICATION_ID]?.contents !==
+                current.notification.entities[ACCOUNTS_NOTIFICATION_ID]?.contents
         )
             update(current);
     },
+};
+
+const dismiss = (account: ID) => (closedProgrammatically: boolean) => {
+    DefaultDismissNotificationThunk(ACCOUNTS_NOTIFICATION_ID)();
+
+    if (!closedProgrammatically)
+        TopHatDispatch(
+            DataSlice.actions.updateUserPartial({
+                accountOutOfDate: TopHatStore.getState().data.user.entities[StubUserID]!.accountOutOfDate.concat([
+                    account,
+                ]),
+            })
+        );
 };
 
 const openStatementDialog = (id: ID) => () => {

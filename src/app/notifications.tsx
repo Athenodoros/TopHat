@@ -2,7 +2,7 @@ import { CheckCircleOutline, Clear } from "@mui/icons-material";
 import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { Box, SxProps } from "@mui/system";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
 import { useAllNotifications } from "../state/data/hooks";
 import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../state/logic/notifications";
@@ -78,8 +78,15 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     const classes = useStyles();
     const [grow, setGrow] = useState(true);
 
+    const [closedProgrammatically, setClosedProgrammatically] = useState(false);
+    const programmaticDismiss = useCallback(() => {
+        setGrow(false);
+        setClosedProgrammatically(true);
+    }, []);
+    const onExited = useCallback(() => dismiss && dismiss(closedProgrammatically), [dismiss, closedProgrammatically]);
+
     return (
-        <Collapse in={grow} onExited={dismiss} className={classes.container}>
+        <Collapse in={grow} onExited={onExited} className={classes.container}>
             <Fade in={grow}>
                 <div className={classes.notification} style={{ borderColor: colour }}>
                     <div className={classes.backdrop} style={{ backgroundColor: colour }} />
@@ -99,7 +106,7 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                         <div className={classes.buttons}>
                             {buttons.map(({ text, onClick }, idx) => (
                                 <Button
-                                    onClick={() => onClick(() => setGrow(false))}
+                                    onClick={() => onClick(programmaticDismiss)}
                                     size="small"
                                     key={idx}
                                     color="inherit"
@@ -124,7 +131,10 @@ export const Notifications: React.FC<{ sx?: SxProps }> = ({ sx }) => {
         <Box sx={{ width: 350, overflowY: "auto", ...sx }}>
             {notifications.length ? (
                 notifications.map((notification) => (
-                    <NotificationDisplay key={notification.id} {...getNotificationDisplayMetadata(notification)} />
+                    <NotificationDisplay
+                        key={notification.id + "-" + notification.contents}
+                        {...getNotificationDisplayMetadata(notification)}
+                    />
                 ))
             ) : (
                 <NonIdealState icon={CheckCircleOutline} title="No Notifications!" intent="app" />

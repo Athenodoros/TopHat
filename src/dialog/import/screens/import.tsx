@@ -58,8 +58,9 @@ import { FileImportTableViewGrid } from "./table";
 
 const useStyles = makeStyles({
     stepper: {
-        padding: "20px 0 20px 15px",
+        margin: "20px 0 20px 15px",
         background: "transparent",
+        overflowY: "auto",
     },
     optionsContainer: {
         maxHeight: 220,

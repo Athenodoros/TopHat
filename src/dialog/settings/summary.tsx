@@ -11,7 +11,7 @@ import { useUserData } from "../../state/data/hooks";
 import { useSelector } from "../../state/shared/hooks";
 import { parseDate } from "../../state/shared/values";
 import { AppColours, Greys } from "../../styles/colours";
-import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
+import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 const useStyles = makeStyles({
     text: {
@@ -73,30 +73,32 @@ export const DialogSummaryContents: React.FC = () => {
                 {intro}
             </Typography>
             <SettingsDialogDivider />
-            <div className={classes.storedDataEntry}>
-                <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
-                <Table
-                    points={[
-                        ["Accounts", counts.account],
-                        ["Institutions", counts.institution - 1],
-                        ["Statements", counts.statement - 1],
-                    ]}
-                />
-            </div>
-            <div className={classes.storedDataEntry}>
-                <PaymentTwoTone style={{ color: AppColours.transactions.main }} />
-                <Table
-                    points={[
-                        ["Transactions", counts.transaction],
-                        ["Rules", counts.rule],
-                        ["Currencies", counts.currency],
-                    ]}
-                />
-            </div>
-            <div className={classes.storedDataEntry}>
-                <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
-                <Table points={[["Categories", counts.category - 2]]} />
-            </div>
+            <SettingsDialogContents>
+                <div className={classes.storedDataEntry}>
+                    <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
+                    <Table
+                        points={[
+                            ["Accounts", counts.account],
+                            ["Institutions", counts.institution - 1],
+                            ["Statements", counts.statement - 1],
+                        ]}
+                    />
+                </div>
+                <div className={classes.storedDataEntry}>
+                    <PaymentTwoTone style={{ color: AppColours.transactions.main }} />
+                    <Table
+                        points={[
+                            ["Transactions", counts.transaction],
+                            ["Rules", counts.rule],
+                            ["Currencies", counts.currency],
+                        ]}
+                    />
+                </div>
+                <div className={classes.storedDataEntry}>
+                    <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
+                    <Table points={[["Categories", counts.category - 2]]} />
+                </div>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };

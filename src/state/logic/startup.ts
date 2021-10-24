@@ -11,6 +11,7 @@ import { TopHatDispatch, TopHatStore } from "..";
 import { AppSlice } from "../app";
 import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
 import { DataKeys, StubUserID } from "../data/types";
+import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
 import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
@@ -19,6 +20,11 @@ import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
 const debug = process.env.NODE_ENV !== "production";
+
+export const initialiseDemoData = async () => {
+    TopHatDispatch(DataSlice.actions.setUpDemo());
+    await updateSyncedCurrencies();
+};
 
 export const initialiseAndGetDBConnection = async () => {
     // AppSlice changes the URL as soon as any action is fired and the reducer runs, so this has to be saved first
@@ -49,8 +55,8 @@ export const initialiseAndGetDBConnection = async () => {
             if (debug) console.log("IndexedDB connection failed - bypassing initial load...");
         });
 
-    // If we're in a dropbox redirect loop, we don't want the initial empty state and popup - set up demo
-    if (!loadedStateFromIDB && maybeDropboxCode) TopHatDispatch(DataSlice.actions.setUpDemo());
+    // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
+    if (!loadedStateFromIDB && maybeDropboxCode) await initialiseDemoData();
 
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
@@ -61,6 +67,9 @@ export const initialiseAndGetDBConnection = async () => {
         DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
     }
     initialiseMaybeDropboxSyncFromRedux();
+
+    // Currency syncs
+    updateSyncedCurrencies();
 
     // Debug variables
     if (debug) attachDebugVariablesToWindow(db);

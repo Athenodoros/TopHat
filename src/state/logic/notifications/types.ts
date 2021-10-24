@@ -5,7 +5,7 @@ import { DataState } from "../../data";
 export interface NotificationDisplayMetadata {
     icon: IconType;
     title: string;
-    dismiss?: () => void;
+    dismiss?: (programatically: boolean) => void;
     colour: string;
     buttons?: {
         text: string;

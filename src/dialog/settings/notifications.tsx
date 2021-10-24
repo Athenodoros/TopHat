@@ -13,7 +13,7 @@ import { DEBT_NOTIFICATION_ID } from "../../state/logic/notifications/variants/d
 import { MILESTONE_NOTIFICATION_ID } from "../../state/logic/notifications/variants/milestone";
 import { UNCATEGORISED_NOTIFICATION_ID } from "../../state/logic/notifications/variants/uncategorised";
 import { EditValueContainer } from "../shared";
-import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
+import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogNotificationsContents: React.FC = () => {
     return (
@@ -23,7 +23,7 @@ export const DialogNotificationsContents: React.FC = () => {
                 your browser.
             </Typography>
             <SettingsDialogDivider />
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+            <SettingsDialogContents>
                 <NotificationToggle id={UNCATEGORISED_NOTIFICATION_ID} title="Uncategorised Transactions" />
                 <NotificationToggle
                     id={ACCOUNTS_NOTIFICATION_ID}
@@ -36,7 +36,7 @@ export const DialogNotificationsContents: React.FC = () => {
                     control={useNetWorthInput()}
                 />
                 <NotificationToggle id={DEBT_NOTIFICATION_ID} title="Debt Milestones" control={useDebtInput()} />
-            </Box>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };

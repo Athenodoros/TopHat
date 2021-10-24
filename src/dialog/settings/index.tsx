@@ -18,6 +18,10 @@ import { DialogSummaryContents } from "./summary";
 
 const useStyles = makeStyles({
     list: {
+        overflowY: "scroll",
+        paddingTop: 0,
+        paddingBottom: 0,
+        margin: "8px 0",
         "& > li": {
             paddingLeft: 20,
             paddingRight: 20,

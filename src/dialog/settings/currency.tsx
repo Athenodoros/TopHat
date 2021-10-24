@@ -8,7 +8,7 @@ import { useUserData } from "../../state/data/hooks";
 import { getCurrencyRates } from "../../state/logic/currencies";
 import { Intents } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
-import { SettingsDialogDivider, SettingsDialogPage } from "./shared";
+import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogCurrencyContents: React.FC = () => {
     const key = useUserData((user) => user.alphavantage);
@@ -47,20 +47,22 @@ export const DialogCurrencyContents: React.FC = () => {
                 .
             </Typography>
             <SettingsDialogDivider />
-            <EditValueContainer label="API Key">
-                <TextField value={key} onChange={setKeyValue} size="small" sx={{ marginRight: 12 / 8 }} />
-                {syncStatus === "fail" ? (
-                    <Cancel htmlColor={Intents.danger.light} />
-                ) : syncStatus === "success" ? (
-                    <CheckCircle htmlColor={Intents.success.light} />
-                ) : syncStatus === "demo" ? (
-                    <Tooltip title="This demo key only works for EUR!">
-                        <Info htmlColor={Intents.primary.light} />
-                    </Tooltip>
-                ) : (
-                    <CircularProgress />
-                )}
-            </EditValueContainer>
+            <SettingsDialogContents>
+                <EditValueContainer label="API Key">
+                    <TextField value={key} onChange={setKeyValue} size="small" sx={{ marginRight: 12 / 8 }} />
+                    {syncStatus === "fail" ? (
+                        <Cancel htmlColor={Intents.danger.light} />
+                    ) : syncStatus === "success" ? (
+                        <CheckCircle htmlColor={Intents.success.light} />
+                    ) : syncStatus === "demo" ? (
+                        <Tooltip title="This demo key only works for EUR!">
+                            <Info htmlColor={Intents.primary.light} />
+                        </Tooltip>
+                    ) : (
+                        <CircularProgress />
+                    )}
+                </EditValueContainer>
+            </SettingsDialogContents>
         </SettingsDialogPage>
     );
 };

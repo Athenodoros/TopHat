@@ -76,7 +76,7 @@ export const updateSyncedCurrencies = () => {
     } = TopHatStore.getState().data;
     const token = user.entities[StubUserID]!.alphavantage;
 
-    Promise.all(
+    return Promise.all(
         ids.map(async (id) => {
             const currency = entities[id]!;
             if (currency.sync) {
