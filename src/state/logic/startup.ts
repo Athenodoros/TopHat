@@ -1,4 +1,3 @@
-import axios from "axios";
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { IDatabaseChange } from "dexie-observable/api";
@@ -150,7 +149,6 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any)._ = _;
     (window as any).chroma = chroma;
     (window as any).store = TopHatStore;
-    (window as any).axios = axios;
     (window as any).AppSlice = AppSlice;
     (window as any).DataSlice = DataSlice;
     (window as any).Statement = { ...Statement, ...Parsing };

@@ -27,7 +27,6 @@
         "@types/react-dom": "^17.0.0",
         "@types/react-redux": "^7.1.16",
         "@types/victory": "^33.1.5",
-        "axios": "^0.21.1",
         "chroma-js": "^2.1.2",
         "clsx": "^1.1.1",
         "comlink": "^4.3.1",

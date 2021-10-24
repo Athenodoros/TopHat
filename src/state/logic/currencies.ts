@@ -1,4 +1,3 @@
-import axios from "axios";
 import { get, min, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
@@ -22,24 +21,25 @@ const CurrencyRateRules = {
         getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series", "4. close"),
 };
 
-const getFromAPI = (query: string, token: string, key: string, value: string) =>
-    axios.get(AlphaVantage + query + `&apikey=${token}`).then((req) => {
-        const data = (req.data as any)[key];
-        if (data === undefined) return undefined;
+const getFromAPI = async (query: string, token: string, key: string, value: string) => {
+    const request = await fetch(`${AlphaVantage}${query}&apikey=${token}`);
+    const data = ((await request.json()) as any)[key];
 
-        const history = toPairs(data).map(([month, values]) => [month, Number((values as any)[value])]) as [
-            string,
-            number
-        ][];
+    if (data === undefined) return undefined;
 
-        return history.map(
-            ([month, value]) =>
-                ({
-                    month: formatDate(DateTime.fromISO(month).startOf("month")),
-                    value: Math.round(value * 100) / 100,
-                } as CurrencyExchangeRate)
-        );
-    });
+    const history = toPairs(data).map(([month, values]) => [month, Number((values as any)[value])]) as [
+        string,
+        number
+    ][];
+
+    return history.map(
+        ([month, value]) =>
+            ({
+                month: formatDate(DateTime.fromISO(month).startOf("month")),
+                value: Math.round(value * 100) / 100,
+            } as CurrencyExchangeRate)
+    );
+};
 
 let cancel: (() => void) | undefined = undefined;
 export const getCurrencyRates = async (
