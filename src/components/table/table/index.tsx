@@ -6,14 +6,18 @@ import React, { useCallback, useMemo } from "react";
 import { TableHeaderContainer } from "..";
 import { flipListIncludes } from "../../../shared/data";
 import { useRefToValue } from "../../../shared/hooks";
-import { EditTransactionState } from "../../../state/data";
 import { ID } from "../../../state/shared/values";
 import { Section, SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
 import { useTransactionsTableStyles } from "./styles";
-import { TransactionsTableFilters, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
+import {
+    EditTransactionState,
+    TransactionsTableFilters,
+    TransactionsTableFixedDataState,
+    TransactionsTableState,
+} from "./types";
 import { TransactionsTableViewEntry } from "./view";
 
 export interface TransactionsTableProps {
@@ -64,7 +68,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     <TransactionsTableEditEntry
                         original={getAllCommonTransactionValues(selection.map((id) => metadata[id]!))}
                         edit={edit}
-                        ids={selection}
+                        selected={selection}
                         setEditPartial={updaters.editPartial}
                         setStatePartial={setStatePartial}
                         fixed={fixed}
@@ -81,6 +85,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         setFiltersPartial={setFiltersPartial}
                         setEdit={updaters.edit}
                         fixed={fixed}
+                        canCreateNew={!edit && selection.length === 0}
                     />
                 )}
             </TableHeaderContainer>
@@ -92,7 +97,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         </div>
                         <TransactionsTableEditEntry
                             edit={edit}
-                            ids={[edit.id]}
+                            selected={[edit.id]}
                             setEditPartial={updaters.editPartial}
                             setStatePartial={setStatePartial}
                             fixed={fixed}
@@ -116,7 +121,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                                 <TransactionsTableEditEntry
                                     original={metadata[id]!}
                                     edit={edit}
-                                    ids={[id]}
+                                    selected={[id]}
                                     setEditPartial={updaters.editPartial}
                                     setStatePartial={setStatePartial}
                                     fixed={fixed}

@@ -3,7 +3,7 @@ import { IconButton, Tooltip, Typography } from "@mui/material";
 import clsx from "clsx";
 import { last } from "lodash";
 import React, { useCallback } from "react";
-import { EditTransactionState, PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
+import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import {
     useAccountByID,
     useCategoryByID,
@@ -15,7 +15,7 @@ import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/d
 import { parseDate } from "../../../state/shared/values";
 import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
 import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
-import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
+import { EditTransactionState, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 export interface TransactionsTableViewEntryProps {
     transaction: EditTransactionState;

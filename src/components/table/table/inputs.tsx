@@ -3,7 +3,7 @@ import { Button, IconButton, InputAdornment, Menu, MenuItem, MenuProps, TextFiel
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import React, { useCallback, useMemo } from "react";
-import { handleTextFieldChange, suppressEvent } from "../../../shared/events";
+import { handleTextFieldChange } from "../../../shared/events";
 import { useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
@@ -20,22 +20,24 @@ const useEditableCurrencyValueStyles = makeStyles({
     input: {
         "& .MuiInputBase-adornedStart": {
             paddingLeft: 3,
+            paddingRight: 5,
 
             "& .MuiInputAdornment-positionStart": {
                 marginRight: 3,
             },
-            "& .MuiInputBase-input::placeholder": {
-                fontStyle: "italic",
-            },
         },
 
-        "& button": {
+        "& .MuiInputAdornment-positionStart button": {
             minWidth: "inherit",
-            padding: "0 5px",
+            padding: "1px 3px 0 3px",
 
             color: Greys[500],
             fontWeight: 400,
             width: 38,
+        },
+        "& .MuiInputAdornment-positionEnd button": {
+            padding: 2,
+            color: Greys[500],
         },
     },
     icon: {
@@ -85,7 +87,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                 value={text}
                 onChange={onTextChange}
                 placeholder={
-                    allowUndefinedValue ? (value === undefined ? "(mixed)" : "(empty)") : "" + (placeholder || "")
+                    allowUndefinedValue ? (value === undefined ? "(mixed)" : "(none)") : "" + (placeholder || "(none)")
                 }
                 InputProps={{
                     startAdornment: (
@@ -99,26 +101,40 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                             </Button>
                         </InputAdornment>
                     ),
-                    endAdornment: allowUndefinedValue ? (
-                        <InputAdornment position="end">
-                            <IconButton size="small" disabled={value === undefined} onClick={setValueToUndefined}>
-                                <Clear fontSize="small" />
-                            </IconButton>
-                        </InputAdornment>
-                    ) : undefined,
+                    endAdornment:
+                        allowUndefinedValue && value !== undefined ? (
+                            <InputAdornment position="end">
+                                <IconButton size="small" onClick={setValueToUndefined}>
+                                    <Clear fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        ) : undefined,
                 }}
-                inputProps={allowUndefinedValue ? { className: utilClasses.mixedPlaceholder } : undefined}
+                inputProps={{
+                    className: !value && !placeholder ? utilClasses.mixedPlaceholder : utilClasses.basePlaceholder,
+                }}
             />
             <Menu {...popover.popoverProps} style={{ maxHeight: 250 }}>
                 {allowUndefinedCurrency ? (
-                    <MenuItem onClick={() => onChangeCurrency(undefined)}>
+                    <MenuItem
+                        onClick={() => {
+                            popover.setIsOpen(false);
+                            onChangeCurrency(undefined);
+                        }}
+                    >
                         <Typography variant="body1" className={utilClasses.mixed}>
                             (mixed)
                         </Typography>
                     </MenuItem>
                 ) : undefined}
                 {currencies.map((currency) => (
-                    <MenuItem key={currency.id} onClick={() => onChangeCurrency(currency.id)}>
+                    <MenuItem
+                        key={currency.id}
+                        onClick={() => {
+                            popover.setIsOpen(false);
+                            onChangeCurrency(currency.id);
+                        }}
+                    >
                         {getCurrencyIcon(currency, classes.icon)}
                         <Typography variant="body1">{currency.name}</Typography>
                     </MenuItem>
@@ -144,31 +160,28 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     const updateValue = useMemo(() => handleTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
     const clearValue = useCallback(() => onChange(), [onChange]);
 
-    const InputProps = useMemo(
-        () =>
-            allowUndefined
-                ? {
-                      className: classes.mixedPlaceholder,
-                      endAdornment: (
-                          <InputAdornment position="end">
-                              <IconButton size="small" disabled={value === undefined} onClick={clearValue}>
-                                  <Clear fontSize="small" />
-                              </IconButton>
-                          </InputAdornment>
-                      ),
-                  }
-                : undefined,
-        [allowUndefined, clearValue, classes.mixedPlaceholder, value]
-    );
-
     return (
         <TextField
             size="small"
             variant="outlined"
-            placeholder={allowUndefined ? (value === undefined ? "(mixed)" : "(empty)") : placeholder}
+            placeholder={value === undefined ? "(mixed)" : placeholder || "(none)"}
             value={value || ""}
             onChange={updateValue}
-            InputProps={InputProps}
+            InputProps={{
+                endAdornment:
+                    allowUndefined && value !== undefined ? (
+                        <InputAdornment position="end">
+                            <IconButton size="small" onClick={clearValue}>
+                                <Clear fontSize="small" />
+                            </IconButton>
+                        </InputAdornment>
+                    ) : undefined,
+            }}
+            inputProps={{
+                className: (allowUndefined ? value === undefined : placeholder === undefined)
+                    ? classes.mixedPlaceholder
+                    : classes.basePlaceholder,
+            }}
         />
     );
 };
@@ -253,13 +266,13 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     const MixedClass = useTransactionsTableStyles().mixed;
     const option = options.find(({ id }) => id === selected);
 
-    const clearSelection = useCallback<React.MouseEventHandler>(
-        (event) => {
-            suppressEvent(event);
-            select(undefined);
-        },
-        [select]
-    );
+    // const clearSelection = useCallback<React.MouseEventHandler>(
+    //     (event) => {
+    //         suppressEvent(event);
+    //         select(undefined);
+    //     },
+    //     [select]
+    // );
 
     return (
         <ObjectSelector
@@ -271,11 +284,12 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
             setSelected={select}
             placeholder={
                 allowUndefined ? (
-                    <MenuItem onClick={() => select(undefined)}>
+                    <>
+                        <div className={iconClass} />
                         <Typography variant="body1" noWrap={true} className={MixedClass}>
                             (mixed)
                         </Typography>
-                    </MenuItem>
+                    </>
                 ) : undefined
             }
         >
@@ -289,11 +303,11 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
                     >
                         {option?.name || "(mixed)"}
                     </Typography>
-                    {allowUndefined ? (
+                    {/* {allowUndefined ? (
                         <IconButton disabled={selected === undefined} size="small" onClick={clearSelection}>
                             <Clear fontSize="small" />
                         </IconButton>
-                    ) : undefined}
+                    ) : undefined} */}
                 </Button>
             )}
         </ObjectSelector>

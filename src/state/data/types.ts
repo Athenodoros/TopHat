@@ -148,7 +148,7 @@ export interface Transaction {
     id: ID;
 
     date: SDate;
-    reference?: string;
+    reference: string;
     summary: string | null;
     description: string | null;
 
@@ -161,7 +161,6 @@ export interface Transaction {
     currency: ID;
     statement: ID;
 }
-export type EditTransactionState = { [K in keyof Transaction]?: Transaction[K] };
 
 /**
  * An imported statement of transactions

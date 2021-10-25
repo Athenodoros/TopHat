@@ -493,7 +493,7 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                         balance: null,
 
                         date: getColumnValue<SDate>("date", rowID, fileID),
-                        reference: getColumnValue<string | undefined>("reference", rowID, fileID),
+                        reference: getColumnValue<string | undefined>("reference", rowID, fileID) || "",
                         recordedBalance: getColumnValue<number | undefined>("balance", rowID, fileID) ?? null,
                         value:
                             flipValue(getColumnValue<number | undefined>("value", rowID, fileID)) ??
@@ -530,7 +530,7 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                             (!rule.accounts.length || rule.accounts.includes(transaction.account)) &&
                             (rule.min === null || rule.min <= transaction.value!) &&
                             (rule.max === null || rule.max >= transaction.value!) &&
-                            (!rule.reference.length || testReference(transaction.reference || ""))
+                            (!rule.reference.length || testReference(transaction.reference))
                         ) {
                             if (rule.summary !== undefined) transaction.summary = rule.summary;
                             if (rule.description !== undefined) transaction.description = rule.description;

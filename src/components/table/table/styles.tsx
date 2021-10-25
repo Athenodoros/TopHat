@@ -8,12 +8,15 @@ const CENTERED_CONTAINER = {
     display: "flex",
     alignItems: "center",
 };
-const MIXED_PLACEHOLDER = {
+const BASE_PLACEHOLDER = {
     opacity: 1,
-    fontStyle: "italic",
     color: Greys[500],
     overflow: "visible",
     fontWeight: 300,
+};
+const MIXED_PLACEHOLDER = {
+    ...BASE_PLACEHOLDER,
+    fontStyle: "italic",
 };
 
 export const useTransactionsTableStyles = makeStyles((theme) => ({
@@ -188,6 +191,7 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     },
     mixed: MIXED_PLACEHOLDER,
     mixedPlaceholder: { "&::placeholder": MIXED_PLACEHOLDER },
+    basePlaceholder: { "&::placeholder": BASE_PLACEHOLDER },
     transfer: {
         fontStyle: "italic",
         color: Greys[600],

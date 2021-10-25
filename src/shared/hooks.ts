@@ -94,9 +94,9 @@ export const useNumericInputHandler = (
     const { onTextChange, setValue } = useMemo(
         () => ({
             onTextChange: handleTextFieldChange((value) => {
-                if (NumberRegex.test(value)) {
-                    setText(value);
-                    onChange(value === "" ? null : +value);
+                if (NumberRegex.test(value.replace(",", ""))) {
+                    setText(value.replace(",", ""));
+                    onChange(value.replace(",", "") === "" ? null : +value.replace(",", ""));
                 }
             }),
             setValue: (value: number | null) => setText(FormatNumber(value)),

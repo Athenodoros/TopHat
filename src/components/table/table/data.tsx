@@ -3,10 +3,10 @@ import { groupBy, keys, take, toPairs, uniqBy, zipObject } from "lodash";
 import { useEffect, useState } from "react";
 import { filterListByID } from "..";
 import { takeWithFilter } from "../../../shared/data";
-import { EditTransactionState, Transaction } from "../../../state/data";
+import { Transaction } from "../../../state/data";
 import { useAllCategories, useTransactionIDs, useTransactionMap } from "../../../state/data/hooks";
 import { ID, SDate } from "../../../state/shared/values";
-import { TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
+import { EditTransactionState, TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
 
 interface TransactionsTableData {
     ids: ID[];
@@ -43,7 +43,7 @@ export const useTransactionsTableData = (
                           (tx.summary && regex.test(tx.summary)) ||
                           (tx.description && regex.test(tx.description))
                         : filters.search
-                        ? tx.reference?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
+                        ? tx.reference.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
                           tx.summary?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
                           tx.description?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())
                         : true;

@@ -14,7 +14,6 @@ import { WritableDraft } from "immer/dist/internal";
 import {
     clone,
     cloneDeep,
-    fromPairs,
     get,
     isEqual,
     keys,
@@ -58,7 +57,6 @@ import {
     Category,
     Currency,
     DataState,
-    EditTransactionState,
     StubUserID,
     Transaction,
     User,
@@ -69,7 +67,6 @@ export type {
     Category,
     Currency,
     DataState,
-    EditTransactionState,
     Institution,
     Notification,
     Rule,
@@ -211,22 +208,15 @@ export const DataSlice = createSlice({
                 uniq(transactionIDs.map((id) => state.transaction.entities[id]!.category))
             );
         },
-        updateTransactions: (
-            state,
-            { payload: { ids, edits } }: PayloadAction<{ ids: ID[]; edits: EditTransactionState }>
-        ) => {
+        updateTransactions: (state, { payload }: PayloadAction<Update<Transaction>[]>) => {
+            const ids = payload.map(({ id }) => id);
+
             const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
 
             updateTransactionSummaryStartDates(state);
             updateTransactionSummariesWithTransactions(state, ids, true);
 
-            adapters.transaction.updateMany(
-                state.transaction,
-                ids.map((id) => ({
-                    id,
-                    changes: fromPairs(toPairs(edits).filter(([_, value]) => value !== undefined)),
-                }))
-            );
+            adapters.transaction.updateMany(state.transaction, payload);
 
             const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
             updateTransactionSummariesWithTransactions(state, ids);

@@ -8,7 +8,7 @@ import { zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
 import { usePopoverProps } from "../../../shared/hooks";
 import { TopHatStore } from "../../../state";
-import { EditTransactionState } from "../../../state/data";
+import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
 import { StubUserID } from "../../../state/data/types";
@@ -22,7 +22,7 @@ import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
 import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
 import { useTransactionsTableStyles } from "./styles";
-import { TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
+import { EditTransactionState, TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
 
 const useHeaderStyles = makeStyles({
     text: {
@@ -78,12 +78,14 @@ export interface TransactionsTableHeaderProps {
     setFiltersPartial: (update: Partial<TransactionsTableFilters>) => void;
     setEdit: (edit: EditTransactionState) => void;
     fixed?: TransactionsTableFixedDataState;
+    canCreateNew: boolean;
 }
 export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = ({
     filters,
     setFiltersPartial,
     setEdit,
     fixed,
+    canCreateNew,
 }) => {
     const classes = useTransactionsTableStyles();
     const headerClasses = useHeaderStyles();
@@ -276,7 +278,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                 </div>
             ) : undefined}
             <div className={classes.actions}>
-                <IconButton size="small" onClick={createNewTransaction}>
+                <IconButton size="small" onClick={createNewTransaction} disabled={!canCreateNew}>
                     <AddCircleOutline />
                 </IconButton>
             </div>
@@ -337,10 +339,12 @@ const useCreateNewTransaction = (
     useCallback(() => {
         const { data } = TopHatStore.getState();
 
-        setEdit({
+        const transaction: Transaction = {
             id: getNextID(data.transaction.ids),
             date: getTodayString(),
-            summary: "Manual Transaction",
+            reference: "Manual Transaction",
+            summary: null,
+            description: null,
             value: null,
             recordedBalance: null,
             balance: null,
@@ -348,5 +352,7 @@ const useCreateNewTransaction = (
             category: fixed?.type === "category" ? fixed.category : PLACEHOLDER_CATEGORY_ID,
             currency: data.user.entities[StubUserID]!.currency,
             statement: PLACEHOLDER_STATEMENT_ID,
-        });
+        };
+
+        setEdit(transaction);
     }, [setEdit, fixed]);

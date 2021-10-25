@@ -2,11 +2,11 @@ import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@m
 import { Button, IconButton, MenuProps, TextField, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
-import { isEqual } from "lodash";
+import { fromPairs, isEqual, toPairs } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
-import { Category, DataSlice, EditTransactionState, Transaction } from "../../../state/data";
+import { Category, DataSlice, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
 import { ID, SDate } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
@@ -15,7 +15,7 @@ import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../disp
 import { ManagedDatePicker } from "../../inputs";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import { TransactionTableSxProps, useTransactionsTableStyles } from "./styles";
-import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
+import { EditTransactionState, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 const useEditStyles = makeStyles({
     editText: {
@@ -58,7 +58,7 @@ const useEditStyles = makeStyles({
 export interface TransactionsTableEditEntryProps {
     original?: EditTransactionState;
     edit: EditTransactionState;
-    ids: ID[];
+    selected: ID[];
     setEditPartial: (update: Partial<EditTransactionState> | null) => void;
     setStatePartial: (update: Partial<TransactionsTableState>) => void;
     fixed?: TransactionsTableFixedDataState;
@@ -66,7 +66,7 @@ export interface TransactionsTableEditEntryProps {
 
 export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProps> = ({
     original: tx,
-    ids,
+    selected,
     edit,
     setEditPartial,
     setStatePartial,
@@ -89,7 +89,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
-    const actions = useActions(ids, edit, setStatePartial);
+    const actions = useActions(selected, edit, setStatePartial);
     const updaters = useEditUpdaters(setEditPartial);
 
     const getCategoryMenuContents = useCallback(
@@ -224,11 +224,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
             <div className={clsx(classes.actions, editClasses.editActions)}>
                 <Tooltip title="Save Changes">
                     <span>
-                        <IconButton
-                            size="small"
-                            onClick={tx ? actions.save : actions.create}
-                            disabled={isEqual(tx, edit)}
-                        >
+                        <IconButton size="small" onClick={tx ? actions.save : actions.create}>
                             <SaveTwoTone
                                 fontSize="small"
                                 htmlColor={isEqual(tx, edit) ? Intents.success.light : Intents.success.main}
@@ -254,7 +250,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
 };
 
 const useActions = (
-    ids: ID[],
+    selected: ID[],
     edit: EditTransactionState,
     setStatePartial: (update: Partial<TransactionsTableState>) => void
 ) =>
@@ -269,19 +265,21 @@ const useActions = (
                 batch(() => {
                     setStatePartial({ edit: undefined });
                     TopHatDispatch(
-                        DataSlice.actions.updateTransactions({
-                            ids,
-                            edits: edit,
-                        })
+                        DataSlice.actions.updateTransactions(
+                            (edit.id === undefined ? selected : [edit.id]).map((id) => ({
+                                id,
+                                changes: fromPairs(toPairs(edit).filter(([_, value]) => value !== undefined)),
+                            }))
+                        )
                     );
                 }),
             delete: () =>
                 batch(() => {
                     setStatePartial({ edit: undefined, selection: [] });
-                    TopHatDispatch(DataSlice.actions.deleteTransactions(ids));
+                    TopHatDispatch(DataSlice.actions.deleteTransactions(edit.id === undefined ? selected : [edit.id]));
                 }),
         }),
-        [setStatePartial, edit, ids]
+        [setStatePartial, edit, selected]
     );
 
 const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null) => void) =>
@@ -289,11 +287,11 @@ const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null)
         () => ({
             // Updates
             date: (date?: SDate) => updater({ date }),
-            summary: (summary?: string | null) => updater({ summary: summary ?? undefined }),
-            description: (description?: string | null) => updater({ description: description ?? undefined }),
+            summary: (summary?: string | null) => updater({ summary }),
+            description: (description?: string | null) => updater({ description }),
             currency: (currency?: ID) => updater({ currency }),
-            value: (value?: number | null) => updater({ value: value ?? undefined }),
-            balance: (recordedBalance?: number | null) => updater({ recordedBalance: recordedBalance ?? undefined }),
+            value: (value?: number | null) => updater({ value }),
+            balance: (recordedBalance?: number | null) => updater({ recordedBalance }),
             category: (category?: ID) => updater({ category }),
             statement: (statement?: ID) => updater({ statement }),
             account: (account?: ID) => updater({ account }),
