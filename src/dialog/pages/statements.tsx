@@ -1,5 +1,4 @@
 import { Description } from "@mui/icons-material";
-import { DatePickerProps } from "@mui/lab";
 import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import { groupBy, toPairs } from "lodash";
@@ -7,7 +6,7 @@ import { DateTime } from "luxon";
 import React, { useCallback, useMemo } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
-import { AutoClosingDatePicker } from "../../components/inputs";
+import { ManagedDatePicker } from "../../components/inputs";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
@@ -15,7 +14,7 @@ import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Statement } from "../../state/data";
 import { useAccountByID, useAccountMap, useAllStatements, useInstitutionMap } from "../../state/data/hooks";
 import { PLACEHOLDER_STATEMENT_ID } from "../../state/data/shared";
-import { formatDate, parseDate } from "../../state/shared/values";
+import { parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 import {
     DialogContents,
@@ -161,13 +160,13 @@ const EditStatementView: React.FC = () => {
     return (
         <ObjectEditContainer type="statement">
             <EditValueContainer label="Date">
-                <AutoClosingDatePicker
+                <ManagedDatePicker
                     value={working.date}
-                    onChange={updateWorkingDate as DatePickerProps["onChange"]}
+                    onChange={updateWorkingDate}
+                    nullable={false}
                     disableFuture={true}
-                    inputFormat="yyyy-MM-dd"
-                    clearable={true}
-                    renderInput={(params) => <TextField {...params} size="small" label="Open Date" />}
+                    disableOpenPicker={true}
+                    renderInput={(params) => <TextField {...params} size="small" label="Statement Date" />}
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">
@@ -181,4 +180,4 @@ const EditStatementView: React.FC = () => {
 };
 
 const { update, remove, set } = getUpdateFunctions("statement");
-const updateWorkingDate = (date: DateTime) => update("date")(formatDate(date));
+const updateWorkingDate = update("date");

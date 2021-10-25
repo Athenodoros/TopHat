@@ -23,7 +23,7 @@ export const TopHatTutorial: React.FC = () => {
     return (
         <Dialog open={open} maxWidth="md" fullWidth={true}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: 0 }}>
-                <Box sx={{ flex: "1 1 90px" }} />
+                <Box sx={{ flex: "1 1 120px" }} />
                 <Box
                     sx={{
                         background: AppColours.summary.main,
@@ -37,12 +37,12 @@ export const TopHatTutorial: React.FC = () => {
                         marginBottom: 10,
                     }}
                 >
-                    <Camera htmlColor={WHITE} sx={{ fontSize: "2rem", strokeWidth: 1 }} />
+                    <Camera htmlColor={WHITE} sx={{ width: 30, height: 30, strokeWidth: 1 }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 500 }}>
                     Welcome to TopHat!
                 </Typography>
-                <Box sx={{ flex: "1 1 50px" }} />
+                <Box sx={{ flex: "1 1 60px" }} />
                 <Box sx={{ maxWidth: 500, margin: "0 150px", textAlign: "center" }}>
                     <Typography variant="body1" sx={{ marginBottom: 20 }}>
                         TopHat is a Personal Finance application which runs in the browser.
@@ -57,7 +57,7 @@ export const TopHatTutorial: React.FC = () => {
                         .
                     </Typography>
                 </Box>
-                <Box sx={{ flex: "1 1 60px" }} />
+                <Box sx={{ flex: "1 1 70px" }} />
                 <Box sx={{ display: "flex", alignItems: "center" }}>
                     <Button color="app" variant="outlined" onClick={closeTutorial} sx={{ width: 150, height: 40 }}>
                         Start Fresh

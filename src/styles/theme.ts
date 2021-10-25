@@ -16,6 +16,7 @@ declare module "@mui/styles/defaultTheme" {
     interface DefaultTheme extends Theme {}
 }
 
+export const APP_BACKGROUND_COLOUR = Greys[100];
 export const theme = createMuiTheme({
     components: {
         MuiButton: {
@@ -35,7 +36,7 @@ export const theme = createMuiTheme({
             contrastText: "white",
         },
         background: {
-            default: Greys[100],
+            default: APP_BACKGROUND_COLOUR,
         },
         primary: {
             main: Intents.primary.main,

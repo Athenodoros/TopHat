@@ -1,32 +1,15 @@
+import styled from "@emotion/styled";
 import { ListItemText, MenuItem } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { Dictionary } from "@reduxjs/toolkit";
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import { updateListSelection, zipObject } from "../../shared/data";
 import { withSuppressEvent } from "../../shared/events";
 import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
 import { useCategoryIDs, useCategoryMap } from "../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../state/data/shared";
 import { ID } from "../../state/shared/values";
-import { getCategoryIcon } from "./ObjectDisplay";
-
-const useStyles = makeStyles({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        height: 32,
-    },
-    icon: {
-        height: 16,
-        width: 16,
-        marginLeft: 10,
-        marginRight: 10,
-        borderRadius: "50%",
-    },
-    checkbox: {
-        marginLeft: "auto",
-    },
-});
+import { getCategoryIconSx } from "./ObjectDisplay";
 
 interface Anchor {
     id: ID;
@@ -46,17 +29,6 @@ export const SingleCategoryMenuFunction = (
     const ids = useCategoryIDs() as ID[];
     const entities = useCategoryMap();
     const { options, graph } = getCategoryGraph(ids, entities, exclude, anchor);
-
-    const classes = useStyles();
-    const render = useCallback(
-        (category: Category) => (
-            <div className={classes.base}>
-                {getCategoryIcon(category, classes.icon)}
-                <ListItemText>{category.name}</ListItemText>
-            </div>
-        ),
-        [classes]
-    );
 
     const generateMenuItems = (id: ID, depth: number = 0) =>
         graph[id].map((subitem) => (
@@ -86,7 +58,7 @@ export const SingleCategoryMenuFunction = (
                             setSelected(id === selected ? undefined : entities[id]!)
                         )}
                     >
-                        {render(entities[id]!)}
+                        {renderCategory(entities[id]!)}
                     </MenuItem>
                     {generateMenuItems(id)}
                 </React.Fragment>
@@ -109,17 +81,6 @@ const MultipleCategoryMenuFunction = (
     const entities = useCategoryMap();
     const { options, graph } = getCategoryGraph(ids, entities, exclude, anchor);
 
-    const classes = useStyles();
-    const render = useCallback(
-        (category: Category) => (
-            <div className={classes.base}>
-                {getCategoryIcon(category, classes.icon)}
-                <ListItemText>{category.name}</ListItemText>
-            </div>
-        ),
-        [classes]
-    );
-
     const generateMenuItems = (id: ID, depth: number = 0) =>
         graph[id].map((subitem) => (
             <React.Fragment key={subitem}>
@@ -132,12 +93,6 @@ const MultipleCategoryMenuFunction = (
                     )}
                 >
                     {entities[subitem]!.name}
-                    {/* <Checkbox
-                        checked={selected.includes(subitem)}
-                        color="primary"
-                        size="small"
-                        className={classes.checkbox}
-                    /> */}
                 </MenuItem>
                 {generateMenuItems(subitem, depth + 1)}
             </React.Fragment>
@@ -152,13 +107,7 @@ const MultipleCategoryMenuFunction = (
                         selected={selected.includes(id)}
                         onClick={withSuppressEvent<HTMLLIElement>(() => setSelected(updateListSelection(id, selected)))}
                     >
-                        {render(entities[id]!)}
-                        {/* <Checkbox
-                            checked={selected.includes(id)}
-                            color="primary"
-                            size="small"
-                            className={classes.checkbox}
-                        /> */}
+                        {renderCategory(entities[id]!)}
                     </MenuItem>
                     {generateMenuItems(id)}
                 </React.Fragment>
@@ -201,3 +150,18 @@ export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, excl
         graph,
     };
 };
+
+const BaseContainer = styled(Box)({ display: "flex", alignItems: "center", height: 32 });
+const CategoryIconSx = {
+    height: 16,
+    width: 16,
+    marginLeft: 10,
+    marginRight: 10,
+    borderRadius: "50%",
+} as const;
+const renderCategory = (category: Category) => (
+    <BaseContainer>
+        {getCategoryIconSx(category, CategoryIconSx)}
+        <ListItemText>{category.name}</ListItemText>
+    </BaseContainer>
+);

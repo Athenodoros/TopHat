@@ -1,13 +1,11 @@
 import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
-import { DatePickerProps } from "@mui/lab";
 import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
-import { DateTime } from "luxon";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getInstitutionIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
-import { AutoClosingDatePicker, ObjectSelector, SubItemCheckbox } from "../../components/inputs";
+import { ManagedDatePicker, ObjectSelector, SubItemCheckbox } from "../../components/inputs";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
@@ -15,7 +13,7 @@ import { Account } from "../../state/data";
 import { useAllInstitutions, useInstitutionByID } from "../../state/data/hooks";
 import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
 import { AccountTypes } from "../../state/data/types";
-import { BaseTransactionHistory, formatDate, getTodayString } from "../../state/shared/values";
+import { BaseTransactionHistory, getTodayString, parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 import {
     BasicDialogObjectSelector,
@@ -127,10 +125,9 @@ const useEditViewStyles = makeStyles({
         alignItems: "center",
         width: 85,
     },
-    inactive: {
-        alignSelf: "flex-end",
-    },
 });
+
+const InactiveCheckboxSx = { alignSelf: "flex-end" };
 
 const EditAccountView: React.FC = () => {
     const classes = useEditViewStyles();
@@ -146,7 +143,7 @@ const EditAccountView: React.FC = () => {
                     label="Inactive Account"
                     checked={working.isInactive}
                     setChecked={updateWorkingIsInactive}
-                    className={classes.inactive}
+                    sx={InactiveCheckboxSx}
                 />
             }
         >
@@ -193,19 +190,20 @@ const EditAccountView: React.FC = () => {
             </EditValueContainer>
             <EditValueContainer label="Dates">
                 <div className={classes.dates}>
-                    <AutoClosingDatePicker
+                    <ManagedDatePicker
                         value={working.openDate}
-                        onChange={updateWorkingOpenDate as DatePickerProps["onChange"]}
+                        onChange={updateWorkingOpenDate}
+                        nullable={false}
+                        disableOpenPicker={true}
                         disableFuture={true}
-                        inputFormat="yyyy-MM-dd"
-                        clearable={true}
+                        maxDate={parseDate(working.lastUpdate)}
                         renderInput={(params) => <TextField {...params} size="small" label="Open Date" />}
                     />
-                    <AutoClosingDatePicker
+                    <ManagedDatePicker
                         value={working.lastUpdate}
-                        onChange={updateWorkingUpdateDate as DatePickerProps["onChange"]}
-                        inputFormat="yyyy-MM-dd"
-                        clearable={true}
+                        onChange={updateWorkingUpdateDate}
+                        nullable={false}
+                        disableOpenPicker={true}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -234,6 +232,6 @@ const updateWorkingIsInactive = update("isInactive");
 const updateWorkingInstitution = update("institution");
 const updateWorkingWebsite = handleTextFieldChange(update("website"));
 const updateWorkingCategory = handleButtonGroupChange(update("category"));
-const updateWorkingOpenDate = (date: DateTime) => update("openDate")(formatDate(date));
-const updateWorkingUpdateDate = (date: DateTime) => update("lastUpdate")(formatDate(date));
+const updateWorkingOpenDate = update("openDate");
+const updateWorkingUpdateDate = update("lastUpdate");
 const updateWorkingFilePattern = handleTextFieldChange(update("statementFilePatternManual"));

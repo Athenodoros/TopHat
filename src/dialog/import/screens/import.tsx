@@ -103,9 +103,6 @@ const useStyles = makeStyles({
         marginTop: 15,
         width: 220,
     },
-    flipValuesCheckbox: {
-        margin: 0,
-    },
 
     actions: {
         display: "flex",
@@ -146,6 +143,8 @@ const useStyles = makeStyles({
         color: Greys[900],
     },
 });
+
+const FlipValuesCheckboxSx = { margin: 0 };
 
 const ScreenIDs = ["parse", "mapping", "import"] as const;
 export const DialogImportScreen: React.FC = () => {
@@ -395,7 +394,7 @@ export const DialogImportScreen: React.FC = () => {
                                                 ? state.mapping.value.value
                                                 : state.mapping.value.debit) === undefined
                                         }
-                                        className={classes.flipValuesCheckbox}
+                                        sx={FlipValuesCheckboxSx}
                                         left={true}
                                     />
                                     <div className={classes.mappingColumnHeader}>

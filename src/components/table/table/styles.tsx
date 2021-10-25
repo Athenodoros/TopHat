@@ -200,4 +200,8 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
     },
 }));
 
+export const TransactionTableSxProps = {
+    MixedPlaceholder: { "& input::placeholder": MIXED_PLACEHOLDER },
+};
+
 export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");

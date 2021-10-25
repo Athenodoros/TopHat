@@ -69,10 +69,9 @@ const useHeaderStyles = makeStyles({
             color: Greys[500],
         },
     },
-    subitem: {
-        alignSelf: "flex-end",
-    },
 });
+
+const SubItemSx = { alignSelf: "flex-end" };
 
 export interface TransactionsTableHeaderProps {
     filters: TransactionsTableFilters;
@@ -166,7 +165,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             label="Regex Search"
                             checked={filters.searchRegex}
                             setChecked={updaters.searchRegex}
-                            className={headerClasses.subitem}
+                            sx={SubItemSx}
                         />
                     </Popover>
                 </div>
@@ -206,7 +205,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             label="Hide Stubs"
                             checked={filters.hideStubs}
                             setChecked={updaters.hideStubs}
-                            className={headerClasses.subitem}
+                            sx={SubItemSx}
                         />
                     </Popover>
                 </div>

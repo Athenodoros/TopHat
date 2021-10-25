@@ -121,9 +121,6 @@ const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => 
 };
 
 const useEditViewStyles = makeStyles((theme) => ({
-    inactive: {
-        alignSelf: "flex-end",
-    },
     icon: {
         width: 20,
         height: 20,
@@ -166,6 +163,9 @@ const useEditViewStyles = makeStyles((theme) => ({
         },
     },
 }));
+
+const InactiveCheckboxSx = { alignSelf: "flex-end" };
+
 const EditRuleView: React.FC = () => {
     const classes = useEditViewStyles();
     const working = useDialogState("rule")!;
@@ -198,7 +198,7 @@ const EditRuleView: React.FC = () => {
                     label="Inactive Rule"
                     checked={working.isInactive}
                     setChecked={updateWorkingIsInactive}
-                    className={classes.inactive}
+                    sx={InactiveCheckboxSx}
                 />
             }
             onReset={onReset}

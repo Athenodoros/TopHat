@@ -1,30 +1,23 @@
 import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@mui/icons-material";
-import { DatePickerProps } from "@mui/lab";
 import { Button, IconButton, MenuProps, TextField, Tooltip } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import clsx from "clsx";
 import { isEqual } from "lodash";
-import { DateTime } from "luxon";
 import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
 import { TopHatDispatch } from "../../../state";
 import { Category, DataSlice, EditTransactionState, Transaction } from "../../../state/data";
 import { useAllAccounts, useAllCategories, useAllStatements } from "../../../state/data/hooks";
-import { formatDate, ID } from "../../../state/shared/values";
+import { ID, SDate } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
 import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { AutoClosingDatePicker } from "../../inputs";
+import { ManagedDatePicker } from "../../inputs";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
-import { useTransactionsTableStyles } from "./styles";
+import { TransactionTableSxProps, useTransactionsTableStyles } from "./styles";
 import { TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 const useEditStyles = makeStyles({
-    centeredInput: {
-        "& input": {
-            textAlign: "center",
-        },
-    },
     editText: {
         marginTop: 5,
         marginBottom: 5,
@@ -70,6 +63,7 @@ export interface TransactionsTableEditEntryProps {
     setStatePartial: (update: Partial<TransactionsTableState>) => void;
     fixed?: TransactionsTableFixedDataState;
 }
+
 export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProps> = ({
     original: tx,
     ids,
@@ -119,19 +113,24 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     return (
         <>
             <div className={classes.date}>
-                <AutoClosingDatePicker
-                    value={edit.date || null}
-                    onChange={updaters.date as DatePickerProps["onChange"]}
+                <ManagedDatePicker
+                    value={edit.date}
+                    onChange={updaters.date}
+                    nullable={tx !== undefined && tx.date === undefined}
+                    disableOpenPicker={true}
                     disableFuture={true}
-                    inputFormat="yyyy-MM-dd"
-                    clearable={tx && tx.date === undefined}
-                    className={editClasses.centeredInput}
                     renderInput={(params) => (
                         <TextField
                             {...params}
                             size="small"
-                            placeholder="(mixed)"
-                            InputProps={edit.date ? undefined : { className: classes.mixed }}
+                            inputProps={{
+                                ...params.inputProps,
+                                placeholder: "(mixed)",
+                            }}
+                            sx={{
+                                "& input": { textAlign: "center" },
+                                ...TransactionTableSxProps.MixedPlaceholder,
+                            }}
                         />
                     )}
                 />
@@ -289,7 +288,7 @@ const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null)
     useMemo(
         () => ({
             // Updates
-            date: (date: DateTime | null) => updater({ date: date ? formatDate(date) : undefined }),
+            date: (date?: SDate) => updater({ date }),
             summary: (summary?: string | null) => updater({ summary: summary ?? undefined }),
             description: (description?: string | null) => updater({ description: description ?? undefined }),
             currency: (currency?: ID) => updater({ currency }),
