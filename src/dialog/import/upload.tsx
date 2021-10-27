@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { NoteAdd } from "@mui/icons-material";
-import { Button, Link, Typography, useTheme } from "@mui/material";
+import { Button, Link, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useContext } from "react";
 import { FileHandlerContext } from "../../app/context";
@@ -9,11 +9,11 @@ import { AppSlice, DefaultPages } from "../../state/app";
 import { useDialogState } from "../../state/app/hooks";
 import { DialogStatementFileState } from "../../state/app/statementTypes";
 import { Greys, Intents } from "../../styles/colours";
+import { getThemeTransition } from "../../styles/theme";
 import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogImportAccountSelector } from "./account";
 
 export const DialogImportFileScreen: React.FC = () => {
-    const theme = useTheme();
     const { openFileDialog, isDragActive } = useContext(FileHandlerContext);
     const rejections = useDialogState("import", (state) => (state as DialogStatementFileState).rejections);
 
@@ -38,12 +38,7 @@ export const DialogImportFileScreen: React.FC = () => {
                 </UploadButton>
             </DialogOptions>
             <DialogContents>
-                <IconBox
-                    sx={{
-                        transition: theme.transitions.create(["transform", "color"]),
-                        ...(isDragActive ? ActiveIconBoxSx : undefined),
-                    }}
-                >
+                <IconBox sx={isDragActive ? ActiveIconBoxSx : undefined}>
                     <NoteAdd />
                     <Typography variant="h6">Add Statements</Typography>
                     <Typography variant="body1" style={{ color: Intents.danger.main }}>
@@ -67,6 +62,8 @@ const IconBox = styled(Box)({
 
     transformOrigin: "center center",
     color: Greys[500],
+
+    transition: getThemeTransition(["transform", "color"]),
 
     "& > svg": {
         height: 80,

@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import { Cached, Cancel, CheckCircle, Clear, Euro, EuroSymbol, Money, ShowChart, Sync } from "@mui/icons-material";
 import {
     CircularProgress,
@@ -9,12 +10,11 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import { Box } from "@mui/system";
 import { last, range } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
+import { getCurrencyIconSx } from "../../components/display/ObjectDisplay";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
@@ -32,49 +32,13 @@ import {
     getTodayString,
 } from "../../state/shared/values";
 import { Greys, Intents } from "../../styles/colours";
-import {
-    BasicDialogObjectSelector,
-    DialogContents,
-    DialogMain,
-    EditTitleContainer,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../shared";
+import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
+import { DialogContents, DialogMain, EditTitleContainer, EditValueContainer } from "../shared";
 import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
-
-const useMainStyles = makeStyles({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        height: 32,
-        flexGrow: 1,
-    },
-    icon: {
-        height: 24,
-        width: 24,
-        marginRight: 15,
-        borderRadius: 5,
-    },
-});
+import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogCurrenciesView: React.FC = () => {
-    const classes = useMainStyles();
     const working = useDialogHasWorking();
-    const render = useCallback(
-        (currency: Currency) => (
-            <div className={classes.base}>
-                {getCurrencyIcon(currency, classes.icon)}
-                <ListItemText>{currency.name}</ListItemText>
-                {currency.sync && (
-                    <Tooltip title="Automatic Exchange Rates">
-                        <Cached htmlColor={Greys[500]} fontSize="small" />
-                    </Tooltip>
-                )}
-            </div>
-        ),
-        [classes]
-    );
 
     return (
         <DialogMain onClick={remove}>
@@ -94,6 +58,30 @@ export const DialogCurrenciesView: React.FC = () => {
     );
 };
 
+const CurrencyBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    height: 32,
+    flexGrow: 1,
+});
+const CurrencyIconSx = {
+    height: 24,
+    width: 24,
+    marginRight: 15,
+    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+};
+const render = (currency: Currency) => (
+    <CurrencyBox>
+        {getCurrencyIconSx(currency, CurrencyIconSx)}
+        <ListItemText>{currency.name}</ListItemText>
+        {currency.sync && (
+            <Tooltip title="Automatic Exchange Rates">
+                <Cached htmlColor={Greys[500]} fontSize="small" />
+            </Tooltip>
+        )}
+    </CurrencyBox>
+);
+
 const createNewCurrency = (): Currency => ({
     id: getNextID(TopHatStore.getState().data.currency.ids),
     ticker: "NCD",
@@ -105,17 +93,7 @@ const createNewCurrency = (): Currency => ({
     transactions: BaseTransactionHistoryWithLocalisation(),
 });
 
-const useEditViewStyles = makeStyles({
-    colourContainer: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-
-        "& input": { width: 40, height: 40 },
-    },
-});
 const EditCurrencyView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("currency")!;
 
     const [ticker, setTicker] = useState(working.sync?.ticker || "");
@@ -210,14 +188,14 @@ const EditCurrencyView: React.FC = () => {
                     sx={{ width: 120, margin: "0 20px" }}
                     label="Ticker"
                 />
-                <div className={classes.colourContainer}>
+                <ColourContainerBox>
                     <input type="color" value={working.colour} onChange={handleColorChange} />
                     <IconButton size="small" onClick={generateRandomColour}>
                         <Tooltip title="Get random colour">
                             <Sync />
                         </Tooltip>
                     </IconButton>
-                </div>
+                </ColourContainerBox>
             </EditValueContainer>
             <EditTitleContainer title="Exchange Rates" />
             <EditValueContainer label="Source">
@@ -365,3 +343,11 @@ const updateMonthsRate = (index: number, value: number | null) => {
 
     update("rates")(rates);
 };
+
+const ColourContainerBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+
+    "& input": { width: 40, height: 40 },
+});

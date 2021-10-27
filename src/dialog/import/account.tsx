@@ -9,6 +9,7 @@ import { useDialogState } from "../../state/app/hooks";
 import { useAllAccounts } from "../../state/data/hooks";
 import { changeStatementDialogAccount } from "../../state/logic/statement";
 import { Greys } from "../../styles/colours";
+import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
 
 export const DialogImportAccountSelector: React.FC = () => {
     const account = useDialogState("import", (state) => state.account);
@@ -47,7 +48,7 @@ const AccountContainerBox = styled(Box)({ margin: "12px 15px" });
 const IconSx = {
     height: 20,
     width: 20,
-    borderRadius: 4,
+    borderRadius: 4 / DEFAULT_BORDER_RADIUS,
     marginRight: 15,
 };
 const AccountButton = styled(Button)({

@@ -8,7 +8,7 @@ import { Provider } from "react-redux";
 import { TopHatDialog } from "../dialog";
 import { TopHatStore } from "../state";
 import { handleStatementFileUpload } from "../state/logic/statement";
-import { theme } from "../styles/theme";
+import { TopHatTheme } from "../styles/theme";
 import { TopHatTutorial } from "./tutorial";
 
 export const FileHandlerContext = React.createContext<{
@@ -50,7 +50,7 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
                 }
             >
                 <StyledEngineProvider injectFirst={true}>
-                    <ThemeProvider theme={theme}>
+                    <ThemeProvider theme={TopHatTheme}>
                         <FileHandlerContext.Provider
                             value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
                         >

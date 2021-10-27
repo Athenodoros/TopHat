@@ -7,7 +7,7 @@ import {
     ShoppingBasketTwoTone,
     TrendingUpTwoTone,
 } from "@mui/icons-material";
-import { IconButton, Paper, useTheme } from "@mui/material";
+import { IconButton, Paper } from "@mui/material";
 import { Box } from "@mui/system";
 import chroma from "chroma-js";
 import { mapValues } from "lodash-es";
@@ -19,6 +19,7 @@ import { OpenPageCache } from "../state/app/actions";
 import { PageStateType } from "../state/app/pageTypes";
 import { useSelector } from "../state/shared/hooks";
 import { AppColours, Greys, WHITE } from "../styles/colours";
+import { getThemeTransition } from "../styles/theme";
 
 export const NAVBAR_LOGO_HEIGHT = 156;
 
@@ -30,7 +31,6 @@ const SelectionEquivalents = {
 
 export const NavBar: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
-    const theme = useTheme();
 
     const getIcon = (
         colour: string,
@@ -41,7 +41,7 @@ export const NavBar: React.FC = () => {
     ) => (
         <AppIconButton
             sx={{
-                transition: theme.transitions.create("all"),
+                transition: getThemeTransition("all"),
                 color: selected ? WHITE : colour,
                 background: selected ? colour : chroma(colour).alpha(0.1).hex(),
                 "&:hover": {
@@ -58,7 +58,7 @@ export const NavBar: React.FC = () => {
                 sx={{
                     fontSize: logo ? "2rem" : "1.7rem",
                     transformOrigin: "center",
-                    transition: theme.transitions.create("all"),
+                    transition: getThemeTransition("all"),
                 }}
             />
         </AppIconButton>

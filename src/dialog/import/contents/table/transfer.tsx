@@ -5,6 +5,7 @@ import React, { useMemo } from "react";
 import { withSuppressEvent } from "../../../../shared/events";
 import { Transaction } from "../../../../state/data";
 import { toggleStatementRowTransfer } from "../../../../state/logic/statement";
+import { DEFAULT_BORDER_RADIUS } from "../../../../styles/theme";
 import { DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES } from "./shared";
 
 export const DialogImportTableTransferDisplay: React.FC<{
@@ -58,7 +59,7 @@ const ButtonBaseSx = {
         marginBottom: 2,
         width: "max-content",
         padding: "0 5px",
-        borderRadius: 2,
+        borderRadius: 2 / DEFAULT_BORDER_RADIUS,
         marginLeft: 28,
     },
     disabled: { opacity: 0.5 },

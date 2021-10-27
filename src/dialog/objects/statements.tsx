@@ -1,11 +1,13 @@
+import styled from "@emotion/styled";
 import { Description } from "@mui/icons-material";
-import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography } from "@mui/material";
+import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography, typographyClasses } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getStatementIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
+import { getStatementIconSx, useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ManagedDatePicker } from "../../components/inputs";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
@@ -16,51 +18,11 @@ import { useAccountByID, useAccountMap, useAllStatements, useInstitutionMap } fr
 import { PLACEHOLDER_STATEMENT_ID } from "../../state/data/shared";
 import { parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
-import {
-    DialogContents,
-    DialogMain,
-    DialogOptions,
-    DialogSelectorAddNewButton,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-    useDialogObjectSelectorStyles,
-} from "../shared";
-
-const useMainStyles = makeStyles({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        minWidth: 0,
-        flexShrink: 1,
-
-        "& .MuiTypography-root": {
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-        },
-    },
-    icon: {
-        height: 34,
-        width: 34,
-        marginRight: 15,
-    },
-});
+import { DialogContents, DialogMain, DialogOptions, EditValueContainer } from "../shared";
+import { DialogObjectOptionsBox, DialogSelectorAddNewButton, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogStatementView: React.FC = () => {
-    const classes = useMainStyles();
     const working = useDialogHasWorking();
-    const render = useCallback(
-        (statement: Statement) => (
-            <div className={classes.base}>
-                {getStatementIcon(statement, classes.icon, true)}
-                <ListItemText secondary={parseDate(statement.date).toLocaleString(DateTime.DATE_MED)}>
-                    <Typography noWrap={true}>{statement.name}</Typography>
-                </ListItemText>
-            </div>
-        ),
-        [classes]
-    );
 
     return (
         <DialogMain onClick={remove}>
@@ -80,6 +42,32 @@ export const DialogStatementView: React.FC = () => {
     );
 };
 
+const StatementBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    minWidth: 0,
+    flexShrink: 1,
+
+    [`& .${typographyClasses.root}`]: {
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+    },
+});
+const FilledStatementIconSx = {
+    height: 34,
+    width: 34,
+    marginRight: 15,
+};
+const render = (statement: Statement) => (
+    <StatementBox>
+        {getStatementIconSx(statement, FilledStatementIconSx, true)}
+        <ListItemText secondary={parseDate(statement.date).toLocaleString(DateTime.DATE_MED)}>
+            <Typography noWrap={true}>{statement.name}</Typography>
+        </ListItemText>
+    </StatementBox>
+);
+
 const goToStatementImport = () => TopHatDispatch(AppSlice.actions.setDialogPage("import"));
 
 const useSelectorClasses = makeStyles({
@@ -89,7 +77,6 @@ const useSelectorClasses = makeStyles({
 });
 
 const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) => JSX.Element }> = ({ render }) => {
-    const classes = useDialogObjectSelectorStyles();
     const selectorClasses = useSelectorClasses();
     const selected = useDialogState("statement", (object) => object?.id);
     const statements = useAllStatements();
@@ -103,7 +90,7 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
 
     return (
         <DialogOptions>
-            <div className={classes.options}>
+            <DialogObjectOptionsBox>
                 <List subheader={<div />}>
                     {options.map((group) => (
                         <div key={group[0]} className={selectorClasses.container}>
@@ -123,7 +110,7 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
                         </div>
                     ))}
                 </List>
-            </div>
+            </DialogObjectOptionsBox>
             <DialogSelectorAddNewButton type="statement" onClick={goToStatementImport} />
         </DialogOptions>
     );

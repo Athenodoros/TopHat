@@ -1,10 +1,10 @@
+import styled from "@emotion/styled";
 import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
 import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
+import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getInstitutionIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
+import { getInstitutionIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
 import { ManagedDatePicker, ObjectSelector, SubItemCheckbox } from "../../components/inputs";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
@@ -15,47 +15,21 @@ import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
 import { AccountTypes } from "../../state/data/types";
 import { BaseTransactionHistory, getTodayString, parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
-import {
-    BasicDialogObjectSelector,
-    DialogContents,
-    DialogMain,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../shared";
-
-const useMainStyles = makeStyles((theme) => ({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        height: 32,
-    },
-    disabled: {
-        opacity: 0.5,
-        fontStyle: "italic",
-        transition: theme.transitions.create("opacity"),
-        "&:hover": { opacity: 1 },
-    },
-    icon: {
-        height: 24,
-        width: 24,
-        marginRight: 15,
-        borderRadius: 5,
-    },
-}));
+import { DEFAULT_BORDER_RADIUS, getThemeTransition } from "../../styles/theme";
+import { DialogContents, DialogMain, EditValueContainer } from "../shared";
+import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogAccountsView: React.FC = () => {
-    const classes = useMainStyles();
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
     const working = useDialogHasWorking();
     const render = useCallback(
         (account: Account) => (
-            <div className={clsx(classes.base, account.isInactive && classes.disabled)}>
-                {getAccountIcon(account, classes.icon)}
+            <AccountBox sx={account.isInactive ? DisabledAccountSx : undefined}>
+                {getAccountIcon(account, AccountIconSx)}
                 <ListItemText>{account.name}</ListItemText>
-            </div>
+            </AccountBox>
         ),
-        [classes, getAccountIcon]
+        [getAccountIcon]
     );
 
     return (
@@ -76,6 +50,20 @@ export const DialogAccountsView: React.FC = () => {
     );
 };
 
+const AccountBox = styled(Box)({ display: "flex", alignItems: "center", height: 32 });
+const DisabledAccountSx = {
+    opacity: 0.5,
+    fontStyle: "italic",
+    "&:hover": { opacity: 1 },
+    transition: getThemeTransition("opacity"),
+};
+const AccountIconSx = {
+    height: 24,
+    width: 24,
+    marginRight: 15,
+    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+};
+
 export const createNewAccount = () => ({
     id: getNextID(TopHatStore.getState().data.account.ids),
     name: "New Account",
@@ -88,49 +76,7 @@ export const createNewAccount = () => ({
     transactions: BaseTransactionHistory(),
 });
 
-const useEditViewStyles = makeStyles({
-    icon: {
-        height: 24,
-        width: 24,
-        marginRight: 15,
-        borderRadius: 5,
-    },
-    institution: {
-        textTransform: "inherit",
-        height: 40,
-
-        "& > svg": {
-            marginLeft: 15,
-        },
-    },
-    dates: {
-        display: "flex",
-        flexGrow: 1,
-        justifyContent: "space-between",
-        marginTop: 5,
-
-        "& > :first-of-type": {
-            marginRight: 30,
-        },
-    },
-    toggles: {
-        flexGrow: 1,
-        "& > button": {
-            flexGrow: 1,
-        },
-    },
-    toggle: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        width: 85,
-    },
-});
-
-const InactiveCheckboxSx = { alignSelf: "flex-end" };
-
 const EditAccountView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("account")!;
     const institution = useInstitutionByID(working.institution);
     const institutions = useAllInstitutions();
@@ -150,34 +96,33 @@ const EditAccountView: React.FC = () => {
             <EditValueContainer label="Institution">
                 <ObjectSelector
                     options={institutions}
-                    render={(institution) => getInstitutionIcon(institution, classes.icon)}
+                    render={(institution) => getInstitutionIconSx(institution, AccountIconSx)}
                     selected={working.institution}
                     setSelected={updateWorkingInstitution}
                 >
-                    <Button variant="outlined" className={classes.institution} color="inherit">
-                        {getInstitutionIcon(institution!, classes.icon)}
+                    <InstitutionButton variant="outlined" color="inherit">
+                        {getInstitutionIconSx(institution!, AccountIconSx)}
                         <Typography variant="body1" noWrap={true}>
                             {institution.name}
                         </Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                    </Button>
+                    </InstitutionButton>
                 </ObjectSelector>
             </EditValueContainer>
             <EditValueContainer label="Account Type">
-                <ToggleButtonGroup
+                <AccountTypeToggleButtonGroup
                     size="small"
                     value={working.category}
                     exclusive={true}
                     onChange={updateWorkingCategory}
-                    className={classes.toggles}
                 >
                     {AccountTypes.map((typ) => (
-                        <ToggleButton key={typ.id} value={typ.id} classes={{ root: classes.toggle }}>
+                        <AccountTypeToggleButton key={typ.id} value={typ.id}>
                             {React.createElement(typ.icon, { fontSize: "small" })}
                             <Typography variant="caption">{typ.short}</Typography>
-                        </ToggleButton>
+                        </AccountTypeToggleButton>
                     ))}
-                </ToggleButtonGroup>
+                </AccountTypeToggleButtonGroup>
             </EditValueContainer>
             <EditValueContainer label="Website">
                 <TextField
@@ -189,7 +134,7 @@ const EditAccountView: React.FC = () => {
                 />
             </EditValueContainer>
             <EditValueContainer label="Dates">
-                <div className={classes.dates}>
+                <DatesBox>
                     <ManagedDatePicker
                         value={working.openDate}
                         onChange={updateWorkingOpenDate}
@@ -212,7 +157,7 @@ const EditAccountView: React.FC = () => {
                             />
                         )}
                     />
-                </div>
+                </DatesBox>
             </EditValueContainer>
             <EditValueContainer label="Statements">
                 <TextField
@@ -235,3 +180,29 @@ const updateWorkingCategory = handleButtonGroupChange(update("category"));
 const updateWorkingOpenDate = update("openDate");
 const updateWorkingUpdateDate = update("lastUpdate");
 const updateWorkingFilePattern = handleTextFieldChange(update("statementFilePatternManual"));
+
+const InstitutionButton = styled(Button)({
+    textTransform: "inherit",
+    height: 40,
+
+    "& > svg": { marginLeft: 15 },
+});
+const DatesBox = styled(Box)({
+    display: "flex",
+    flexGrow: 1,
+    justifyContent: "space-between",
+    marginTop: 5,
+
+    "& > :first-of-type": { marginRight: 30 },
+});
+const AccountTypeToggleButtonGroup = styled(ToggleButtonGroup)({
+    flexGrow: 1,
+    "& > button": { flexGrow: 1 },
+});
+const AccountTypeToggleButton = styled(ToggleButton)({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    width: 85,
+});
+const InactiveCheckboxSx = { alignSelf: "flex-end" };

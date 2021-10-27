@@ -1,7 +1,7 @@
-import { Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import numeral from "numeral";
 import { Greys } from "../../../styles/colours";
+import { getThemeTransition, TopHatTheme } from "../../../styles/theme";
 
 const DEFAULT_ROW_HEIGHT = 50;
 const CENTERED_CONTAINER = {
@@ -206,12 +206,12 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
 }));
 
 export const TransactionTableSxProps = {
-    Container: (theme: Theme) => ({
+    Container: {
         display: "flex",
         alignItems: "flex-start",
         padding: "0 5px",
-        ...theme.typography.body1,
-        transition: theme.transitions.create(["box-shadow"]),
+        ...TopHatTheme.typography.body1,
+        transition: getThemeTransition(["box-shadow"]),
 
         "& > *": { flexShrink: 0 },
 
@@ -224,7 +224,7 @@ export const TransactionTableSxProps = {
             lineHeight: "1 !important",
             padding: "3px 0",
         },
-    }),
+    },
     MixedPlaceholder: { "& input::placeholder": MIXED_PLACEHOLDER },
 };
 

@@ -548,9 +548,9 @@ export const finishDemoInitialisation = (state: DataState) => {
         };
     }
 
-    state.account.ids.forEach(
-        (id) =>
-            (state.account.entities[id]!.lastUpdate =
-                state.account.entities[id]!.lastTransactionDate || getTodayString())
-    );
+    state.account.ids.forEach((id) => {
+        const account = state.account.entities[id]!;
+        account.lastUpdate = account.lastTransactionDate || getTodayString();
+        if (account.openDate > account.lastUpdate) account.openDate = account.lastUpdate;
+    });
 };

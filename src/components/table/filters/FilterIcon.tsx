@@ -1,10 +1,11 @@
 import { FilterList } from "@mui/icons-material";
-import { IconButton, IconButtonProps, useTheme } from "@mui/material";
+import { IconButton, IconButtonProps } from "@mui/material";
 import { upperFirst } from "lodash";
 import React, { ReactNode } from "react";
 import { withSuppressEvent } from "../../../shared/events";
 import { IconType } from "../../../shared/types";
 import { Intents } from "../../../styles/colours";
+import { getThemeTransition } from "../../../styles/theme";
 
 export const FilterIcon: React.FC<{
     ButtonProps?: IconButtonProps;
@@ -19,7 +20,7 @@ export const FilterIcon: React.FC<{
         style={{
             padding: 3,
             border: "1px solid " + (badgeContent ? Intents.primary.main : "transparent"),
-            transition: useTheme().transitions.create("border-color"),
+            transition: getThemeTransition("border-color"),
             ...ButtonProps.style,
             ...(margin !== "none" ? { ["margin" + upperFirst(margin)]: 10 } : undefined),
         }}

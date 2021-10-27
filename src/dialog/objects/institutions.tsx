@@ -1,50 +1,22 @@
+import styled from "@emotion/styled";
 import { AccountBalance, Clear, Edit, Sync } from "@mui/icons-material";
 import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import React, { useCallback } from "react";
+import { Box } from "@mui/system";
+import React from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
+import { getInstitutionIconSx } from "../../components/display/ObjectDisplay";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Institution } from "../../state/data";
 import { getColourFromIcon, getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
 import { getRandomColour } from "../../state/shared/values";
 import { BLACK, Greys } from "../../styles/colours";
-import {
-    BasicDialogObjectSelector,
-    DialogContents,
-    DialogMain,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../shared";
-
-const useMainStyles = makeStyles({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        height: 32,
-    },
-    icon: {
-        height: 24,
-        width: 24,
-        marginRight: 15,
-        borderRadius: 5,
-    },
-});
+import { DEFAULT_BORDER_RADIUS, getThemeTransition } from "../../styles/theme";
+import { DialogContents, DialogMain, EditValueContainer } from "../shared";
+import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogInstitutionsView: React.FC = () => {
-    const classes = useMainStyles();
     const working = useDialogHasWorking();
-    const render = useCallback(
-        (institution: Institution) => (
-            <div className={classes.base}>
-                {getInstitutionIcon(institution, classes.icon)}
-                <ListItemText>{institution.name}</ListItemText>
-            </div>
-        ),
-        [classes]
-    );
 
     return (
         <DialogMain onClick={remove}>
@@ -74,93 +46,56 @@ export const DialogInstitutionsView: React.FC = () => {
     );
 };
 
+const InstitutionBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    height: 32,
+});
+const InstitutionIconSx = {
+    height: 24,
+    width: 24,
+    marginRight: 15,
+    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+};
+const render = (institution: Institution) => (
+    <InstitutionBox>
+        {getInstitutionIconSx(institution, InstitutionIconSx)}
+        <ListItemText>{institution.name}</ListItemText>
+    </InstitutionBox>
+);
+
 export const createNewInstitution = (): Institution => ({
     id: getNextID(TopHatStore.getState().data.institution.ids),
     name: "New Institution",
     colour: getRandomColour(),
 });
 
-const useEditViewStyles = makeStyles((theme) => ({
-    iconContainer: {
-        borderRadius: 10,
-        // background: BLACK,
-        position: "relative",
-
-        "&:hover": {
-            // "& > div:first -child": { opacity: 0.7, transition: "none" },
-            "& > div:last-child": { opacity: 1, transition: "none" },
-        },
-    },
-    icon: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-        // transition: theme.transitions.create("opacity"),
-    },
-    buttons: {
-        position: "absolute",
-        bottom: 3,
-        right: 3,
-
-        opacity: 0.8,
-        transition: theme.transitions.create("opacity"),
-
-        display: "flex",
-        "& > label": { height: 24 },
-
-        "& input": { width: 0, height: 0 },
-    },
-    button: {
-        width: 24,
-        height: 24,
-        padding: 5,
-
-        marginLeft: 3,
-        borderRadius: 7,
-        color: Greys[300],
-
-        cursor: "pointer",
-
-        background: alpha(BLACK, 0.7),
-        "&:hover": { background: alpha(BLACK, 0.8), transition: "none" },
-        "&:active": { background: alpha(BLACK, 0.9) },
-    },
-    colourContainer: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: 90,
-
-        "& input": { width: 50, height: 50 },
-    },
-}));
 const EditInstitutionView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("institution")!;
 
     return (
         <ObjectEditContainer type="institution">
             <EditValueContainer label="Icon">
-                <div className={classes.iconContainer}>
-                    {getInstitutionIcon(working, classes.icon)}
-                    <div className={classes.buttons}>
+                <EditInstitutionIconBox>
+                    {getInstitutionIconSx(working, EditInstitutionIconSx)}
+                    <ButtonsBox>
                         <label>
-                            <Edit fontSize="small" className={classes.button} />
+                            <EditButton fontSize="small" />
                             <input type="file" accept="image/png,image/jpeg" onChange={handleFileChange} />
                         </label>
-                        <Clear fontSize="small" className={classes.button} onClick={clearInstitution} />
-                    </div>
-                </div>
+                        <ClearButton fontSize="small" onClick={clearInstitution} />
+                    </ButtonsBox>
+                </EditInstitutionIconBox>
             </EditValueContainer>
             <EditValueContainer label="Colour">
-                <div className={classes.colourContainer}>
+                <ColourContainerBox>
                     <input type="color" value={working.colour} onChange={handleColorChange} />
                     <IconButton size="small" onClick={refreshColourFromIcon}>
                         <Tooltip title={working.icon ? "Refresh colour from icon" : "Get random colour"}>
                             <Sync />
                         </Tooltip>
                     </IconButton>
-                </div>
+                </ColourContainerBox>
             </EditValueContainer>
         </ObjectEditContainer>
     );
@@ -183,4 +118,56 @@ const refreshColourFromIcon = () => {
 
     if (!icon) update("colour")(getRandomColour());
     else getColourFromIcon(icon, colour).then((colour) => update("colour")(colour));
+};
+
+const ButtonsBox = styled(Box)({
+    position: "absolute",
+    bottom: 3,
+    right: 3,
+
+    opacity: 0.8,
+    transition: getThemeTransition("opacity"),
+
+    display: "flex",
+    "& > label": { height: 24 },
+
+    "& input": { width: 0, height: 0 },
+});
+const ButtonSxForComponents = {
+    width: 24,
+    height: 24,
+    padding: 5,
+
+    marginLeft: 3,
+    borderRadius: 7,
+    color: Greys[300],
+
+    cursor: "pointer",
+
+    background: alpha(BLACK, 0.7),
+    "&:hover": { background: alpha(BLACK, 0.8), transition: "none" },
+    "&:active": { background: alpha(BLACK, 0.9) },
+};
+const EditButton = styled(Edit)(ButtonSxForComponents);
+const ClearButton = styled(Clear)(ButtonSxForComponents);
+const ColourContainerBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: 90,
+
+    "& input": { width: 50, height: 50 },
+});
+const EditInstitutionIconBox = styled(Box)({
+    borderRadius: 10,
+    position: "relative",
+
+    "&:hover": {
+        "& > div:last-child": { opacity: 1, transition: "none" },
+    },
+});
+const EditInstitutionIconSx = {
+    width: 100,
+    height: 100,
+    borderRadius: 10 / DEFAULT_BORDER_RADIUS,
 };

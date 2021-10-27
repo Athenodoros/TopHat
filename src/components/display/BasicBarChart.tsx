@@ -1,9 +1,10 @@
-import { lighten, useTheme } from "@mui/material";
+import { lighten } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import { identity } from "lodash";
 import React from "react";
 import { getChartDomainFunctions } from "../../shared/data";
 import { Greys, Intents } from "../../styles/colours";
+import { getThemeTransition } from "../../styles/theme";
 
 export const getBasicBarChartColour = (success: boolean | null, stub?: boolean) =>
     success === null
@@ -19,8 +20,6 @@ export const BasicBarChart: React.FC<{
     setSelected?: (index: number) => void;
     sx?: SxProps;
 }> = ({ className, sx, values, selected: selectedIndex, setSelected }) => {
-    const theme = useTheme();
-
     const { getPoint, getOffsetAndSizeForRange } = getChartDomainFunctions(values);
     const width = (1 / values.length) * 100 + "%";
 
@@ -41,7 +40,7 @@ export const BasicBarChart: React.FC<{
                     position: "absolute" as const,
                     right,
                     width,
-                    transition: theme.transitions.create("all"),
+                    transition: getThemeTransition("all"),
                 };
 
                 return (

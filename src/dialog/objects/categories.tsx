@@ -1,12 +1,12 @@
+import styled from "@emotion/styled";
 import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@mui/icons-material";
 import { Button, IconButton, List, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
+import { Box } from "@mui/system";
 import { range } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCategoryIcon } from "../../components/display/ObjectDisplay";
+import { getCategoryIconSx } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
@@ -21,27 +21,18 @@ import {
 } from "../../state/data/shared";
 import { BaseTransactionHistory, getRandomColour, getTodayString, ID } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
-import {
-    DialogContents,
-    DialogMain,
-    DialogOptions,
-    DialogSelectorAddNewButton,
-    EditTitleContainer,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-    useDialogObjectSelectorStyles,
-} from "../shared";
+import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
+import { DialogContents, DialogMain, DialogOptions, EditTitleContainer, EditValueContainer } from "../shared";
 import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
+import { DialogObjectOptionsBox, DialogSelectorAddNewButton, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogCategoriesView: React.FC = () => {
-    const classes = useDialogObjectSelectorStyles();
     const selected = useDialogState("category", (object) => object?.id);
 
     return (
         <DialogMain onClick={remove}>
             <DialogOptions>
-                <div className={classes.options}>
+                <DialogObjectOptionsBox>
                     <List>
                         <SingleCategoryMenu
                             setSelected={set}
@@ -49,7 +40,7 @@ export const DialogCategoriesView: React.FC = () => {
                             exclude={[PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID]}
                         />
                     </List>
-                </div>
+                </DialogObjectOptionsBox>
                 <DialogSelectorAddNewButton type="category" onClick={createNewCategory} />
             </DialogOptions>
             <DialogContents>
@@ -76,70 +67,7 @@ export const createNewCategory = () =>
         transactions: BaseTransactionHistory(),
     });
 
-const useEditViewStyles = makeStyles({
-    colourContainer: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: 90,
-
-        "& input": { width: 40, height: 40 },
-    },
-    colourContainerDisabled: {
-        opacity: 0.3,
-        pointerEvents: "none",
-    },
-    icon: {
-        height: 24,
-        width: 24,
-        marginRight: 15,
-        borderRadius: 5,
-    },
-    category: {
-        textTransform: "inherit",
-        height: 40,
-
-        "& > svg": {
-            marginLeft: 15,
-        },
-    },
-    valueContainer: {
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-    },
-    valueChart: {
-        height: 30,
-        marginBottom: 10,
-    },
-    values: {
-        display: "flex",
-        justifyContent: "space-between",
-        marginTop: 5,
-
-        "& > *": { width: 160 },
-    },
-    toggles: {
-        flexGrow: 1,
-        "& > button": {
-            flexGrow: 1,
-            padding: 5,
-        },
-    },
-    toggle: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        width: 60,
-    },
-    toggleInner: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-    },
-});
 const EditCategoryView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("category")!;
     const categories = useAllCategories();
     const parentOptions = useMemo(
@@ -172,82 +100,81 @@ const EditCategoryView: React.FC = () => {
             <EditValueContainer label="Parent">
                 <ObjectSelector<true, Category>
                     options={parentOptions}
-                    render={(category) => getCategoryIcon(category, classes.icon)}
+                    render={(category) => getCategoryIconSx(category, IconSx)}
                     selected={parent?.id}
                     setSelected={updateWorkingParent}
                     placeholder={
                         <>
-                            {getCategoryIcon(PLACEHOLDER_CATEGORY, classes.icon)}
+                            {getCategoryIconSx(PLACEHOLDER_CATEGORY, IconSx)}
                             <Typography variant="body1" noWrap={true}>
                                 No Parent
                             </Typography>
                         </>
                     }
                 >
-                    <Button variant="outlined" className={classes.category} color="inherit">
-                        {getCategoryIcon(parent || PLACEHOLDER_CATEGORY, classes.icon)}
+                    <CategoryButton variant="outlined" color="inherit">
+                        {getCategoryIconSx(parent || PLACEHOLDER_CATEGORY, IconSx)}
                         <Typography variant="body1" noWrap={true}>
                             {parent?.name || "No Parent"}
                         </Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                    </Button>
+                    </CategoryButton>
                 </ObjectSelector>
             </EditValueContainer>
             <EditValueContainer label="Colour" disabled={parent && "Child categories inherit their parent's colour"}>
-                <div className={clsx(classes.colourContainer, parent && classes.colourContainerDisabled)}>
+                <ColourContainerBox sx={parent ? ColourContainerDisabledSx : undefined}>
                     <input type="color" value={getCategoryColour(working.id, working)} onChange={handleColorChange} />
                     <IconButton size="small" onClick={generateRandomColour}>
                         <Tooltip title="Get random colour">
                             <Sync />
                         </Tooltip>
                     </IconButton>
-                </div>
+                </ColourContainerBox>
             </EditValueContainer>
             <EditTitleContainer title="Budget" />
             <EditValueContainer
                 label="Type"
                 disabled={parent ? "Child categories inherit their parent's budget" : undefined}
             >
-                <ToggleButtonGroup
+                <BudgetTypeToggleButtonGroup
                     size="small"
                     value={working.budgets?.strategy || "none"}
                     exclusive={true}
                     onChange={updateBudgetStrategy}
-                    className={classes.toggles}
                 >
-                    <ToggleButton value="none" classes={{ root: classes.toggle }}>
+                    <BudgetTypeToggleButton value="none">
                         <Tooltip title="Do not budget this category">
-                            <div className={classes.toggleInner}>
+                            <BudgetTypeToggleInnerBox>
                                 <Clear fontSize="small" />
                                 <Typography variant="caption">None</Typography>
-                            </div>
+                            </BudgetTypeToggleInnerBox>
                         </Tooltip>
-                    </ToggleButton>
-                    <ToggleButton value="base" classes={{ root: classes.toggle }}>
+                    </BudgetTypeToggleButton>
+                    <BudgetTypeToggleButton value="base">
                         <Tooltip title="Set a constant budget each month">
-                            <div className={classes.toggleInner}>
+                            <BudgetTypeToggleInnerBox>
                                 <LooksOne fontSize="small" />
                                 <Typography variant="caption">Constant</Typography>
-                            </div>
+                            </BudgetTypeToggleInnerBox>
                         </Tooltip>
-                    </ToggleButton>
-                    <ToggleButton value="copy" classes={{ root: classes.toggle }}>
+                    </BudgetTypeToggleButton>
+                    <BudgetTypeToggleButton value="copy">
                         <Tooltip title="Copy previous month's budget">
-                            <div className={classes.toggleInner}>
+                            <BudgetTypeToggleInnerBox>
                                 <FastForward fontSize="small" />
                                 <Typography variant="caption">Copy</Typography>
-                            </div>
+                            </BudgetTypeToggleInnerBox>
                         </Tooltip>
-                    </ToggleButton>
-                    <ToggleButton value="rollover" classes={{ root: classes.toggle }}>
+                    </BudgetTypeToggleButton>
+                    <BudgetTypeToggleButton value="rollover">
                         <Tooltip title="Roll over unused budget each month">
-                            <div className={classes.toggleInner}>
+                            <BudgetTypeToggleInnerBox>
                                 <Forward10 fontSize="small" />
                                 <Typography variant="caption">Rollover</Typography>
-                            </div>
+                            </BudgetTypeToggleInnerBox>
                         </Tooltip>
-                    </ToggleButton>
-                </ToggleButtonGroup>
+                    </BudgetTypeToggleButton>
+                </BudgetTypeToggleButtonGroup>
             </EditValueContainer>
             <EditValueContainer
                 label="Value"
@@ -332,3 +259,43 @@ const useCategoryBudgetInput = (working: Category) => {
         id: working.id + "-" + flipped,
     });
 };
+
+const ColourContainerBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: 90,
+
+    "& input": { width: 40, height: 40 },
+});
+const ColourContainerDisabledSx = { opacity: 0.3, pointerEvents: "none" as const };
+const IconSx = {
+    height: 24,
+    width: 24,
+    marginRight: 15,
+    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+};
+const CategoryButton = styled(Button)({
+    textTransform: "inherit",
+    height: 40,
+
+    "& > svg": { marginLeft: 15 },
+});
+const BudgetTypeToggleButtonGroup = styled(ToggleButtonGroup)({
+    flexGrow: 1,
+    "& > button": {
+        flexGrow: 1,
+        padding: 5,
+    },
+});
+const BudgetTypeToggleButton = styled(ToggleButton)({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    width: 60,
+});
+const BudgetTypeToggleInnerBox = styled(Box)({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+});

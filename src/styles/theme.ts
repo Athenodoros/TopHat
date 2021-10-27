@@ -17,7 +17,7 @@ declare module "@mui/styles/defaultTheme" {
 }
 
 export const APP_BACKGROUND_COLOUR = Greys[100];
-export const theme = createMuiTheme({
+export const TopHatTheme = createMuiTheme({
     components: {
         MuiButton: {
             variants: [
@@ -64,7 +64,9 @@ export const theme = createMuiTheme({
     // },
 });
 
-export const DEFAULT_RADIUS = 4;
+export const getThemeTransition = TopHatTheme.transitions.create;
+
+export const DEFAULT_BORDER_RADIUS = 4;
 
 declare module "@mui/material/styles" {
     interface Palette {

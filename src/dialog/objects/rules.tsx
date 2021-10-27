@@ -1,12 +1,12 @@
+import styled from "@emotion/styled";
 import { CallSplit, KeyboardArrowDown } from "@mui/icons-material";
 import { Autocomplete, Button, Checkbox, ListItemText, TextField, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
+import { Box } from "@mui/system";
 import { identity, inRange } from "lodash";
 import React, { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCategoryIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
+import { getCategoryIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../components/inputs";
 import { handleAutoCompleteChange, handleTextFieldChange } from "../../shared/events";
 import { useNumericInputHandler } from "../../shared/hooks";
@@ -16,50 +16,12 @@ import { Account, DataSlice, Rule } from "../../state/data";
 import { useAccountMap, useAllAccounts, useAllCategories, useCategoryByID } from "../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../state/data/shared";
 import { Greys } from "../../styles/colours";
-import {
-    DialogContents,
-    DialogMain,
-    DraggableDialogObjectSelector,
-    EditTitleContainer,
-    EditValueContainer,
-    getUpdateFunctions,
-    ObjectEditContainer,
-} from "../shared";
-
-const useMainStyles = makeStyles((theme) => ({
-    base: {
-        display: "flex",
-        alignItems: "center",
-        flexGrow: 1,
-        height: 32,
-
-        "& > div:first-of-type": {
-            marginLeft: 10,
-            color: Greys[500],
-            width: 40,
-            flexGrow: 0,
-        },
-    },
-    disabled: {
-        opacity: 0.5,
-        fontStyle: "italic",
-        transition: theme.transitions.create("opacity"),
-        "&:hover": { opacity: 1 },
-    },
-}));
+import { getThemeTransition } from "../../styles/theme";
+import { DialogContents, DialogMain, EditTitleContainer, EditValueContainer } from "../shared";
+import { DraggableDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogRulesView: React.FC = () => {
-    const classes = useMainStyles();
     const working = useDialogHasWorking();
-    const render = useCallback(
-        (rule: Rule) => (
-            <div className={clsx(classes.base, rule.isInactive && classes.disabled)}>
-                <ListItemText>{rule.index + "."}</ListItemText>
-                <ListItemText>{rule.name}</ListItemText>
-            </div>
-        ),
-        [classes]
-    );
 
     return (
         <DialogMain onClick={remove}>
@@ -83,6 +45,32 @@ export const DialogRulesView: React.FC = () => {
         </DialogMain>
     );
 };
+
+const RuleListBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    flexGrow: 1,
+    height: 32,
+
+    "& > div:first-of-type": {
+        marginLeft: 10,
+        color: Greys[500],
+        width: 40,
+        flexGrow: 0,
+    },
+});
+const InactiveRuleListBoxSx = {
+    opacity: 0.5,
+    fontStyle: "italic",
+    transition: getThemeTransition("opacity"),
+    "&:hover": { opacity: 1 },
+};
+const render = (rule: Rule) => (
+    <RuleListBox sx={rule.isInactive ? InactiveRuleListBoxSx : undefined}>
+        <ListItemText>{rule.index + "."}</ListItemText>
+        <ListItemText>{rule.name}</ListItemText>
+    </RuleListBox>
+);
 
 const createNewRule = (): Rule => {
     const id = getNextID(TopHatStore.getState().data.rule.ids);
@@ -120,54 +108,7 @@ const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => 
     TopHatDispatch(DataSlice.actions.updateSimpleObjects({ type: "rule", updates }));
 };
 
-const useEditViewStyles = makeStyles((theme) => ({
-    icon: {
-        width: 20,
-        height: 20,
-        marginRight: 15,
-    },
-    grow: { flexGrow: 1 },
-    accountIcon: {
-        width: 16,
-        height: 16,
-        borderRadius: 4,
-        marginRight: 8,
-    },
-    category: {
-        width: 200,
-        textTransform: "inherit",
-        height: 40,
-
-        "& > p": {
-            flexGrow: 1,
-            textAlign: "left",
-        },
-
-        "& > svg": {
-            marginLeft: 15,
-        },
-    },
-    placeholder: {
-        opacity: 0.5,
-        fontStyle: "italic",
-        transition: theme.transitions.create("opacity"),
-        "&:hover": { opacity: 1 },
-    },
-    range: {
-        display: "flex",
-        flexGrow: 1,
-        justifyContent: "space-between",
-
-        "& > :first-of-type": {
-            marginRight: 30,
-        },
-    },
-}));
-
-const InactiveCheckboxSx = { alignSelf: "flex-end" };
-
 const EditRuleView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("rule")!;
     const category = useCategoryByID(working.category);
     const categories = useAllCategories();
@@ -175,7 +116,7 @@ const EditRuleView: React.FC = () => {
     const min = useNumericInputHandler(working.min ?? null, updateWorkingMin, working.id);
     const max = useNumericInputHandler(working.max ?? null, updateWorkingMax, working.id);
 
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
     const accounts = useAllAccounts();
     const accountMap = useAccountMap();
 
@@ -205,7 +146,7 @@ const EditRuleView: React.FC = () => {
         >
             <EditTitleContainer title="Conditions" />
             <EditValueContainer label="Reference">
-                <div className={classes.grow}>
+                <GrowingBox>
                     <Autocomplete
                         limitTags={1}
                         multiple={true}
@@ -236,17 +177,17 @@ const EditRuleView: React.FC = () => {
                         setChecked={updateWorkingRegex}
                         left={true}
                     />
-                </div>
+                </GrowingBox>
             </EditValueContainer>
             <EditValueContainer label="Value">
-                <div className={classes.range}>
+                <RangeBox>
                     <TextField value={min.text} onChange={min.onTextChange} size="small" label="Minimum" />
                     <TextField value={max.text} onChange={max.onTextChange} size="small" label="Maximum" />
-                </div>
+                </RangeBox>
             </EditValueContainer>
             <EditValueContainer label="Accounts">
                 <Autocomplete
-                    className={classes.grow}
+                    sx={{ flexGrow: 1 }}
                     limitTags={1}
                     multiple={true}
                     options={accounts}
@@ -256,10 +197,8 @@ const EditRuleView: React.FC = () => {
                     onChange={updateWorkingAccounts}
                     renderOption={(props, account) => (
                         <li {...props}>
-                            {getAccountIcon(account, classes.accountIcon)}
-                            <Typography variant="body1" className={classes.grow}>
-                                {account.name}
-                            </Typography>
+                            {getAccountIcon(account, AccountIconSx)}
+                            <GrowingTypography variant="body1">{account.name}</GrowingTypography>
                             <Checkbox size="small" color="primary" checked={working.accounts.includes(account.id)} />
                         </li>
                     )}
@@ -288,15 +227,15 @@ const EditRuleView: React.FC = () => {
             <EditValueContainer label="Category">
                 <ObjectSelector
                     options={categories}
-                    render={(category) => getCategoryIcon(category, classes.icon)}
+                    render={(category) => getCategoryIconSx(category, CategoryIconSx)}
                     selected={working.category}
                     setSelected={updateWorkingCategory}
                 >
-                    <Button variant="outlined" className={classes.category} color="inherit">
-                        {getCategoryIcon(category, classes.icon)}
+                    <CategorySelectionButton variant="outlined" color="inherit">
+                        {getCategoryIconSx(category, CategoryIconSx)}
                         <Typography variant="body1">{category.name}</Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                    </Button>
+                    </CategorySelectionButton>
                 </ObjectSelector>
             </EditValueContainer>
         </ObjectEditContainer>
@@ -316,3 +255,41 @@ const updateWorkingAccounts = handleAutoCompleteChange((accounts: Account[]) =>
 const updateWorkingSummary = handleTextFieldChange(update("summary"));
 const updateWorkingDescription = handleTextFieldChange(update("description"));
 const updateWorkingCategory = update("category");
+
+const InactiveCheckboxSx = { alignSelf: "flex-end" };
+const GrowingBox = styled(Box)({ flexGrow: 1 });
+const GrowingTypography = styled(Typography)({ flexGrow: 1 });
+const CategoryIconSx = {
+    width: 20,
+    height: 20,
+    marginRight: 15,
+};
+const RangeBox = styled(Box)({
+    display: "flex",
+    flexGrow: 1,
+    justifyContent: "space-between",
+
+    "& > :first-of-type": {
+        marginRight: 30,
+    },
+});
+const AccountIconSx = {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    marginRight: 8,
+};
+const CategorySelectionButton = styled(Button)({
+    width: 200,
+    textTransform: "inherit",
+    height: 40,
+
+    "& > p": {
+        flexGrow: 1,
+        textAlign: "left",
+    },
+
+    "& > svg": {
+        marginLeft: 15,
+    },
+});

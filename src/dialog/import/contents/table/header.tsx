@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { ArrowDropDown, Event, Exposure, Filter1, Translate } from "@mui/icons-material";
-import { Button, ListItemText, Menu, MenuItem, Typography, useTheme } from "@mui/material";
+import { Button, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { get, toPairs, upperFirst } from "lodash";
 import React from "react";
@@ -18,13 +18,13 @@ import {
 } from "../../../../state/logic/statement";
 import { StatementMappingColumns } from "../../../../state/logic/statement/parsing";
 import { Greys } from "../../../../styles/colours";
+import { TopHatTheme } from "../../../../styles/theme";
 import { DIALOG_IMPORT_TABLE_HEADER_STYLES, DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES } from "./shared";
 
 export const DialogImportTableColumnHeader: React.FC<{
     column: ColumnProperties;
     state: DialogStatementParseState | DialogStatementMappingState | DialogStatementImportState;
 }> = ({ column, state }) => {
-    const theme = useTheme();
     const popover = usePopoverProps();
 
     let subtitle: React.ReactNode = undefined;
@@ -36,19 +36,16 @@ export const DialogImportTableColumnHeader: React.FC<{
 
         subtitle = (
             <MappingBox>
-                <Button
+                <SubtitleButton
                     size="small"
                     endIcon={<ArrowDropDown />}
-                    sx={{
-                        ...theme.typography.caption,
-                        ...(field ? undefined : EmptyButtonSx),
-                    }}
+                    sx={field ? undefined : EmptyButtonSx}
                     disabled={state.page !== "mapping"}
                     {...popover.buttonProps}
                     color="inherit"
                 >
                     {field ? upperFirst(field) : "(none)"}
-                </Button>
+                </SubtitleButton>
                 <Menu {...popover.popoverProps}>
                     <PlaceholderOptionMenuItem
                         dense={true}
@@ -73,15 +70,11 @@ export const DialogImportTableColumnHeader: React.FC<{
                     ))}
                 </Menu>
                 {field === "value" || field === "debit" ? (
-                    <Button
+                    <SubtitleIconButton
                         size="small"
                         endIcon={<Exposure />}
                         color={mapping.value.flip ? "error" : "inherit"}
-                        sx={{
-                            ...theme.typography.caption,
-                            ...IconButtonSx,
-                            ...(mapping.value.flip ? IconButtonFlippedSx : undefined),
-                        }}
+                        sx={mapping.value.flip ? IconButtonFlippedSx : undefined}
                         disabled={state.page !== "mapping"}
                         onClick={flipStatementMappingFlipValue}
                     />
@@ -151,8 +144,9 @@ const MappingBox = styled(Box)({
         },
     },
 });
+const SubtitleButton = styled(Button)(TopHatTheme.typography.caption as any);
 const EmptyButtonSx = { color: Greys[600], fontStyle: "italic" };
-const IconButtonSx = { minWidth: 20, ...DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES };
+const SubtitleIconButton = styled(SubtitleButton)({ minWidth: 20, ...DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES });
 const IconButtonFlippedSx = { [`& .MuiButton-endIcon`]: { opacity: "1 !important" } };
 const MappingOptionMenuItem = styled(MenuItem)({ paddingLeft: 20, paddingRight: 30 });
 const PlaceholderOptionMenuItem = styled(MappingOptionMenuItem)({ color: Greys[600], fontStyle: "italic" });

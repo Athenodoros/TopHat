@@ -1,6 +1,5 @@
 import { PlaylistAdd } from "@mui/icons-material";
 import { Button, Card, Checkbox } from "@mui/material";
-import { useTheme } from "@mui/private-theming";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
@@ -8,6 +7,7 @@ import { TableHeaderContainer } from "..";
 import { flipListIncludes } from "../../../shared/data";
 import { useRefToValue } from "../../../shared/hooks";
 import { ID } from "../../../state/shared/values";
+import { TopHatTheme } from "../../../styles/theme";
 import { Section, SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
@@ -43,7 +43,6 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
     headers,
 }) => {
-    const theme = useTheme();
     const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
     const { ids, groups, metadata, more } = useTransactionsTableData(filters, fixed);
@@ -56,8 +55,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <Section title="Transaction List" headers={headers} emptyBody={true}>
             <TableHeaderContainer
                 sx={{
-                    ...TransactionTableSxProps.Container(theme),
-                    ...(selection.length > 0 ? { boxShadow: theme.shadows[5] } : undefined),
+                    ...TransactionTableSxProps.Container,
+                    ...(selection.length > 0 ? ActiveTableHeaderContainerSx : undefined),
                 }}
             >
                 <div className={classes.checkbox}>
@@ -191,3 +190,5 @@ const useTableUpdateFunctions = (
         }),
         [stateRef, setStatePartial, filterRef, setFiltersPartial]
     );
+
+const ActiveTableHeaderContainerSx = { boxShadow: TopHatTheme.shadows[5] };
