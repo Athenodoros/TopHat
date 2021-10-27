@@ -5,28 +5,6 @@ import { NBSP } from "../../shared/constants";
 import { IconType } from "../../shared/types";
 import { AppColours, Greys, Intents, WHITE } from "../../styles/colours";
 
-const SummaryNumberContainer = styled(Box)({
-    display: "flex",
-    width: 220,
-
-    padding: "10px 0 20px 0",
-    "&:last-child": {
-        paddingBottom: 10,
-    },
-});
-const IconSx = {
-    backgroundColor: Greys[600],
-    width: 38,
-    height: 38,
-    padding: 9,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    color: WHITE,
-    borderRadius: "50%",
-    marginRight: 12,
-};
-
 interface SummaryNumberProps {
     icon: IconType;
     primary: {
@@ -40,7 +18,7 @@ interface SummaryNumberProps {
     subtext: string;
 }
 export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primary, secondary, subtext }) => (
-    <SummaryNumberContainer>
+    <SummaryNumberContainerBox>
         <Icon sx={IconSx} fontSize="small" />
         <div>
             <Typography
@@ -75,5 +53,27 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
                 </Typography>
             </Box>
         </div>
-    </SummaryNumberContainer>
+    </SummaryNumberContainerBox>
 );
+
+const SummaryNumberContainerBox = styled(Box)({
+    display: "flex",
+    width: 220,
+
+    padding: "10px 0 20px 0",
+    "&:last-child": {
+        paddingBottom: 10,
+    },
+});
+const IconSx = {
+    backgroundColor: Greys[600],
+    width: 38,
+    height: 38,
+    padding: 9,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    color: WHITE,
+    borderRadius: "50%",
+    marginRight: 12,
+};

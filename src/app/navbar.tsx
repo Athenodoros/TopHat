@@ -71,16 +71,16 @@ export const NavBar: React.FC = () => {
     };
 
     return (
-        <NavBarContainer>
-            <SummaryContainer>{getTab("summary", Camera, true)}</SummaryContainer>
-            <AppContainer>
+        <NavBarContainerPaper>
+            <SummaryContainerBox>{getTab("summary", Camera, true)}</SummaryContainerBox>
+            <AppContainerBox>
                 {getTab("accounts", AccountBalanceWalletTwoTone)}
                 {getTab("transactions", PaymentTwoTone)}
                 {getTab("categories", ShoppingBasketTwoTone)}
                 {getTab("forecasts", TrendingUpTwoTone)}
-            </AppContainer>
-            <SettingsContainer>{getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}</SettingsContainer>
-        </NavBarContainer>
+            </AppContainerBox>
+            <SettingsContainerBox>{getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}</SettingsContainerBox>
+        </NavBarContainerPaper>
     );
 };
 
@@ -97,7 +97,7 @@ const AppIconButton = styled(IconButton)({
     marginBottom: 27,
     flexShrink: 0,
 });
-const NavBarContainer = styled(Paper)({
+const NavBarContainerPaper = styled(Paper)({
     flex: "80px 0 0",
     display: "flex",
     flexDirection: "column",
@@ -113,7 +113,7 @@ const NavBarContainer = styled(Paper)({
         },
     },
 });
-const SummaryContainer = styled(Box)({
+const SummaryContainerBox = styled(Box)({
     height: NAVBAR_LOGO_HEIGHT,
     justifyContent: "center",
     flexShrink: 0,
@@ -129,13 +129,13 @@ const SummaryContainer = styled(Box)({
         },
     },
 });
-const AppContainer = styled(Box)({
+const AppContainerBox = styled(Box)({
     flexGrow: 1,
     flexShrink: 1,
     minHeight: 0,
     overflowY: "auto",
 });
-const SettingsContainer = styled(Box)({
+const SettingsContainerBox = styled(Box)({
     flexShrink: 0,
     background: WHITE,
     paddingTop: 27,

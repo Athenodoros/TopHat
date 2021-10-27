@@ -12,14 +12,14 @@ import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 import { DEFAULT_RADIUS } from "../../../styles/theme";
 
-const BarContainer = styled("div")({
+const BarContainerBox = styled(Box)({
     display: "flex",
     alignItems: "center",
     padding: "10px 20px 0 10px",
     overflow: "hidden",
 });
-const StackedBar = styled("div")({ padding: "3px 0", borderLeft: "2px solid black", flexGrow: 1 });
-const ValueRow = styled("div")({
+const StackedBarBox = styled(Box)({ padding: "3px 0", borderLeft: "2px solid black", flexGrow: 1 });
+const ValueRowBox = styled(Box)({
     height: 10,
     position: "relative",
     marginLeft: -1,
@@ -95,24 +95,24 @@ export const CategoriesBarSummary: React.FC<{ points: CategoriesBarSummaryPoint[
                 marginBottom: -6,
             }}
         >
-            <BarContainer>
+            <BarContainerBox>
                 <Tooltip title="Income">
                     <FileDownload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 8 }} />
                 </Tooltip>
-                <StackedBar>
-                    <ValueRow>{positiveValueNodes}</ValueRow>
-                    <ValueRow>{positiveBudgetNodes}</ValueRow>
-                </StackedBar>
-            </BarContainer>
-            <BarContainer>
+                <StackedBarBox>
+                    <ValueRowBox>{positiveValueNodes}</ValueRowBox>
+                    <ValueRowBox>{positiveBudgetNodes}</ValueRowBox>
+                </StackedBarBox>
+            </BarContainerBox>
+            <BarContainerBox>
                 <Tooltip title="Expenses">
                     <FileUpload fontSize="small" htmlColor={Greys[600]} sx={{ marginRight: 8 }} />
                 </Tooltip>
-                <StackedBar>
-                    <ValueRow>{negativeValueNodes}</ValueRow>
-                    <ValueRow>{negativeBudgetNodes}</ValueRow>
-                </StackedBar>
-            </BarContainer>
+                <StackedBarBox>
+                    <ValueRowBox>{negativeValueNodes}</ValueRowBox>
+                    <ValueRowBox>{negativeBudgetNodes}</ValueRowBox>
+                </StackedBarBox>
+            </BarContainerBox>
         </Box>
     );
 };

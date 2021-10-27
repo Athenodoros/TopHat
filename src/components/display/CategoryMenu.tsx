@@ -151,7 +151,7 @@ export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, excl
     };
 };
 
-const BaseContainer = styled(Box)({ display: "flex", alignItems: "center", height: 32 });
+const BaseContainerBox = styled(Box)({ display: "flex", alignItems: "center", height: 32 });
 const CategoryIconSx = {
     height: 16,
     width: 16,
@@ -160,8 +160,8 @@ const CategoryIconSx = {
     borderRadius: "50%",
 } as const;
 const renderCategory = (category: Category) => (
-    <BaseContainer>
+    <BaseContainerBox>
         {getCategoryIconSx(category, CategoryIconSx)}
         <ListItemText>{category.name}</ListItemText>
-    </BaseContainer>
+    </BaseContainerBox>
 );

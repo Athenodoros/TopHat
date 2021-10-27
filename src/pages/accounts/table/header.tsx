@@ -29,8 +29,8 @@ import {
     useGetAccountIcon,
 } from "../../../components/display/ObjectDisplay";
 import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
-import { createNewAccount } from "../../../dialog/pages/accounts";
-import { createNewInstitution } from "../../../dialog/pages/institutions";
+import { createNewAccount } from "../../../dialog/objects/accounts";
+import { createNewInstitution } from "../../../dialog/objects/institutions";
 import { zipObject } from "../../../shared/data";
 import { usePopoverProps } from "../../../shared/hooks";
 import { TopHatDispatch } from "../../../state";

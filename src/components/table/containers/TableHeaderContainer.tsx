@@ -1,32 +1,29 @@
-import { Card } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import { SxProps } from "@mui/system";
+import styled from "@emotion/styled";
+import { Card, Theme } from "@mui/material";
+import { Box, SxProps } from "@mui/system";
 import React from "react";
+import { APP_BACKGROUND_COLOUR } from "../../../styles/theme";
 
-const useStyles = makeStyles((theme) => ({
-    container: {
-        top: 0,
-        position: "sticky",
-        backgroundColor: theme.palette.background.default,
-        zIndex: 1,
-        margin: "-20px -10px 5px -10px",
-        padding: "20px 10px 0 10px",
-    },
-    card: {
-        height: 50,
-        display: "flex",
-        alignItems: "center",
-    },
-}));
-
-export const TableHeaderContainer: React.FC<{ className?: string; sx?: SxProps }> = ({ children, className, sx }) => {
-    const classes = useStyles();
-
+export const TableHeaderContainer: React.FC<{ sx?: SxProps<Theme> }> = ({ children, sx }) => {
     return (
-        <div className={classes.container}>
-            <Card elevation={2} className={className || classes.card} sx={sx}>
+        <ContainerBox>
+            <HeaderCard elevation={2} sx={sx}>
                 {children}
-            </Card>
-        </div>
+            </HeaderCard>
+        </ContainerBox>
     );
 };
+
+const ContainerBox = styled(Box)({
+    top: 0,
+    position: "sticky",
+    backgroundColor: APP_BACKGROUND_COLOUR,
+    zIndex: 1,
+    margin: "-20px -10px 5px -10px",
+    padding: "20px 10px 0 10px",
+});
+const HeaderCard = styled(Card)({
+    height: 50,
+    display: "flex",
+    alignItems: "center",
+});

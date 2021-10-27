@@ -1,4 +1,5 @@
-import makeStyles from "@mui/styles/makeStyles";
+import styled from "@emotion/styled";
+import { Box } from "@mui/system";
 import { orderBy, sumBy } from "lodash";
 import React from "react";
 import { ChartSign } from "../../../state/app/pageTypes";
@@ -7,30 +8,6 @@ import { Greys } from "../../../styles/colours";
 import { SummaryChartSign } from "../shared";
 import { SummaryPieChart } from "./pie";
 import { Value } from "./value";
-
-const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "stretch",
-        margin: -5,
-        height: 330,
-        flexGrow: 1,
-    },
-    divider: {
-        height: 1,
-        margin: "7px 50px 5px 50px",
-        backgroundColor: Greys[400],
-    },
-    points: {
-        overflowY: "auto",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "stretch",
-        flexShrink: 1,
-        flexGrow: 1,
-    },
-});
 
 export interface SummaryBreakdownDatum {
     id: number;
@@ -75,8 +52,6 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     colorise,
     children,
 }) => {
-    const classes = useStyles();
-
     const points = orderBy(data, ({ value }) =>
         sign === "credits" ? -value.credit : sign === "all" ? -value.credit - value.debit : value.debit
     ).filter(({ value, debit }) => {
@@ -87,7 +62,7 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     });
 
     return (
-        <div className={classes.container}>
+        <ContainerBox>
             {sign !== "debits" ? (
                 <Value
                     name={creditsName}
@@ -114,8 +89,8 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
                     help={help}
                 />
             ) : undefined}
-            <div className={classes.divider} />
-            <div className={classes.points}>
+            <DividerBox />
+            <PointsContainerBox>
                 {points.map((p) => (
                     <Value
                         name={p.name}
@@ -155,8 +130,30 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
                         colorise={colorise}
                     />
                 ))}
-            </div>
+            </PointsContainerBox>
             {children || <SummaryPieChart series={points} sign={sign} setFilter={setFilter} />}
-        </div>
+        </ContainerBox>
     );
 };
+
+const ContainerBox = styled(Box)({
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "stretch",
+    margin: -5,
+    height: 330,
+    flexGrow: 1,
+});
+const DividerBox = styled(Box)({
+    height: 1,
+    margin: "7px 50px 5px 50px",
+    backgroundColor: Greys[400],
+});
+const PointsContainerBox = styled(Box)({
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "stretch",
+    flexShrink: 1,
+    flexGrow: 1,
+});

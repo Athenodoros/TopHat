@@ -26,11 +26,11 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
     const onExited = useCallback(() => dismiss && dismiss(closedProgrammatically), [dismiss, closedProgrammatically]);
 
     return (
-        <Container in={grow} onExited={onExited}>
+        <ContainerCollapse in={grow} onExited={onExited}>
             <Fade in={grow}>
-                <Notification style={{ borderColor: colour }}>
-                    <Backdrop style={{ backgroundColor: colour }} />
-                    <Contents>
+                <NotificationBox style={{ borderColor: colour }}>
+                    <BackdropBox style={{ backgroundColor: colour }} />
+                    <ContentsBox>
                         <Icon sx={{ margin: 3, marginRight: 23 }} htmlColor={Greys[800]} fontSize="small" />
                         <Typography variant="subtitle2" flexGrow={1}>
                             {title}
@@ -40,27 +40,27 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
                                 <Clear fontSize="inherit" />
                             </IconButton>
                         )}
-                    </Contents>
+                    </ContentsBox>
                     {children}
                     {buttons ? (
-                        <Buttons>
+                        <ButtonContainerBox>
                             {buttons.map(({ text, onClick }, idx) => (
-                                <Button
+                                <SpacedButton
                                     onClick={() => onClick(programmaticDismiss)}
                                     size="small"
                                     key={idx}
                                     color="inherit"
                                 >
                                     {text}
-                                </Button>
+                                </SpacedButton>
                             ))}
-                        </Buttons>
+                        </ButtonContainerBox>
                     ) : (
                         <Box height={25} />
                     )}
-                </Notification>
+                </NotificationBox>
             </Fade>
-        </Container>
+        </ContainerCollapse>
     );
 };
 
@@ -83,8 +83,8 @@ export const Notifications: React.FC<{ sx?: SxProps }> = ({ sx }) => {
     );
 };
 
-const Container = styled(Collapse)({ marginBottom: 20, "&:first-of-type": { marginTop: 20 } });
-const Notification = styled(Box)({
+const ContainerCollapse = styled(Collapse)({ marginBottom: 20, "&:first-of-type": { marginTop: 20 } });
+const NotificationBox = styled(Box)({
     display: "flex",
     flexDirection: "column",
     borderLeft: "3px solid transparent",
@@ -94,8 +94,8 @@ const Notification = styled(Box)({
     fontSize: 20,
     // width: 350
 });
-const Contents = styled(Box)({ display: "flex", alignItems: "center", margin: "9px 0 7px 0" });
-const Backdrop = styled(Box)({
+const ContentsBox = styled(Box)({ display: "flex", alignItems: "center", margin: "9px 0 7px 0" });
+const BackdropBox = styled(Box)({
     position: "absolute",
     width: 240,
     height: 240,
@@ -106,4 +106,5 @@ const Backdrop = styled(Box)({
     transform: "rotate(20deg)",
     transformOrigin: "bottom left",
 });
-const Buttons = styled(Box)({ display: "flex", justifyContent: "flex-end", margin: 5, "& > *": { marginLeft: 10 } });
+const ButtonContainerBox = styled(Box)({ display: "flex", justifyContent: "flex-end", margin: 5 });
+const SpacedButton = styled(Button)({ marginLeft: 10 });

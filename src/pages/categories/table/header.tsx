@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { FilterIcon, TableHeaderContainer } from "../../../components/table";
-import { createNewCategory } from "../../../dialog/pages/categories";
+import { createNewCategory } from "../../../dialog/objects/categories";
 import { usePopoverProps } from "../../../shared/hooks";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";

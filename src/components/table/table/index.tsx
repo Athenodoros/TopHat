@@ -1,5 +1,6 @@
 import { PlaylistAdd } from "@mui/icons-material";
 import { Button, Card, Checkbox } from "@mui/material";
+import { useTheme } from "@mui/private-theming";
 import clsx from "clsx";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
@@ -11,7 +12,7 @@ import { Section, SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
-import { useTransactionsTableStyles } from "./styles";
+import { TransactionTableSxProps, useTransactionsTableStyles } from "./styles";
 import {
     EditTransactionState,
     TransactionsTableFilters,
@@ -42,6 +43,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
     headers,
 }) => {
+    const theme = useTheme();
     const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
     const { ids, groups, metadata, more } = useTransactionsTableData(filters, fixed);
@@ -53,7 +55,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     return (
         <Section title="Transaction List" headers={headers} emptyBody={true}>
             <TableHeaderContainer
-                className={clsx(classes.container, selection.length > 0 && classes.selectedHeaderContainer)}
+                sx={{
+                    ...TransactionTableSxProps.Container(theme),
+                    ...(selection.length > 0 ? { boxShadow: theme.shadows[5] } : undefined),
+                }}
             >
                 <div className={classes.checkbox}>
                     <Checkbox

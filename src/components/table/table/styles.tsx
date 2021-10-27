@@ -1,3 +1,4 @@
+import { Theme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
 import numeral from "numeral";
 import { Greys } from "../../../styles/colours";
@@ -205,6 +206,25 @@ export const useTransactionsTableStyles = makeStyles((theme) => ({
 }));
 
 export const TransactionTableSxProps = {
+    Container: (theme: Theme) => ({
+        display: "flex",
+        alignItems: "flex-start",
+        padding: "0 5px",
+        ...theme.typography.body1,
+        transition: theme.transitions.create(["box-shadow"]),
+
+        "& > *": { flexShrink: 0 },
+
+        borderBottom: "1px solid " + Greys[200],
+        "&:last-child": {
+            borderBottomColor: "transparent",
+        },
+
+        "& p": {
+            lineHeight: "1 !important",
+            padding: "3px 0",
+        },
+    }),
     MixedPlaceholder: { "& input::placeholder": MIXED_PLACEHOLDER },
 };
 

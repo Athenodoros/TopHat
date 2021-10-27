@@ -1,4 +1,4 @@
-import makeStyles from "@mui/styles/makeStyles";
+import styled from "@emotion/styled";
 import { sumBy } from "lodash-es";
 import React, { useMemo } from "react";
 import { VictoryPie, VictoryPieProps } from "victory";
@@ -7,15 +7,13 @@ import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 import { ChartPoint, getChartEvents, getChartSectionStyles, SummaryChartSign } from "../shared";
 
-const useStyles = makeStyles({
-    container: {
-        flexShrink: 0,
-        padding: 10,
-        borderRadius: "50%",
-        background: Greys[100],
-        alignSelf: "center",
-        marginTop: 20,
-    },
+const PieContainerSvg = styled("svg")({
+    flexShrink: 0,
+    padding: 10,
+    borderRadius: "50%",
+    background: Greys[100],
+    alignSelf: "center",
+    marginTop: 20,
 });
 
 interface PieChartDatum extends ChartPoint {
@@ -40,8 +38,6 @@ type SummaryPieChartProps = {
     setFilter?: (id: ID, sign?: SummaryChartSign) => void;
 };
 export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, setFilter }) => {
-    const classes = useStyles();
-
     const credits = useMaybePieChartData("credits", series, sign);
     const debits = useMaybePieChartData("debits", series, sign);
 
@@ -52,7 +48,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
     const maxPieSize = Math.max(totalCredits, totalDebits);
 
     return (
-        <svg height={125} width={125} className={classes.container}>
+        <PieContainerSvg height={125} width={125}>
             {sign === "all" ? (
                 <>
                     {getPie(credits, 35, 50, maxPieSize && (totalCredits / maxPieSize) * 360)}
@@ -64,7 +60,7 @@ export const SummaryPieChart: React.FC<SummaryPieChartProps> = ({ series, sign, 
                     {getPie(debits, 25, 50)}
                 </>
             )}
-        </svg>
+        </PieContainerSvg>
     );
 };
 
