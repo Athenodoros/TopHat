@@ -41,9 +41,9 @@ export const DialogHeader: React.FC = () => {
             >
                 {MenuItems}
             </Select>
-            <IconButton onClick={closeDialogBox} size="large">
-                <Clear fontSize="small" sx={{ minWidth: 40 }} />
-            </IconButton>
+            <CloseIconButton onClick={closeDialogBox} size="large">
+                <Clear fontSize="small" />
+            </CloseIconButton>
         </HeaderBox>
     );
 };
@@ -95,3 +95,4 @@ const HeaderBox = styled(Box)({
         padding: "5px 32px 5px 18px",
     },
 });
+const CloseIconButton = styled(IconButton)({ marginRight: 10 });
