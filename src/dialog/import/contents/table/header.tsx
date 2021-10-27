@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { ArrowDropDown, Event, Exposure, Filter1, Translate } from "@mui/icons-material";
-import { Button, Menu, Typography, useTheme } from "@mui/material";
+import { Button, ListItemText, Menu, MenuItem, Typography, useTheme } from "@mui/material";
 import { Box } from "@mui/system";
 import { get, toPairs, upperFirst } from "lodash";
 import React from "react";
@@ -10,7 +10,12 @@ import {
     DialogStatementMappingState,
     DialogStatementParseState,
 } from "../../../../state/app/statementTypes";
-import { ColumnProperties, flipStatementMappingFlipValue } from "../../../../state/logic/statement";
+import {
+    changeStatementMappingValue,
+    ColumnProperties,
+    flipStatementMappingFlipValue,
+    removeStatementMappingForColumn,
+} from "../../../../state/logic/statement";
 import { StatementMappingColumns } from "../../../../state/logic/statement/parsing";
 import { Greys } from "../../../../styles/colours";
 import { DIALOG_IMPORT_TABLE_HEADER_STYLES, DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES } from "./shared";
@@ -27,6 +32,8 @@ export const DialogImportTableColumnHeader: React.FC<{
         const { mapping } = state;
         const field = (toPairs(StatementMappingColumns).find(([_, path]) => get(mapping, path) === column.id) || [])[0];
 
+        const options = getColumnOptions(column, state.mapping.value.type === "split");
+
         subtitle = (
             <MappingBox>
                 <Button
@@ -42,7 +49,29 @@ export const DialogImportTableColumnHeader: React.FC<{
                 >
                     {field ? upperFirst(field) : "(none)"}
                 </Button>
-                <Menu {...popover.popoverProps}></Menu>
+                <Menu {...popover.popoverProps}>
+                    <PlaceholderOptionMenuItem
+                        dense={true}
+                        selected={field === undefined}
+                        disabled={field === "date"}
+                        onClick={() => removeStatementMappingForColumn(column.id)}
+                    >
+                        <ListItemText>(None)</ListItemText>
+                    </PlaceholderOptionMenuItem>
+                    {options.map((option) => (
+                        <MappingOptionMenuItem
+                            key={option}
+                            dense={true}
+                            selected={option === field}
+                            onClick={() => {
+                                changeStatementMappingValue(option, column.id);
+                                popover.setIsOpen(false);
+                            }}
+                        >
+                            <ListItemText>{upperFirst(option)}</ListItemText>
+                        </MappingOptionMenuItem>
+                    ))}
+                </Menu>
                 {field === "value" || field === "debit" ? (
                     <Button
                         size="small"
@@ -72,6 +101,15 @@ export const DialogImportTableColumnHeader: React.FC<{
             {subtitle}
         </HeaderBox>
     );
+};
+
+const getColumnOptions = (column: ColumnProperties, splitValues: boolean): (keyof typeof StatementMappingColumns)[] => {
+    if (column.type === "date") return column.nullable === false ? ["date"] : [];
+    if (column.type === "number")
+        return ["balance"].concat(
+            splitValues ? ["credit", "debit"] : ["value"]
+        ) as (keyof typeof StatementMappingColumns)[];
+    return column.nullable === false ? ["currency", "reference"] : ["reference"];
 };
 
 const COLUMN_TYPE_ICONS = {
@@ -116,3 +154,5 @@ const MappingBox = styled(Box)({
 const EmptyButtonSx = { color: Greys[600], fontStyle: "italic" };
 const IconButtonSx = { minWidth: 20, ...DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES };
 const IconButtonFlippedSx = { [`& .MuiButton-endIcon`]: { opacity: "1 !important" } };
+const MappingOptionMenuItem = styled(MenuItem)({ paddingLeft: 20, paddingRight: 30 });
+const PlaceholderOptionMenuItem = styled(MappingOptionMenuItem)({ color: Greys[600], fontStyle: "italic" });

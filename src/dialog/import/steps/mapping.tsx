@@ -7,6 +7,7 @@ import { DialogStatementMappingState } from "../../../state/app/statementTypes";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import {
     canChangeStatementMappingCurrencyType,
+    canGoToStatementImportScreen,
     changeStatementMappingCurrencyField,
     changeStatementMappingCurrencyType,
     changeStatementMappingCurrencyValue,
@@ -21,6 +22,7 @@ import { DialogImportActionsBox, DialogImportOptionsContainerBox } from "./share
 
 export const DialogImportMappingStepContent: React.FC<{ state: DialogStatementMappingState }> = ({ state }) => {
     const currencies = useAllCurrencies();
+    const canProgressToImportScreen = canGoToStatementImportScreen(state, currencies);
 
     return (
         <StepContent>
@@ -222,9 +224,18 @@ export const DialogImportMappingStepContent: React.FC<{ state: DialogStatementMa
                 <Button color="error" variant="outlined" size="small" onClick={goBackToStatementParsing}>
                     Back
                 </Button>
-                <Button variant="contained" size="small" onClick={goToStatementImportScreen}>
-                    Filter Rows
-                </Button>
+                <Tooltip title={canProgressToImportScreen || ""}>
+                    <div>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            disabled={canProgressToImportScreen !== null}
+                            onClick={goToStatementImportScreen}
+                        >
+                            Filter Rows
+                        </Button>
+                    </div>
+                </Tooltip>
             </DialogImportActionsBox>
         </StepContent>
     );

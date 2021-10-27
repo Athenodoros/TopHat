@@ -29,7 +29,7 @@ export const DialogImportActionsBox = styled(Box)({
     marginTop: 15,
     marginRight: 19,
 
-    "& > *": { marginRight: 15 },
+    "& > *": { marginRight: "15px !important" },
 });
 
 export const DialogImportInputTextField = styled(TextField)({

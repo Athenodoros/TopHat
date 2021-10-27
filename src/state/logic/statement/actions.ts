@@ -12,6 +12,7 @@ import {
     reverse,
     set,
     takeWhile,
+    toPairs,
     uniq,
     uniqBy,
     unzip,
@@ -19,11 +20,12 @@ import {
     zipObject,
 } from "lodash";
 import { batch } from "react-redux";
+import { StringColumn } from ".";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { updateListSelection } from "../../../shared/data";
 import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
-import { DataSlice, Statement, Transaction } from "../../data";
+import { Currency, DataSlice, Statement, Transaction } from "../../data";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
 import { StubUserID } from "../../data/types";
 import { getTodayString, ID, SDate } from "../../shared/values";
@@ -46,6 +48,7 @@ const setStatementState = (state: DialogFileState) =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "import", import: state }));
 const getDialogState = () => TopHatStore.getState().app.dialog;
 const getDataState = () => TopHatStore.getState().data;
+const getUserCurrency = () => getDataState().user.entities[StubUserID]!.currency;
 
 export const removeAllStatementFiles = () => setStatementState({ page: "file", rejections: [] });
 export const goBackToStatementParsing = () => {
@@ -207,9 +210,7 @@ export const goToStatementMappingScreen = () => {
     if (canGoToStatementMappingScreen(current) !== null) return;
 
     const columns = current.columns as unknown as DialogColumnParseResult;
-    const currency =
-        (current.account && Number(keys(current.account.balances)[0])) ||
-        getDataState().user.entities[StubUserID]!.currency;
+    const currency = (current.account && Number(keys(current.account.balances)[0])) || getUserCurrency();
     setStatementState({
         ...current,
         page: "mapping",
@@ -235,13 +236,10 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
         (column) => get(current, column) === value && set(current, column, undefined)
     );
 
-    if (
-        value &&
-        key === "date" &&
-        state.import.mapping.currency.type === "column" &&
-        state.import.mapping.currency.column === value
-    )
-        current.currency = { type: "constant", currency: getDataState().user.entities[StubUserID]!.currency };
+    // Replace currency definition if column now undefined
+    if (current.currency.type === "column" && current.currency.column === undefined) {
+        current.currency = { type: "constant", currency: getUserCurrency() };
+    }
 
     if (["date", "reference", "balance"].includes(key)) {
         set(current, key, value);
@@ -298,6 +296,23 @@ export const flipStatementMappingFlipValue = () => {
         mapping: { ...state.mapping, value: { ...state.mapping.value, flip: !state.mapping.value.flip } },
     });
 };
+export const removeStatementMappingForColumn = (column: string) => {
+    const { id, import: state } = getDialogState();
+    if (id !== "import" || state.page !== "mapping") return;
+
+    const mapping = cloneDeep(state.mapping);
+    const current = toPairs(StatementMappingColumns).find(([_, path]) => get(mapping, path) === column);
+
+    if (!current) return;
+    const [field, path] = current;
+
+    if (field === "date") return;
+
+    if (field === "currency") mapping.currency = { type: "constant", currency: getUserCurrency() };
+    else set(mapping, path, undefined);
+    setStatementState({ ...state, mapping });
+};
+
 export const toggleStatementRowTransfer = (file: string, row: number) => {
     const { id, import: state } = getDialogState();
     if (id !== "import" || state.page !== "import") return;
@@ -369,13 +384,42 @@ export const changeStatementMappingCurrencyType = (isColumn: boolean) => {
                   }
                 : {
                       type: "constant",
-                      currency: getDataState().user.entities[StubUserID]!.currency,
+                      currency: getUserCurrency(),
                   },
         },
     });
 };
+
+export const canGoToStatementImportScreen = (current: DialogFileState, currencies: Currency[]) => {
+    // Nullability of columns is managed in UI - primary check is that currencies join correctly
+
+    if (current.page !== "mapping") return "Wrong page";
+    const {
+        columns,
+        mapping: { date, currency },
+    } = current;
+
+    const anyColumnValue = (id: string, check: (value: string) => boolean) => {
+        return values(columns.all).some((file) => {
+            const column = file.columns?.find((column) => column.id === id) as StringColumn<false>;
+            return column.values.some(check);
+        });
+    };
+
+    if (anyColumnValue(date, (value) => !value)) return "There are missing dates";
+
+    if (currency.type === "constant") return null;
+    if (
+        anyColumnValue(currency.column, (value) => !currencies.some((candidate) => candidate[currency.field] === value))
+    )
+        return "Currency field incorrect";
+
+    return null;
+};
 export const goToStatementImportScreen = () => {
     const current = getDialogState().import as DialogStatementMappingState;
+    if (canGoToStatementImportScreen(current, values(getDataState().currency.entities) as Currency[]) !== null) return;
+
     const exclude = getStatementExclusions(current);
 
     setStatementState({
