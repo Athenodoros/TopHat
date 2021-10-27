@@ -74,7 +74,7 @@ export const AccountStatementTable: React.FC = () => {
 
     if (statements.length === 0)
         return (
-            <Section title="Budget" sx={{ display: "flex", flexDirection: "column" }}>
+            <Section title="Budget" PaperSx={{ display: "flex", flexDirection: "column" }}>
                 <NonIdealState
                     icon={FolderOpen}
                     title="No Statements Uploaded"

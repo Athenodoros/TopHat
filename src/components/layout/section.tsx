@@ -1,89 +1,69 @@
-import { Paper, Theme, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import styled from "@emotion/styled";
+import { Paper, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
-import clsx from "clsx";
 import React from "react";
 import { Greys } from "../../styles/colours";
+import { getThemeTransition } from "../../styles/theme";
 
 export const SECTION_MARGIN = 40;
-const useSectionStyles = makeStyles((theme) => ({
-    section: {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "stretch",
-    },
-
-    sectionHeader: {
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
-        height: 32,
-        flexShrink: 0,
-        zIndex: 2, // For tables, so that the title is visible over the raised header
-
-        "& > h6": {
-            color: Greys[600],
-        },
-
-        "& button": {
-            color: Greys[600] + " !important",
-            transition: theme.transitions.create("color"),
-        },
-
-        "& > div:last-child > *": {
-            marginLeft: 20,
-        },
-    },
-
-    sectionBody: {
-        marginBottom: 50,
-        flexGrow: 1,
-        padding: 20,
-    },
-}));
 
 export interface SectionProps {
-    className?: string;
-    PaperClassName?: string;
     title?: string;
     headers?: React.ReactNode | React.ReactNode[];
     emptyBody?: boolean;
     onClick?: () => void;
-    sx?: SxProps<Theme>;
+    sx?: SxProps;
+    PaperSx?: SxProps;
 }
-export const Section: React.FC<SectionProps> = ({
-    className,
-    PaperClassName,
-    title,
-    headers,
-    children,
-    emptyBody,
-    onClick,
-    sx,
-}) => {
-    const classes = useSectionStyles();
-
+export const Section: React.FC<SectionProps> = ({ title, headers, children, emptyBody, onClick, sx, PaperSx }) => {
     return (
-        <div className={clsx(className, classes.section)}>
+        <SectionBox sx={sx}>
             {title || headers ? (
-                <div className={classes.sectionHeader}>
+                <SectionHeaderBox>
                     <Typography variant="h6">{title}</Typography>
                     <Box sx={{ display: "flex", alignItems: "center" }}>{headers}</Box>
-                </div>
+                </SectionHeaderBox>
             ) : undefined}
             {emptyBody ? (
                 children
             ) : (
-                <Paper
-                    className={clsx(classes.sectionBody, PaperClassName)}
-                    variant="outlined"
-                    onClick={onClick}
-                    sx={sx}
-                >
+                <SectionBodyPaper variant="outlined" onClick={onClick} sx={PaperSx}>
                     {children}
-                </Paper>
+                </SectionBodyPaper>
             )}
-        </div>
+        </SectionBox>
     );
 };
+
+const SectionBox = styled(Box)({
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "stretch",
+});
+const SectionHeaderBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+    height: 32,
+    flexShrink: 0,
+    zIndex: 2, // For tables, so that the title is visible over the raised header
+
+    "& > h6": {
+        color: Greys[600],
+    },
+
+    "& button": {
+        color: Greys[600] + " !important",
+        transition: getThemeTransition("color"),
+    },
+
+    "& > div:last-child > *": {
+        marginLeft: 20,
+    },
+});
+const SectionBodyPaper = styled(Paper)({
+    marginBottom: 50,
+    flexGrow: 1,
+    padding: 20,
+});

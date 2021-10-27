@@ -39,6 +39,20 @@ const useStyles = makeStyles({
         },
     },
 });
+const NotificationColumnSx = {
+    flexShrink: 0,
+    alignSelf: "flex-start",
+
+    // This is the hard-coded height of the other panels on the page
+    // A proper solution was beyond my CSS skills
+    maxHeight: 725,
+
+    "& > div": {
+        padding: 0,
+        minHeight: 0,
+        display: "flex",
+    },
+};
 
 export const SummaryPage: React.FC = () => {
     const classes = useStyles();
@@ -69,7 +83,7 @@ export const SummaryPage: React.FC = () => {
                         </Box>
                     </Section>
                 </div>
-                <Section title="Notifications" className={classes.notificationColumn}>
+                <Section title="Notifications" sx={NotificationColumnSx}>
                     <Notifications />
                 </Section>
             </div>

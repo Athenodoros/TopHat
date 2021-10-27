@@ -41,7 +41,7 @@ export const CategoriesPageSummary: React.FC = () => {
                         <MenuItem value="average">12 Month Average</MenuItem>
                     </Select>,
                 ]}
-                sx={{ height: 410, display: "flex", flexDirection: "column" }}
+                PaperSx={{ height: 410, display: "flex", flexDirection: "column" }}
             >
                 <SummaryBreakdown
                     data={data}

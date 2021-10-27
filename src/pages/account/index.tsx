@@ -1,4 +1,5 @@
-import makeStyles from "@mui/styles/makeStyles";
+import styled from "@emotion/styled";
+import { Box } from "@mui/system";
 import { useMemo } from "react";
 import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
@@ -10,22 +11,18 @@ import { AccountPageBalances } from "./balances";
 import { AccountPageHeader } from "./header";
 import { AccountStatementTable } from "./statements";
 
-const useStyles = makeStyles({
-    middle: {
-        display: "flex",
-        "& > div:first-of-type": {
-            flex: "2 0 700px",
-            marginRight: SECTION_MARGIN,
-        },
-        "& > div:last-child": {
-            flex: "1 1 300px",
-        },
+const MiddleBox = styled(Box)({
+    display: "flex",
+    "& > div:first-of-type": {
+        flex: "2 0 700px",
+        marginRight: SECTION_MARGIN,
+    },
+    "& > div:last-child": {
+        flex: "1 1 300px",
     },
 });
 
 export const AccountPage: React.FC = () => {
-    const classes = useStyles();
-
     const account = useAccountPageAccount();
     const table = useAccountPageState((state) => state.table);
     const fixed = useMemo(() => ({ type: "account" as const, account: account.id }), [account]);
@@ -34,10 +31,10 @@ export const AccountPage: React.FC = () => {
     return (
         <Page title="Accounts">
             <AccountPageHeader />
-            <div className={classes.middle}>
+            <MiddleBox>
                 <AccountPageBalances />
                 <AccountStatementTable />
-            </div>
+            </MiddleBox>
             <TransactionsTable
                 filters={filters}
                 state={table.state}

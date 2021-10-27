@@ -18,15 +18,9 @@ import { getToday } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { CategoryBudgetTransferElements } from "./transfers";
 
-const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        flexDirection: "column",
-    },
-});
+const SectionSx = { display: "flex", flexDirection: "column" } as const;
 
 export const CategoryPageBudgetSummary: React.FC = () => {
-    const classes = useStyles();
     const category = useCategoryPageCategory();
     const openEditView = useCallback(
         () => TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "category", category })),
@@ -37,7 +31,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
 
     if (!toplevel.budgets)
         return (
-            <Section title="Budget" PaperClassName={classes.container}>
+            <Section title="Budget" PaperSx={SectionSx}>
                 <NonIdealState
                     icon={AssignmentLate}
                     title="No Budget Created"
@@ -60,7 +54,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
     const chartFunctions = getChartDomainFunctions([total, budget, lastTotal, lastBudget], 0.2);
 
     return (
-        <Section title="Budget" PaperClassName={classes.container}>
+        <Section title="Budget" PaperSx={SectionSx}>
             <FillbarSummaryNumbers
                 total={total}
                 subtotal={subtotal}
