@@ -9,7 +9,7 @@ import { Category, PLACEHOLDER_CATEGORY_ID } from "../../state/data";
 import { useCategoryIDs, useCategoryMap } from "../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../state/data/shared";
 import { ID } from "../../state/shared/values";
-import { getCategoryIconSx } from "./ObjectDisplay";
+import { getCategoryIcon } from "./ObjectDisplay";
 
 interface Anchor {
     id: ID;
@@ -161,7 +161,7 @@ const CategoryIconSx = {
 } as const;
 const renderCategory = (category: Category) => (
     <BaseContainerBox>
-        {getCategoryIconSx(category, CategoryIconSx)}
+        {getCategoryIcon(category, CategoryIconSx)}
         <ListItemText>{category.name}</ListItemText>
     </BaseContainerBox>
 );

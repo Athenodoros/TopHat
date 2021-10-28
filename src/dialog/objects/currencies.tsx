@@ -14,7 +14,7 @@ import { Box } from "@mui/system";
 import { last, range } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCurrencyIconSx } from "../../components/display/ObjectDisplay";
+import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
@@ -71,7 +71,7 @@ const CurrencyIconSx = {
 };
 const render = (currency: Currency) => (
     <CurrencyBox>
-        {getCurrencyIconSx(currency, CurrencyIconSx)}
+        {getCurrencyIcon(currency, CurrencyIconSx)}
         <ListItemText>{currency.name}</ListItemText>
         {currency.sync && (
             <Tooltip title="Automatic Exchange Rates">

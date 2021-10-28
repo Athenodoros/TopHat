@@ -4,7 +4,7 @@ import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
 import { Box } from "@mui/system";
 import React from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getInstitutionIconSx } from "../../components/display/ObjectDisplay";
+import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Institution } from "../../state/data";
@@ -59,7 +59,7 @@ const InstitutionIconSx = {
 };
 const render = (institution: Institution) => (
     <InstitutionBox>
-        {getInstitutionIconSx(institution, InstitutionIconSx)}
+        {getInstitutionIcon(institution, InstitutionIconSx)}
         <ListItemText>{institution.name}</ListItemText>
     </InstitutionBox>
 );
@@ -77,7 +77,7 @@ const EditInstitutionView: React.FC = () => {
         <ObjectEditContainer type="institution">
             <EditValueContainer label="Icon">
                 <EditInstitutionIconBox>
-                    {getInstitutionIconSx(working, EditInstitutionIconSx)}
+                    {getInstitutionIcon(working, EditInstitutionIconSx)}
                     <ButtonsBox>
                         <label>
                             <EditButton fontSize="small" />

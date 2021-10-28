@@ -3,7 +3,7 @@ import { KeyboardArrowDown } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import React from "react";
-import { useGetAccountIconSx } from "../../components/display/ObjectDisplay";
+import { useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { useDialogState } from "../../state/app/hooks";
 import { useAllAccounts } from "../../state/data/hooks";
@@ -13,7 +13,7 @@ import { Greys } from "../../styles/colours";
 export const DialogImportAccountSelector: React.FC = () => {
     const account = useDialogState("import", (state) => state.account);
     const accounts = useAllAccounts();
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
 
     return (
         <ObjectSelector

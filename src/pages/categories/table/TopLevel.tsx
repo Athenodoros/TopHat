@@ -7,7 +7,7 @@ import { reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
-import { getCategoryIconSx } from "../../../components/display/ObjectDisplay";
+import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
 import { ChartDomainFunctions } from "../../../shared/data";
 import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
@@ -98,7 +98,7 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
         <ContainerCard>
             <ButtonBase sx={TopLevelSx} onClick={onClick} component="div">
                 <CategoriesTableTitleBox>
-                    {getCategoryIconSx(category, CategoriesTableIconSx)}
+                    {getCategoryIcon(category, CategoriesTableIconSx)}
                     <Typography variant="h5" noWrap={true}>
                         {category.name}
                     </Typography>

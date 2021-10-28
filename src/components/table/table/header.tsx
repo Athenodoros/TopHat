@@ -14,7 +14,7 @@ import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
 import { getTodayString, ID } from "../../../state/shared/values";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
-import { getStatementIconSx, useGetAccountIconSx } from "../../display/ObjectDisplay";
+import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
@@ -49,7 +49,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
     canCreateNew,
 }) => {
     const accounts = useAllAccounts();
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
@@ -211,7 +211,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             option={option}
                             select={updaters.selectIDs.statement}
                             selected={filters.statement}
-                            getOptionIcon={getStatementIconSx}
+                            getOptionIcon={getStatementIcon}
                             getSecondary={(option) => option.date}
                         />
                     ))}

@@ -4,7 +4,7 @@ import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typog
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getInstitutionIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
+import { getInstitutionIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ManagedDatePicker, ObjectSelector, SubItemCheckbox } from "../../components/inputs";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
@@ -20,7 +20,7 @@ import { DialogContents, DialogMain, EditValueContainer } from "../shared";
 import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
 export const DialogAccountsView: React.FC = () => {
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
     const working = useDialogHasWorking();
     const render = useCallback(
         (account: Account) => (
@@ -96,12 +96,12 @@ const EditAccountView: React.FC = () => {
             <EditValueContainer label="Institution">
                 <ObjectSelector
                     options={institutions}
-                    render={(institution) => getInstitutionIconSx(institution, AccountIconSx)}
+                    render={(institution) => getInstitutionIcon(institution, AccountIconSx)}
                     selected={working.institution}
                     setSelected={updateWorkingInstitution}
                 >
                     <InstitutionButton variant="outlined" color="inherit">
-                        {getInstitutionIconSx(institution!, AccountIconSx)}
+                        {getInstitutionIcon(institution!, AccountIconSx)}
                         <Typography variant="body1" noWrap={true}>
                             {institution.name}
                         </Typography>

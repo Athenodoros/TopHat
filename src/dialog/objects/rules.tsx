@@ -6,7 +6,7 @@ import { identity, inRange } from "lodash";
 import React, { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCategoryIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
+import { getCategoryIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector, SubItemCheckbox } from "../../components/inputs";
 import { handleAutoCompleteChange, handleTextFieldChange } from "../../shared/events";
 import { useNumericInputHandler } from "../../shared/hooks";
@@ -116,7 +116,7 @@ const EditRuleView: React.FC = () => {
     const min = useNumericInputHandler(working.min ?? null, updateWorkingMin, working.id);
     const max = useNumericInputHandler(working.max ?? null, updateWorkingMax, working.id);
 
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
     const accounts = useAllAccounts();
     const accountMap = useAccountMap();
 
@@ -227,12 +227,12 @@ const EditRuleView: React.FC = () => {
             <EditValueContainer label="Category">
                 <ObjectSelector
                     options={categories}
-                    render={(category) => getCategoryIconSx(category, CategoryIconSx)}
+                    render={(category) => getCategoryIcon(category, CategoryIconSx)}
                     selected={working.category}
                     setSelected={updateWorkingCategory}
                 >
                     <CategorySelectionButton variant="outlined" color="inherit">
-                        {getCategoryIconSx(category, CategoryIconSx)}
+                        {getCategoryIcon(category, CategoryIconSx)}
                         <Typography variant="body1">{category.name}</Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
                     </CategorySelectionButton>

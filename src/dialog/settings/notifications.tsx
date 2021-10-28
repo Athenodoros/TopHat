@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
-import { useGetAccountIconSx } from "../../components/display/ObjectDisplay";
+import { useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
@@ -77,7 +77,7 @@ const NotificationToggle: React.FC<{ id: string; title: string; control?: React.
 const useAccountsAutocomplete = () => {
     const accounts = useAllAccounts();
     const selected = useUserData((user) => user.accountOutOfDate);
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
 
     return (
         <EditValueContainer label="Ignored Accounts">

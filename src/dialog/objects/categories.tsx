@@ -6,7 +6,7 @@ import { range } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCategoryIconSx } from "../../components/display/ObjectDisplay";
+import { getCategoryIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange } from "../../shared/events";
 import { TopHatStore } from "../../state";
@@ -99,12 +99,12 @@ const EditCategoryView: React.FC = () => {
             <EditValueContainer label="Parent">
                 <ObjectSelector<true, Category>
                     options={parentOptions}
-                    render={(category) => getCategoryIconSx(category, IconSx)}
+                    render={(category) => getCategoryIcon(category, IconSx)}
                     selected={parent?.id}
                     setSelected={updateWorkingParent}
                     placeholder={
                         <>
-                            {getCategoryIconSx(PLACEHOLDER_CATEGORY, IconSx)}
+                            {getCategoryIcon(PLACEHOLDER_CATEGORY, IconSx)}
                             <Typography variant="body1" noWrap={true}>
                                 No Parent
                             </Typography>
@@ -112,7 +112,7 @@ const EditCategoryView: React.FC = () => {
                     }
                 >
                     <CategoryButton variant="outlined" color="inherit">
-                        {getCategoryIconSx(parent || PLACEHOLDER_CATEGORY, IconSx)}
+                        {getCategoryIcon(parent || PLACEHOLDER_CATEGORY, IconSx)}
                         <Typography variant="body1" noWrap={true}>
                             {parent?.name || "No Parent"}
                         </Typography>

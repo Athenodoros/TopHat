@@ -3,7 +3,7 @@ import { DeleteTwoTone, Edit, KeyboardArrowDown, OpenInFullTwoTone, SwapHoriz } 
 import { Button, Collapse, collapseClasses, IconButton, TextField, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback, useMemo, useState } from "react";
-import { getCategoryIconSx } from "../../../components/display/ObjectDisplay";
+import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../../components/inputs";
 import { useNumericInputHandler } from "../../../shared/hooks";
 import { TopHatDispatch } from "../../../state";
@@ -88,12 +88,12 @@ const BudgetTransferElements: React.FC<{ category: Category; close: () => void }
         <>
             <ObjectSelector
                 options={options}
-                render={(category) => getCategoryIconSx(category, IconSx)}
+                render={(category) => getCategoryIcon(category, IconSx)}
                 selected={selected.id}
                 setSelected={setSelectedCategory}
             >
                 <CategoryButton variant="outlined" color="inherit">
-                    {getCategoryIconSx(selected, IconSx)}
+                    {getCategoryIcon(selected, IconSx)}
                     <Typography variant="body1" noWrap={true}>
                         {selected.name}
                     </Typography>

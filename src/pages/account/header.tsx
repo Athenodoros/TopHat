@@ -5,7 +5,7 @@ import { Box } from "@mui/system";
 import { max, min } from "lodash";
 import { DateTime } from "luxon";
 import { useCallback } from "react";
-import { getInstitutionIconSx } from "../../components/display/ObjectDisplay";
+import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
 import { Section } from "../../components/layout";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
@@ -32,7 +32,7 @@ export const AccountPageHeader: React.FC = () => {
                     <Typography variant="h4" noWrap={true}>
                         {institution.name}
                     </Typography>
-                    {getInstitutionIconSx(institution, IconSx)}
+                    {getInstitutionIcon(institution, IconSx)}
                 </InstitutionBox>
                 <AccountBox>
                     <AccountMainBox>

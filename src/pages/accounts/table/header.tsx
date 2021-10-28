@@ -23,10 +23,10 @@ import {
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import {
-    getAccountCategoryIconSx,
-    getCurrencyIconSx,
-    getInstitutionIconSx,
-    useGetAccountIconSx,
+    getAccountCategoryIcon,
+    getCurrencyIcon,
+    getInstitutionIcon,
+    useGetAccountIcon,
 } from "../../../components/display/ObjectDisplay";
 import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
 import { createNewAccount } from "../../../dialog/objects/accounts";
@@ -56,7 +56,7 @@ export const AccountsTableHeader: React.FC = () => {
     const accounts = useAllAccounts();
     const currencies = useAllCurrencies();
 
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
 
     const AddNewPopover = usePopoverProps();
 
@@ -83,7 +83,7 @@ export const AccountsTableHeader: React.FC = () => {
                                 option={institution}
                                 select={onSelectIDs["institution"]}
                                 selected={filters.institution}
-                                getOptionIcon={getInstitutionIconSx}
+                                getOptionIcon={getInstitutionIcon}
                             />
                         ))}
                     </Menu>
@@ -121,7 +121,7 @@ export const AccountsTableHeader: React.FC = () => {
                                     option={option}
                                     select={onSelectIDs["type"]}
                                     selected={filters.type}
-                                    getOptionIcon={getAccountCategoryIconSx}
+                                    getOptionIcon={getAccountCategoryIcon}
                                 />
                             ))}
                         </FilterMenuNestedOption>
@@ -137,7 +137,7 @@ export const AccountsTableHeader: React.FC = () => {
                                     option={option}
                                     select={onSelectIDs["currency"]}
                                     selected={filters.currency}
-                                    getOptionIcon={getCurrencyIconSx}
+                                    getOptionIcon={getCurrencyIcon}
                                 />
                             ))}
                         </FilterMenuNestedOption>

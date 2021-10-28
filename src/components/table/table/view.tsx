@@ -14,7 +14,7 @@ import {
 import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
 import { parseDate } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { getCategoryIconSx, getInstitutionIconSx } from "../../display/ObjectDisplay";
+import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
 import {
     formatTransactionsTableNumber,
     TransactionsTableSummaryTypography,
@@ -106,7 +106,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                         <TransactionTableCompoundContainer
                             sx={category.id === TRANSFER_CATEGORY_ID ? TransferCategorySx : undefined}
                         >
-                            {getCategoryIconSx(category, CategoryIconSx)}
+                            {getCategoryIcon(category, CategoryIconSx)}
                             <Typography noWrap={true}>
                                 {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
                             </Typography>
@@ -137,7 +137,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 <TransactionTableAccountContainer>
                     {account && institution ? (
                         <>
-                            {getInstitutionIconSx(institution, InstitutionIconSx)}
+                            {getInstitutionIcon(institution, InstitutionIconSx)}
                             {account.name}
                         </>
                     ) : (

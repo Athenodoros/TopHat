@@ -10,7 +10,7 @@ import { useAllAccounts, useAllCategories, useAllStatements } from "../../../sta
 import { ID, SDate } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
-import { getCategoryIconSx, getStatementIconSx, useGetAccountIconSx } from "../../display/ObjectDisplay";
+import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { ManagedDatePicker } from "../../inputs";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
 import {
@@ -45,7 +45,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
 }) => {
     const categories = useAllCategories();
     const accounts = useAllAccounts();
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
     const statements = useAllStatements();
 
     const actions = useActions(selected, edit, setStatePartial);
@@ -123,7 +123,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         options={categories}
                         selected={edit.category}
                         select={updaters.category}
-                        getIcon={getCategoryIconSx}
+                        getIcon={getCategoryIcon}
                         iconSx={CategoryDropdownIconSx}
                         allowUndefined={!!tx && tx.category === undefined}
                         getMenuContents={getCategoryMenuContents}
@@ -147,7 +147,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     options={statements}
                     selected={edit.statement}
                     select={updaters.statement}
-                    getIcon={getStatementIconSx}
+                    getIcon={getStatementIcon}
                     iconSx={AccountDropdownIconSx}
                     allowUndefined={!!tx && tx.statement === undefined}
                     button={

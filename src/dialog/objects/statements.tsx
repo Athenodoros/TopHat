@@ -6,7 +6,7 @@ import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getStatementIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
+import { getStatementIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ManagedDatePicker } from "../../components/inputs";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
@@ -60,7 +60,7 @@ const FilledStatementIconSx = {
 };
 const render = (statement: Statement) => (
     <StatementBox>
-        {getStatementIconSx(statement, FilledStatementIconSx, true)}
+        {getStatementIcon(statement, FilledStatementIconSx, true)}
         <ListItemText secondary={parseDate(statement.date).toLocaleString(DateTime.DATE_MED)}>
             <Typography noWrap={true}>{statement.name}</Typography>
         </ListItemText>
@@ -114,7 +114,7 @@ const SelectorMenuItem = styled(MenuItem)({ padding: "6px 16px", width: "100%" }
 const EditStatementView: React.FC = () => {
     const working = useDialogState("statement")!;
 
-    const getAccountIcon = useGetAccountIconSx();
+    const getAccountIcon = useGetAccountIcon();
     const account = useAccountByID(working.account);
 
     return (

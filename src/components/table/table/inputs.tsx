@@ -19,7 +19,7 @@ import { useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { getCurrencyIconSx } from "../../display/ObjectDisplay";
+import { getCurrencyIcon } from "../../display/ObjectDisplay";
 import { ObjectSelector, ObjectSelectorCommonProps } from "../../inputs";
 import { TransactionTableMixedTypography, TransactionTableSxProps } from "./styles";
 
@@ -105,7 +105,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                             onChangeCurrency(currency.id);
                         }}
                     >
-                        {getCurrencyIconSx(currency, CurrencyIconSx)}
+                        {getCurrencyIcon(currency, CurrencyIconSx)}
                         <Typography variant="body1">{currency.name}</Typography>
                     </MenuItem>
                 ))}
