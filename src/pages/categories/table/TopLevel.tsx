@@ -4,11 +4,10 @@ import { ButtonBase, Card, IconButton, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import chroma from "chroma-js";
 import { reverse } from "lodash";
-import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
-import { ChartDomainFunctions } from "../../../shared/data";
+import { ChartDomainFunctions, formatNumber } from "../../../shared/data";
 import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
@@ -50,7 +49,7 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     getCategoryStatistics,
     hideEmpty,
 }) => {
-    const format = useFormatValue("0,0.00");
+    const format = useFormatValue();
 
     const categories = useCategoryMap();
     let running: Record<number, number> = { 0: 0 }; // Depth -> Running Total
@@ -129,9 +128,7 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
                             {format(category.value)}
                         </Typography>
                         {category.budget !== undefined ? (
-                            <BudgetTypography variant="caption">
-                                / {numeral(category.budget).format("0,0.00")}
-                            </BudgetTypography>
+                            <BudgetTypography variant="caption">/ {formatNumber(category.budget)}</BudgetTypography>
                         ) : undefined}
                     </TotalBox>
                     <CategoriesTableActionBox>

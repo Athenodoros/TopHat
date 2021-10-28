@@ -3,11 +3,11 @@ import { HelpOutlined } from "@mui/icons-material";
 import { FormControlLabel, Grid, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { max, min, range } from "lodash";
-import numeral from "numeral";
 import React, { useCallback, useMemo, useState } from "react";
 import { VictoryAxis, VictoryChart, VictoryLine, VictoryTheme, VictoryTooltip, VictoryVoronoiContainer } from "victory";
 import { getChartPerformanceProps } from "../../components/display/PerformantCharts";
 import { SECTION_MARGIN } from "../../components/layout";
+import { formatNumber } from "../../shared/data";
 import { useNumericInputHandler } from "../../shared/hooks";
 import { Greys, Intents } from "../../styles/colours";
 
@@ -135,7 +135,10 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
                 <VictoryVoronoiContainer
                     voronoiDimension="x"
                     labels={({ datum }) =>
-                        `${Math.round((datum.x / 12) * 10) / 10} Years: ${symbol} ${numeral(datum.y).format("0.0a")}`
+                        `${Math.round((datum.x / 12) * 10) / 10} Years: ${symbol} ${formatNumber(datum.y, {
+                            end: "k",
+                            decimals: 1,
+                        })}`
                     }
                     labelComponent={<VictoryTooltip flyoutStyle={{ fill: "white" }} />}
                     voronoiBlacklist={["horizon"]}
@@ -144,7 +147,7 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
         >
             <VictoryAxis
                 dependentAxis={true}
-                tickFormat={(value: number) => symbol + " " + numeral(value).format("0.0a")}
+                tickFormat={(value: number) => symbol + " " + formatNumber(value, { end: "k", decimals: 1 })}
             />
             <VictoryAxis
                 tickValues={tickValues}

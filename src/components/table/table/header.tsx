@@ -54,7 +54,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();
-    const formatCurrencyValue = useFormatValue("0,0.0");
+    const formatCurrencyValue = useFormatValue({ decimals: 1 });
 
     const DateRangePopoverState = usePopoverProps();
     const DescriptionPopoverState = usePopoverProps();

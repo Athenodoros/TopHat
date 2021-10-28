@@ -1,9 +1,9 @@
 import { Dictionary } from "@reduxjs/toolkit";
 import { identity, last } from "lodash";
-import numeral from "numeral";
 import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
 import { TopHatStore } from "..";
+import { formatNumber, NumberFormatConfig } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import { ID } from "../shared/values";
 import {
@@ -27,9 +27,9 @@ export const useMaybeDefaultCurrency = (currency?: ID) =>
         ({ data }) => data.currency.entities[currency ?? data.user.entities[StubUserID]!.currency]!,
         shallowEqual
     );
-export const useFormatValue = (format: string, currency?: ID) => {
+export const useFormatValue = (config?: NumberFormatConfig, currency?: ID) => {
     const { symbol } = useMaybeDefaultCurrency(currency);
-    return useCallback((value: number) => symbol + " " + numeral(value).format(format), [symbol, format]);
+    return useCallback((value: number) => symbol + " " + formatNumber(value, config), [symbol, config]);
 };
 
 export function useAccountByID(id: ID): Account;

@@ -1,7 +1,7 @@
 import { Slider, SliderProps } from "@mui/material";
 import { DateTime } from "luxon";
-import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
+import { formatNumber } from "../../../shared/data";
 import { useFirstValue } from "../../../shared/hooks";
 import { formatDate, getToday, parseDate } from "../../../state/shared/values";
 
@@ -77,4 +77,4 @@ export const NumericRangeFilter: React.FC<NumericRangeFilterProps> = ({ min, max
     );
 };
 
-const formatLarge = (value: number) => numeral(value).format("-0a");
+const formatLarge = (value: number) => formatNumber(value, { end: "k", decimals: 0 });

@@ -70,7 +70,7 @@ export const DebtNotificationDefinition: NotificationRuleDefinition = {
 };
 
 const DebtMilestoneContents: React.FC<{ value: number }> = ({ value }) => {
-    const format = useFormatValue("0a");
+    const format = useFormatValue({ separator: "", decimals: 0, end: "k" });
     return value === 0 ? (
         <NotificationContents>
             You have paid down all of your debts, across every account. Congratulations!

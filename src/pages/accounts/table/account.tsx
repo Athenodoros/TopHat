@@ -4,12 +4,12 @@ import { Button, ButtonBase, buttonClasses, Tooltip, Typography } from "@mui/mat
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { cloneDeep, max, min, range, sumBy, toPairs } from "lodash";
-import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../../../components/display/PerformantCharts";
 import { getNewTransaction } from "../../../components/table/table/header";
+import { formatNumber } from "../../../shared/data";
 import { suppressEvent, withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice, DefaultPages } from "../../../state/app";
@@ -132,7 +132,10 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
     const value =
         defaultCurrency.symbol +
         " " +
-        numeral(sumBy(balances, ([_, balance]) => balance.localised[0])).format("-0.00a");
+        formatNumber(
+            sumBy(balances, ([_, balance]) => balance.localised[0]),
+            { end: "k" }
+        );
     const summary = getAccountSummary(
         balances,
         currencies,
@@ -187,7 +190,7 @@ const getAccountSummary = (
         .filter(([_, balance]) => range(12).some((i) => balance.localised[i]))
         .map(([idStr, balance]) => (
             <Typography variant="h6" style={{ color: getColour(Number(idStr), balance.original[0]) }} key={idStr}>
-                {currencies[Number(idStr)]!.symbol + " " + numeral(balance.original[0]).format("-0.00a")}
+                {currencies[Number(idStr)]!.symbol + " " + formatNumber(balance.original[0], { end: "k" })}
             </Typography>
         ))
         .flatMap((element, i, array) =>

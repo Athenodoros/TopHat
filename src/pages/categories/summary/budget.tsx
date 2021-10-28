@@ -4,10 +4,9 @@ import { Tooltip } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import chroma from "chroma-js";
 import { sortBy, sumBy } from "lodash";
-import numeral from "numeral";
 import React from "react";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
-import { getChartDomainFunctions } from "../../../shared/data";
+import { formatNumber, getChartDomainFunctions } from "../../../shared/data";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 
@@ -55,9 +54,9 @@ export const CategoriesBarSummary: React.FC<{ points: CategoriesBarSummaryPoint[
                 const node = (
                     <Tooltip
                         key={point.id}
-                        title={`${point.name}${key === "budget" ? " (Budget)" : ""}: ${numeral(point[key]).format(
-                            "0.00a"
-                        )}`}
+                        title={`${point.name}${key === "budget" ? " (Budget)" : ""}: ${formatNumber(point[key], {
+                            end: "k",
+                        })}`}
                         disableInteractive={true}
                     >
                         <Box sx={{ left, width, ...getSX(point.colour) }} />

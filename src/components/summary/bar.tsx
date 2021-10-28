@@ -1,8 +1,8 @@
 import { last, max, min, sortBy, sumBy, unzip } from "lodash";
 import { DateTime } from "luxon";
-import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
+import { formatNumber } from "../../shared/data";
 import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { formatDate, formatJSDate, getToday, ID } from "../../state/shared/values";
@@ -42,7 +42,7 @@ export const SummaryBarChart: React.FC<SummaryBarChartProps> = ({ series, sign, 
             >
                 <VictoryAxis
                     dependentAxis={true}
-                    tickFormat={(value: number) => symbol + " " + numeral(value).format("0.00a")}
+                    tickFormat={(value: number) => symbol + " " + formatNumber(value, { end: "k" })}
                     crossAxis={false}
                     invertAxis={sign === "debits"}
                 />

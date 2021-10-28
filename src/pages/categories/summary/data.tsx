@@ -1,7 +1,7 @@
 import { mean } from "lodash";
-import numeral from "numeral";
 import { useMemo } from "react";
 import { SummaryBreakdownDatum } from "../../../components/summary";
+import { formatNumber } from "../../../shared/data";
 import { CategoriesPageState } from "../../../state/app/pageTypes";
 import { useAllCategories } from "../../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
@@ -50,8 +50,8 @@ export const useCategoryBudgetSummaryData = (
                         type: "string",
                         credit: "",
                         debit: "",
-                        [debit ? "debit" : "credit"]: `${numeral(value).format("0.00a")} / ${
-                            category.budgets ? numeral(budget).format("0.00a") : "---"
+                        [debit ? "debit" : "credit"]: `${formatNumber(value, { end: "k" })} / ${
+                            category.budgets ? formatNumber(budget, { end: "k" }) : "---"
                         }`,
                     },
                     debit,

@@ -56,7 +56,7 @@ export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
 };
 
 const NewMilestoneContents: React.FC<{ value: number }> = ({ value }) => {
-    const format = useFormatValue("0a");
+    const format = useFormatValue({ separator: "", decimals: 0, end: "k" });
     return (
         <NotificationContents>
             You have a net worth of over <GreenNotificationText>{format(value)}</GreenNotificationText>, and more every

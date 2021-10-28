@@ -1,6 +1,5 @@
 import { BarChart } from "@mui/icons-material";
 import { Box } from "@mui/system";
-import numeral from "numeral";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
 import { SummaryNumber } from "../../components/display/SummaryNumber";
 import { Section } from "../../components/layout";
@@ -9,7 +8,7 @@ import {
     useGetSummaryChart,
     useTransactionsSnapshot,
 } from "../../components/snapshot";
-import { takeWithDefault } from "../../shared/data";
+import { formatNumber, takeWithDefault } from "../../shared/data";
 import { useCategoryPageCategory } from "../../state/app/hooks";
 import { useDefaultCurrency } from "../../state/data/hooks";
 
@@ -35,12 +34,13 @@ export const CategoryPageHistory: React.FC = () => {
                         <SummaryNumber
                             icon={BarChart}
                             primary={{
-                                value: `${currency} ${numeral(
+                                value: `${currency} ${formatNumber(
                                     (category.budgets.values[0] +
                                         category.budgets.values[1] +
                                         category.budgets.values[2]) /
-                                        3
-                                ).format("+0,0.00")}`,
+                                        3,
+                                    { start: "+" }
+                                )}`,
                                 positive: null,
                             }}
                             subtext="budget, last three months"

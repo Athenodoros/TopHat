@@ -1,8 +1,8 @@
 import { last, range } from "lodash";
-import numeral from "numeral";
 import React, { useMemo } from "react";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
 import { Section } from "../../components/layout";
+import { formatNumber } from "../../shared/data";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { CalculatorEstimates } from "./data";
 import {
@@ -138,7 +138,7 @@ const useSimulationResults = (
                 <CalculatorResultDisplay
                     title={title}
                     intent={colour}
-                    value={symbol + " " + numeral(value || 0).format(value > 1000000 ? "0.00a" : "0,0.00")}
+                    value={symbol + " " + formatNumber(value || 0, value > 1000000 ? { end: "k" } : undefined)}
                 />
             );
         };

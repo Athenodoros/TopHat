@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { buttonClasses, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import numeral from "numeral";
+import { formatNumber } from "../../../shared/data";
 import { Greys } from "../../../styles/colours";
 import { getThemeTransition, TopHatTheme } from "../../../styles/theme";
 
@@ -129,4 +129,4 @@ export const TransactionTableSxProps = {
     },
 };
 
-export const formatTransactionsTableNumber = (value: number) => numeral(value).format("0,0.00");
+export const formatTransactionsTableNumber = (value: number) => formatNumber(value);

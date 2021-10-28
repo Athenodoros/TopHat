@@ -1,8 +1,8 @@
 import { range } from "lodash";
-import numeral from "numeral";
 import React, { useMemo } from "react";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
 import { Section } from "../../components/layout";
+import { formatNumber } from "../../shared/data";
 import { useDefaultCurrency } from "../../state/data/hooks";
 import { CalculatorEstimates } from "./data";
 import {
@@ -147,7 +147,9 @@ const useSimulationResults = (
                         title="Value at Retirement"
                         intent={retirement > 0 ? "primary" : "danger"}
                         value={
-                            symbol + " " + numeral(retirement || 0).format(retirement > 1000000 ? "0.00a" : "0,0.00")
+                            symbol +
+                            " " +
+                            formatNumber(retirement || 0, retirement > 1000000 ? { end: "k" } : undefined)
                         }
                     />
                     <CalculatorResultDisplay
@@ -156,9 +158,10 @@ const useSimulationResults = (
                         value={
                             symbol +
                             " " +
-                            numeral(
-                                expenses * (showNominalValues ? Math.pow(1 + inflation / 12 / 100, horizon * 12) : 1)
-                            ).format(retirement > 1000000 ? "0.00a" : "0,0.00")
+                            formatNumber(
+                                expenses * (showNominalValues ? Math.pow(1 + inflation / 12 / 100, horizon * 12) : 1),
+                                retirement > 1000000 ? { end: "k" } : undefined
+                            )
                         }
                     />
                 </>

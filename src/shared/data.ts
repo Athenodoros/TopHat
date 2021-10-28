@@ -1,4 +1,4 @@
-import { fromPairs, range, toPairs, zip, zipObject as zipObjectRaw } from "lodash-es";
+import { fromPairs, range, reverse, toPairs, zip, zipObject as zipObjectRaw } from "lodash-es";
 
 export const equalZip = <S, T>(s: S[], t: T[]) => zip(s, t) as [S, T][];
 
@@ -70,3 +70,53 @@ export const getChartDomainFunctions = (values: number[], padding: number = 0): 
 
 export const mapValuesWithKeys = <K extends string | number, V, O>(object: Record<K, V>, fn: (k: K, v: V) => O) =>
     fromPairs(toPairs(object).map(([k, v]) => [k, fn(k as K, v as V)])) as Record<K, O>;
+
+/**
+ * This is a small utility to format numbers, to save downloading the full numeral.js package
+ * This doesn't deal with locales, but neither would the simple numeral(...).format(...) that it replaced
+ */
+export interface NumberFormatConfig {
+    separator?: string | null;
+    start?: "+" | "-" | null;
+    end?: "k" | "%" | null;
+    decimals?: number;
+}
+export const formatNumber = (value: number, config?: NumberFormatConfig) => {
+    const { separator = ",", start = "-", end = null, decimals = 2 } = config || {};
+
+    const sign = value < 0 ? (start !== null ? "-" : "") : start === "+" ? "+" : "";
+    value = Math.abs(value || 0);
+
+    let final = "";
+    if (end === "k") {
+        const size = (
+            [
+                [9, "b"],
+                [6, "m"],
+                [3, "k"],
+            ] as const
+        ).find(([magnitude, _]) => value >= Math.pow(10, magnitude));
+
+        if (size) {
+            value /= Math.pow(10, size[0]);
+            final = size[1];
+        }
+    } else if (end === "%") {
+        value *= 100;
+        final = "%";
+    }
+
+    const integer = "" + (decimals ? Math.floor(value) : Math.round(value));
+    const integerDisplay =
+        reverse(range(integer.length, 0, -3))
+            .map((i) => integer.substring(i - 3, i))
+            .join(separator || "")
+            .replace(/^0*/, "") || "0";
+
+    const decimal = "" + Math.round((value - Math.floor(value)) * Math.pow(10, decimals)) / Math.pow(10, decimals);
+    const decimalDisplay = decimals
+        ? "." + (decimal.split(".")[1] || "").concat("0".repeat(decimals)).substring(0, decimals)
+        : "";
+
+    return sign + integerDisplay + decimalDisplay + final;
+};

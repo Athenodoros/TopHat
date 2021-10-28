@@ -1,8 +1,8 @@
 import { AttachMoney, TrendingDown, TrendingUp } from "@mui/icons-material";
 import { clone, max, min, reverse } from "lodash";
-import numeral from "numeral";
 import React, { useCallback } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLine } from "victory";
+import { formatNumber } from "../../shared/data";
 import { useFormatValue, useMaybeDefaultCurrency } from "../../state/data/hooks";
 import { AppColours, Greys, Intents } from "../../styles/colours";
 import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../display/PerformantCharts";
@@ -27,7 +27,7 @@ export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContents
             <SummaryNumber
                 icon={AttachMoney}
                 primary={{
-                    value: `${currency} ${numeral(average).format("+0,0.00")}`,
+                    value: `${currency} ${formatNumber(average, { start: "+" })}`,
                     positive: !average ? null : average > 0,
                 }}
                 subtext="average, last three months"
@@ -35,11 +35,11 @@ export const TransactionSnapshotSummaryNumbers: React.FC<SnapshotSectionContents
             <SummaryNumber
                 icon={average > previous ? TrendingUp : TrendingDown}
                 primary={{
-                    value: `${currency} ${numeral(average - previous).format("+0,0.00")}`,
+                    value: `${currency} ${formatNumber(average - previous, { start: "+" })}`,
                     positive: average === previous ? null : average > previous,
                 }}
                 secondary={{
-                    value: numeral((average - previous) / previous).format("+0.00%"),
+                    value: formatNumber((average - previous) / previous, { start: "+", end: "%" }),
                     positive: average === previous ? null : average > previous,
                 }}
                 subtext="vs. previous months"
@@ -58,7 +58,7 @@ export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProp
             <SummaryNumber
                 icon={AttachMoney}
                 primary={{
-                    value: `${currency} ${numeral(net[0]).format("0,0.00")}`,
+                    value: `${currency} ${formatNumber(net[0])}`,
                     positive: !net[0] ? null : net[0] > 0,
                 }}
                 subtext="value today"
@@ -66,11 +66,11 @@ export const BalanceSnapshotSummaryNumbers: React.FC<SnapshotSectionContentsProp
             <SummaryNumber
                 icon={TrendingUp}
                 primary={{
-                    value: `${currency} ${numeral(net[0] - net[1]).format("+0,0.00")}`,
+                    value: `${currency} ${formatNumber(net[0] - net[1], { start: "+" })}`,
                     positive: net[0] === net[1] ? null : net[0] > net[1],
                 }}
                 secondary={{
-                    value: numeral((net[0] - net[1]) / net[1]).format("+0.00%"),
+                    value: formatNumber((net[0] - net[1]) / net[1], { start: "+", end: "%" }),
                     positive: net[0] === net[1] ? null : net[0] > net[1],
                 }}
                 subtext="in last month"
@@ -83,7 +83,7 @@ export const useGetSummaryChart = (
     { trends: { credits, debits }, net, currency }: SnapshotSectionData,
     height: number = 220
 ) => {
-    const format = useFormatValue("0a", currency);
+    const format = useFormatValue({ end: "k", decimals: 0, separator: "" }, currency);
 
     return useCallback(
         () => (

@@ -4,9 +4,9 @@ import { IDatabaseChange } from "dexie-observable/api";
 import { Dropbox, DropboxAuth } from "dropbox";
 import _, { uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
-import numeral from "numeral";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
+import { formatNumber } from "../../shared/data";
 import { AppSlice } from "../app";
 import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
 import { DataKeys, StubUserID } from "../data/types";
@@ -145,7 +145,6 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
 const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Papa = Papa;
     (window as any).DateTime = DateTime;
-    (window as any).numeral = numeral;
     (window as any)._ = _;
     (window as any).chroma = chroma;
     (window as any).store = TopHatStore;
@@ -157,6 +156,7 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Dropbox = Dropbox;
     (window as any).DropboxAuth = DropboxAuth;
     (window as any).restart = () => TopHatDispatch(DataSlice.actions.restartTutorial());
+    (window as any).formatNumber = formatNumber;
 
     console.log("Setting up debug variables...");
 };

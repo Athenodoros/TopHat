@@ -1,5 +1,5 @@
-import numeral from "numeral";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { formatNumber } from "./data";
 import { handleTextFieldChange } from "./events";
 
 // export const useStateWithRef = <T>(initial: T) => {
@@ -84,7 +84,7 @@ export const usePopoverProps = <T extends Element = HTMLButtonElement>() => {
 export const useFirstValue = <T>(value: T) => useMemo(() => value, []);
 
 const NumberRegex = /^-?\d*\.?\d?\d?$/;
-const FormatNumber = (value: number | null) => (value !== null ? numeral(value).format("-0.00") : "");
+const FormatNumber = (value: number | null) => (value !== null ? formatNumber(value, { separator: "" }) : "");
 export const useNumericInputHandler = (
     initial: number | null,
     onChange: (value: number | null) => void,

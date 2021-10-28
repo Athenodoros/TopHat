@@ -3,8 +3,8 @@ import { HelpOutlined } from "@mui/icons-material";
 import { ButtonBase, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { identity } from "lodash";
-import numeral from "numeral";
 import React, { useCallback } from "react";
+import { formatNumber } from "../../../shared/data";
 import { suppressEvent } from "../../../shared/events";
 import { Greys, Intents } from "../../../styles/colours";
 import { fadeSolidColour } from "../../display/ObjectDisplay";
@@ -87,12 +87,14 @@ export const Value: React.FC<{
                                 }}
                                 variant={variant}
                             >
-                                {numeral(value).format("+0,0.00")}
+                                {formatNumber(value, { start: "+" })}
                             </ValueTypography>
                             {subValues && (
                                 <ValueTypography variant="caption">
                                     {subValues.type === "number"
-                                        ? subValues.symbol + " " + numeral(subValues.values[idx]).format("+0.00a")
+                                        ? subValues.symbol +
+                                          " " +
+                                          formatNumber(subValues.values[idx], { start: "+", end: "k" })
                                         : subValues.values[idx]}
                                 </ValueTypography>
                             )}

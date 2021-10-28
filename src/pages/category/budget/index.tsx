@@ -3,12 +3,11 @@ import { AssignmentLate, OpenInNew } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
 import { last } from "lodash";
 import { DateTime } from "luxon";
-import numeral from "numeral";
 import React, { useCallback } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
 import { NonIdealState } from "../../../components/display/NonIdealState";
 import { Section } from "../../../components/layout";
-import { ChartDomainFunctions, getChartDomainFunctions } from "../../../shared/data";
+import { ChartDomainFunctions, formatNumber, getChartDomainFunctions } from "../../../shared/data";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { useCategoryPageCategory } from "../../../state/app/hooks";
@@ -87,7 +86,7 @@ const FillbarSummaryNumbers: React.FC<{
     functions: ChartDomainFunctions;
     subtitle: string;
 }> = ({ total, subtotal, budget, date, functions, subtitle }) => {
-    const format = useFormatValue("0,0.00");
+    const format = useFormatValue();
     const success = budget === total ? null : budget > 0 ? budget > total : budget < total;
 
     return (
@@ -106,10 +105,10 @@ const FillbarSummaryNumbers: React.FC<{
             </TitleBox>
             <SubtitleBox>
                 <Typography variant="caption" noWrap={true}>
-                    {budget ? numeral(subtotal / budget).format("0.00%") : "-.--%"} {subtitle}
+                    {budget ? formatNumber(subtotal / budget, { end: "%" }) : "-.--%"} {subtitle}
                 </Typography>
                 <Typography noWrap={true} variant="caption">
-                    / {numeral(budget).format("0,0.00")}
+                    / {formatNumber(budget)}
                 </Typography>
             </SubtitleBox>
             <FillbarBox>

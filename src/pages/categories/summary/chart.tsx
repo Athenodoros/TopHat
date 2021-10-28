@@ -2,7 +2,6 @@ import { MenuItem, Select } from "@mui/material";
 import chroma from "chroma-js";
 import { last, max, min, range, sortBy, sum, sumBy, unzip } from "lodash";
 import { DateTime } from "luxon";
-import numeral from "numeral";
 import { useCallback, useMemo } from "react";
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryGroup, VictoryStack, VictoryTooltip } from "victory";
 import { FlexWidthChart } from "../../../components/display/FlexWidthChart";
@@ -13,6 +12,7 @@ import {
     getHiddenTickZeroAxis,
 } from "../../../components/display/PerformantCharts";
 import { Section } from "../../../components/layout";
+import { formatNumber } from "../../../shared/data";
 import { handleSelectChange } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
@@ -45,7 +45,7 @@ export const CategoriesBarChart: React.FC = () => {
             >
                 <VictoryAxis
                     dependentAxis={true}
-                    tickFormat={(value: number) => symbol + " " + numeral(value).format("0.00a")}
+                    tickFormat={(value: number) => symbol + " " + formatNumber(value, { end: "k" })}
                     crossAxis={false}
                     invertAxis={sign === "debits"}
                 />
@@ -175,9 +175,9 @@ const useBarChartData = (sign: ChartSign) => {
                             return {
                                 x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
                                 y,
-                                label: `${point.name} ${key === "budgets" ? " (Budget)" : ""}: ${numeral(y).format(
-                                    "0.00a"
-                                )}`,
+                                label: `${point.name} ${key === "budgets" ? " (Budget)" : ""}: ${formatNumber(y, {
+                                    end: "k",
+                                })}`,
                             };
                         }),
                     };
