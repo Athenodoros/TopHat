@@ -32,7 +32,6 @@ import {
     getTodayString,
 } from "../../state/shared/values";
 import { Greys, Intents } from "../../styles/colours";
-import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
 import { DialogContents, DialogMain, EditTitleContainer, EditValueContainer } from "../shared";
 import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
 import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
@@ -68,7 +67,7 @@ const CurrencyIconSx = {
     height: 24,
     width: 24,
     marginRight: 15,
-    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "5px",
 };
 const render = (currency: Currency) => (
     <CurrencyBox>

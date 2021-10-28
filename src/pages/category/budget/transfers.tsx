@@ -1,8 +1,9 @@
+import styled from "@emotion/styled";
 import { DeleteTwoTone, Edit, KeyboardArrowDown, OpenInFullTwoTone, SwapHoriz } from "@mui/icons-material";
-import { Button, Collapse, IconButton, TextField, Tooltip, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Button, Collapse, collapseClasses, IconButton, TextField, Tooltip, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import React, { useCallback, useMemo, useState } from "react";
-import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
+import { getCategoryIconSx } from "../../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../../components/inputs";
 import { useNumericInputHandler } from "../../../shared/hooks";
 import { TopHatDispatch } from "../../../state";
@@ -12,34 +13,8 @@ import { useAllCategories } from "../../../state/data/hooks";
 import { TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-// import { NonIdealState } from "../../components/display/NonIdealState";
-
-const useStyles = makeStyles({
-    actions: {
-        display: "flex",
-        justifyContent: "flex-end",
-
-        "& .MuiCollapse-wrapperInner": {
-            display: "flex",
-            alignItems: "center",
-        },
-    },
-    edit: {
-        marginRight: 15,
-        padding: "6px 12px",
-    },
-    transfer: {
-        "& .MuiCollapse-wrapperInner": {
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
-        },
-    },
-});
 
 export const CategoryBudgetTransferElements: React.FC<{ category: Category }> = ({ category }) => {
-    const classes = useStyles();
-
     const [transfer, setTransfer] = useState(false);
     const openTransfer = useCallback(() => setTransfer(true), []);
     const closeTransfer = useCallback(() => setTransfer(false), []);
@@ -49,56 +24,34 @@ export const CategoryBudgetTransferElements: React.FC<{ category: Category }> = 
     );
 
     return (
-        <div className={classes.actions}>
+        <ActionsBox>
             <Collapse in={!transfer} orientation="horizontal">
-                <Button color="warning" startIcon={<Edit />} onClick={openEditView} className={classes.edit}>
+                <EditButton color="warning" startIcon={<Edit />} onClick={openEditView}>
                     EDIT
-                </Button>
+                </EditButton>
                 <Button variant="outlined" startIcon={<SwapHoriz />} onClick={openTransfer}>
                     TRANSFER
                 </Button>
             </Collapse>
-            <Collapse in={transfer} orientation="horizontal" className={classes.transfer}>
+            <Collapse in={transfer} orientation="horizontal">
                 <BudgetTransferElements category={category} close={closeTransfer} />
             </Collapse>
-        </div>
+        </ActionsBox>
     );
 };
 
-const useBudgetTransferStyles = makeStyles({
-    category: {
-        textTransform: "inherit",
-        height: 40,
-        width: 160,
+const ActionsBox = styled(Box)({
+    display: "flex",
+    justifyContent: "flex-end",
 
-        "& > p": {
-            flexGrow: 1,
-            textAlign: "left",
-            marginLeft: 10,
-        },
-        "& > svg": {
-            marginLeft: 15,
-        },
-    },
-    icon: {
-        width: 16,
-        height: 16,
-    },
-    input: {
-        margin: "0 13px",
-        "& input": {
-            width: 80,
-        },
-    },
-    actions: {
+    [`& .${collapseClasses.wrapperInner}`]: {
         display: "flex",
-        "& button:not(:last-child)": {
-            marginRight: 6,
-        },
+        alignItems: "center",
     },
 });
+const EditButton = styled(Button)({ marginRight: 15, padding: "6px 12px" });
+
 const BudgetTransferElements: React.FC<{ category: Category; close: () => void }> = ({ category, close }) => {
-    const classes = useBudgetTransferStyles();
     const categories = useAllCategories();
     const options = useMemo(
         () =>
@@ -135,26 +88,25 @@ const BudgetTransferElements: React.FC<{ category: Category; close: () => void }
         <>
             <ObjectSelector
                 options={options}
-                render={(category) => getCategoryIcon(category, classes.icon)}
+                render={(category) => getCategoryIconSx(category, IconSx)}
                 selected={selected.id}
                 setSelected={setSelectedCategory}
             >
-                <Button variant="outlined" className={classes.category} color="inherit">
-                    {getCategoryIcon(selected, classes.icon)}
+                <CategoryButton variant="outlined" color="inherit">
+                    {getCategoryIconSx(selected, IconSx)}
                     <Typography variant="body1" noWrap={true}>
                         {selected.name}
                     </Typography>
                     <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                </Button>
+                </CategoryButton>
             </ObjectSelector>
-            <TextField
-                className={classes.input}
+            <InputTextField
                 value={numericInputHander.text}
                 onChange={numericInputHander.onTextChange}
                 size="small"
                 label="Value"
             />
-            <div className={classes.actions}>
+            <BudgetActionsBox>
                 <Tooltip title="Cancel Transfer">
                     <IconButton color="warning" size="small" onClick={close}>
                         <DeleteTwoTone fontSize="small" />
@@ -167,7 +119,30 @@ const BudgetTransferElements: React.FC<{ category: Category; close: () => void }
                         </IconButton>
                     </span>
                 </Tooltip>
-            </div>
+            </BudgetActionsBox>
         </>
     );
 };
+
+const CategoryButton = styled(Button)({
+    textTransform: "inherit",
+    height: 40,
+    flex: "1 1 160px",
+
+    "& > p": {
+        flexGrow: 1,
+        textAlign: "left",
+        marginLeft: 10,
+    },
+    "& > svg": {
+        marginLeft: 15,
+    },
+});
+const IconSx = { width: 16, height: 16 };
+const InputTextField = styled(TextField)({ margin: "0 10px", flex: "1 1 100px" });
+const BudgetActionsBox = styled(Box)({
+    display: "flex",
+    "& button:not(:last-child)": {
+        marginRight: 6,
+    },
+});

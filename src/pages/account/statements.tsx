@@ -1,6 +1,7 @@
+import styled from "@emotion/styled";
 import { ChevronRight, Description, Edit, FolderOpen, OpenInNew, Payment } from "@mui/icons-material";
 import { Button, IconButton, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { Section } from "../../components/layout";
@@ -13,54 +14,7 @@ import { useAllStatements } from "../../state/data/hooks";
 import { ID } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 
-const useStyles = makeStyles({
-    create: {
-        color: Greys[700],
-    },
-    table: {
-        display: "flex",
-        flexDirection: "column",
-        height: 220,
-        overflowY: "auto",
-    },
-    statement: {
-        display: "flex",
-        alignItems: "center",
-        height: 40,
-        "&:not(:last-child)": {
-            marginBottom: 18,
-        },
-    },
-    icon: {
-        color: Greys[100],
-        background: Greys[600],
-        borderRadius: "50%",
-        padding: 7,
-        marginRight: 10,
-        height: 32,
-        width: 32,
-    },
-    text: {
-        flex: "1 1 0",
-        width: 0,
-        "& > *": {
-            lineHeight: 1.2,
-        },
-    },
-    actions: {
-        display: "flex",
-        marginLeft: 30,
-        "& > :not(:last-child)": {
-            marginRight: 10,
-        },
-    },
-    action: {
-        padding: 2,
-    },
-});
 export const AccountStatementTable: React.FC = () => {
-    const classes = useStyles();
-
     const account = useAccountPageAccount();
     const statements = useAllStatements().filter((statement) => statement.account === account.id);
 
@@ -92,40 +46,39 @@ export const AccountStatementTable: React.FC = () => {
         <Section
             title="Statements"
             headers={
-                <Button
+                <CreateButton
                     size="small"
                     endIcon={<ChevronRight />}
-                    className={classes.create}
                     onClick={openUploadStatementDialog(account)}
                     key="create"
                 >
                     Add New
-                </Button>
+                </CreateButton>
             }
         >
-            <div className={classes.table}>
+            <TableBox>
                 {statements.map((statement) => (
-                    <div className={classes.statement} key={statement.id}>
-                        <Description className={classes.icon} />
-                        <div className={classes.text}>
+                    <StatementBox key={statement.id}>
+                        <DescriptionIcon />
+                        <TextBox>
                             <Typography variant="subtitle2" noWrap={true}>
                                 {statement.name}
                             </Typography>
                             <Typography variant="caption" noWrap={true} component="p">
                                 {statement.date}
                             </Typography>
-                        </div>
-                        <div className={classes.actions}>
+                        </TextBox>
+                        <ActionsBox>
                             <IconButton size="small" onClick={filterTableToStatement(statement.id)}>
-                                <Payment className={classes.action} />
+                                <PaymentIcon />
                             </IconButton>
                             <IconButton size="small" onClick={openEditStatementDialog(statement)}>
-                                <Edit className={classes.action} />
+                                <EditIcon />
                             </IconButton>
-                        </div>
-                    </div>
+                        </ActionsBox>
+                    </StatementBox>
                 ))}
-            </div>
+            </TableBox>
         </Section>
     );
 };
@@ -138,3 +91,44 @@ const openEditStatementDialog = (statement: Statement) => () =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "statement", statement }));
 const filterTableToStatement = (statement: ID) => () =>
     TopHatDispatch(AppSlice.actions.setAccountTableStatement(statement));
+
+const CreateButton = styled(Button)({ color: Greys[700] });
+const TableBox = styled(Box)({
+    display: "flex",
+    flexDirection: "column",
+    height: 220,
+    overflowY: "auto",
+});
+const StatementBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    height: 40,
+    "&:not(:last-child)": {
+        marginBottom: 18,
+    },
+});
+const DescriptionIcon = styled(Description)({
+    color: Greys[100],
+    background: Greys[600],
+    borderRadius: "50%",
+    padding: 7,
+    marginRight: 10,
+    height: 32,
+    width: 32,
+});
+const TextBox = styled(Box)({
+    flex: "1 1 0",
+    width: 0,
+    "& > *": {
+        lineHeight: 1.2,
+    },
+});
+const ActionsBox = styled(Box)({
+    display: "flex",
+    marginLeft: 30,
+    "& > :not(:last-child)": {
+        marginRight: 10,
+    },
+});
+const PaymentIcon = styled(Payment)({ padding: 2 });
+const EditIcon = styled(Edit)({ padding: 2 });

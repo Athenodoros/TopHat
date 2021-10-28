@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { ArrowDropDown, Event, Exposure, Filter1, Translate } from "@mui/icons-material";
-import { Button, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
+import { Button, buttonClasses, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { get, toPairs, upperFirst } from "lodash";
 import React from "react";
@@ -137,7 +137,7 @@ const MappingBox = styled(Box)({
         paddingBottom: 0,
         // ...theme.typography.caption,
 
-        "& .MuiButton-endIcon": {
+        [`& .${buttonClasses.endIcon}`]: {
             opacity: 0.6,
             marginTop: -2,
             marginLeft: 3,
@@ -147,6 +147,6 @@ const MappingBox = styled(Box)({
 const SubtitleButton = styled(Button)(TopHatTheme.typography.caption as any);
 const EmptyButtonSx = { color: Greys[600], fontStyle: "italic" };
 const SubtitleIconButton = styled(SubtitleButton)({ minWidth: 20, ...DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES });
-const IconButtonFlippedSx = { [`& .MuiButton-endIcon`]: { opacity: "1 !important" } };
+const IconButtonFlippedSx = { [`& .${buttonClasses.endIcon}`]: { opacity: "1 !important" } };
 const MappingOptionMenuItem = styled(MenuItem)({ paddingLeft: 20, paddingRight: 30 });
 const PlaceholderOptionMenuItem = styled(MappingOptionMenuItem)({ color: Greys[600], fontStyle: "italic" });

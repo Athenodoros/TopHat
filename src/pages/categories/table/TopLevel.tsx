@@ -1,13 +1,13 @@
+import styled from "@emotion/styled";
 import { Edit } from "@mui/icons-material";
 import { ButtonBase, Card, IconButton, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import chroma from "chroma-js";
-import clsx from "clsx";
 import { reverse } from "lodash";
 import numeral from "numeral";
 import React, { useCallback, useMemo } from "react";
 import { BasicFillbar } from "../../../components/display/BasicFillbar";
-import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
+import { getCategoryIconSx } from "../../../components/display/ObjectDisplay";
 import { ChartDomainFunctions } from "../../../shared/data";
 import { withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
@@ -18,57 +18,16 @@ import { Category } from "../../../state/data";
 import { useCategoryMap, useFormatValue } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
-import { useCategoriesTableStyles } from "./styles";
+import {
+    CategoriesTableActionBox,
+    CategoriesTableFillbarSx,
+    CategoriesTableIconSx,
+    CategoriesTableMainSx,
+    CategoriesTableSubtitleSx,
+    CategoriesTableTitleBox,
+    CategoriesTableTotalSx,
+} from "./styles";
 import { SubCategoryTableView } from "./SubCategory";
-
-const useStyles = makeStyles({
-    container: {
-        margin: "10px 0",
-        padding: "0 10px",
-        position: "relative",
-        overflow: "hidden",
-    },
-    colour: {
-        position: "absolute",
-        width: 300,
-        height: 280,
-        borderRadius: 50,
-        top: -180,
-        left: -80,
-        transform: "rotate(-20deg)",
-        opacity: 0.1,
-        pointerEvents: "none",
-    },
-    toplevel: {
-        display: "flex",
-        height: 50,
-        borderRadius: 10,
-        margin: "10px 0",
-        width: "100%",
-        alignItems: "center",
-
-        "&:hover": {
-            background: chroma(Greys[500]).alpha(0.1).hex(),
-        },
-    },
-    fillbar: { height: 35 },
-    blue: {
-        color: Intents.primary.main,
-        lineHeight: 1,
-    },
-    green: {
-        color: Intents.success.main,
-        lineHeight: 1,
-    },
-    red: {
-        color: Intents.danger.main,
-        lineHeight: 1,
-    },
-    budget: {
-        color: Greys[700],
-        marginLeft: 5,
-    },
-});
 
 export interface TopLevelCategoryViewProps {
     category: {
@@ -91,9 +50,6 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     getCategoryStatistics,
     hideEmpty,
 }) => {
-    const tableClasses = useCategoriesTableStyles();
-    const classes = useStyles();
-
     const format = useFormatValue("0,0.00");
 
     const categories = useCategoryMap();
@@ -139,17 +95,17 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
     );
 
     return (
-        <Card className={classes.container}>
-            <ButtonBase className={classes.toplevel} onClick={onClick} component="div">
-                <div className={tableClasses.title}>
-                    {getCategoryIcon(category, tableClasses.icon)}
+        <ContainerCard>
+            <ButtonBase sx={TopLevelSx} onClick={onClick} component="div">
+                <CategoriesTableTitleBox>
+                    {getCategoryIconSx(category, CategoriesTableIconSx)}
                     <Typography variant="h5" noWrap={true}>
                         {category.name}
                     </Typography>
-                </div>
-                <div className={tableClasses.main}>
-                    <div className={tableClasses.subtitle} />
-                    <div className={clsx(tableClasses.fillbar, classes.fillbar)}>
+                </CategoriesTableTitleBox>
+                <MainBox>
+                    <SubtitleBox />
+                    <FillbarBox>
                         <BasicFillbar
                             range={[0, 0, category.value]}
                             // range={[0, running[0], category.value]}
@@ -158,35 +114,73 @@ export const TopLevelCategoryTableView: React.FC<TopLevelCategoryViewProps> = ({
                             functions={chartFunctions}
                             success={category.success ?? null}
                         />
-                    </div>
-                    <div className={tableClasses.total}>
+                    </FillbarBox>
+                    <TotalBox>
                         <Typography
                             variant="h5"
-                            className={
+                            sx={
                                 category.budget !== undefined
                                     ? category.success
-                                        ? classes.green
-                                        : classes.red
-                                    : classes.blue
+                                        ? GreenTextSx
+                                        : RedTextSx
+                                    : BlueTextSx
                             }
                         >
                             {format(category.value)}
                         </Typography>
                         {category.budget !== undefined ? (
-                            <Typography variant="caption" className={classes.budget}>
+                            <BudgetTypography variant="caption">
                                 / {numeral(category.budget).format("0,0.00")}
-                            </Typography>
+                            </BudgetTypography>
                         ) : undefined}
-                    </div>
-                    <div className={tableClasses.action}>
+                    </TotalBox>
+                    <CategoriesTableActionBox>
                         <IconButton size="small" onClick={openEditView}>
                             <Edit />
                         </IconButton>
-                    </div>
-                </div>
+                    </CategoriesTableActionBox>
+                </MainBox>
             </ButtonBase>
-            <div className={classes.colour} style={{ background: category.colour }} />
+            <ColourBox sx={{ background: category.colour }} />
             {subcategories}
-        </Card>
+        </ContainerCard>
     );
 };
+
+const ContainerCard = styled(Card)({
+    margin: "10px 0",
+    padding: "0 10px",
+    position: "relative",
+    overflow: "hidden",
+});
+const TopLevelSx = {
+    display: "flex",
+    height: 50,
+    borderRadius: "10px",
+    margin: "10px 0",
+    width: "100%",
+    alignItems: "center",
+
+    "&:hover": {
+        background: chroma(Greys[500]).alpha(0.1).hex(),
+    },
+} as const;
+const ColourBox = styled(Box)({
+    position: "absolute",
+    width: 300,
+    height: 280,
+    borderRadius: "50px",
+    top: -180,
+    left: -80,
+    transform: "rotate(-20deg)",
+    opacity: 0.1,
+    pointerEvents: "none",
+});
+const FillbarBox = styled(Box)({ ...CategoriesTableFillbarSx, height: 35 });
+const BlueTextSx = { color: Intents.primary.main, lineHeight: 1 };
+const GreenTextSx = { color: Intents.success.main, lineHeight: 1 };
+const RedTextSx = { color: Intents.danger.main, lineHeight: 1 };
+const BudgetTypography = styled(Typography)({ color: Greys[700], marginLeft: 5 });
+const SubtitleBox = styled(Box)(CategoriesTableSubtitleSx);
+const MainBox = styled(Box)(CategoriesTableMainSx);
+const TotalBox = styled(Box)(CategoriesTableTotalSx);

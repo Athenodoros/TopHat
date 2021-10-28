@@ -1,6 +1,6 @@
+import styled from "@emotion/styled";
 import { Cached, CloudDone, Edit, GetApp, ListAlt, Notifications } from "@mui/icons-material";
 import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import React from "react";
 import { zipObject } from "../../shared/data";
 import { withSuppressEvent } from "../../shared/events";
@@ -16,71 +16,53 @@ import { DialogNotificationsContents } from "./notifications";
 import { DialogStorageContents } from "./storage";
 import { DialogSummaryContents } from "./summary";
 
-const useStyles = makeStyles({
-    list: {
-        overflowY: "scroll",
-        paddingTop: 0,
-        paddingBottom: 0,
-        margin: "8px 0",
-        "& > li": {
-            paddingLeft: 20,
-            paddingRight: 20,
-        },
-    },
-    subheader: { background: Greys[200] },
-    text: {
-        paddingTop: 4,
-        paddingBottom: 4,
-    },
-});
 export const DialogSettingsView: React.FC = () => {
-    const classes = useStyles();
     const page = useDialogState("settings");
     const isDemo = useUserData((user) => user.isDemo);
 
     return (
         <DialogMain>
             <DialogOptions>
-                <List className={classes.list}>
-                    <ListSubheader className={classes.subheader}>Data</ListSubheader>
+                <SettingsList>
+                    <SettingsSubheader>Data</SettingsSubheader>
                     <MenuItem onClick={setEmptyPage} selected={page === undefined}>
                         <ListItemIcon>
                             <ListAlt fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>{isDemo ? "Demo" : "Summary"}</ListItemText>
+                        <SettingsListItemText>{isDemo ? "Demo" : "Summary"}</SettingsListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["import"]} selected={page === "import"}>
                         <ListItemIcon>
                             <Edit fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>Manage Data</ListItemText>
+                        <SettingsListItemText>Manage Data</SettingsListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["export"]} selected={page === "export"}>
                         <ListItemIcon>
                             <GetApp fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>Export</ListItemText>
+                        <SettingsListItemText>Export</SettingsListItemText>
                     </MenuItem>
-                    <ListSubheader className={classes.subheader}>Settings</ListSubheader>
+                    <SettingsSubheader>Settings</SettingsSubheader>
                     <MenuItem onClick={setPage["notifications"]} selected={page === "notifications"}>
                         <ListItemIcon>
                             <Notifications fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>Notifications</ListItemText>
+                        <SettingsListItemText>Notifications</SettingsListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["currency"]} selected={page === "currency"}>
                         <ListItemIcon>
                             <Cached fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>Currency Sync</ListItemText>
+                        <SettingsListItemText>Currency Sync</SettingsListItemText>
                     </MenuItem>
                     <MenuItem onClick={setPage["storage"]} selected={page === "storage"}>
                         <ListItemIcon>
                             <CloudDone fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText className={classes.text}>Storage and Services</ListItemText>
+                        <SettingsListItemText>Storage and Services</SettingsListItemText>
                     </MenuItem>
-                </List>
+                </SettingsList>
             </DialogOptions>
             <DialogContents>{page ? Pages[page] : <DialogSummaryContents />}</DialogContents>
         </DialogMain>
@@ -101,3 +83,16 @@ const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
     notifications: <DialogNotificationsContents />,
     currency: <DialogCurrencyContents />,
 };
+
+const SettingsList = styled(List)({
+    overflowY: "scroll",
+    paddingTop: 0,
+    paddingBottom: 0,
+    margin: "8px 0",
+    "& > li": {
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+});
+const SettingsSubheader = styled(ListSubheader)({ background: Greys[200] });
+const SettingsListItemText = styled(ListItemText)({ paddingTop: 4, paddingBottom: 4 });

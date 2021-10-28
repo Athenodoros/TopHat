@@ -38,7 +38,7 @@ export const DefaultPages = {
         id: "categories",
         tableMetric: "average",
         summaryMetric: "current",
-        tableSign: "all",
+        tableSign: "debits",
         summarySign: "debits",
         hideEmpty: "subcategories",
     } as const,

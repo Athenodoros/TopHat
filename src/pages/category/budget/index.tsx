@@ -1,6 +1,7 @@
+import styled from "@emotion/styled";
 import { AssignmentLate, OpenInNew } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { last } from "lodash";
 import { DateTime } from "luxon";
 import numeral from "numeral";
@@ -79,24 +80,6 @@ export const CategoryPageBudgetSummary: React.FC = () => {
 const getMonthlyTotal = (category: Category, month: number) =>
     (category.transactions.credits[month] || 0) + (category.transactions.debits[month] || 0);
 
-const useFillbarSummaryNumbersStyles = makeStyles({
-    title: {
-        display: "flex",
-        justifyContent: "space-between",
-        color: Greys[700],
-    },
-    subtitle: {
-        display: "flex",
-        justifyContent: "space-between",
-        color: Greys[700],
-    },
-    fillbar: {
-        height: 35,
-        marginTop: 10,
-        marginBottom: 20,
-        flexGrow: 1,
-    },
-});
 const FillbarSummaryNumbers: React.FC<{
     total: number;
     subtotal: number;
@@ -105,28 +88,32 @@ const FillbarSummaryNumbers: React.FC<{
     functions: ChartDomainFunctions;
     subtitle: string;
 }> = ({ total, subtotal, budget, date, functions, subtitle }) => {
-    const classes = useFillbarSummaryNumbersStyles();
     const format = useFormatValue("0,0.00");
     const success = budget === total ? null : budget > 0 ? budget > total : budget < total;
 
     return (
         <>
-            <div className={classes.title}>
-                <Typography variant="h6">{date.toFormat("LLLL yyyy")}</Typography>
+            <TitleBox>
+                <Typography variant="h6" noWrap={true}>
+                    {date.toFormat("LLLL yyyy")}
+                </Typography>
                 <Typography
+                    noWrap={true}
                     variant="h6"
                     style={{ color: Intents[success === null ? "primary" : success ? "success" : "danger"].main }}
                 >
                     {format(subtotal)}
                 </Typography>
-            </div>
-            <div className={classes.subtitle}>
-                <Typography variant="caption">
+            </TitleBox>
+            <SubtitleBox>
+                <Typography variant="caption" noWrap={true}>
                     {budget ? numeral(subtotal / budget).format("0.00%") : "-.--%"} {subtitle}
                 </Typography>
-                <Typography variant="caption">/ {numeral(budget).format("0,0.00")}</Typography>
-            </div>
-            <div className={classes.fillbar}>
+                <Typography noWrap={true} variant="caption">
+                    / {numeral(budget).format("0,0.00")}
+                </Typography>
+            </SubtitleBox>
+            <FillbarBox>
                 <BasicFillbar
                     range={[0, total - subtotal, total]}
                     showEndpoint={true}
@@ -134,7 +121,24 @@ const FillbarSummaryNumbers: React.FC<{
                     functions={functions}
                     success={success}
                 />
-            </div>
+            </FillbarBox>
         </>
     );
 };
+
+const TitleBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    color: Greys[700],
+});
+const SubtitleBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+    color: Greys[700],
+});
+const FillbarBox = styled(Box)({
+    height: 35,
+    marginTop: 10,
+    marginBottom: 20,
+    flexGrow: 1,
+});

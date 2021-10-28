@@ -9,7 +9,7 @@ import { useDialogState } from "../../../state/app/hooks";
 import { useDeleteObjectError } from "../../../state/data";
 import { useObjectByID } from "../../../state/data/hooks";
 import { BasicObjectName, BasicObjectType } from "../../../state/data/types";
-import { EditDivider } from "../../shared/edits";
+import { Greys } from "../../../styles/colours";
 import { getUpdateFunctions } from "./update";
 
 export const ObjectEditContainer = <Type extends BasicObjectName>({
@@ -50,7 +50,7 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
         <EditBox>
             <TextField label={`${upperFirst(type)} Name`} value={working.name} onChange={handleNameChange} />
             {subtitle || <StubSubtitleBox />}
-            <EditDivider />
+            <EditDividerBox />
             <EditContainerBox>{children}</EditContainerBox>
             <ActionsBox>
                 <Button
@@ -94,6 +94,13 @@ const EditBox = styled(Box)({
     minHeight: 0,
     padding: "20px 20px 8px 20px",
     flexGrow: 1,
+});
+const EditDividerBox = styled(Box)({
+    flex: "0 0 1px",
+    width: "80%",
+    background: Greys[400],
+    alignSelf: "left",
+    margin: "10px 25px",
 });
 const EditContainerBox = styled(Box)({
     flexShrink: 1,

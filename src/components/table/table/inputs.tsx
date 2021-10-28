@@ -1,52 +1,28 @@
+import styled from "@emotion/styled";
 import { Clear, Help } from "@mui/icons-material";
-import { Button, IconButton, InputAdornment, Menu, MenuItem, MenuProps, TextField, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
+import {
+    Button,
+    IconButton,
+    InputAdornment,
+    inputAdornmentClasses,
+    inputBaseClasses,
+    Menu,
+    MenuItem,
+    MenuProps,
+    TextField,
+    Typography,
+} from "@mui/material";
+import { Box, SxProps } from "@mui/system";
 import React, { useCallback, useMemo } from "react";
 import { handleTextFieldChange } from "../../../shared/events";
 import { useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { getCurrencyIcon } from "../../display/ObjectDisplay";
+import { getCurrencyIconSx } from "../../display/ObjectDisplay";
 import { ObjectSelector, ObjectSelectorCommonProps } from "../../inputs";
-import { useTransactionsTableStyles } from "./styles";
+import { TransactionTableMixedTypography, TransactionTableSxProps } from "./styles";
 
-const useEditableCurrencyValueStyles = makeStyles({
-    container: {
-        display: "flex",
-        alignItems: "center",
-    },
-    input: {
-        "& .MuiInputBase-adornedStart": {
-            paddingLeft: 3,
-            paddingRight: 5,
-
-            "& .MuiInputAdornment-positionStart": {
-                marginRight: 3,
-            },
-        },
-
-        "& .MuiInputAdornment-positionStart button": {
-            minWidth: "inherit",
-            padding: "1px 3px 0 3px",
-
-            color: Greys[500],
-            fontWeight: 400,
-            width: 38,
-        },
-        "& .MuiInputAdornment-positionEnd button": {
-            padding: 2,
-            color: Greys[500],
-        },
-    },
-    icon: {
-        height: 20,
-        width: 20,
-        borderRadius: 4,
-        marginRight: 10,
-    },
-});
 interface EditableCurrencyValueProps {
     currency: ID | undefined;
     value: number | null | undefined;
@@ -65,8 +41,6 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     allowUndefinedCurrency,
     allowUndefinedValue,
 }) => {
-    const classes = useEditableCurrencyValueStyles();
-    const utilClasses = useTransactionsTableStyles();
     const popover = usePopoverProps();
 
     const currencies = useAllCurrencies();
@@ -79,11 +53,10 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     }, [setText, onChangeValue]);
 
     return (
-        <div className={classes.container}>
-            <TextField
+        <CurrencyContainerBox>
+            <CurrencyInputTextField
                 variant="outlined"
                 size="small"
-                className={classes.input}
                 value={text}
                 onChange={onTextChange}
                 placeholder={
@@ -93,11 +66,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                     startAdornment: (
                         <InputAdornment position="start">
                             <Button {...popover.buttonProps}>
-                                {currency !== undefined ? (
-                                    symbol!
-                                ) : (
-                                    <Help fontSize="small" className={utilClasses.mixed} />
-                                )}
+                                {currency !== undefined ? symbol! : <CurrencyIconMixedHelpIcon fontSize="small" />}
                             </Button>
                         </InputAdornment>
                     ),
@@ -111,7 +80,10 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                         ) : undefined,
                 }}
                 inputProps={{
-                    className: !value && !placeholder ? utilClasses.mixedPlaceholder : utilClasses.basePlaceholder,
+                    sx:
+                        !value && !placeholder
+                            ? TransactionTableSxProps.MixedPlaceholder
+                            : TransactionTableSxProps.BasePlaceholder,
                 }}
             />
             <Menu {...popover.popoverProps} style={{ maxHeight: 250 }}>
@@ -122,9 +94,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                             onChangeCurrency(undefined);
                         }}
                     >
-                        <Typography variant="body1" className={utilClasses.mixed}>
-                            (mixed)
-                        </Typography>
+                        <TransactionTableMixedTypography variant="body1">(mixed)</TransactionTableMixedTypography>
                     </MenuItem>
                 ) : undefined}
                 {currencies.map((currency) => (
@@ -135,14 +105,41 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
                             onChangeCurrency(currency.id);
                         }}
                     >
-                        {getCurrencyIcon(currency, classes.icon)}
+                        {getCurrencyIconSx(currency, CurrencyIconSx)}
                         <Typography variant="body1">{currency.name}</Typography>
                     </MenuItem>
                 ))}
             </Menu>
-        </div>
+        </CurrencyContainerBox>
     );
 };
+
+const CurrencyContainerBox = styled(Box)({ display: "flex", alignItems: "center" });
+const CurrencyIconMixedHelpIcon = styled(Help)(TransactionTableSxProps.Mixed);
+const CurrencyInputTextField = styled(TextField)({
+    [`& .${inputBaseClasses.adornedStart}`]: {
+        paddingLeft: 3,
+        paddingRight: 5,
+
+        [`& .${inputAdornmentClasses.positionStart}`]: {
+            marginRight: 3,
+        },
+    },
+
+    [`& .${inputAdornmentClasses.positionStart} button`]: {
+        minWidth: "inherit",
+        padding: "1px 3px 0 3px",
+
+        color: Greys[500],
+        fontWeight: 400,
+        width: 38,
+    },
+    [`& .${inputAdornmentClasses.positionEnd} button`]: {
+        padding: 2,
+        color: Greys[500],
+    },
+});
+const CurrencyIconSx = { height: 20, width: 20, borderRadius: "4px", marginRight: 10 };
 
 interface EditableTextValueProps {
     value: string | null | undefined;
@@ -156,7 +153,6 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     allowUndefined,
     onChange,
 }) => {
-    const classes = useTransactionsTableStyles();
     const updateValue = useMemo(() => handleTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
     const clearValue = useCallback(() => onChange(), [onChange]);
 
@@ -178,9 +174,9 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
                     ) : undefined,
             }}
             inputProps={{
-                className: (allowUndefined ? value === undefined : placeholder === undefined)
-                    ? classes.mixedPlaceholder
-                    : classes.basePlaceholder,
+                sx: (allowUndefined ? value === undefined : placeholder === undefined)
+                    ? TransactionTableSxProps.MixedPlaceholder
+                    : TransactionTableSxProps.BasePlaceholder,
             }}
         />
     );
@@ -223,29 +219,27 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
 //     );
 // };
 
-const useTransactionsTableObjectDropdownStyles = makeStyles({
-    button: {
-        width: "100%",
-        height: 40,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        textTransform: "inherit",
-        color: "inherit",
-    },
-    label: {
-        flexGrow: 1,
-        textAlign: "left",
-        overflow: "visible",
-    },
+const ObjectDropdownButtonSx = {
+    width: "100%",
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    textTransform: "inherit",
+    color: "inherit",
+} as const;
+const ObjectDropdownLabelTypography = styled(Typography)({
+    flexGrow: 1,
+    textAlign: "left",
+    overflow: "visible",
 });
 
 interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string }> {
     options: T[];
     selected: ID | undefined;
     select: (id: ID | undefined) => void;
-    getIcon: (option: T, className: string) => React.ReactNode;
-    iconClass: string;
+    getIcon: (option: T, sx: SxProps) => React.ReactNode;
+    iconSx: SxProps;
     allowUndefined?: boolean;
     button?: ObjectSelectorCommonProps<T>["children"];
     getMenuContents?: (close: () => void) => React.ReactNode;
@@ -256,28 +250,18 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     selected,
     select,
     getIcon,
-    iconClass,
+    iconSx,
     allowUndefined,
     button,
     getMenuContents,
     MenuProps = { PaperProps: { style: { maxHeight: 170 } } },
 }: TransactionsTableObjectDropdownProps<T>) => {
-    const classes = useTransactionsTableObjectDropdownStyles();
-    const MixedClass = useTransactionsTableStyles().mixed;
     const option = options.find(({ id }) => id === selected);
-
-    // const clearSelection = useCallback<React.MouseEventHandler>(
-    //     (event) => {
-    //         suppressEvent(event);
-    //         select(undefined);
-    //     },
-    //     [select]
-    // );
 
     return (
         <ObjectSelector
             options={options}
-            render={(option) => getIcon(option, iconClass)}
+            render={(option) => getIcon(option, iconSx)}
             MenuProps={MenuProps}
             getMenuContents={getMenuContents}
             selected={selected}
@@ -285,29 +269,22 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
             placeholder={
                 allowUndefined ? (
                     <>
-                        <div className={iconClass} />
-                        <Typography variant="body1" noWrap={true} className={MixedClass}>
-                            (mixed)
-                        </Typography>
+                        <Box sx={iconSx} />
+                        <TransactionTableMixedTypography>(mixed)</TransactionTableMixedTypography>
                     </>
                 ) : undefined
             }
         >
             {button || (
-                <Button variant="outlined" className={classes.button} component="div" color="inherit">
-                    {option && getIcon(option, iconClass)}
-                    <Typography
+                <Button sx={ObjectDropdownButtonSx} variant="outlined" component="div" color="inherit">
+                    {option && getIcon(option, iconSx)}
+                    <ObjectDropdownLabelTypography
                         variant="body1"
-                        className={clsx(classes.label, option ? undefined : MixedClass)}
+                        sx={option ? undefined : TransactionTableSxProps.Mixed}
                         noWrap={true}
                     >
                         {option?.name || "(mixed)"}
-                    </Typography>
-                    {/* {allowUndefined ? (
-                        <IconButton disabled={selected === undefined} size="small" onClick={clearSelection}>
-                            <Clear fontSize="small" />
-                        </IconButton>
-                    ) : undefined} */}
+                    </ObjectDropdownLabelTypography>
                 </Button>
             )}
         </ObjectSelector>

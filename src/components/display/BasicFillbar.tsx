@@ -81,7 +81,7 @@ const OutlineBox = styled(Box)({
     width: "100%",
     height: "60%",
     border: "1px solid " + Greys[800],
-    borderRadius: 12,
+    borderRadius: "12psx",
     overflow: "hidden",
 });
 const MinimalOutlineSx = {

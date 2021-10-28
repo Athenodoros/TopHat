@@ -1,6 +1,7 @@
+import styled from "@emotion/styled";
 import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@mui/icons-material";
 import { Link, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { DateTime } from "luxon";
 import React from "react";
 import { shallowEqual } from "react-redux";
@@ -10,38 +11,20 @@ import { AppSlice } from "../../state/app";
 import { useUserData } from "../../state/data/hooks";
 import { useSelector } from "../../state/shared/hooks";
 import { parseDate } from "../../state/shared/values";
-import { AppColours, Greys } from "../../styles/colours";
+import { AppColours } from "../../styles/colours";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
-const useStyles = makeStyles({
-    text: {
-        // marginBottom: 30,
-    },
-    storedDataEntry: {
-        display: "flex",
-        padding: 10,
+const StoredDataEntryBox = styled(Box)({
+    display: "flex",
+    padding: 10,
 
-        "& > svg": {
-            marginTop: 3,
-        },
-    },
-    divider: {
-        background: Greys[300],
-        height: 1,
-        width: "60%",
-        margin: "20px auto 30px auto",
-    },
-    button: {
-        float: "right",
-        marginBottom: 10,
-    },
-    demo2: {
-        margin: "15px 0",
+    "& > svg": {
+        marginTop: 3,
     },
 });
+
 const fields = ["account", "institution", "category", "currency", "rule", "transaction", "statement"] as const;
 export const DialogSummaryContents: React.FC = () => {
-    const classes = useStyles();
     const start = parseDate(useUserData((user) => user.start)).toLocaleString(DateTime.DATE_FULL);
     const isDemo = useUserData((user) => user.isDemo);
 
@@ -69,12 +52,10 @@ export const DialogSummaryContents: React.FC = () => {
 
     return (
         <SettingsDialogPage title={isDemo ? "Demo Data Summary" : "Data Summary"}>
-            <Typography variant="body2" className={classes.text}>
-                {intro}
-            </Typography>
+            <Typography variant="body2">{intro}</Typography>
             <SettingsDialogDivider />
             <SettingsDialogContents>
-                <div className={classes.storedDataEntry}>
+                <StoredDataEntryBox>
                     <AccountBalanceWalletTwoTone style={{ color: AppColours.accounts.main }} />
                     <Table
                         points={[
@@ -83,8 +64,8 @@ export const DialogSummaryContents: React.FC = () => {
                             ["Statements", counts.statement - 1],
                         ]}
                     />
-                </div>
-                <div className={classes.storedDataEntry}>
+                </StoredDataEntryBox>
+                <StoredDataEntryBox>
                     <PaymentTwoTone style={{ color: AppColours.transactions.main }} />
                     <Table
                         points={[
@@ -93,11 +74,11 @@ export const DialogSummaryContents: React.FC = () => {
                             ["Currencies", counts.currency],
                         ]}
                     />
-                </div>
-                <div className={classes.storedDataEntry}>
+                </StoredDataEntryBox>
+                <StoredDataEntryBox>
                     <ShoppingBasketTwoTone style={{ color: AppColours.categories.main }} />
                     <Table points={[["Categories", counts.category - 2]]} />
-                </div>
+                </StoredDataEntryBox>
             </SettingsDialogContents>
         </SettingsDialogPage>
     );
@@ -105,36 +86,33 @@ export const DialogSummaryContents: React.FC = () => {
 
 const goToImportDataPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: "import" }));
 
-const useTableStyles = makeStyles({
-    container: {
-        marginLeft: 20,
-        marginRight: 10,
-        marginTop: 3,
-        flexGrow: 1,
+const TableContainerBox = styled(Box)({
+    marginLeft: 20,
+    marginRight: 10,
+    marginTop: 3,
+    flexGrow: 1,
 
-        display: "flex",
-        flexDirection: "column",
-    },
-    row: {
-        display: "flex",
-        justifyContent: "space-between",
-    },
+    display: "flex",
+    flexDirection: "column",
 });
-export const Table: React.FC<{ points: [string, number][] }> = ({ points }) => {
-    const classes = useTableStyles();
+const TableRowBox = styled(Box)({
+    display: "flex",
+    justifyContent: "space-between",
+});
 
+export const Table: React.FC<{ points: [string, number][] }> = ({ points }) => {
     return (
-        <div className={classes.container}>
+        <TableContainerBox>
             {points.map(([label, value], idx) => (
-                <div key={idx} className={classes.row}>
+                <TableRowBox key={idx}>
                     <Typography variant={idx ? "body2" : "body1"} sx={idx ? undefined : { fontWeight: 500 }}>
                         {label}
                     </Typography>
                     <Typography variant={idx ? "body2" : "body1"} sx={idx ? undefined : { fontWeight: 500 }}>
                         {value}
                     </Typography>
-                </div>
+                </TableRowBox>
             ))}
-        </div>
+        </TableContainerBox>
     );
 };

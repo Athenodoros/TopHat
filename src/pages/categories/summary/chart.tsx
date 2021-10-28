@@ -116,7 +116,7 @@ export const CategoriesBarChart: React.FC = () => {
 const Tooltip = (
     <VictoryTooltip
         flyoutStyle={{
-            borderRadius: 4,
+            borderRadius: "4px",
             strokeWidth: 0,
             fill: "rgba(97, 97, 97, 0.92)",
         }}

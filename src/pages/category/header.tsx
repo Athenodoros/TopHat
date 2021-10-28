@@ -1,6 +1,7 @@
+import styled from "@emotion/styled";
 import { Edit, ShoppingBasketTwoTone } from "@mui/icons-material";
 import { Breadcrumbs, Button, IconButton, Link, Menu, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { clone, reverse } from "lodash";
 import { max, min, unzip, values } from "lodash-es";
 import { DateTime } from "luxon";
@@ -15,80 +16,7 @@ import { useCategoryColour, useCategoryIDs, useCategoryMap } from "../../state/d
 import { ID, parseDate } from "../../state/shared/values";
 import { BLACK, Greys } from "../../styles/colours";
 
-const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        position: "relative",
-        alignItems: "center",
-        margin: -20,
-        overflow: "hidden",
-    },
-    colour: {
-        position: "absolute",
-        opacity: 0.2,
-        transform: "rotate(-60deg)",
-        top: -70,
-        left: -190,
-        height: 280,
-        width: 310,
-        borderRadius: 40,
-    },
-    icon: {
-        width: 56,
-        height: 56,
-        margin: "25px 80px 25px 40px",
-        borderRadius: 5,
-        padding: 10,
-    },
-    values: {
-        height: 56,
-        flexGrow: 1,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-    },
-    breadcrumbs: {
-        "& li": {
-            marginTop: "auto",
-        },
-    },
-    name: {
-        lineHeight: 1,
-        color: BLACK,
-        overflow: "visible",
-    },
-    dates: {
-        color: Greys[600],
-        lineHeight: 1,
-    },
-    edit: {
-        marginRight: 40,
-    },
-    children: {
-        padding: "0 5px",
-        marginBottom: -2,
-    },
-    child: {
-        height: 16,
-        width: 16,
-        marginRight: 16,
-    },
-    childName: {
-        width: 150,
-    },
-    menu: {
-        minWidth: 250,
-
-        "& li": {
-            paddingTop: 3,
-            paddingBottom: 3,
-            minHeight: 0,
-        },
-    },
-});
-
 export const CategoryPageHeader: React.FC = () => {
-    const classes = useStyles();
     const category = useCategoryPageCategory();
     const colour = useCategoryColour(category);
     const categories = useCategoryMap();
@@ -119,36 +47,23 @@ export const CategoryPageHeader: React.FC = () => {
 
     return (
         <Section>
-            <div className={classes.container}>
-                <div className={classes.colour} style={{ background: colour }} />
-                <ShoppingBasketTwoTone className={classes.icon} style={{ background: colour }} htmlColor="white" />
-                <div className={classes.values}>
-                    <Breadcrumbs className={classes.breadcrumbs}>
+            <ContainerBox>
+                <ColourBox sx={{ background: colour }} />
+                <ShoppingBasketIcon sx={{ background: colour }} htmlColor="white" />
+                <ValuesBox>
+                    <CategoryBreadcrumbs>
                         {reverse(clone(category.hierarchy)).map((id) => (
                             <Link underline="hover" href="#" onClick={redirect(id)} key={id}>
                                 {categories[id]!.name}
                             </Link>
                         ))}
-                        <Typography variant="h4" noWrap={true} className={classes.name}>
+                        <NameTypography variant="h4" noWrap={true}>
                             {category.name}
-                        </Typography>
+                        </NameTypography>
                         {children.length ? (
                             <span>
-                                <Button className={classes.children} {...popover.buttonProps}>
-                                    {children.length} Categories
-                                </Button>
-                                <Menu
-                                    {...popover.popoverProps}
-                                    PaperProps={{ className: classes.menu }}
-                                    anchorOrigin={{
-                                        vertical: "bottom",
-                                        horizontal: "left",
-                                    }}
-                                    transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "left",
-                                    }}
-                                >
+                                <ChildrenButton {...popover.buttonProps}>{children.length} Categories</ChildrenButton>
+                                <Menu {...popover.popoverProps} {...MenuPaperProps}>
                                     <SingleCategoryMenu
                                         setSelected={(category) => {
                                             close();
@@ -159,20 +74,86 @@ export const CategoryPageHeader: React.FC = () => {
                                 </Menu>
                             </span>
                         ) : undefined}
-                    </Breadcrumbs>
-                    <Typography variant="subtitle1" noWrap={true} className={classes.dates}>
+                    </CategoryBreadcrumbs>
+                    <DatesTypography variant="subtitle1" noWrap={true}>
                         {start && end
                             ? `${parseDate(start).toLocaleString(DateTime.DATE_FULL)} - ${parseDate(end).toLocaleString(
                                   DateTime.DATE_FULL
                               )}`
                             : "No Current Transactions"}
-                    </Typography>
-                </div>
+                    </DatesTypography>
+                </ValuesBox>
 
-                <IconButton onClick={openEditView} className={classes.edit} size="large">
+                <EditIconButton onClick={openEditView} size="large">
                     <Edit />
-                </IconButton>
-            </div>
+                </EditIconButton>
+            </ContainerBox>
         </Section>
     );
 };
+
+const ContainerBox = styled(Box)({
+    display: "flex",
+    position: "relative",
+    alignItems: "center",
+    margin: -20,
+    overflow: "hidden",
+});
+const ShoppingBasketIcon = styled(ShoppingBasketTwoTone)({
+    width: 56,
+    height: 56,
+    margin: "25px 80px 25px 40px",
+    borderRadius: "5px",
+    padding: 10,
+});
+const ColourBox = styled(Box)({
+    position: "absolute",
+    opacity: 0.2,
+    transform: "rotate(-60deg)",
+    top: -70,
+    left: -190,
+    height: 280,
+    width: 310,
+    borderRadius: "40px",
+});
+const ValuesBox = styled(Box)({
+    height: 56,
+    flexGrow: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+});
+const CategoryBreadcrumbs = styled(Breadcrumbs)({
+    "& li": {
+        marginTop: "auto",
+    },
+});
+const NameTypography = styled(Typography)({
+    lineHeight: 1,
+    color: BLACK,
+    overflow: "visible",
+});
+const ChildrenButton = styled(Button)({ padding: "0 5px", marginBottom: -2 });
+const MenuPaperProps = {
+    PaperProps: {
+        sx: {
+            minWidth: 250,
+
+            "& li": {
+                paddingTop: 3,
+                paddingBottom: 3,
+                minHeight: 0,
+            },
+        },
+    },
+    anchorOrigin: {
+        vertical: "bottom",
+        horizontal: "left",
+    },
+    transformOrigin: {
+        vertical: "top",
+        horizontal: "left",
+    },
+} as const;
+const DatesTypography = styled(Typography)({ color: Greys[600], lineHeight: 1 });
+const EditIconButton = styled(IconButton)({ marginRight: 40 });

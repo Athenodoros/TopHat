@@ -1,6 +1,6 @@
+import styled from "@emotion/styled";
 import { Description, Edit, Help } from "@mui/icons-material";
 import { IconButton, Tooltip, Typography } from "@mui/material";
-import clsx from "clsx";
 import { last } from "lodash";
 import React, { useCallback } from "react";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
@@ -13,8 +13,23 @@ import {
 } from "../../../state/data/hooks";
 import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
 import { parseDate } from "../../../state/shared/values";
-import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
-import { formatTransactionsTableNumber, useTransactionsTableStyles } from "./styles";
+import { Greys } from "../../../styles/colours";
+import { getCategoryIconSx, getInstitutionIconSx } from "../../display/ObjectDisplay";
+import {
+    formatTransactionsTableNumber,
+    TransactionsTableSummaryTypography,
+    TransactionTableAccountContainer,
+    TransactionTableActionsContainer,
+    TransactionTableBalanceContainer,
+    TransactionTableCategoryContainer,
+    TransactionTableCompoundContainer,
+    TransactionTableDateContainer,
+    TransactionTableMixedTypography,
+    TransactionTableStatementContainer,
+    TransactionTableSxProps,
+    TransactionTableTextContainer,
+    TransactionTableValueContainer,
+} from "./styles";
 import { EditTransactionState, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
 
 export interface TransactionsTableViewEntryProps {
@@ -27,7 +42,6 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
     updateState,
     fixed,
 }) => {
-    const classes = useTransactionsTableStyles();
     const currency = useCurrencyByID(tx.currency);
     const category = useCategoryByID(tx.category);
     const account = useAccountByID(tx.account);
@@ -40,53 +54,43 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
 
     const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
         value !== undefined && value !== null ? (
-            <div className={classes.compound}>
+            <TransactionTableCompoundContainer>
                 {currency && (
-                    <Typography
+                    <SubtextTypography
                         variant="caption"
-                        className={clsx(classes.subtext, missing ? classes.missing : undefined)}
+                        sx={missing ? TransactionTableSxProps.MissingValue : undefined}
                     >
                         {currency.symbol}
-                    </Typography>
+                    </SubtextTypography>
                 )}
-                <Typography variant="body1" className={missing ? classes.missing : undefined}>
+                <Typography variant="body1" sx={missing ? TransactionTableSxProps.MissingValue : undefined}>
                     {formatTransactionsTableNumber(value)}
                 </Typography>
-            </div>
+            </TransactionTableCompoundContainer>
         ) : value === undefined ? (
-            <Typography variant="body1" noWrap={true} className={classes.mixed}>
-                (mixed)
-            </Typography>
+            MissingText
         ) : undefined;
-
-    const MissingText = (
-        <Typography variant="body1" noWrap={true} className={classes.mixed}>
-            (mixed)
-        </Typography>
-    );
 
     return (
         <>
-            <div className={classes.date}>
+            <TransactionTableDateContainer>
                 {tx.date ? (
-                    <div className={classes.compound}>
+                    <TransactionTableCompoundContainer>
                         <Typography variant="body1">{parseDate(tx.date).toFormat("MMM d")}</Typography>
-                        <Typography variant="caption" className={classes.subtext}>
-                            {parseDate(tx.date).year}
-                        </Typography>
-                    </div>
+                        <SubtextTypography variant="caption">{parseDate(tx.date).year}</SubtextTypography>
+                    </TransactionTableCompoundContainer>
                 ) : (
                     MissingText
                 )}
-            </div>
-            <div className={classes.text}>
+            </TransactionTableDateContainer>
+            <TransactionTableTextContainer>
                 {(tx.summary || tx.reference) !== undefined ? (
                     <>
-                        <Typography variant="body1" noWrap={true} className={classes.summary}>
+                        <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
                             {tx.summary || tx.reference}
-                        </Typography>
+                        </TransactionsTableSummaryTypography>
                         {tx.description ? (
-                            <Typography variant="caption" className={classes.description} component="div">
+                            <Typography variant="caption" sx={DescriptionTypographySx} component="div">
                                 {tx.description}
                             </Typography>
                         ) : undefined}
@@ -94,61 +98,92 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 ) : (
                     MissingText
                 )}
-            </div>
-            <div className={classes.value}>{getCurrencyDisplay(tx.value)}</div>
+            </TransactionTableTextContainer>
+            <TransactionTableValueContainer>{getCurrencyDisplay(tx.value)}</TransactionTableValueContainer>
             {fixed?.type !== "category" || fixed.nested === true ? (
-                <div className={classes.category}>
+                <TransactionTableCategoryContainer>
                     {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
-                        <div
-                            className={clsx(classes.compound, category.id === TRANSFER_CATEGORY_ID && classes.transfer)}
+                        <TransactionTableCompoundContainer
+                            sx={category.id === TRANSFER_CATEGORY_ID ? TransferCategorySx : undefined}
                         >
-                            {getCategoryIcon(category, classes.categoryIcon)}
+                            {getCategoryIconSx(category, CategoryIconSx)}
                             <Typography noWrap={true}>
                                 {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
                             </Typography>
-                        </div>
+                        </TransactionTableCompoundContainer>
                     ) : category === undefined ? (
                         MissingText
                     ) : undefined}
-                </div>
+                </TransactionTableCategoryContainer>
             ) : undefined}
-            <div className={classes.balance}>
+            <TransactionTableBalanceContainer>
                 {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
-            </div>
-            <div className={classes.statement}>
+            </TransactionTableBalanceContainer>
+            <TransactionTableStatementContainer>
                 {statement ? (
                     <Tooltip title={statement.name}>
-                        <Description
+                        <StatementDescriptionIcon
                             fontSize="small"
-                            style={{
-                                visibility: statement.id !== PLACEHOLDER_STATEMENT_ID ? undefined : "hidden",
-                            }}
-                            className={classes.disabledIcon}
+                            sx={statement.id === PLACEHOLDER_STATEMENT_ID ? { visibility: "hidden" } : undefined}
                         />
                     </Tooltip>
                 ) : (
                     <Tooltip title="(mixed)">
-                        <Help fontSize="small" className={classes.disabledIcon} />
+                        <StatementHelpIcon fontSize="small" />
                     </Tooltip>
                 )}
-            </div>
+            </TransactionTableStatementContainer>
             {fixed?.type !== "account" ? (
-                <div className={classes.account}>
+                <TransactionTableAccountContainer>
                     {account && institution ? (
                         <>
-                            {getInstitutionIcon(institution, classes.accountIcon)}
+                            {getInstitutionIconSx(institution, InstitutionIconSx)}
                             {account.name}
                         </>
                     ) : (
                         MissingText
                     )}
-                </div>
+                </TransactionTableAccountContainer>
             ) : undefined}
-            <div className={classes.actions}>
+            <TransactionTableActionsContainer>
                 <IconButton size="small" onClick={handleStartEdit}>
                     <Edit fontSize="small" />
                 </IconButton>
-            </div>
+            </TransactionTableActionsContainer>
         </>
     );
+};
+
+const SubtextTypography = styled(Typography)({
+    color: Greys[500],
+    alignSelf: "flex-end",
+    margin: "0 4px 9px 4px",
+    lineHeight: 1,
+});
+const DescriptionTypographySx = { marginTop: 5, lineHeight: 1.4, color: Greys[700] };
+const MissingText = (
+    <TransactionTableMixedTypography variant="body1" noWrap={true}>
+        (mixed)
+    </TransactionTableMixedTypography>
+);
+const CategoryIconSx = {
+    height: 16,
+    width: 16,
+    flexShrink: 0,
+    borderRadius: "50%",
+    marginRight: 6,
+    border: "1px solid",
+};
+const TransferCategorySx = {
+    fontStyle: "italic",
+    color: Greys[600],
+    overflow: "visible",
+};
+const StatementDescriptionIcon = styled(Description)({ opacity: 0.3 });
+const StatementHelpIcon = styled(Help)({ opacity: 0.3 });
+const InstitutionIconSx = {
+    height: 18,
+    width: 18,
+    borderRadius: "5px",
+    marginRight: 6,
 };

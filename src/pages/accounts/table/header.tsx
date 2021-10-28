@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import {
     AccountBalance,
     AccountBalanceWallet,
@@ -19,14 +20,13 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
+import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import {
-    getAccountCategoryIcon,
-    getCurrencyIcon,
-    getInstitutionIcon,
-    useGetAccountIcon,
+    getAccountCategoryIconSx,
+    getCurrencyIconSx,
+    getInstitutionIconSx,
+    useGetAccountIconSx,
 } from "../../../components/display/ObjectDisplay";
 import { FilterIcon, FilterMenuNestedOption, FilterMenuOption, TableHeaderContainer } from "../../../components/table";
 import { createNewAccount } from "../../../dialog/objects/accounts";
@@ -40,34 +40,14 @@ import { ChartSign } from "../../../state/app/pageTypes";
 import { useAllAccounts, useAllCurrencies, useAllInstitutions } from "../../../state/data/hooks";
 import { AccountTypes } from "../../../state/data/types";
 import { ID } from "../../../state/shared/values";
-import { ACCOUNT_TABLE_LEFT_PADDING, useAccountsTableStyles } from "./styles";
-
-const useStyles = makeStyles({
-    institutionInner: {
-        display: "flex",
-        alignItems: "center",
-    },
-    accounts: {
-        flexDirection: "row",
-    },
-    accountInner: {
-        display: "flex",
-        alignItems: "center",
-        paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
-        flexGrow: 1,
-    },
-    actions: {
-        paddingLeft: 10,
-    },
-    actionsItem: {
-        width: 250,
-        height: 48,
-    },
-});
+import {
+    AccountsTableAccountsBox,
+    AccountsTableIconSx,
+    AccountsTableInstitutionBox,
+    ACCOUNT_TABLE_LEFT_PADDING,
+} from "./styles";
 
 export const AccountsTableHeader: React.FC = () => {
-    const accountsTableClasses = useAccountsTableStyles();
-    const classes = useStyles();
     const popover1 = usePopoverProps();
     const popover2 = usePopoverProps();
 
@@ -76,7 +56,7 @@ export const AccountsTableHeader: React.FC = () => {
     const accounts = useAllAccounts();
     const currencies = useAllCurrencies();
 
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
 
     const AddNewPopover = usePopoverProps();
 
@@ -91,9 +71,9 @@ export const AccountsTableHeader: React.FC = () => {
 
     return (
         <TableHeaderContainer>
-            <div className={accountsTableClasses.icon} />
-            <div className={accountsTableClasses.institution}>
-                <div className={classes.institutionInner}>
+            <IconBox />
+            <AccountsTableInstitutionBox>
+                <InstitutionInnerBox>
                     <Typography variant="h6">Institution</Typography>
                     <FilterIcon badgeContent={filters.institution.length} ButtonProps={popover1.buttonProps} />
                     <Menu {...popover1.popoverProps} PaperProps={{ style: { maxHeight: 300, width: 300 } }}>
@@ -103,14 +83,14 @@ export const AccountsTableHeader: React.FC = () => {
                                 option={institution}
                                 select={onSelectIDs["institution"]}
                                 selected={filters.institution}
-                                getOptionIcon={getInstitutionIcon}
+                                getOptionIcon={getInstitutionIconSx}
                             />
                         ))}
                     </Menu>
-                </div>
-            </div>
-            <div className={clsx(accountsTableClasses.accounts, classes.accounts)}>
-                <div className={classes.accountInner}>
+                </InstitutionInnerBox>
+            </AccountsTableInstitutionBox>
+            <AccountsBox>
+                <AccountInnerBox>
                     <Typography variant="h6">Account</Typography>
                     <FilterIcon
                         badgeContent={
@@ -141,7 +121,7 @@ export const AccountsTableHeader: React.FC = () => {
                                     option={option}
                                     select={onSelectIDs["type"]}
                                     selected={filters.type}
-                                    getOptionIcon={getAccountCategoryIcon}
+                                    getOptionIcon={getAccountCategoryIconSx}
                                 />
                             ))}
                         </FilterMenuNestedOption>
@@ -157,7 +137,7 @@ export const AccountsTableHeader: React.FC = () => {
                                     option={option}
                                     select={onSelectIDs["currency"]}
                                     selected={filters.currency}
-                                    getOptionIcon={getCurrencyIcon}
+                                    getOptionIcon={getCurrencyIconSx}
                                 />
                             ))}
                         </FilterMenuNestedOption>
@@ -203,8 +183,8 @@ export const AccountsTableHeader: React.FC = () => {
                             </ToggleButtonGroup>
                         </ListItem>
                     </Menu>
-                </div>
-                <div className={classes.actions}>
+                </AccountInnerBox>
+                <ActionsBox>
                     <IconButton size="small" {...AddNewPopover.buttonProps}>
                         <AddCircleOutline />
                     </IconButton>
@@ -213,21 +193,21 @@ export const AccountsTableHeader: React.FC = () => {
                         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                         transformOrigin={{ vertical: "top", horizontal: "right" }}
                     >
-                        <MenuItem onClick={startAccountCreationCallback} className={classes.actionsItem}>
+                        <ActionMenuItem onClick={startAccountCreationCallback}>
                             <ListItemIcon>
                                 <AccountBalanceWallet />
                             </ListItemIcon>
                             <ListItemText>New Account</ListItemText>
-                        </MenuItem>
-                        <MenuItem onClick={startInstitutionCreationCallback} className={classes.actionsItem}>
+                        </ActionMenuItem>
+                        <ActionMenuItem onClick={startInstitutionCreationCallback}>
                             <ListItemIcon>
                                 <AccountBalance />
                             </ListItemIcon>
                             <ListItemText>New Institution</ListItemText>
-                        </MenuItem>
+                        </ActionMenuItem>
                     </Menu>
-                </div>
-            </div>
+                </ActionsBox>
+            </AccountsBox>
         </TableHeaderContainer>
     );
 };
@@ -245,3 +225,15 @@ const startAccountCreation = () =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "account", account: createNewAccount() }));
 const startInstitutionCreation = () =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "institution", institution: createNewInstitution() }));
+
+const InstitutionInnerBox = styled(Box)({ display: "flex", alignItems: "center" });
+const IconBox = styled(Box)(AccountsTableIconSx);
+const AccountsBox = styled(AccountsTableAccountsBox)({ flexDirection: "row" });
+const AccountInnerBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
+    flexGrow: 1,
+});
+const ActionsBox = styled(Box)({ paddingLeft: 10 });
+const ActionMenuItem = styled(MenuItem)({ width: 250, height: 48 });

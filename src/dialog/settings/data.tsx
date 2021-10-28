@@ -1,5 +1,5 @@
+import styled from "@emotion/styled";
 import { Button, TextField, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import JSZip from "jszip";
 import { toPairs } from "lodash";
 import Papa from "papaparse";
@@ -12,20 +12,10 @@ import { DataKeys } from "../../state/data/types";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
-const useStyles = makeStyles({
-    input: {
-        margin: "10px 50px 0 50px",
-    },
-    button: {
-        textAlign: "center",
-        width: 100,
-    },
-});
+const ActionSx = { textAlign: "center", width: 100 } as const;
+const InputTextField = styled(TextField)({ margin: "10px 50px 0 50px" });
 
 export const DialogExportContents: React.FC = () => {
-    const classes = useStyles();
-
-    // TODO: This
     return (
         <SettingsDialogPage title="Export Data to Files">
             <Typography variant="body2">
@@ -36,7 +26,7 @@ export const DialogExportContents: React.FC = () => {
             <SettingsDialogContents>
                 <EditValueContainer
                     label={
-                        <Button variant="outlined" className={classes.button} onClick={createCSVDownload}>
+                        <Button sx={ActionSx} variant="outlined" onClick={createCSVDownload}>
                             Export CSV
                         </Button>
                     }
@@ -47,7 +37,7 @@ export const DialogExportContents: React.FC = () => {
                 </EditValueContainer>
                 <EditValueContainer
                     label={
-                        <Button variant="outlined" className={classes.button} onClick={createJSONDownload}>
+                        <Button sx={ActionSx} variant="outlined" onClick={createJSONDownload}>
                             Export JSON
                         </Button>
                     }
@@ -77,13 +67,11 @@ const createCSVDownload = () => {
 };
 
 export const DialogImportContents: React.FC = () => {
-    const classes = useStyles();
-
     const [text, setText] = useState("");
     const ButtonProps = {
         variant: "outlined",
         color: "error",
-        className: classes.button,
+        sx: ActionSx,
         disabled: text.toUpperCase() !== "PERMANENTLY DELETE ALL DATA",
     } as const;
 
@@ -93,11 +81,10 @@ export const DialogImportContents: React.FC = () => {
                 These actions will <strong>permanently</strong> remove all data stored in TopHat. To enable them, type
                 "PERMANENTLY DELETE ALL DATA" in the box:
             </Typography>
-            <TextField
+            <InputTextField
                 color="error"
                 size="small"
                 placeholder="Warning: Dangerous!"
-                className={classes.input}
                 onChange={handleTextFieldChange(setText)}
             />
             <SettingsDialogDivider />

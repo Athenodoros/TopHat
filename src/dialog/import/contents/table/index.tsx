@@ -119,7 +119,7 @@ const CheckboxBox = styled(Box)({
     display: "flex",
     justifyContent: "center",
 
-    "& > .MuiButtonBase-root": {
+    [`& > .${buttonBaseClasses.root}`]: {
         padding: 2,
         transform: "scale(0.8)",
         transformOrigin: "center center",

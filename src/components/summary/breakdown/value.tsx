@@ -7,7 +7,6 @@ import numeral from "numeral";
 import React, { useCallback } from "react";
 import { suppressEvent } from "../../../shared/events";
 import { Greys, Intents } from "../../../styles/colours";
-import { DEFAULT_BORDER_RADIUS } from "../../../styles/theme";
 import { fadeSolidColour } from "../../display/ObjectDisplay";
 
 export const Value: React.FC<{
@@ -140,7 +139,7 @@ const ContainerSx = {
 };
 const InteractiveContainerSx = {
     cursor: "pointer",
-    borderRadius: 8 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "8px",
     "&:hover": {
         backgroundColor: Greys[200],
     },

@@ -9,7 +9,6 @@ import { useDialogState } from "../../state/app/hooks";
 import { useAllAccounts } from "../../state/data/hooks";
 import { changeStatementDialogAccount } from "../../state/logic/statement";
 import { Greys } from "../../styles/colours";
-import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
 
 export const DialogImportAccountSelector: React.FC = () => {
     const account = useDialogState("import", (state) => state.account);
@@ -34,9 +33,13 @@ export const DialogImportAccountSelector: React.FC = () => {
             <AccountContainerBox>
                 <AccountButton variant="outlined" color={account === undefined ? "error" : "inherit"}>
                     {getAccountIcon(account, IconSx)}
-                    <Typography variant="body1" noWrap={true} sx={account === undefined ? PlaceholderSx : undefined}>
+                    <AccountButtonTypography
+                        variant="body1"
+                        noWrap={true}
+                        sx={account === undefined ? PlaceholderSx : undefined}
+                    >
                         {account?.name || "Enter Account"}
-                    </Typography>
+                    </AccountButtonTypography>
                     <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
                 </AccountButton>
             </AccountContainerBox>
@@ -48,7 +51,7 @@ const AccountContainerBox = styled(Box)({ margin: "12px 15px" });
 const IconSx = {
     height: 20,
     width: 20,
-    borderRadius: 4 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "4px",
     marginRight: 15,
 };
 const AccountButton = styled(Button)({
@@ -56,13 +59,8 @@ const AccountButton = styled(Button)({
     width: "100%",
     textTransform: "inherit",
     color: "inherit",
-
-    "& .MuiTypography-body1": {
-        // color: BLACK,
-        flexGrow: 1,
-        textAlign: "left",
-    },
 });
+const AccountButtonTypography = styled(Typography)({ flexGrow: 1, textAlign: "left" });
 const PlaceholderSx = {
     fontStyle: "italic",
     color: Greys[600],

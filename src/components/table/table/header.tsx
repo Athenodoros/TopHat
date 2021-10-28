@@ -1,7 +1,6 @@
+import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
 import { last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
@@ -14,64 +13,26 @@ import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "..
 import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
 import { getTodayString, ID } from "../../../state/shared/values";
-import { Greys } from "../../../styles/colours";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
-import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { getStatementIconSx, useGetAccountIconSx } from "../../display/ObjectDisplay";
 import { SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
 import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
-import { useTransactionsTableStyles } from "./styles";
+import {
+    TransactionsTableSummaryTypography,
+    TransactionTableAccountContainer,
+    TransactionTableActionsContainer,
+    TransactionTableBalanceContainer,
+    TransactionTableCategoryContainer,
+    TransactionTableCompoundContainer,
+    TransactionTableDateContainer,
+    TransactionTableStatementContainer,
+    TransactionTableSxProps,
+    TransactionTableTextContainer,
+    TransactionTableValueContainer,
+} from "./styles";
 import { EditTransactionState, TransactionsTableFilters, TransactionsTableFixedDataState } from "./types";
-
-const useHeaderStyles = makeStyles({
-    text: {
-        marginTop: 9,
-    },
-    description: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        padding: 20,
-        width: 350,
-
-        "& > div:first-of-type": {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-
-            "& > div:last-child": {
-                width: 200,
-            },
-        },
-    },
-    range: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        padding: "15px 25px",
-        width: 300,
-
-        "& > div:first-of-type": {
-            display: "flex",
-            justifyContent: "space-between",
-        },
-    },
-    missing: {
-        fontStyle: "italic",
-        color: Greys[500],
-    },
-    icon: {
-        // This is to ensure the icons line up with the transaction table
-        borderColor: "transparent",
-
-        "& svg:not(.MuiSvgIcon-colorPrimary):not(.MuiSvgIcon-colorError)": {
-            color: Greys[500],
-        },
-    },
-});
-
-const SubItemSx = { alignSelf: "flex-end" };
 
 export interface TransactionsTableHeaderProps {
     filters: TransactionsTableFilters;
@@ -87,11 +48,8 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
     fixed,
     canCreateNew,
 }) => {
-    const classes = useTransactionsTableStyles();
-    const headerClasses = useHeaderStyles();
-
     const accounts = useAllAccounts();
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
     const statements = useAllStatements();
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
@@ -111,20 +69,26 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     return (
         <>
-            <div className={classes.date}>
-                <div className={classes.compound}>
+            <TransactionTableDateContainer>
+                <TransactionTableCompoundContainer>
                     DATE
                     <FilterIcon
                         badgeContent={Number(!!filters.fromDate || !!filters.toDate)}
                         ButtonProps={DateRangePopoverState.buttonProps}
                         onRightClick={updaters.removeDate}
                     />
-                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
+                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={RangePopoverPaperProps}>
                         <div>
-                            <Typography variant="body1" className={filters.fromDate || headerClasses.missing}>
+                            <Typography
+                                variant="body1"
+                                sx={filters.fromDate ? undefined : TransactionTableSxProps.MissingValue}
+                            >
                                 {filters.fromDate || startDate || "Today"}
                             </Typography>
-                            <Typography variant="body1" className={filters.toDate || headerClasses.missing}>
+                            <Typography
+                                variant="body1"
+                                sx={filters.toDate ? undefined : TransactionTableSxProps.MissingValue}
+                            >
                                 {filters.toDate || "Today"}
                             </Typography>
                         </div>
@@ -135,13 +99,13 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             setRange={updaters.dates}
                         />
                     </Popover>
-                </div>
-            </div>
-            <div className={clsx(classes.text, headerClasses.text)}>
-                <div className={classes.compound}>
-                    <Typography variant="body1" noWrap={true} className={classes.summary}>
+                </TransactionTableCompoundContainer>
+            </TransactionTableDateContainer>
+            <TextBox>
+                <TransactionTableCompoundContainer>
+                    <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
                         DESCRIPTION
-                    </Typography>
+                    </TransactionsTableSummaryTypography>
                     <FilterIcon
                         badgeContent={filters.search.length}
                         ButtonProps={{
@@ -150,10 +114,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         }}
                         onRightClick={updaters.removeSearch}
                     />
-                    <Popover
-                        {...DescriptionPopoverState.popoverProps}
-                        PaperProps={{ className: headerClasses.description }}
-                    >
+                    <Popover {...DescriptionPopoverState.popoverProps} PaperProps={DescriptionPopoverPaperProps}>
                         <div>
                             <Typography variant="body1">Search</Typography>
                             <TextField
@@ -170,10 +131,10 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             sx={SubItemSx}
                         />
                     </Popover>
-                </div>
-            </div>
-            <div className={classes.value}>
-                <div className={classes.compound}>
+                </TransactionTableCompoundContainer>
+            </TextBox>
+            <TransactionTableValueContainer>
+                <TransactionTableCompoundContainer>
                     <FilterIcon
                         ButtonProps={ValuePopoverState.buttonProps}
                         badgeContent={Number(filters.valueFrom !== undefined || filters.valueTo !== undefined)}
@@ -181,17 +142,17 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         onRightClick={updaters.removeValue}
                     />
                     VALUE
-                    <Popover {...ValuePopoverState.popoverProps} PaperProps={{ className: headerClasses.range }}>
+                    <Popover {...ValuePopoverState.popoverProps} PaperProps={RangePopoverPaperProps}>
                         <div>
                             <Typography
                                 variant="body1"
-                                className={filters.valueFrom === undefined ? headerClasses.missing : undefined}
+                                sx={filters.valueFrom === undefined ? TransactionTableSxProps.MissingValue : undefined}
                             >
                                 {filters.valueFrom === undefined ? "All" : formatCurrencyValue(filters.valueFrom)}
                             </Typography>
                             <Typography
                                 variant="body1"
-                                className={filters.valueTo === undefined ? headerClasses.missing : undefined}
+                                sx={filters.valueTo === undefined ? TransactionTableSxProps.MissingValue : undefined}
                             >
                                 {filters.valueTo === undefined ? "All" : formatCurrencyValue(filters.valueTo)}
                             </Typography>
@@ -210,11 +171,11 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             sx={SubItemSx}
                         />
                     </Popover>
-                </div>
-            </div>
+                </TransactionTableCompoundContainer>
+            </TransactionTableValueContainer>
             {fixed?.type !== "category" || fixed.nested === true ? (
-                <div className={classes.category}>
-                    <div className={classes.compound}>
+                <TransactionTableCategoryContainer>
+                    <TransactionTableCompoundContainer>
                         CATEGORY
                         <FilterIcon
                             badgeContent={filters.category.length}
@@ -231,11 +192,11 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                                 anchor={fixed?.type === "category" ? { id: fixed.category } : undefined}
                             />
                         </Menu>
-                    </div>
-                </div>
+                    </TransactionTableCompoundContainer>
+                </TransactionTableCategoryContainer>
             ) : undefined}
-            <div className={classes.balance}>BALANCE</div>
-            <div className={classes.statement}>
+            <TransactionTableBalanceContainer>BALANCE</TransactionTableBalanceContainer>
+            <TransactionTableStatementContainer>
                 <FilterIcon
                     badgeContent={filters.statement.length}
                     ButtonProps={StatementPopoverState.buttonProps}
@@ -250,14 +211,14 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             option={option}
                             select={updaters.selectIDs.statement}
                             selected={filters.statement}
-                            getOptionIcon={getStatementIcon}
+                            getOptionIcon={getStatementIconSx}
                             getSecondary={(option) => option.date}
                         />
                     ))}
                 </Menu>
-            </div>
+            </TransactionTableStatementContainer>
             {fixed?.type !== "account" ? (
-                <div className={classes.account}>
+                <TransactionTableAccountContainer>
                     ACCOUNT
                     <FilterIcon
                         badgeContent={filters.account.length}
@@ -275,13 +236,13 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             />
                         ))}
                     </Menu>
-                </div>
+                </TransactionTableAccountContainer>
             ) : undefined}
-            <div className={classes.actions}>
+            <TransactionTableActionsContainer>
                 <IconButton size="small" onClick={createNewTransaction} disabled={!canCreateNew}>
                     <AddCircleOutline />
                 </IconButton>
-            </div>
+            </TransactionTableActionsContainer>
         </>
     );
 };
@@ -332,27 +293,70 @@ const useTransactionValueRange = () => {
     }, [transactions, localiseCurrencyValue]);
 };
 
+export const getNewTransaction = (): Transaction => {
+    const { data } = TopHatStore.getState();
+
+    return {
+        id: getNextID(data.transaction.ids),
+        date: getTodayString(),
+        reference: "Manual Transaction",
+        summary: null,
+        description: null,
+        value: null,
+        recordedBalance: null,
+        balance: null,
+        account: data.account.ids[0] as number,
+        category: PLACEHOLDER_CATEGORY_ID,
+        currency: data.user.entities[StubUserID]!.currency,
+        statement: PLACEHOLDER_STATEMENT_ID,
+    };
+};
+
 const useCreateNewTransaction = (
     setEdit: (edit: EditTransactionState) => void,
     fixed?: TransactionsTableFixedDataState
 ) =>
     useCallback(() => {
-        const { data } = TopHatStore.getState();
+        const transaction = getNewTransaction();
 
-        const transaction: Transaction = {
-            id: getNextID(data.transaction.ids),
-            date: getTodayString(),
-            reference: "Manual Transaction",
-            summary: null,
-            description: null,
-            value: null,
-            recordedBalance: null,
-            balance: null,
-            account: fixed?.type === "account" ? fixed.account : (data.account.ids[0] as number),
-            category: fixed?.type === "category" ? fixed.category : PLACEHOLDER_CATEGORY_ID,
-            currency: data.user.entities[StubUserID]!.currency,
-            statement: PLACEHOLDER_STATEMENT_ID,
-        };
+        if (fixed?.type === "account") transaction.account = fixed.account;
+        if (fixed?.type === "category") transaction.category = fixed.category;
 
         setEdit(transaction);
     }, [setEdit, fixed]);
+
+const RangePopoverPaperProps = {
+    sx: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        padding: "15px 25px",
+        width: 300,
+
+        "& > div:first-of-type": {
+            display: "flex",
+            justifyContent: "space-between",
+        },
+    },
+} as const;
+const DescriptionPopoverPaperProps = {
+    sx: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        padding: 20,
+        width: 350,
+
+        "& > div:first-of-type": {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+
+            "& > div:last-child": {
+                width: 200,
+            },
+        },
+    },
+} as const;
+const TextBox = styled(TransactionTableTextContainer)({ marginTop: 9 });
+const SubItemSx = { alignSelf: "flex-end" };

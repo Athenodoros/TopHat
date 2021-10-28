@@ -113,7 +113,7 @@ const OldAccountContents: React.FC<{ id: ID; age: number }> = ({ id, age }) => {
                     padding: "1px 6px 1px 3px",
                     background: Greys[100],
                     border: "1px solid " + Greys[300],
-                    borderRadius: 100,
+                    borderRadius: "9999px",
                     alignItems: "center",
                     verticalAlign: "middle",
                 }}

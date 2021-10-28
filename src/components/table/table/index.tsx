@@ -1,6 +1,7 @@
+import styled from "@emotion/styled";
 import { PlaylistAdd } from "@mui/icons-material";
 import { Button, Card, Checkbox } from "@mui/material";
-import clsx from "clsx";
+import { Box } from "@mui/system";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { TableHeaderContainer } from "..";
@@ -12,7 +13,7 @@ import { Section, SectionProps } from "../../layout";
 import { getAllCommonTransactionValues, useTransactionsTableData } from "./data";
 import { TransactionsTableEditEntry } from "./edit";
 import { TransactionsTableHeader } from "./header";
-import { TransactionTableSxProps, useTransactionsTableStyles } from "./styles";
+import { TransactionTableSxProps } from "./styles";
 import {
     EditTransactionState,
     TransactionsTableFilters,
@@ -43,7 +44,6 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
     headers,
 }) => {
-    const classes = useTransactionsTableStyles();
     const { selection, edit } = state;
     const { ids, groups, metadata, more } = useTransactionsTableData(filters, fixed);
 
@@ -59,7 +59,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     ...(selection.length > 0 ? ActiveTableHeaderContainerSx : undefined),
                 }}
             >
-                <div className={classes.checkbox}>
+                <CheckboxContainer>
                     <Checkbox
                         indeterminate={!!selection.length && selection.length !== ids.length}
                         checked={!!selection.length}
@@ -67,7 +67,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         color="primary"
                         disabled={!!edit}
                     />
-                </div>
+                </CheckboxContainer>
                 {edit && edit.id === undefined ? (
                     <TransactionsTableEditEntry
                         original={getAllCommonTransactionValues(selection.map((id) => metadata[id]!))}
@@ -94,11 +94,11 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 )}
             </TableHeaderContainer>
             {edit?.id !== undefined && !ids.includes(edit.id) ? (
-                <Card className={classes.rowGroupContainer} elevation={0}>
-                    <div className={clsx(classes.container, classes.rowContainer)}>
-                        <div className={classes.checkbox}>
+                <RowGroupCard elevation={0}>
+                    <ContainerBox>
+                        <CheckboxContainer>
                             <Checkbox checked={false} onChange={noop} color="primary" disabled={true} />
-                        </div>
+                        </CheckboxContainer>
                         <TransactionsTableEditEntry
                             edit={edit}
                             selected={[edit.id]}
@@ -106,21 +106,21 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                             setStatePartial={setStatePartial}
                             fixed={fixed}
                         />
-                    </div>
-                </Card>
+                    </ContainerBox>
+                </RowGroupCard>
             ) : undefined}
             {groups.map(([date, list]) => (
-                <Card className={classes.rowGroupContainer} key={date} elevation={0}>
+                <RowGroupCard key={date} elevation={0}>
                     {list.map((id) => (
-                        <div className={clsx(classes.container, classes.rowContainer)} key={id}>
-                            <div className={classes.checkbox}>
+                        <ContainerBox key={id}>
+                            <CheckboxContainer>
                                 <Checkbox
                                     checked={selection.includes(id)}
                                     onChange={updaters.selection(id)}
                                     color="primary"
                                     disabled={!!edit}
                                 />
-                            </div>
+                            </CheckboxContainer>
                             {edit?.id === id ? (
                                 <TransactionsTableEditEntry
                                     original={metadata[id]!}
@@ -137,20 +137,19 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                                     fixed={fixed}
                                 />
                             )}
-                        </div>
+                        </ContainerBox>
                     ))}
-                </Card>
+                </RowGroupCard>
             ))}
-            <Button
+            <LoadMoreButton
                 variant="outlined"
                 size="large"
                 onClick={updaters.loadMore}
-                className={classes.loadMoreTransactionsButton}
                 endIcon={<PlaylistAdd />}
                 disabled={!more}
             >
                 Load More
-            </Button>
+            </LoadMoreButton>
         </Section>
     );
 };
@@ -192,3 +191,16 @@ const useTableUpdateFunctions = (
     );
 
 const ActiveTableHeaderContainerSx = { boxShadow: TopHatTheme.shadows[5] };
+const RowGroupCard = styled(Card)({ marginTop: 20, borderRadius: "10px", padding: 0 });
+const ContainerBox = styled(Box)({
+    ...TransactionTableSxProps.Container,
+
+    "& > div:last-child": {
+        visibility: "hidden",
+    },
+    "&:hover > div:last-child": {
+        visibility: "inherit",
+    },
+} as any);
+const CheckboxContainer = styled(Box)(TransactionTableSxProps.CenteredValueContainer);
+const LoadMoreButton = styled(Button)({ marginTop: 50, alignSelf: "center" });

@@ -1,7 +1,6 @@
+import styled from "@emotion/styled";
 import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@mui/icons-material";
 import { Button, IconButton, MenuProps, TextField, Tooltip } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
-import clsx from "clsx";
 import { fromPairs, isEqual, toPairs } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
@@ -11,49 +10,21 @@ import { useAllAccounts, useAllCategories, useAllStatements } from "../../../sta
 import { ID, SDate } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { SingleCategoryMenu } from "../../display/CategoryMenu";
-import { getCategoryIcon, getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
+import { getCategoryIconSx, getStatementIconSx, useGetAccountIconSx } from "../../display/ObjectDisplay";
 import { ManagedDatePicker } from "../../inputs";
 import { EditableCurrencyValue, EditableTextValue, TransactionsTableObjectDropdown } from "./inputs";
-import { TransactionTableSxProps, useTransactionsTableStyles } from "./styles";
+import {
+    TransactionTableAccountContainer,
+    TransactionTableActionsContainer,
+    TransactionTableBalanceContainer,
+    TransactionTableCategoryContainer,
+    TransactionTableDateContainer,
+    TransactionTableStatementContainer,
+    TransactionTableSxProps,
+    TransactionTableTextContainer,
+    TransactionTableValueContainer,
+} from "./styles";
 import { EditTransactionState, TransactionsTableFixedDataState, TransactionsTableState } from "./types";
-
-const useEditStyles = makeStyles({
-    editText: {
-        marginTop: 5,
-        marginBottom: 5,
-
-        "& > div": {
-            width: "100%",
-        },
-        "& > div:first-of-type": {
-            marginBottom: 5,
-        },
-    },
-    editActions: {
-        visibility: "visible !important" as "visible",
-    },
-    categoryDropdownIcon: {
-        height: 16,
-        width: 16,
-        borderRadius: "50%",
-        marginRight: 8,
-    },
-    accountDropdownIcon: {
-        height: 20,
-        width: 20,
-        borderRadius: 4,
-        marginRight: 10,
-    },
-    selectButton: {
-        height: 40,
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        textTransform: "inherit",
-        color: "inherit",
-    },
-});
 
 export interface TransactionsTableEditEntryProps {
     original?: EditTransactionState;
@@ -72,21 +43,9 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     setStatePartial,
     fixed,
 }) => {
-    const classes = useTransactionsTableStyles();
-    const editClasses = useEditStyles();
-
     const categories = useAllCategories();
-    // const categories = useMemo(
-    //     () =>
-    //         allCategories.filter((option) =>
-    //             fixed?.type === "category" && fixed.nested
-    //                 ? option.id === fixed.category || option.hierarchy.includes(fixed.category)
-    //                 : true
-    //         ),
-    //     [fixed, allCategories]
-    // );
     const accounts = useAllAccounts();
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
     const statements = useAllStatements();
 
     const actions = useActions(selected, edit, setStatePartial);
@@ -112,7 +71,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
 
     return (
         <>
-            <div className={classes.date}>
+            <TransactionTableDateContainer>
                 <ManagedDatePicker
                     value={edit.date}
                     onChange={updaters.date}
@@ -134,8 +93,8 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         />
                     )}
                 />
-            </div>
-            <div className={clsx(classes.text, editClasses.editText)}>
+            </TransactionTableDateContainer>
+            <EditTextBox>
                 <EditableTextValue
                     value={edit.summary}
                     placeholder={tx?.reference}
@@ -147,8 +106,8 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     allowUndefined={!!tx && tx.description === undefined}
                     onChange={updaters.description}
                 />
-            </div>
-            <div className={classes.value}>
+            </EditTextBox>
+            <TransactionTableValueContainer>
                 <EditableCurrencyValue
                     currency={edit.currency}
                     value={edit.value}
@@ -157,22 +116,22 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     allowUndefinedCurrency={!!tx && tx.currency === undefined}
                     allowUndefinedValue={!!tx && tx.value === undefined}
                 />
-            </div>
+            </TransactionTableValueContainer>
             {fixed?.type !== "category" || fixed.nested === true ? (
-                <div className={classes.category}>
+                <TransactionTableCategoryContainer>
                     <TransactionsTableObjectDropdown
                         options={categories}
                         selected={edit.category}
                         select={updaters.category}
-                        getIcon={getCategoryIcon}
-                        iconClass={editClasses.categoryDropdownIcon}
+                        getIcon={getCategoryIconSx}
+                        iconSx={CategoryDropdownIconSx}
                         allowUndefined={!!tx && tx.category === undefined}
                         getMenuContents={getCategoryMenuContents}
                         MenuProps={CategoryMenuProps}
                     />
-                </div>
+                </TransactionTableCategoryContainer>
             ) : undefined}
-            <div className={classes.balance}>
+            <TransactionTableBalanceContainer>
                 <EditableCurrencyValue
                     currency={edit.currency}
                     value={edit.recordedBalance}
@@ -182,14 +141,14 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     allowUndefinedCurrency={!!tx && tx.currency === undefined}
                     allowUndefinedValue={!!tx && tx.recordedBalance === undefined}
                 />
-            </div>
-            <div className={classes.statement}>
+            </TransactionTableBalanceContainer>
+            <TransactionTableStatementContainer>
                 <TransactionsTableObjectDropdown
                     options={statements}
                     selected={edit.statement}
                     select={updaters.statement}
-                    getIcon={getStatementIcon}
-                    iconClass={editClasses.accountDropdownIcon}
+                    getIcon={getStatementIconSx}
+                    iconSx={AccountDropdownIconSx}
                     allowUndefined={!!tx && tx.statement === undefined}
                     button={
                         <Button
@@ -208,20 +167,20 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         />
                     }
                 />
-            </div>
+            </TransactionTableStatementContainer>
             {fixed?.type !== "account" ? (
-                <div className={classes.account}>
+                <TransactionTableAccountContainer>
                     <TransactionsTableObjectDropdown
                         options={accounts}
                         selected={edit.account}
                         select={updaters.account}
                         getIcon={getAccountIcon}
-                        iconClass={editClasses.accountDropdownIcon}
+                        iconSx={AccountDropdownIconSx}
                         allowUndefined={!!tx && tx.account === undefined}
                     />
-                </div>
+                </TransactionTableAccountContainer>
             ) : undefined}
-            <div className={clsx(classes.actions, editClasses.editActions)}>
+            <ActionsBox>
                 <Tooltip title="Save Changes">
                     <span>
                         <IconButton size="small" onClick={tx ? actions.save : actions.create}>
@@ -244,7 +203,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                         </IconButton>
                     </Tooltip>
                 )}
-            </div>
+            </ActionsBox>
         </>
     );
 };
@@ -303,3 +262,27 @@ const useEditUpdaters = (updater: (update: Partial<EditTransactionState> | null)
     );
 
 const CategoryMenuProps: Partial<MenuProps> = { PaperProps: { style: { maxHeight: 230, width: 300 } } };
+const CategoryDropdownIconSx = {
+    height: 16,
+    width: 16,
+    borderRadius: "50%",
+    marginRight: 8,
+};
+const AccountDropdownIconSx = {
+    height: 20,
+    width: 20,
+    borderRadius: "4px",
+    marginRight: 10,
+};
+const EditTextBox = styled(TransactionTableTextContainer)({
+    marginTop: 5,
+    marginBottom: 5,
+
+    "& > div": {
+        width: "100%",
+    },
+    "& > div:first-of-type": {
+        marginBottom: 5,
+    },
+});
+const ActionsBox = styled(TransactionTableActionsContainer)({ visibility: "visible !important" as "visible" });

@@ -1,4 +1,4 @@
-import { Theme, unstable_createMuiStrictModeTheme as createMuiTheme } from "@mui/material";
+import { unstable_createMuiStrictModeTheme as createMuiTheme } from "@mui/material";
 import { AppColours, Greys, Intents } from "./colours";
 
 // declare module "@mui/material/styles" {
@@ -10,11 +10,11 @@ import { AppColours, Greys, Intents } from "./colours";
 //     }
 // }
 
-// This is necessary to ensure that the DefaultTheme used by typescript fully inherits everything from Theme
-declare module "@mui/styles/defaultTheme" {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface DefaultTheme extends Theme {}
-}
+// // This is necessary to ensure that the DefaultTheme used by typescript fully inherits everything from Theme
+// declare module "@mui/styles/defaultTheme" {
+//     // eslint-disable-next-line @typescript-eslint/no-empty-interface
+//     interface DefaultTheme extends Theme {}
+// }
 
 export const APP_BACKGROUND_COLOUR = Greys[100];
 export const TopHatTheme = createMuiTheme({

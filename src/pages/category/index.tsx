@@ -1,5 +1,6 @@
+import styled from "@emotion/styled";
 import { FormControlLabel, Switch } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import { useMemo } from "react";
 import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
@@ -16,22 +17,18 @@ import { CategoryPageBudgetSummary } from "./budget";
 import { CategoryPageHeader } from "./header";
 import { CategoryPageHistory } from "./history";
 
-const useStyles = makeStyles({
-    middle: {
-        display: "flex",
-        "& > div:first-of-type": {
-            flex: "2 0 700px",
-            marginRight: SECTION_MARGIN,
-        },
-        "& > div:last-child": {
-            flex: "1 1 300px",
-        },
+const MiddleBox = styled(Box)({
+    display: "flex",
+    "& > div:first-of-type": {
+        flex: "2 0 700px",
+        marginRight: SECTION_MARGIN,
+    },
+    "& > div:last-child": {
+        flex: "1 1 300px",
     },
 });
 
 export const CategoryPage: React.FC = () => {
-    const classes = useStyles();
-
     const category = useCategoryPageCategory();
     const table = useCategoryPageState((state) => state.table);
 
@@ -45,10 +42,10 @@ export const CategoryPage: React.FC = () => {
     return (
         <Page title="Categories">
             <CategoryPageHeader />
-            <div className={classes.middle}>
+            <MiddleBox>
                 <CategoryPageHistory />
                 <CategoryPageBudgetSummary />
-            </div>
+            </MiddleBox>
             <TransactionsTable
                 filters={table.filters}
                 state={table.state}

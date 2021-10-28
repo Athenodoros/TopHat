@@ -21,7 +21,6 @@ import {
 } from "../../state/data/shared";
 import { BaseTransactionHistory, getRandomColour, getTodayString, ID } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
-import { DEFAULT_BORDER_RADIUS } from "../../styles/theme";
 import { DialogContents, DialogMain, DialogOptions, EditTitleContainer, EditValueContainer } from "../shared";
 import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
 import { DialogObjectOptionsBox, DialogSelectorAddNewButton, getUpdateFunctions, ObjectEditContainer } from "./shared";
@@ -273,7 +272,7 @@ const IconSx = {
     height: 24,
     width: 24,
     marginRight: 15,
-    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "5px",
 };
 const CategoryButton = styled(Button)({
     textTransform: "inherit",

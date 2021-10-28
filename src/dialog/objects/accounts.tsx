@@ -15,7 +15,7 @@ import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
 import { AccountTypes } from "../../state/data/types";
 import { BaseTransactionHistory, getTodayString, parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
-import { DEFAULT_BORDER_RADIUS, getThemeTransition } from "../../styles/theme";
+import { getThemeTransition } from "../../styles/theme";
 import { DialogContents, DialogMain, EditValueContainer } from "../shared";
 import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
@@ -61,7 +61,7 @@ const AccountIconSx = {
     height: 24,
     width: 24,
     marginRight: 15,
-    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "5px",
 };
 
 export const createNewAccount = () => ({

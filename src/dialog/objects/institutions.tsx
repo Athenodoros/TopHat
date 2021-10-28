@@ -11,7 +11,7 @@ import { Institution } from "../../state/data";
 import { getColourFromIcon, getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
 import { getRandomColour } from "../../state/shared/values";
 import { BLACK, Greys } from "../../styles/colours";
-import { DEFAULT_BORDER_RADIUS, getThemeTransition } from "../../styles/theme";
+import { getThemeTransition } from "../../styles/theme";
 import { DialogContents, DialogMain, EditValueContainer } from "../shared";
 import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
 
@@ -55,7 +55,7 @@ const InstitutionIconSx = {
     height: 24,
     width: 24,
     marginRight: 15,
-    borderRadius: 5 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "5px",
 };
 const render = (institution: Institution) => (
     <InstitutionBox>
@@ -133,13 +133,13 @@ const ButtonsBox = styled(Box)({
 
     "& input": { width: 0, height: 0 },
 });
-const ButtonSxForComponents = {
+const ButtonSx = {
     width: 24,
     height: 24,
     padding: 5,
 
     marginLeft: 3,
-    borderRadius: 7,
+    borderRadius: "7px",
     color: Greys[300],
 
     cursor: "pointer",
@@ -148,8 +148,8 @@ const ButtonSxForComponents = {
     "&:hover": { background: alpha(BLACK, 0.8), transition: "none" },
     "&:active": { background: alpha(BLACK, 0.9) },
 };
-const EditButton = styled(Edit)(ButtonSxForComponents);
-const ClearButton = styled(Clear)(ButtonSxForComponents);
+const EditButton = styled(Edit)(ButtonSx);
+const ClearButton = styled(Clear)(ButtonSx);
 const ColourContainerBox = styled(Box)({
     display: "flex",
     justifyContent: "space-between",
@@ -159,7 +159,7 @@ const ColourContainerBox = styled(Box)({
     "& input": { width: 50, height: 50 },
 });
 const EditInstitutionIconBox = styled(Box)({
-    borderRadius: 10,
+    borderRadius: "10px",
     position: "relative",
 
     "&:hover": {
@@ -169,5 +169,5 @@ const EditInstitutionIconBox = styled(Box)({
 const EditInstitutionIconSx = {
     width: 100,
     height: 100,
-    borderRadius: 10 / DEFAULT_BORDER_RADIUS,
+    borderRadius: "10px",
 };

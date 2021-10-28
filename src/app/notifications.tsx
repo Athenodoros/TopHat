@@ -102,7 +102,7 @@ const BackdropBox = styled(Box)({
     left: -242.71,
     top: -97.83,
     opacity: 0.1,
-    borderRadius: 40,
+    borderRadius: "40px",
     transform: "rotate(20deg)",
     transformOrigin: "bottom left",
 });

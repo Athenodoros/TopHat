@@ -1,13 +1,12 @@
 import styled from "@emotion/styled";
 import { Description } from "@mui/icons-material";
 import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography, typographyClasses } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
 import { Box } from "@mui/system";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getStatementIconSx, useGetAccountIcon } from "../../components/display/ObjectDisplay";
+import { getStatementIconSx, useGetAccountIconSx } from "../../components/display/ObjectDisplay";
 import { ManagedDatePicker } from "../../components/inputs";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
@@ -70,14 +69,7 @@ const render = (statement: Statement) => (
 
 const goToStatementImport = () => TopHatDispatch(AppSlice.actions.setDialogPage("import"));
 
-const useSelectorClasses = makeStyles({
-    container: { background: Greys[200] },
-    subheader: { background: Greys[200] },
-    item: { padding: "6px 16px", width: "100%" },
-});
-
 const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) => JSX.Element }> = ({ render }) => {
-    const selectorClasses = useSelectorClasses();
     const selected = useDialogState("statement", (object) => object?.id);
     const statements = useAllStatements();
     const options = useMemo(() => {
@@ -93,21 +85,20 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
             <DialogObjectOptionsBox>
                 <List subheader={<div />}>
                     {options.map((group) => (
-                        <div key={group[0]} className={selectorClasses.container}>
-                            <ListSubheader className={selectorClasses.subheader}>
+                        <SelectorContainerBox key={group[0]}>
+                            <SelectorListSubheader>
                                 {institutions[accounts[group[0]]!.institution]!.name} - {accounts[group[0]]!.name}
-                            </ListSubheader>
+                            </SelectorListSubheader>
                             {group[1].map((option) => (
-                                <MenuItem
+                                <SelectorMenuItem
                                     key={option.id}
-                                    className={selectorClasses.item}
                                     selected={option.id === selected}
                                     onClick={withSuppressEvent<HTMLLIElement>(() => set(option))}
                                 >
                                     {render(option)}
-                                </MenuItem>
+                                </SelectorMenuItem>
                             ))}
-                        </div>
+                        </SelectorContainerBox>
                     ))}
                 </List>
             </DialogObjectOptionsBox>
@@ -116,32 +107,14 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
     );
 };
 
-const useEditViewStyles = makeStyles((theme) => ({
-    account: {
-        display: "flex",
-        alignItems: "center",
-        padding: 8,
-        paddingRight: 15,
-        borderRadius: 6,
-        background: Greys[200],
-        border: "1px solid " + Greys[300],
+const SelectorContainerBox = styled(Box)({ background: Greys[200] });
+const SelectorListSubheader = styled(ListSubheader)({ background: Greys[200] });
+const SelectorMenuItem = styled(MenuItem)({ padding: "6px 16px", width: "100%" });
 
-        "& > p:last-child": {
-            color: Greys[800],
-        },
-    },
-    icon: {
-        width: 24,
-        height: 24,
-        marginRight: 10,
-        borderRadius: 4,
-    },
-}));
 const EditStatementView: React.FC = () => {
-    const classes = useEditViewStyles();
     const working = useDialogState("statement")!;
 
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
     const account = useAccountByID(working.account);
 
     return (
@@ -157,10 +130,10 @@ const EditStatementView: React.FC = () => {
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">
-                <div className={classes.account}>
-                    {getAccountIcon(account, classes.icon)}
+                <AccountBox>
+                    {getAccountIcon(account, IconSx)}
                     <Typography variant="body1">{account.name}</Typography>
-                </div>
+                </AccountBox>
             </EditValueContainer>
         </ObjectEditContainer>
     );
@@ -168,3 +141,23 @@ const EditStatementView: React.FC = () => {
 
 const { update, remove, set } = getUpdateFunctions("statement");
 const updateWorkingDate = update("date");
+
+const AccountBox = styled(Box)({
+    display: "flex",
+    alignItems: "center",
+    padding: 8,
+    paddingRight: 15,
+    borderRadius: "6px",
+    background: Greys[200],
+    border: "1px solid " + Greys[300],
+
+    "& > p:last-child": {
+        color: Greys[800],
+    },
+});
+const IconSx = {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+    borderRadius: "4px",
+};

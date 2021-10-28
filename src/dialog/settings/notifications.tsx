@@ -1,9 +1,19 @@
+import styled from "@emotion/styled";
 import { CheckBox, CheckBoxOutlineBlank } from "@mui/icons-material";
-import { Autocomplete, Checkbox, Collapse, ListItemText, Switch, TextField, Typography } from "@mui/material";
-import makeStyles from "@mui/styles/makeStyles";
+import {
+    Autocomplete,
+    Checkbox,
+    Collapse,
+    collapseClasses,
+    inputBaseClasses,
+    ListItemText,
+    Switch,
+    TextField,
+    Typography,
+} from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
-import { useGetAccountIcon } from "../../components/display/ObjectDisplay";
+import { useGetAccountIconSx } from "../../components/display/ObjectDisplay";
 import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
@@ -56,7 +66,7 @@ const NotificationToggle: React.FC<{ id: string; title: string; control?: React.
                 <Switch checked={!disabled} onChange={toggle} sx={{ margin: -5 }} />
             </Box>
             {control && (
-                <Collapse in={!disabled} sx={{ "& .MuiCollapse-wrapperInner > div": { margin: 0 } }}>
+                <Collapse in={!disabled} sx={{ [`& .${collapseClasses.wrapperInner} > div`]: { margin: 0 } }}>
                     {control}
                 </Collapse>
             )}
@@ -64,28 +74,10 @@ const NotificationToggle: React.FC<{ id: string; title: string; control?: React.
     );
 };
 
-const useAutocompleteStyles = makeStyles({
-    icon: {
-        height: 20,
-        width: 20,
-        borderRadius: 4,
-        marginRight: 10,
-    },
-    text: {
-        padding: "4px 0",
-
-        "& span": {
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-        },
-    },
-});
 const useAccountsAutocomplete = () => {
-    const classes = useAutocompleteStyles();
     const accounts = useAllAccounts();
     const selected = useUserData((user) => user.accountOutOfDate);
-    const getAccountIcon = useGetAccountIcon();
+    const getAccountIcon = useGetAccountIconSx();
 
     return (
         <EditValueContainer label="Ignored Accounts">
@@ -102,7 +94,7 @@ const useAccountsAutocomplete = () => {
                         placeholder="(none)"
                         size="small"
                         sx={{
-                            "& .MuiInputBase-input::placeholder": {
+                            [`& .${inputBaseClasses.input}::placeholder`]: {
                                 fontStyle: "italic",
                             },
                         }}
@@ -110,8 +102,8 @@ const useAccountsAutocomplete = () => {
                 )}
                 renderOption={(props, account, { selected }) => (
                     <li {...props}>
-                        {getAccountIcon(account, classes.icon)}
-                        <ListItemText className={classes.text} primary={account.name} />
+                        {getAccountIcon(account, IconSx)}
+                        <AccountListItemText primary={account.name} />
                         <Checkbox
                             icon={<CheckBoxOutlineBlank fontSize="small" />}
                             checkedIcon={<CheckBox fontSize="small" />}
@@ -163,3 +155,19 @@ const useDebtInput = () => {
         </EditValueContainer>
     );
 };
+
+const IconSx = {
+    height: 20,
+    width: 20,
+    borderRadius: "4px",
+    marginRight: 10,
+};
+const AccountListItemText = styled(ListItemText)({
+    padding: "4px 0",
+
+    "& span": {
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+    },
+});

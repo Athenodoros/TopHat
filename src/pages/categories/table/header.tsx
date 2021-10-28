@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import {
     AddCircleOutline,
     Exposure,
@@ -24,20 +25,34 @@ import { usePopoverProps } from "../../../shared/hooks";
 import { TopHatDispatch } from "../../../state";
 import { AppSlice } from "../../../state/app";
 import { CategoriesPageState, ChartSign } from "../../../state/app/pageTypes";
-import { useCategoriesTableStyles } from "./styles";
+import {
+    CategoriesTableActionBox,
+    CategoriesTableFillbarSx,
+    CategoriesTableIconSx,
+    CategoriesTableMainSx,
+    CategoriesTableSubtitleSx,
+    CategoriesTableTitleBox,
+    CategoriesTableTotalSx,
+} from "./styles";
+
+const IconPlaceholderBox = styled(Box)(CategoriesTableIconSx);
+const TotalBox = styled(Box)(CategoriesTableTotalSx);
+const SubtitleBox = styled(Box)(CategoriesTableSubtitleSx);
+const ActionBox = styled(CategoriesTableActionBox)({ visibility: "visible !important" as any });
+const MainBox = styled(Box)(CategoriesTableMainSx);
+const FillbarBox = styled(Box)({ ...CategoriesTableFillbarSx, display: "flex", alignItems: "center" });
 
 export const CategoriesPageTableHeader: React.FC<Pick<CategoriesPageState, "tableSign" | "hideEmpty">> = ({
     tableSign,
     hideEmpty,
 }) => {
-    const tableClasses = useCategoriesTableStyles();
     const categoryPopover = usePopoverProps();
     const valuePopover = usePopoverProps();
 
     return (
         <TableHeaderContainer sx={{ padding: "0 10px" }}>
-            <div className={tableClasses.title}>
-                <div className={tableClasses.icon} />
+            <CategoriesTableTitleBox>
+                <IconPlaceholderBox />
                 <Typography variant="h6">Category</Typography>
                 <FilterIcon
                     badgeContent={Number(tableSign !== "all")}
@@ -66,10 +81,10 @@ export const CategoriesPageTableHeader: React.FC<Pick<CategoriesPageState, "tabl
                         </ToggleButtonGroup>
                     </ListItem>
                 </Menu>
-            </div>
-            <div className={tableClasses.main}>
-                <div className={tableClasses.subtitle} />
-                <Box className={tableClasses.fillbar} sx={{ display: "flex", alignItems: "center" }}>
+            </CategoriesTableTitleBox>
+            <MainBox>
+                <SubtitleBox />
+                <FillbarBox>
                     <Typography variant="h6">Values and Budgets</Typography>
                     <FilterIcon
                         badgeContent={Number(hideEmpty !== "none")}
@@ -103,14 +118,14 @@ export const CategoriesPageTableHeader: React.FC<Pick<CategoriesPageState, "tabl
                             </ToggleButtonGroup>
                         </ListItem>
                     </Menu>
-                </Box>
-                <div className={tableClasses.total} />
-                <Box className={tableClasses.action} sx={{ visibility: "visible !important" as any }}>
+                </FillbarBox>
+                <TotalBox />
+                <ActionBox>
                     <IconButton size="small" onClick={createNewCategory}>
                         <AddCircleOutline />
                     </IconButton>
-                </Box>
-            </div>
+                </ActionBox>
+            </MainBox>
         </TableHeaderContainer>
     );
 };

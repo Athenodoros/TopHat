@@ -276,7 +276,7 @@ const RangeBox = styled(Box)({
 const AccountIconSx = {
     width: 16,
     height: 16,
-    borderRadius: 4,
+    borderRadius: "4px",
     marginRight: 8,
 };
 const CategorySelectionButton = styled(Button)({

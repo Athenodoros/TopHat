@@ -1,3 +1,4 @@
+import { buttonClasses } from "@mui/material";
 import { Greys } from "../../../../styles/colours";
 
 export const DIALOG_IMPORT_TABLE_HEADER_STYLES = {
@@ -16,7 +17,7 @@ export const DIALOG_IMPORT_TABLE_ROW_STYLES = {
 export const DIALOG_IMPORT_TABLE_ICON_BUTTON_STYLES = {
     padding: 0,
 
-    "& .MuiButton-endIcon": {
+    [`& .${buttonClasses.endIcon}`]: {
         marginLeft: "-1px !important",
     },
 } as const;

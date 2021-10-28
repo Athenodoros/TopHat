@@ -10,7 +10,6 @@ import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartDomainFunctions } from "../../../shared/data";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
-import { DEFAULT_BORDER_RADIUS } from "../../../styles/theme";
 
 const BarContainerBox = styled(Box)({
     display: "flex",
@@ -89,7 +88,7 @@ export const CategoriesBarSummary: React.FC<{ points: CategoriesBarSummaryPoint[
                 flexDirection: "column",
                 alignItems: "stretch",
                 background: Greys[100],
-                borderRadius: 8 / DEFAULT_BORDER_RADIUS,
+                borderRadius: "8px",
                 paddingBottom: 8,
                 marginTop: 8,
                 marginBottom: -6,

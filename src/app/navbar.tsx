@@ -93,7 +93,7 @@ const AppIconButton = styled(IconButton)({
     alignItems: "center",
     justifyContent: "center",
     // border: "1px solid",
-    borderRadius: 10,
+    borderRadius: "10px",
     marginBottom: 27,
     flexShrink: 0,
 });
