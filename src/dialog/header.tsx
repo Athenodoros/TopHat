@@ -20,7 +20,6 @@ import {
     Select,
     selectClasses,
 } from "@mui/material";
-import { Box } from "@mui/system";
 import { handleSelectChange } from "../shared/events";
 import { IconType } from "../shared/types";
 import { TopHatDispatch } from "../state";
@@ -76,7 +75,7 @@ const MenuItems = [
     getMenuItem(Settings, "settings", "Settings"),
 ];
 
-const HeaderBox = styled(Box)({
+const HeaderBox = styled("div")({
     height: 60,
     padding: "3px 8px 3px 20px",
     display: "flex",

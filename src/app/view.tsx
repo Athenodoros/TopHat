@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 import React from "react";
 import { AccountPage } from "../pages/account";
 import { AccountsPage } from "../pages/accounts";
@@ -29,7 +28,7 @@ export const View: React.FC = () => {
     );
 };
 
-const AppContainerBox = styled(Box)({
+const AppContainerBox = styled("div")({
     height: "100vh",
     width: "100vw",
     display: "flex",

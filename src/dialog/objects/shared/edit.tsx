@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { DeleteForeverTwoTone, DeleteTwoTone, SaveTwoTone } from "@mui/icons-material";
 import { Button, TextField, Tooltip } from "@mui/material";
-import { Box } from "@mui/system";
 import { isEqual, upperFirst } from "lodash";
 import React, { useCallback, useMemo, useState } from "react";
 import { handleTextFieldChange } from "../../../shared/events";
@@ -87,7 +86,7 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     );
 };
 
-const EditBox = styled(Box)({
+const EditBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
@@ -95,24 +94,24 @@ const EditBox = styled(Box)({
     padding: "20px 20px 8px 20px",
     flexGrow: 1,
 });
-const EditDividerBox = styled(Box)({
+const EditDividerBox = styled("div")({
     flex: "0 0 1px",
     width: "80%",
     background: Greys[400],
     alignSelf: "left",
     margin: "10px 25px",
 });
-const EditContainerBox = styled(Box)({
+const EditContainerBox = styled("div")({
     flexShrink: 1,
     flexGrow: 1,
     overflowY: "auto",
     paddingRight: 30,
 });
-const ActionsBox = styled(Box)({
+const ActionsBox = styled("div")({
     marginTop: "auto",
     display: "flex",
     alignSelf: "flex-end",
     paddingTop: 8,
     "& > *": { marginLeft: 10 },
 });
-const StubSubtitleBox = styled(Box)({ height: 15 });
+const StubSubtitleBox = styled("div")({ height: 15 });

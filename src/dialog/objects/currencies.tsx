@@ -57,7 +57,7 @@ export const DialogCurrenciesView: React.FC = () => {
     );
 };
 
-const CurrencyBox = styled(Box)({
+const CurrencyBox = styled("div")({
     display: "flex",
     alignItems: "center",
     height: 32,
@@ -343,7 +343,7 @@ const updateMonthsRate = (index: number, value: number | null) => {
     update("rates")(rates);
 };
 
-const ColourContainerBox = styled(Box)({
+const ColourContainerBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",

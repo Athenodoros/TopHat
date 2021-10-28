@@ -187,7 +187,7 @@ const InstitutionButton = styled(Button)({
 
     "& > svg": { marginLeft: 15 },
 });
-const DatesBox = styled(Box)({
+const DatesBox = styled("div")({
     display: "flex",
     flexGrow: 1,
     justifyContent: "space-between",

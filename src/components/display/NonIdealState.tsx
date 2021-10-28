@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import chroma from "chroma-js";
 import React from "react";
 import { IconType } from "../../shared/types";
@@ -27,7 +26,7 @@ export const NonIdealState: React.FC<NonIdealStateProps> = ({ icon: Icon, title,
     </ContainerBox>
 );
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

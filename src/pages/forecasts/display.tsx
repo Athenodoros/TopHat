@@ -11,7 +11,7 @@ import { SECTION_MARGIN } from "../../components/layout";
 import { useNumericInputHandler } from "../../shared/hooks";
 import { Greys, Intents } from "../../styles/colours";
 
-export const CalculatorContainer = styled(Box)({
+export const CalculatorContainer = styled("div")({
     display: "flex",
     "& > div:first-of-type": { width: 400, marginRight: SECTION_MARGIN },
     "& > div:last-of-type": { flexGrow: 1 },
@@ -73,7 +73,7 @@ export const useCalculatorInputDisplay = (
     };
 };
 
-export const CalculatorInputDivider = styled(Box)({
+export const CalculatorInputDivider = styled("div")({
     borderTop: "1px solid " + Greys[300],
     margin: "24px 55px 32px 55px",
 });

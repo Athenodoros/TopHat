@@ -84,7 +84,7 @@ const TitleTypography = styled(Typography)({
     margin: "10px 20px 6px 40px",
     fontWeight: 500,
 });
-const DividerBox = styled(Box)({
+const DividerBox = styled("div")({
     height: 1,
     width: "70%",
     marginLeft: 30,

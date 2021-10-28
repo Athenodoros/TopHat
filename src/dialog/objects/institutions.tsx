@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { AccountBalance, Clear, Edit, Sync } from "@mui/icons-material";
 import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
-import { Box } from "@mui/system";
 import React from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
@@ -46,7 +45,7 @@ export const DialogInstitutionsView: React.FC = () => {
     );
 };
 
-const InstitutionBox = styled(Box)({
+const InstitutionBox = styled("div")({
     display: "flex",
     alignItems: "center",
     height: 32,
@@ -120,7 +119,7 @@ const refreshColourFromIcon = () => {
     else getColourFromIcon(icon, colour).then((colour) => update("colour")(colour));
 };
 
-const ButtonsBox = styled(Box)({
+const ButtonsBox = styled("div")({
     position: "absolute",
     bottom: 3,
     right: 3,
@@ -150,7 +149,7 @@ const ButtonSx = {
 };
 const EditButton = styled(Edit)(ButtonSx);
 const ClearButton = styled(Clear)(ButtonSx);
-const ColourContainerBox = styled(Box)({
+const ColourContainerBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -158,7 +157,7 @@ const ColourContainerBox = styled(Box)({
 
     "& input": { width: 50, height: 50 },
 });
-const EditInstitutionIconBox = styled(Box)({
+const EditInstitutionIconBox = styled("div")({
     borderRadius: "10px",
     position: "relative",
 

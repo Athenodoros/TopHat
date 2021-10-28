@@ -95,7 +95,7 @@ const getDomainFromURL = (url: string) => {
     return (match && match[3]) || url;
 };
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     display: "flex",
     position: "relative",
     alignItems: "stretch",
@@ -113,15 +113,15 @@ const ColourBox = styled(Box)({
     width: 310,
     borderRadius: "50px",
 });
-const InstitutionBox = styled(Box)({ flexGrow: 1, padding: "25px 30px" });
+const InstitutionBox = styled("div")({ flexGrow: 1, padding: "25px 30px" });
 const IconSx = {
     marginTop: 15,
     width: 80,
     height: 80,
     borderRadius: "5px",
 };
-const AccountBox = styled(Box)({ flexGrow: 3 });
-const AccountMainBox = styled(Box)({
+const AccountBox = styled("div")({ flexGrow: 3 });
+const AccountMainBox = styled("div")({
     width: "100%",
     display: "flex",
     justifyContent: "space-between",
@@ -129,7 +129,7 @@ const AccountMainBox = styled(Box)({
     padding: "25px 25px 25px 0",
 });
 const AccountTypeTypography = styled(Typography)({ color: Greys[600] });
-const AccountSecondaryBox = styled(Box)({
+const AccountSecondaryBox = styled("div")({
     display: "flex",
     "& > div": { width: 220 },
 });

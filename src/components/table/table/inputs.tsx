@@ -114,7 +114,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     );
 };
 
-const CurrencyContainerBox = styled(Box)({ display: "flex", alignItems: "center" });
+const CurrencyContainerBox = styled("div")({ display: "flex", alignItems: "center" });
 const CurrencyIconMixedHelpIcon = styled(Help)(TransactionTableSxProps.Mixed);
 const CurrencyInputTextField = styled(TextField)({
     [`& .${inputBaseClasses.adornedStart}`]: {

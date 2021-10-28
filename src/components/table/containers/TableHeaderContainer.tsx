@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Card, Theme } from "@mui/material";
-import { Box, SxProps } from "@mui/system";
+import { SxProps } from "@mui/system";
 import React from "react";
 import { APP_BACKGROUND_COLOUR } from "../../../styles/theme";
 
@@ -14,7 +14,7 @@ export const TableHeaderContainer: React.FC<{ sx?: SxProps<Theme> }> = ({ childr
     );
 };
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     top: 0,
     position: "sticky",
     backgroundColor: APP_BACKGROUND_COLOUR,

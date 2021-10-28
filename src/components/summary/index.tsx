@@ -1,12 +1,11 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 import { SECTION_MARGIN } from "../layout";
 
 export * from "./bar";
 export * from "./breakdown";
 export * from "./data";
 
-export const SummarySection = styled(Box)({
+export const SummarySection = styled("div")({
     display: "flex",
 
     "& > div:first-of-type": {

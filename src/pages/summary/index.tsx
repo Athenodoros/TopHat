@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { ChevronRight } from "@mui/icons-material";
 import { Button } from "@mui/material";
-import { Box } from "@mui/system";
 import React from "react";
 import { Notifications } from "../../app/notifications";
 import { FlexWidthChart } from "../../components/display/FlexWidthChart";
@@ -58,9 +57,9 @@ const SeeMore: React.FC<{ page: PageStateType["id"] }> = ({ page }) => (
     </Button>
 );
 
-const ContainerBox = styled(Box)({ display: "flex" });
-const SummaryColumnBox = styled(Box)({ flexGrow: 1, marginRight: SECTION_MARGIN });
-const SummaryContainer = styled(Box)({ display: "flex", width: "100%", height: "100%" });
+const ContainerBox = styled("div")({ display: "flex" });
+const SummaryColumnBox = styled("div")({ flexGrow: 1, marginRight: SECTION_MARGIN });
+const SummaryContainer = styled("div")({ display: "flex", width: "100%", height: "100%" });
 const NotificationColumnSx = {
     flexShrink: 0,
     alignSelf: "flex-start",

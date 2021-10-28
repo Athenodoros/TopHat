@@ -84,7 +84,7 @@ export const Notifications: React.FC<{ sx?: SxProps }> = ({ sx }) => {
 };
 
 const ContainerCollapse = styled(Collapse)({ marginBottom: 20, "&:first-of-type": { marginTop: 20 } });
-const NotificationBox = styled(Box)({
+const NotificationBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     borderLeft: "3px solid transparent",
@@ -94,8 +94,8 @@ const NotificationBox = styled(Box)({
     fontSize: 20,
     // width: 350
 });
-const ContentsBox = styled(Box)({ display: "flex", alignItems: "center", margin: "9px 0 7px 0" });
-const BackdropBox = styled(Box)({
+const ContentsBox = styled("div")({ display: "flex", alignItems: "center", margin: "9px 0 7px 0" });
+const BackdropBox = styled("div")({
     position: "absolute",
     width: 240,
     height: 240,
@@ -106,5 +106,5 @@ const BackdropBox = styled(Box)({
     transform: "rotate(20deg)",
     transformOrigin: "bottom left",
 });
-const ButtonContainerBox = styled(Box)({ display: "flex", justifyContent: "flex-end", margin: 5 });
+const ButtonContainerBox = styled("div")({ display: "flex", justifyContent: "flex-end", margin: 5 });
 const SpacedButton = styled(Button)({ marginLeft: 10 });

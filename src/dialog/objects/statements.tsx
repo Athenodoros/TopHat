@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { Description } from "@mui/icons-material";
 import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography, typographyClasses } from "@mui/material";
-import { Box } from "@mui/system";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
@@ -41,7 +40,7 @@ export const DialogStatementView: React.FC = () => {
     );
 };
 
-const StatementBox = styled(Box)({
+const StatementBox = styled("div")({
     display: "flex",
     alignItems: "center",
     minWidth: 0,
@@ -107,7 +106,7 @@ const StatementDialogObjectSelector: React.FC<{ render: (statement: Statement) =
     );
 };
 
-const SelectorContainerBox = styled(Box)({ background: Greys[200] });
+const SelectorContainerBox = styled("div")({ background: Greys[200] });
 const SelectorListSubheader = styled(ListSubheader)({ background: Greys[200] });
 const SelectorMenuItem = styled(MenuItem)({ padding: "6px 16px", width: "100%" });
 
@@ -142,7 +141,7 @@ const EditStatementView: React.FC = () => {
 const { update, remove, set } = getUpdateFunctions("statement");
 const updateWorkingDate = update("date");
 
-const AccountBox = styled(Box)({
+const AccountBox = styled("div")({
     display: "flex",
     alignItems: "center",
     padding: 8,

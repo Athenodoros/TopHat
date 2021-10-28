@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Box, BoxProps } from "@mui/system";
+import { Box } from "@mui/system";
 import React from "react";
 import { suppressEvent } from "../../shared/events";
 import { Greys } from "../../styles/colours";
@@ -7,7 +7,7 @@ import { Greys } from "../../styles/colours";
 /**
  * Dialog Layout Components
  */
-export const DialogMain = styled(Box)({
+export const DialogMain = styled("div")({
     display: "flex",
     backgroundColor: Greys[200],
     minHeight: 0,
@@ -15,7 +15,7 @@ export const DialogMain = styled(Box)({
 });
 
 export const DIALOG_OPTIONS_WIDTH = 312;
-export const DialogOptions = styled(Box)({
+export const DialogOptions = styled("div")({
     display: "flex",
     flexDirection: "column",
     width: DIALOG_OPTIONS_WIDTH,
@@ -32,4 +32,4 @@ const DialogContentsBox = styled(Box)({
     flexGrow: 1,
     overflow: "hidden",
 });
-export const DialogContents: React.FC<BoxProps> = (props) => <DialogContentsBox onClick={suppressEvent} {...props} />;
+export const DialogContents: React.FC = (props) => <DialogContentsBox onClick={suppressEvent} {...props} />;

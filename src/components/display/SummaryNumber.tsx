@@ -56,7 +56,7 @@ export const SummaryNumber: React.FC<SummaryNumberProps> = ({ icon: Icon, primar
     </SummaryNumberContainerBox>
 );
 
-const SummaryNumberContainerBox = styled(Box)({
+const SummaryNumberContainerBox = styled("div")({
     display: "flex",
     width: 220,
 

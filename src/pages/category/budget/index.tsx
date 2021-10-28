@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { AssignmentLate, OpenInNew } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { last } from "lodash";
 import { DateTime } from "luxon";
 import numeral from "numeral";
@@ -126,17 +125,17 @@ const FillbarSummaryNumbers: React.FC<{
     );
 };
 
-const TitleBox = styled(Box)({
+const TitleBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
     color: Greys[700],
 });
-const SubtitleBox = styled(Box)({
+const SubtitleBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
     color: Greys[700],
 });
-const FillbarBox = styled(Box)({
+const FillbarBox = styled("div")({
     height: 35,
     marginTop: 10,
     marginBottom: 20,

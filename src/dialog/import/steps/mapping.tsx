@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { Button, MenuItem, StepContent, TextField, Tooltip, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { SubItemCheckbox } from "../../../components/inputs";
 import { handleTextFieldChange } from "../../../shared/events";
 import { DialogStatementMappingState } from "../../../state/app/statementTypes";
@@ -257,7 +256,7 @@ const onChangeCurrencyColumn = getOnChangeMapping("currency");
 const onChangeCurrencyField = handleTextFieldChange(changeStatementMappingCurrencyField as (value: string) => void);
 
 const MappingColumnTextField = styled(TextField)({ width: 220, marginTop: 10 });
-const MappingColumnHeaderBox = styled(Box)({
+const MappingColumnHeaderBox = styled("div")({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",

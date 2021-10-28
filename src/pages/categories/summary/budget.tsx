@@ -11,14 +11,14 @@ import { getChartDomainFunctions } from "../../../shared/data";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 
-const BarContainerBox = styled(Box)({
+const BarContainerBox = styled("div")({
     display: "flex",
     alignItems: "center",
     padding: "10px 20px 0 10px",
     overflow: "hidden",
 });
-const StackedBarBox = styled(Box)({ padding: "3px 0", borderLeft: "2px solid black", flexGrow: 1 });
-const ValueRowBox = styled(Box)({
+const StackedBarBox = styled("div")({ padding: "3px 0", borderLeft: "2px solid black", flexGrow: 1 });
+const ValueRowBox = styled("div")({
     height: 10,
     position: "relative",
     marginLeft: -1,

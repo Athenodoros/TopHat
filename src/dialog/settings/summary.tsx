@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { AccountBalanceWalletTwoTone, PaymentTwoTone, ShoppingBasketTwoTone } from "@mui/icons-material";
 import { Link, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { DateTime } from "luxon";
 import React from "react";
 import { shallowEqual } from "react-redux";
@@ -14,7 +13,7 @@ import { parseDate } from "../../state/shared/values";
 import { AppColours } from "../../styles/colours";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
-const StoredDataEntryBox = styled(Box)({
+const StoredDataEntryBox = styled("div")({
     display: "flex",
     padding: 10,
 
@@ -86,7 +85,7 @@ export const DialogSummaryContents: React.FC = () => {
 
 const goToImportDataPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: "import" }));
 
-const TableContainerBox = styled(Box)({
+const TableContainerBox = styled("div")({
     marginLeft: 20,
     marginRight: 10,
     marginTop: 3,
@@ -95,7 +94,7 @@ const TableContainerBox = styled(Box)({
     display: "flex",
     flexDirection: "column",
 });
-const TableRowBox = styled(Box)({
+const TableRowBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
 });

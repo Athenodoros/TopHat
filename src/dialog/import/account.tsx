@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { KeyboardArrowDown } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import React from "react";
 import { useGetAccountIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
@@ -47,7 +46,7 @@ export const DialogImportAccountSelector: React.FC = () => {
     );
 };
 
-const AccountContainerBox = styled(Box)({ margin: "12px 15px" });
+const AccountContainerBox = styled("div")({ margin: "12px 15px" });
 const IconSx = {
     height: 20,
     width: 20,

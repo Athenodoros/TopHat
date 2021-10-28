@@ -147,7 +147,7 @@ const InteractiveContainerSx = {
 const NonTitleContainerSx = {
     padding: "5px 5px 0 5px",
 };
-const ColourBox = styled(Box)({
+const ColourBox = styled("div")({
     width: 16,
     height: 16,
     borderRadius: "50%",
@@ -155,13 +155,13 @@ const ColourBox = styled(Box)({
     flexShrink: 0,
     border: "1px solid transparent",
 });
-const NameContainerBox = styled(Box)({
+const NameContainerBox = styled("div")({
     marginBottom: 5,
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-start",
 });
-const ValueContainerBox = styled(Box)({
+const ValueContainerBox = styled("div")({
     flexGrow: 1,
     flexShrink: 0,
     "& > div": {

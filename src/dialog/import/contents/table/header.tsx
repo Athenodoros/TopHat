@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { ArrowDropDown, Event, Exposure, Filter1, Translate } from "@mui/icons-material";
 import { Button, buttonClasses, ListItemText, Menu, MenuItem, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { get, toPairs, upperFirst } from "lodash";
 import React from "react";
 import { usePopoverProps } from "../../../../shared/hooks";
@@ -111,11 +110,11 @@ const COLUMN_TYPE_ICONS = {
     string: <Translate />,
 };
 
-const HeaderBox = styled(Box)({
+const HeaderBox = styled("div")({
     ...DIALOG_IMPORT_TABLE_HEADER_STYLES,
     padding: "7px 20px 3px 10px",
 });
-const TitleBox = styled(Box)({
+const TitleBox = styled("div")({
     display: "flex",
     alignItems: "center",
     maxWidth: 300,
@@ -126,7 +125,7 @@ const TitleBox = styled(Box)({
         color: Greys[700],
     },
 });
-const MappingBox = styled(Box)({
+const MappingBox = styled("div")({
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",

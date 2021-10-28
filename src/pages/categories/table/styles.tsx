@@ -1,8 +1,7 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 
 export const CategoriesTableFillbarSx = { flexGrow: 1, width: 200 };
-export const CategoriesTableTitleBox = styled(Box)({ display: "flex", alignItems: "center", width: 200 });
+export const CategoriesTableTitleBox = styled("div")({ display: "flex", alignItems: "center", width: 200 });
 export const CategoriesTableMainSx = {
     flexGrow: 9,
     width: 650,
@@ -34,4 +33,4 @@ export const CategoriesTableTotalSx = {
     alignItems: "flex-end",
     marginRight: 20,
 };
-export const CategoriesTableActionBox = styled(Box)({ marginLeft: 20, width: 40, visibility: "hidden" });
+export const CategoriesTableActionBox = styled("div")({ marginLeft: 20, width: 40, visibility: "hidden" });

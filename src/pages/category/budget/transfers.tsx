@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { DeleteTwoTone, Edit, KeyboardArrowDown, OpenInFullTwoTone, SwapHoriz } from "@mui/icons-material";
 import { Button, Collapse, collapseClasses, IconButton, TextField, Tooltip, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import React, { useCallback, useMemo, useState } from "react";
 import { getCategoryIcon } from "../../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../../components/inputs";
@@ -40,7 +39,7 @@ export const CategoryBudgetTransferElements: React.FC<{ category: Category }> = 
     );
 };
 
-const ActionsBox = styled(Box)({
+const ActionsBox = styled("div")({
     display: "flex",
     justifyContent: "flex-end",
 
@@ -140,7 +139,7 @@ const CategoryButton = styled(Button)({
 });
 const IconSx = { width: 16, height: 16 };
 const InputTextField = styled(TextField)({ margin: "0 10px", flex: "1 1 100px" });
-const BudgetActionsBox = styled(Box)({
+const BudgetActionsBox = styled("div")({
     display: "flex",
     "& button:not(:last-child)": {
         marginRight: 6,

@@ -176,11 +176,11 @@ const ColourBox = styled(Box)({
     opacity: 0.1,
     pointerEvents: "none",
 });
-const FillbarBox = styled(Box)({ ...CategoriesTableFillbarSx, height: 35 });
+const FillbarBox = styled("div")({ ...CategoriesTableFillbarSx, height: 35 });
 const BlueTextSx = { color: Intents.primary.main, lineHeight: 1 };
 const GreenTextSx = { color: Intents.success.main, lineHeight: 1 };
 const RedTextSx = { color: Intents.danger.main, lineHeight: 1 };
 const BudgetTypography = styled(Typography)({ color: Greys[700], marginLeft: 5 });
-const SubtitleBox = styled(Box)(CategoriesTableSubtitleSx);
-const MainBox = styled(Box)(CategoriesTableMainSx);
-const TotalBox = styled(Box)(CategoriesTableTotalSx);
+const SubtitleBox = styled("div")(CategoriesTableSubtitleSx);
+const MainBox = styled("div")(CategoriesTableMainSx);
+const TotalBox = styled("div")(CategoriesTableTotalSx);

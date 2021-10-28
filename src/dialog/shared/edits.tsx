@@ -32,12 +32,12 @@ export const EditValueContainer: React.FC<{ label?: React.ReactNode; disabled?: 
 
 const ContainerBox = styled(Box)({ display: "flex", alignItems: "center" });
 const DisabledContainerSx = { pointerEvents: "none", opacity: 0.3 } as const;
-const OuterBox = styled(Box)({
+const OuterBox = styled("div")({
     margin: "15px 0",
     "&:first-of-type": { marginTop: 10 },
     "&:last-child": { marginBottom: 10 },
 });
-const LabelContainerBox = styled(Box)({
+const LabelContainerBox = styled("div")({
     flex: "0 0 150px",
     display: "flex",
     alignItems: "center",

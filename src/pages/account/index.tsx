@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 import { useMemo } from "react";
 import { Page, SECTION_MARGIN } from "../../components/layout";
 import { TransactionsTable } from "../../components/table";
@@ -11,7 +10,7 @@ import { AccountPageBalances } from "./balances";
 import { AccountPageHeader } from "./header";
 import { AccountStatementTable } from "./statements";
 
-const MiddleBox = styled(Box)({
+const MiddleBox = styled("div")({
     display: "flex",
     "& > div:first-of-type": {
         flex: "2 0 700px",

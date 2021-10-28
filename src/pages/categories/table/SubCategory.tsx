@@ -104,5 +104,5 @@ const MainButtonSx = {
 const SubtitleTypography = styled(Typography)(CategoriesTableSubtitleSx);
 const NestedSubtitleSx = { color: Greys[800] };
 const TopSubtitleSx = { fontSize: "1.1rem", color: Greys[800] };
-const FillbarBox = styled(Box)({ ...CategoriesTableFillbarSx, height: 15 });
+const FillbarBox = styled("div")({ ...CategoriesTableFillbarSx, height: 15 });
 const TotalTypography = styled(Typography)(CategoriesTableTotalSx);

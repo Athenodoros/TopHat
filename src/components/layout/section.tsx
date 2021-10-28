@@ -40,7 +40,7 @@ const SectionBox = styled(Box)({
     flexDirection: "column",
     justifyContent: "stretch",
 });
-const SectionHeaderBox = styled(Box)({
+const SectionHeaderBox = styled("div")({
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",

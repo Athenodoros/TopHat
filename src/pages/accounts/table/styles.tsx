@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 
 export const ACCOUNT_TABLE_LEFT_PADDING = 19;
 
@@ -9,7 +8,7 @@ export const AccountsTableIconSx = {
     margin: "30px 17px 30px 27px",
     borderRadius: "5px",
 };
-export const AccountsTableInstitutionBox = styled(Box)({
+export const AccountsTableInstitutionBox = styled("div")({
     flex: "3 0 100px",
     display: "flex",
     flexDirection: "column",
@@ -18,7 +17,7 @@ export const AccountsTableInstitutionBox = styled(Box)({
     alignItems: "flex-start",
     minWidth: 0,
 });
-export const AccountsTableAccountsBox = styled(Box)({
+export const AccountsTableAccountsBox = styled("div")({
     flex: "1 1 850px",
     display: "flex",
     flexDirection: "column",

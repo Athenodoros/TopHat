@@ -68,7 +68,7 @@ export const BasicFillbar: React.FC<BasicFillbarProps> = ({
     );
 };
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     position: "relative",
     width: "100%",
     height: "100%",
@@ -97,7 +97,7 @@ const FillerBox = styled(Box)({
 const FillerMinimalSx = { opacity: 1 };
 const CumulativeSx = { opacity: 0.2 };
 const MinimalCumulativeSx = { opacity: 0.4 };
-const ZeroBox = styled(Box)({
+const ZeroBox = styled("div")({
     position: "absolute",
     transition: getThemeTransition("all"),
     width: 1,
@@ -105,13 +105,13 @@ const ZeroBox = styled(Box)({
     marginRight: -0.5,
     background: Greys[500],
 });
-const ValueBox = styled(Box)({
+const ValueBox = styled("div")({
     transition: getThemeTransition("all"),
     width: 4,
     height: "100%",
     marginRight: -2,
 });
-const SecondaryBox = styled(Box)({
+const SecondaryBox = styled("div")({
     transition: getThemeTransition("all"),
     top: "5%",
     width: 1.5,

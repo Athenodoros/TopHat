@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { PlaylistAdd } from "@mui/icons-material";
 import { Button, Card, Checkbox } from "@mui/material";
-import { Box } from "@mui/system";
 import { noop } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { TableHeaderContainer } from "..";
@@ -192,7 +191,7 @@ const useTableUpdateFunctions = (
 
 const ActiveTableHeaderContainerSx = { boxShadow: TopHatTheme.shadows[5] };
 const RowGroupCard = styled(Card)({ marginTop: 20, borderRadius: "10px", padding: 0 });
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     ...TransactionTableSxProps.Container,
 
     "& > div:last-child": {
@@ -202,5 +201,5 @@ const ContainerBox = styled(Box)({
         visibility: "inherit",
     },
 } as any);
-const CheckboxContainer = styled(Box)(TransactionTableSxProps.CenteredValueContainer);
+const CheckboxContainer = styled("div")(TransactionTableSxProps.CenteredValueContainer);
 const LoadMoreButton = styled(Button)({ marginTop: 50, alignSelf: "center" });

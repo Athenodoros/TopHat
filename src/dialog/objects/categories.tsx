@@ -293,7 +293,7 @@ const BudgetTypeToggleButton = styled(ToggleButton)({
     alignItems: "center",
     width: 60,
 });
-const BudgetTypeToggleInnerBox = styled(Box)({
+const BudgetTypeToggleInnerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",

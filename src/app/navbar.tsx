@@ -8,7 +8,6 @@ import {
     TrendingUpTwoTone,
 } from "@mui/icons-material";
 import { IconButton, Paper } from "@mui/material";
-import { Box } from "@mui/system";
 import chroma from "chroma-js";
 import { mapValues } from "lodash-es";
 import React from "react";
@@ -110,7 +109,7 @@ const NavBarContainerPaper = styled(Paper)({
         },
     },
 });
-const SummaryContainerBox = styled(Box)({
+const SummaryContainerBox = styled("div")({
     height: NAVBAR_LOGO_HEIGHT,
     justifyContent: "center",
     flexShrink: 0,
@@ -126,13 +125,13 @@ const SummaryContainerBox = styled(Box)({
         },
     },
 });
-const AppContainerBox = styled(Box)({
+const AppContainerBox = styled("div")({
     flexGrow: 1,
     flexShrink: 1,
     minHeight: 0,
     overflowY: "auto",
 });
-const SettingsContainerBox = styled(Box)({
+const SettingsContainerBox = styled("div")({
     flexShrink: 0,
     background: WHITE,
     paddingTop: 27,

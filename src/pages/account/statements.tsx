@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { ChevronRight, Description, Edit, FolderOpen, OpenInNew, Payment } from "@mui/icons-material";
 import { Button, IconButton, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { Section } from "../../components/layout";
@@ -93,13 +92,13 @@ const filterTableToStatement = (statement: ID) => () =>
     TopHatDispatch(AppSlice.actions.setAccountTableStatement(statement));
 
 const CreateButton = styled(Button)({ color: Greys[700] });
-const TableBox = styled(Box)({
+const TableBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     height: 220,
     overflowY: "auto",
 });
-const StatementBox = styled(Box)({
+const StatementBox = styled("div")({
     display: "flex",
     alignItems: "center",
     height: 40,
@@ -116,14 +115,14 @@ const DescriptionIcon = styled(Description)({
     height: 32,
     width: 32,
 });
-const TextBox = styled(Box)({
+const TextBox = styled("div")({
     flex: "1 1 0",
     width: 0,
     "& > *": {
         lineHeight: 1.2,
     },
 });
-const ActionsBox = styled(Box)({
+const ActionsBox = styled("div")({
     display: "flex",
     marginLeft: 30,
     "& > :not(:last-child)": {

@@ -257,14 +257,14 @@ const updateWorkingDescription = handleTextFieldChange(update("description"));
 const updateWorkingCategory = update("category");
 
 const InactiveCheckboxSx = { alignSelf: "flex-end" };
-const GrowingBox = styled(Box)({ flexGrow: 1 });
+const GrowingBox = styled("div")({ flexGrow: 1 });
 const GrowingTypography = styled(Typography)({ flexGrow: 1 });
 const CategoryIconSx = {
     width: 20,
     height: 20,
     marginRight: 15,
 };
-const RangeBox = styled(Box)({
+const RangeBox = styled("div")({
     display: "flex",
     flexGrow: 1,
     justifyContent: "space-between",

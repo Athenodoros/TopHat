@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { Notifications as NotificationsIcon } from "@mui/icons-material";
 import { Badge, IconButton, Popover, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
 import { Notifications } from "../../app/notifications";
 import { usePopoverProps } from "../../shared/hooks";
@@ -35,7 +34,7 @@ export const Page: React.FC<{ title: string }> = ({ children, title }) => {
     );
 };
 
-const PageContainerBox = styled(Box)({
+const PageContainerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "stretch",
@@ -43,7 +42,7 @@ const PageContainerBox = styled(Box)({
     overflowY: "auto",
     padding: "0 60px 200px 60px",
 });
-const TitleBox = styled(Box)({
+const TitleBox = styled("div")({
     height: NAVBAR_LOGO_HEIGHT,
     flexShrink: 0,
     paddingTop: 4,
@@ -52,7 +51,7 @@ const TitleBox = styled(Box)({
     alignItems: "center",
     justifyContent: "space-between",
 });
-const TitleButtonsBox = styled(Box)({
+const TitleButtonsBox = styled("div")({
     "& > button": {
         marginLeft: 15,
         borderRadius: "50%",

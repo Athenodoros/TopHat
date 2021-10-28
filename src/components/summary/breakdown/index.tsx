@@ -1,5 +1,4 @@
 import styled from "@emotion/styled";
-import { Box } from "@mui/system";
 import { orderBy, sumBy } from "lodash";
 import React from "react";
 import { ChartSign } from "../../../state/app/pageTypes";
@@ -136,7 +135,7 @@ export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
     );
 };
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     justifyContent: "stretch",
@@ -144,12 +143,12 @@ const ContainerBox = styled(Box)({
     height: 330,
     flexGrow: 1,
 });
-const DividerBox = styled(Box)({
+const DividerBox = styled("div")({
     height: 1,
     margin: "7px 50px 5px 50px",
     backgroundColor: Greys[400],
 });
-const PointsContainerBox = styled(Box)({
+const PointsContainerBox = styled("div")({
     overflowY: "auto",
     display: "flex",
     flexDirection: "column",

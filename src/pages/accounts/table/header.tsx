@@ -20,7 +20,6 @@ import {
     Tooltip,
     Typography,
 } from "@mui/material";
-import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import {
     getAccountCategoryIcon,
@@ -226,14 +225,14 @@ const startAccountCreation = () =>
 const startInstitutionCreation = () =>
     TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "institution", institution: createNewInstitution() }));
 
-const InstitutionInnerBox = styled(Box)({ display: "flex", alignItems: "center" });
-const IconBox = styled(Box)(AccountsTableIconSx);
+const InstitutionInnerBox = styled("div")({ display: "flex", alignItems: "center" });
+const IconBox = styled("div")(AccountsTableIconSx);
 const AccountsBox = styled(AccountsTableAccountsBox)({ flexDirection: "row" });
-const AccountInnerBox = styled(Box)({
+const AccountInnerBox = styled("div")({
     display: "flex",
     alignItems: "center",
     paddingLeft: ACCOUNT_TABLE_LEFT_PADDING,
     flexGrow: 1,
 });
-const ActionsBox = styled(Box)({ paddingLeft: 10 });
+const ActionsBox = styled("div")({ paddingLeft: 10 });
 const ActionMenuItem = styled(MenuItem)({ width: 250, height: 48 });

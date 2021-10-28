@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { ListItemText, MenuItem } from "@mui/material";
-import { Box } from "@mui/system";
 import { Dictionary } from "@reduxjs/toolkit";
 import React, { useMemo } from "react";
 import { updateListSelection, zipObject } from "../../shared/data";
@@ -151,7 +150,7 @@ export const getCategoryGraph = (ids: ID[], entities: Dictionary<Category>, excl
     };
 };
 
-const BaseContainerBox = styled(Box)({ display: "flex", alignItems: "center", height: 32 });
+const BaseContainerBox = styled("div")({ display: "flex", alignItems: "center", height: 32 });
 const CategoryIconSx = {
     height: 16,
     width: 16,

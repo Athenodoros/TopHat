@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { Menu } from "@mui/icons-material";
 import { List, MenuItem } from "@mui/material";
-import { Box } from "@mui/system";
 import React from "react";
 import {
     DragDropContext,
@@ -83,4 +82,4 @@ export const DraggableDialogObjectSelector = <Name extends "rule">({
         </DialogOptions>
     );
 };
-const HandleBox = styled(Box)({ display: "flex", alignItems: "center", marginRight: 5 });
+const HandleBox = styled("div")({ display: "flex", alignItems: "center", marginRight: 5 });

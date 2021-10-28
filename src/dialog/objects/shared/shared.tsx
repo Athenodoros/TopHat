@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline } from "@mui/icons-material";
 import { Button } from "@mui/material";
-import { Box } from "@mui/system";
 import { upperFirst } from "lodash";
 import React from "react";
 import { withSuppressEvent } from "../../../shared/events";
@@ -24,7 +23,7 @@ export const useObjectsWithExclusionList = <Name extends BasicObjectName>(type: 
     return exclude ? options.filter(({ id }) => !exclude.includes(id)) : options;
 };
 
-export const DialogObjectOptionsBox = styled(Box)({
+export const DialogObjectOptionsBox = styled("div")({
     overflowY: "auto",
     flexGrow: 1,
     marginTop: 5,

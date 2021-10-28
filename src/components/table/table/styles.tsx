@@ -22,34 +22,34 @@ const MIXED_PLACEHOLDER = {
     fontStyle: "italic",
 };
 
-export const TransactionTableDateContainer = styled(Box)({
+export const TransactionTableDateContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 90,
     marginLeft: 10,
     marginRight: 10,
     flexGrow: 1,
 });
-export const TransactionTableTextContainer = styled(Box)({ width: 150, flexGrow: 4, margin: "14px 10px 10px 0" });
-export const TransactionTableValueContainer = styled(Box)({
+export const TransactionTableTextContainer = styled("div")({ width: 150, flexGrow: 4, margin: "14px 10px 10px 0" });
+export const TransactionTableValueContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 110,
     marginRight: 20,
     flexGrow: 1,
     justifyContent: "flex-end",
 });
-export const TransactionTableCategoryContainer = styled(Box)({
+export const TransactionTableCategoryContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 150,
     flexGrow: 2,
 });
-export const TransactionTableBalanceContainer = styled(Box)({
+export const TransactionTableBalanceContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 110,
     marginLeft: 10,
     flexGrow: 1,
     justifyContent: "flex-end",
 });
-export const TransactionTableStatementContainer = styled(Box)({
+export const TransactionTableStatementContainer = styled("div")({
     ...CENTERED_CONTAINER,
     margin: "0 15px",
 
@@ -66,7 +66,7 @@ export const TransactionTableStatementContainer = styled(Box)({
         },
     },
 });
-export const TransactionTableAccountContainer = styled(Box)({
+export const TransactionTableAccountContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 170,
     flexGrow: 1,
@@ -74,7 +74,7 @@ export const TransactionTableAccountContainer = styled(Box)({
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",
 });
-export const TransactionTableActionsContainer = styled(Box)({
+export const TransactionTableActionsContainer = styled("div")({
     ...CENTERED_CONTAINER,
     width: 100,
     flexGrow: 0,

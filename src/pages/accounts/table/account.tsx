@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { Add, Description, Edit, NoteAdd, Update } from "@mui/icons-material";
 import { Button, ButtonBase, buttonClasses, Tooltip, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { Dictionary } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { cloneDeep, max, min, range, sumBy, toPairs } from "lodash";
@@ -249,7 +248,7 @@ const ContainerSx = {
         marginBottom: 0,
     },
 };
-const AccountNameContainerBox = styled(Box)({
+const AccountNameContainerBox = styled("div")({
     flexGrow: 2,
     display: "flex",
     flexDirection: "column",
@@ -262,8 +261,8 @@ const AccountNameContainerBox = styled(Box)({
     },
 });
 const SubValueTypography = styled(Typography)({ color: Greys[600] });
-const ChartContainerBox = styled(Box)({ height: 50, width: 230 });
-const AccountValueContainerBox = styled(Box)({
+const ChartContainerBox = styled("div")({ height: 50, width: 230 });
+const AccountValueContainerBox = styled("div")({
     marginLeft: 30,
     width: 140,
     flexGrow: 1,
@@ -271,7 +270,7 @@ const AccountValueContainerBox = styled(Box)({
     flexDirection: "column",
     alignItems: "flex-start",
 });
-const AccountValueSummaryBox = styled(Box)({ display: "flex" });
+const AccountValueSummaryBox = styled("div")({ display: "flex" });
 const AccountIconSx = {
     color: Greys[700],
     backgroundColor: Greys[300],
@@ -282,14 +281,14 @@ const AccountIconSx = {
 };
 const DescriptionAccountIcon = styled(Description)(AccountIconSx);
 const EditAccountIcon = styled(Edit)(AccountIconSx);
-const AccountUpdateContainerBox = styled(Box)({
+const AccountUpdateContainerBox = styled("div")({
     width: 160,
     marginLeft: 10,
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
 });
-const AccountUpdateActionsBox = styled(Box)({
+const AccountUpdateActionsBox = styled("div")({
     display: "flex",
 
     // To prevent accidental clicks of the outer button

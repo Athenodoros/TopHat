@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
 import { buttonBaseClasses, Card, Checkbox, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { inRange, unzip } from "lodash";
 import React from "react";
 import { toggleAllStatementExclusions, toggleStatementExclusion } from "../../../../state/logic/statement";
@@ -89,7 +88,7 @@ export const FileImportTableView: React.FC<{ transfers?: boolean }> = ({ transfe
     );
 };
 
-const GridBox = styled(Box)({
+const GridBox = styled("div")({
     margin: "10px 15px",
     overflow: "auto",
     minHeight: 0,
@@ -98,7 +97,7 @@ const GridBox = styled(Box)({
     display: "grid",
     gridAutoRows: "min-content",
 });
-const CheckboxHeaderBox = styled(Box)({
+const CheckboxHeaderBox = styled("div")({
     ...DIALOG_IMPORT_TABLE_HEADER_STYLES,
     display: "flex",
     justifyContent: "center",
@@ -114,7 +113,7 @@ const ContainerCard = styled(Card)({
     alignItems: "stretch",
     justifyContent: "stretch",
 });
-const CheckboxBox = styled(Box)({
+const CheckboxBox = styled("div")({
     ...DIALOG_IMPORT_TABLE_ROW_STYLES,
     display: "flex",
     justifyContent: "center",
@@ -125,7 +124,7 @@ const CheckboxBox = styled(Box)({
         transformOrigin: "center center",
     },
 });
-const ValueBox = styled(Box)({
+const ValueBox = styled("div")({
     maxWidth: 300,
     padding: "2px 20px 2px 10px",
     ...DIALOG_IMPORT_TABLE_ROW_STYLES,

@@ -8,7 +8,6 @@ import {
     PlaylistAddCheck,
 } from "@mui/icons-material";
 import {
-    Box,
     IconButton,
     ListItem,
     ListItemText,
@@ -35,12 +34,12 @@ import {
     CategoriesTableTotalSx,
 } from "./styles";
 
-const IconPlaceholderBox = styled(Box)(CategoriesTableIconSx);
-const TotalBox = styled(Box)(CategoriesTableTotalSx);
-const SubtitleBox = styled(Box)(CategoriesTableSubtitleSx);
+const IconPlaceholderBox = styled("div")(CategoriesTableIconSx);
+const TotalBox = styled("div")(CategoriesTableTotalSx);
+const SubtitleBox = styled("div")(CategoriesTableSubtitleSx);
 const ActionBox = styled(CategoriesTableActionBox)({ visibility: "visible !important" as any });
-const MainBox = styled(Box)(CategoriesTableMainSx);
-const FillbarBox = styled(Box)({ ...CategoriesTableFillbarSx, display: "flex", alignItems: "center" });
+const MainBox = styled("div")(CategoriesTableMainSx);
+const FillbarBox = styled("div")({ ...CategoriesTableFillbarSx, display: "flex", alignItems: "center" });
 
 export const CategoriesPageTableHeader: React.FC<Pick<CategoriesPageState, "tableSign" | "hideEmpty">> = ({
     tableSign,

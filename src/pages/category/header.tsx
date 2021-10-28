@@ -92,7 +92,7 @@ export const CategoryPageHeader: React.FC = () => {
     );
 };
 
-const ContainerBox = styled(Box)({
+const ContainerBox = styled("div")({
     display: "flex",
     position: "relative",
     alignItems: "center",
@@ -116,7 +116,7 @@ const ColourBox = styled(Box)({
     width: 310,
     borderRadius: "40px",
 });
-const ValuesBox = styled(Box)({
+const ValuesBox = styled("div")({
     height: 56,
     flexGrow: 1,
     display: "flex",
