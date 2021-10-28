@@ -100,8 +100,9 @@ export const TransactionTableMixedTypography = styled(Typography)(MIXED_PLACEHOL
 export const TransactionTableSxProps = {
     Container: {
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "flex-start !important",
         padding: "0 5px",
+        height: "min-content !important",
         ...TopHatTheme.typography.body1,
         transition: getThemeTransition(["box-shadow"]),
 
