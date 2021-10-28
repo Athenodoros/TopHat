@@ -26,6 +26,7 @@
         "@types/react-redux": "^7.1.16",
         "@types/victory": "^33.1.5",
         "chroma-js": "^2.1.2",
+        "cra-bundle-analyzer": "^0.1.0",
         "dexie": "^3.0.3",
         "dexie-observable": "^3.0.0-beta.11",
         "dropbox": "^10.14.0",

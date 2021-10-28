@@ -1,18 +1,21 @@
 import styled from "@emotion/styled";
-import { Button, TextField, Typography } from "@mui/material";
+import { Button, CircularProgress, TextField, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import JSZip from "jszip";
 import { toPairs } from "lodash";
 import Papa from "papaparse";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { createAndDownloadFile } from "../../shared/data";
 import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { DataKeys } from "../../state/data/types";
+import { initialiseDemoData } from "../../state/logic/startup";
+import { WHITE } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
-const ActionSx = { textAlign: "center", width: 100 } as const;
+const ActionSx = { textAlign: "center", width: 100, height: 61 } as const;
 const InputTextField = styled(TextField)({ margin: "10px 50px 0 50px" });
 
 export const DialogExportContents: React.FC = () => {
@@ -75,6 +78,18 @@ export const DialogImportContents: React.FC = () => {
         disabled: text.toUpperCase() !== "PERMANENTLY DELETE ALL DATA",
     } as const;
 
+    const [demoLoading, setDemoLoading] = useState(false);
+    const handleDemoRestart = useCallback(() => {
+        setDemoLoading(true);
+        setTimeout(
+            () =>
+                initialiseDemoData().then(() => {
+                    setDemoLoading(false);
+                }),
+            100
+        );
+    }, [setDemoLoading]);
+
     return (
         <SettingsDialogPage title="Data Import and Deletion">
             <Typography variant="body2">
@@ -103,8 +118,18 @@ export const DialogImportContents: React.FC = () => {
                 </EditValueContainer>
                 <EditValueContainer
                     label={
-                        <Button {...ButtonProps} onClick={resetDemoData}>
-                            Restart Demo
+                        <Button
+                            {...ButtonProps}
+                            onClick={handleDemoRestart}
+                            variant={demoLoading ? "contained" : "outlined"}
+                        >
+                            {demoLoading ? (
+                                <Box sx={{ transform: "scale(0.3)", transformOrigin: "center" }}>
+                                    <CircularProgress size="small" sx={{ color: WHITE }} />
+                                </Box>
+                            ) : (
+                                "Restart Demo"
+                            )}
                         </Button>
                     }
                 >
@@ -130,7 +155,6 @@ export const DialogImportContents: React.FC = () => {
 };
 
 const deleteAllData = () => TopHatDispatch(DataSlice.actions.reset());
-const resetDemoData = () => TopHatDispatch(DataSlice.actions.setUpDemo());
 const onCreateFileInput = (input: HTMLInputElement) => {
     if (!input) return;
 

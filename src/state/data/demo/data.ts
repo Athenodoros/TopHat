@@ -1,8 +1,7 @@
 import chroma from "chroma-js";
-import { random as randomInt, range, rangeRight, values } from "lodash";
+import { random as randomInt, range, values } from "lodash";
 import { DurationObject } from "luxon";
-import { DataState } from ".";
-import { takeWithDefault, zipObject } from "../../shared/data";
+import { takeWithDefault, zipObject } from "../../../shared/data";
 import {
     BaseTransactionHistory,
     BaseTransactionHistoryWithLocalisation,
@@ -13,45 +12,41 @@ import {
     ID,
     parseDate,
     SDate,
-} from "../shared/values";
+} from "../../shared/values";
 import {
     compareTransactionsDescendingDates,
+    DEFAULT_CURRENCY,
     DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY_ID,
-} from "./shared";
-import { Account, Category, Currency, CurrencySyncType, Institution, Rule, Statement, Transaction } from "./types";
-
-const INCLUDE_BUDGETS_IN_DEMO = true;
+} from "../shared";
+import { Account, Category, Currency, CurrencySyncType, Institution, Rule, Statement, Transaction } from "../types";
 
 const today = getToday();
 
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
-const currencyColourScale = chroma.scale("set1").domain([0, 4]);
-type CurrencyArgs = [string, string, string, number, CurrencySyncType | undefined];
+type CurrencyArgs = [string, string, string, number, string, CurrencySyncType | undefined];
 const currencyFields = ["symbol", "name", "ticker"] as const;
 const makeCurrency = (args: CurrencyArgs, id: number) =>
     ({
-        id: id + 1,
-        colour: currencyColourScale(id + 2).hex(),
+        id: id + 2,
         transactions: BaseTransactionHistoryWithLocalisation(),
         start: getCurrentMonthString(),
         rates: [{ month: getCurrentMonthString(), value: args[3] }],
-        sync: args[4],
+        sync: args[5],
+        colour: args[4],
         ...zipObject(currencyFields, args),
     } as Currency);
 const currencies = (
     [
-        ["AU$", "Australian Dollars", "AUD", 0.75],
-        ["£", "Pounds Sterling", "GBP", 1.35],
-        ["€", "Euros", "EUR", 1.15, { type: "currency", ticker: "EUR" }],
-        ["US$", "US Dollars", "USD", 1],
+        ["£", "Pounds Sterling", "GBP", 1.35, "#00B3A4"],
+        ["€", "Euros", "EUR", 1.15, "#96622D", { type: "currency", ticker: "EUR" }],
+        ["US$", "US Dollars", "USD", 1, "#DB2C6F"],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
-export const DEFAULT_CURRENCY = currencies[0];
 
 // currencies[1].rates.push({ date: formatDate(today.minus({ months: 8 })), value: 1.02 });
 // currencies[1].rates.push({ date: formatDate(today.minus({ months: 12, days: 7 })), value: 0.78 });
@@ -70,19 +65,16 @@ const makeCategory = (
         budgets,
     } as Category);
 const start = getTodayString();
-const getBaseBudget = (base: number, length: number = 28) =>
-    INCLUDE_BUDGETS_IN_DEMO
-        ? {
-              start,
-              values: takeWithDefault(
-                  range(length).map((_) => base),
-                  Math.max(24, length),
-                  0
-              ),
-              strategy: "base" as const,
-              base,
-          }
-        : undefined;
+const getBaseBudget = (base: number, length: number = 28) => ({
+    start,
+    values: takeWithDefault(
+        range(length).map((_) => base),
+        Math.max(24, length),
+        0
+    ),
+    strategy: "base" as const,
+    base,
+});
 const categories = [
     { name: "Social", budgets: getBaseBudget(-700) }, // 1
     { name: "Groceries", budgets: getBaseBudget(-700) }, // 2
@@ -90,16 +82,14 @@ const categories = [
     { name: "Travel" }, // 4
     {
         name: "Housing",
-        budgets: INCLUDE_BUDGETS_IN_DEMO
-            ? {
-                  start,
-                  strategy: "base" as const,
-                  base: -560,
-                  values: range(18)
-                      .map((_) => -560)
-                      .concat(range(6).map((_) => -70)),
-              }
-            : undefined,
+        budgets: {
+            start,
+            strategy: "base" as const,
+            base: -560,
+            values: range(18)
+                .map((_) => -560)
+                .concat(range(6).map((_) => -70)),
+        },
     }, // 5
     { name: "Income" }, // 6
     { name: "Super", hierarchy: [6] }, // 7
@@ -504,13 +494,12 @@ transactions = transactions.filter(
     (tx) => tx.statement !== statementMap.international[1].id
     // && !lastEverydayStatements.includes(tx.statement)
 );
-export const DemoStatementFiles = [statementMap.international[1]];
 // .concat(
 //     values(statementMap.everyday).filter(({ id }) => lastEverydayStatements.includes(id))
 // );
 
 // Initialise Demo
-export const DemoObjects = {
+const DemoObjects = {
     user: [{ ...DEFAULT_USER_VALUE, isDemo: true }],
     account: accounts,
     institution: institutions,
@@ -522,35 +511,9 @@ export const DemoObjects = {
     notification: [],
 };
 
-export const finishDemoInitialisation = (state: DataState) => {
-    if (INCLUDE_BUDGETS_IN_DEMO) {
-        // Travel budget
-        const travelCategory = state.category.entities[4]!;
-        const travelBudget = -250;
-        const travelBudgetHistory: number[] = [];
-        rangeRight(24).forEach((idx) => {
-            const previous = travelCategory.transactions.debits[idx + 1] || 0;
-            const budget = travelBudget + (travelBudgetHistory[0] || 0) - previous;
-            travelBudgetHistory[0] = previous;
-            travelBudgetHistory.unshift(budget);
-        });
-        travelCategory.budgets = { start, values: travelBudgetHistory, strategy: "rollover", base: travelBudget };
+const DemoStatementFile = JSON.stringify(statementMap.international[1]);
 
-        // Income budget
-        const incomeCategory = state.category.entities[6]!;
-        incomeCategory.budgets = {
-            start,
-            values: range(24).map(
-                (i) => (incomeCategory.transactions.credits[i] || incomeCategory.transactions.credits[1]) - 10
-            ),
-            strategy: "copy",
-            base: 0,
-        };
-    }
-
-    state.account.ids.forEach((id) => {
-        const account = state.account.entities[id]!;
-        account.lastUpdate = account.lastTransactionDate || getTodayString();
-        if (account.openDate > account.lastUpdate) account.openDate = account.lastUpdate;
-    });
+export const DemoData = {
+    demo: DemoObjects,
+    download: DemoStatementFile,
 };

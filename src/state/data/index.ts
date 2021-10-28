@@ -38,10 +38,11 @@ import {
     TransactionHistory,
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
-import { DEFAULT_CURRENCY, DemoObjects, finishDemoInitialisation } from "./demo";
+import { finishDemoInitialisation } from "./demo/post";
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
+    DEFAULT_CURRENCY,
     DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY,
     PLACEHOLDER_INSTITUTION,
@@ -135,9 +136,9 @@ export const DataSlice = createSlice({
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
             mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
-        setUpDemo: () => {
+        setUpDemo: (_, { payload: { demo, download } }: PayloadAction<{ demo: ListDataState; download: string }>) => {
             const state = mapValuesWithKeys(adapters, (name, adapter) =>
-                adapter.addMany(cloneDeep(DataBaseline[name]), DemoObjects[name])
+                adapter.addMany(cloneDeep(DataBaseline[name]), demo[name])
             ) as DataState;
 
             // This is necessary because the EntityAdapters freeze objects when they are added
@@ -147,7 +148,7 @@ export const DataSlice = createSlice({
                 updateBalancesAndAccountSummaries(state);
                 updateCategoryTransactionDates(state);
 
-                finishDemoInitialisation(state);
+                finishDemoInitialisation(state, download);
             });
         },
         updateSimpleObjects: <Name extends "rule">(

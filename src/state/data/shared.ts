@@ -2,8 +2,25 @@ import { EntityId } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
 import { chunk, countBy, last, max, maxBy, toPairs } from "lodash";
 import { BLACK, Greys } from "../../styles/colours";
-import { BaseTransactionHistory, getTodayString, SDate } from "../shared/values";
+import {
+    BaseTransactionHistory,
+    BaseTransactionHistoryWithLocalisation,
+    getCurrentMonthString,
+    getTodayString,
+    SDate,
+} from "../shared/values";
 import { Category, Currency, Institution, Statement, StubUserID, Transaction, User } from "./types";
+
+export const DEFAULT_CURRENCY: Currency = {
+    id: 1,
+    colour: "#7157D9",
+    transactions: BaseTransactionHistoryWithLocalisation(),
+    start: getCurrentMonthString(),
+    rates: [{ month: getCurrentMonthString(), value: 0.75 }],
+    symbol: "AU$",
+    name: "Australian Dollars",
+    ticker: "AUD",
+};
 
 export const DEFAULT_USER_VALUE: User = {
     id: StubUserID,

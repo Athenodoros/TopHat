@@ -19,3 +19,5 @@ export interface NotificationRuleDefinition {
     display: (alert: { id: string; contents: string }) => NotificationDisplayMetadata;
     maybeUpdateState?: (previous: DataState | undefined, current: DataState) => void;
 }
+
+export const DEMO_NOTIFICATION_ID = "demo";

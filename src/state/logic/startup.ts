@@ -21,7 +21,8 @@ import * as Parsing from "./statement/parsing";
 const debug = process.env.NODE_ENV !== "production";
 
 export const initialiseDemoData = async () => {
-    TopHatDispatch(DataSlice.actions.setUpDemo());
+    const { DemoData } = await import("../data/demo/data");
+    TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));
     await updateSyncedCurrencies();
 };
 

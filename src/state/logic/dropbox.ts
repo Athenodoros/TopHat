@@ -21,7 +21,7 @@ export const redirectToDropboxAuthURI = async () => {
         .catch((error) => console.error(error));
 };
 
-export class DBWrapper {
+class DBWrapper {
     private static db: Dropbox | null = null;
 
     static get() {
