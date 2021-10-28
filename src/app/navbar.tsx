@@ -46,9 +46,6 @@ export const NavBar: React.FC = () => {
                 background: selected ? colour : chroma(colour).alpha(0.1).hex(),
                 "&:hover": {
                     backgroundColor: selected ? chroma(colour).darken(1).hex() : chroma(colour).alpha(0.2).hex(),
-                    "& > svg": {
-                        transform: "scale(0.9)",
-                    },
                 },
             }}
             onClick={onClick}
