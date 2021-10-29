@@ -9,7 +9,7 @@ export const CategoriesTableMainSx = {
     alignItems: "center",
     paddingLeft: 15,
 
-    "&:hover > :nth-last-child(1), &:hover > :nth-last-child(2)": {
+    "&:hover > div:last-of-type": {
         visibility: "visible",
     },
 } as const;
