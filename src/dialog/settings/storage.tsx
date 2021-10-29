@@ -5,7 +5,7 @@ import React from "react";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
 import { useUserData } from "../../state/data/hooks";
-import { redirectToDropboxAuthURI } from "../../state/logic/dropbox2";
+import { redirectToDropboxAuthURI } from "../../state/logic/dropbox";
 import { Greys, Intents } from "../../styles/colours";
 import { ReactComponent as DropboxLogo } from "./dropbox.svg";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";

@@ -1,7 +1,6 @@
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { IDatabaseChange } from "dexie-observable/api";
-import { Dropbox, DropboxAuth } from "dropbox";
 import _, { uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import Papa from "papaparse";
@@ -12,7 +11,7 @@ import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../
 import { DataKeys, StubUserID } from "../data/types";
 import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
-import * as DBUtils from "./dropbox2";
+import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import { setIDBConnectionExists } from "./notifications/variants/idb";
 import * as Statement from "./statement";
@@ -154,8 +153,6 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Statement = { ...Statement, ...Parsing };
     (window as any).db = db;
     (window as any).DBUtils = DBUtils;
-    (window as any).Dropbox = Dropbox;
-    (window as any).DropboxAuth = DropboxAuth;
     (window as any).restart = () => TopHatDispatch(DataSlice.actions.restartTutorial());
     (window as any).formatNumber = formatNumber;
 

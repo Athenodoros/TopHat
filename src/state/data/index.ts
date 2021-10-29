@@ -117,7 +117,7 @@ export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
 };
 
-const initialTutorialState = {
+const initialTutorialState: DataState = {
     ...DataBaseline,
     user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
 };
