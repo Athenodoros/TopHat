@@ -172,7 +172,6 @@ const CategoryIconSx = {
     flexShrink: 0,
     borderRadius: "50%",
     marginRight: 6,
-    border: "1px solid",
 };
 const TransferCategorySx = {
     fontStyle: "italic",
