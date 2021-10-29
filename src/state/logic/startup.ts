@@ -1,7 +1,6 @@
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { IDatabaseChange } from "dexie-observable/api";
-import { Dropbox, DropboxAuth } from "dropbox";
 import _, { uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import Papa from "papaparse";
@@ -64,7 +63,7 @@ export const initialiseAndGetDBConnection = async () => {
     // Dropbox setup
     if (maybeDropboxCode) {
         if (debug) console.log("Initialising Dropbox state from redirect...");
-        DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
+        await DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
     }
     initialiseMaybeDropboxSyncFromRedux();
 
@@ -154,8 +153,6 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Statement = { ...Statement, ...Parsing };
     (window as any).db = db;
     (window as any).DBUtils = DBUtils;
-    (window as any).Dropbox = Dropbox;
-    (window as any).DropboxAuth = DropboxAuth;
     (window as any).restart = () => TopHatDispatch(DataSlice.actions.restartTutorial());
     (window as any).formatNumber = formatNumber;
 

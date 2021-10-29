@@ -1,4 +1,4 @@
-import { Dropbox, DropboxAuth } from "dropbox";
+import { Dropbox } from "dropbox";
 import JSZip from "jszip";
 import { TopHatDispatch, TopHatStore } from "..";
 import { DataSlice } from "../data";
@@ -10,6 +10,7 @@ const REDIRECT_URI = `${window.location.origin}/dropbox`;
 
 // Largely from: https://github.com/dropbox/dropbox-sdk-js/blob/main/examples/javascript/pkce-browser/index.html
 export const redirectToDropboxAuthURI = async () => {
+    const { DropboxAuth } = await import("dropbox");
     const dbxAuth = new DropboxAuth({ clientId: APP_KEY });
     dbxAuth
         .getAuthenticationUrl(REDIRECT_URI, undefined, "code", "offline", undefined, undefined, true)
@@ -21,16 +22,21 @@ export const redirectToDropboxAuthURI = async () => {
         .catch((error) => console.error(error));
 };
 
+const getDropboxWrapper = async (refreshToken: string) => {
+    const { Dropbox } = await import("dropbox");
+    return new Dropbox({ clientId: APP_KEY, refreshToken });
+};
+
 class DBWrapper {
     private static db: Dropbox | null = null;
 
-    static get() {
+    static async get() {
         if (this.db !== null) return this.db;
 
         const config = TopHatStore.getState().data.user.entities[StubUserID]!.dropbox;
         if (config === undefined || config === "loading") return null;
 
-        this.db = new Dropbox({ clientId: APP_KEY, refreshToken: config.refreshToken });
+        this.db = await getDropboxWrapper(config.refresh_token);
         return this.db;
     }
     static set(db: Dropbox) {
@@ -41,7 +47,7 @@ class DBWrapper {
 export const maybeSaveDataToDropbox = async () => {
     if (!window.navigator.onLine) return;
 
-    const db = DBWrapper.get();
+    const db = await DBWrapper.get();
     if (db === null) return;
 
     const zip = new JSZip();
@@ -85,13 +91,14 @@ export const getMaybeDropboxRedirectCode = () => {
         ?.split("code=")[1];
 };
 
-export const dealWithDropboxRedirect = (code: string) => {
+export const dealWithDropboxRedirect = async (code: string) => {
     TopHatDispatch(
         DataSlice.actions.updateUserPartial({
             dropbox: "loading",
         })
     );
 
+    const { DropboxAuth } = await import("dropbox");
     const dbxAuth = new DropboxAuth({ clientId: APP_KEY });
 
     const verifier = window.sessionStorage.getItem("codeVerifier");
@@ -102,7 +109,7 @@ export const dealWithDropboxRedirect = (code: string) => {
             .getAccessTokenFromCode(REDIRECT_URI, code)
             .then(async (request) => {
                 const refreshToken = (request.result as any).refresh_token as string;
-                const db = new Dropbox({ clientId: APP_KEY, refreshToken });
+                const db = await getDropboxWrapper(refreshToken);
 
                 const account = (await db.usersGetCurrentAccount()).result;
                 TopHatDispatch(
