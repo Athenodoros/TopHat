@@ -19,7 +19,7 @@ export const FlexWidthChart: React.FC<FlexWidthChartProps> = ({ getChart, style 
         const chart = getChart(width);
         if (!React.isValidElement(chart)) return;
 
-        setTimeout(() => setChart(React.cloneElement(chart, { width } as any)), 0);
+        setChart(React.cloneElement(chart, { width } as any));
     }, [width, getChart]);
 
     return (

@@ -86,7 +86,7 @@ export const DialogImportContents: React.FC = () => {
                 initialiseDemoData().then(() => {
                     setDemoLoading(false);
                 }),
-            100
+            0
         );
     }, [setDemoLoading]);
 
