@@ -9,7 +9,6 @@ import {
     PayloadAction,
     Update,
 } from "@reduxjs/toolkit";
-import { createDraft } from "immer";
 import { WritableDraft } from "immer/dist/internal";
 import {
     clone,
@@ -253,7 +252,7 @@ export const DataSlice = createSlice({
                 updateTransactionSummariesWithTransactions(state, transactions, true);
 
                 // Don't overwrite transaction summary with old version
-                const draft = createDraft(working as Currency);
+                const draft = cloneDeep(working as Currency);
                 draft.transactions = state.currency.entities[working.id]!.transactions;
                 adapters.currency.upsertOne(state.currency, draft);
 
