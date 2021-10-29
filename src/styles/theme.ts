@@ -57,6 +57,9 @@ export const theme = createMuiTheme({
         },
     },
     spacing: 1,
+    shape: {
+        borderRadius: 1,
+    },
 });
 
 declare module "@mui/material/styles" {

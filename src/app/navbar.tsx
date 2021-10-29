@@ -6,10 +6,10 @@ import {
     ShoppingBasketTwoTone,
     TrendingUpTwoTone,
 } from "@mui/icons-material";
-import { IconButton, Paper } from "@mui/material";
+import { IconButton, Paper, useTheme } from "@mui/material";
 import makeStyles from "@mui/styles/makeStyles";
+import { Box } from "@mui/system";
 import chroma from "chroma-js";
-import clsx from "clsx";
 import { mapValues } from "lodash-es";
 import React from "react";
 import { IconType } from "../shared/types";
@@ -22,57 +22,6 @@ import { AppColours, Greys, WHITE } from "../styles/colours";
 
 export const NAVBAR_LOGO_HEIGHT = 156;
 const useStyles = makeStyles((theme) => ({
-    navbar: {
-        flex: "80px 0 0",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-
-        "& > div": {
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-
-            "& > div": {
-                cursor: "pointer",
-            },
-        },
-    },
-
-    logo: {
-        height: NAVBAR_LOGO_HEIGHT,
-        justifyContent: "center",
-        flexShrink: 0,
-
-        "& > button": {
-            margin: 0,
-            borderRadius: "50%",
-            width: 52,
-            height: 52,
-
-            svg: {
-                strokeWidth: 1,
-            },
-        },
-    },
-
-    apps: {
-        flexGrow: 1,
-        flexShrink: 1,
-        minHeight: 0,
-        overflowY: "auto",
-    },
-
-    admin: {
-        flexShrink: 0,
-        background: WHITE,
-        paddingTop: 27,
-
-        "& > *:last-child": {
-            marginBottom: 13,
-        },
-    },
-
     button: {
         width: 46,
         height: 46,
@@ -99,6 +48,7 @@ const SelectionEquivalents = {
 export const NavBar: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
     const classes = useStyles();
+    const theme = useTheme();
 
     const getIcon = (
         colour: string,
@@ -108,14 +58,22 @@ export const NavBar: React.FC = () => {
         logo?: boolean
     ) => (
         <IconButton
-            className={clsx(classes.button, selected && classes.selected)}
-            style={{
-                // stroke: logo ? WHITE : undefined,
+            sx={{
+                width: 46,
+                height: 46,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: theme.transitions.create("all"),
+                // border: "1px solid",
+                borderRadius: 10,
+                marginBottom: 27,
+                flexShrink: 0,
+                borderWidth: selected ? 3 : undefined,
                 color: selected ? WHITE : colour,
                 background: chroma(colour)
                     .alpha(selected ? 1 : 0.1)
                     .hex(),
-                // borderColor: selected ? dark : light,
             }}
             onClick={onClick}
             size="large"
@@ -131,15 +89,71 @@ export const NavBar: React.FC = () => {
     };
 
     return (
-        <Paper elevation={3} className={classes.navbar}>
-            <div className={classes.logo}>{getTab("summary", Camera, true)}</div>
-            <div className={classes.apps}>
+        <Paper
+            elevation={3}
+            sx={{
+                flex: "80px 0 0",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "stretch",
+
+                "& > div": {
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+
+                    "& > div": {
+                        cursor: "pointer",
+                    },
+                },
+            }}
+        >
+            <Box
+                sx={{
+                    height: NAVBAR_LOGO_HEIGHT,
+                    justifyContent: "center",
+                    flexShrink: 0,
+
+                    "& > button": {
+                        margin: 0,
+                        borderRadius: "50%",
+                        width: 52,
+                        height: 52,
+
+                        svg: {
+                            strokeWidth: 1,
+                        },
+                    },
+                }}
+            >
+                {getTab("summary", Camera, true)}
+            </Box>
+            <Box
+                sx={{
+                    flexGrow: 1,
+                    flexShrink: 1,
+                    minHeight: 0,
+                    overflowY: "auto",
+                }}
+            >
                 {getTab("accounts", AccountBalanceWalletTwoTone)}
                 {getTab("transactions", PaymentTwoTone)}
                 {getTab("categories", ShoppingBasketTwoTone)}
                 {getTab("forecasts", TrendingUpTwoTone)}
-            </div>
-            <div className={classes.admin}>{getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}</div>
+            </Box>
+            <Box
+                sx={{
+                    flexShrink: 0,
+                    background: WHITE,
+                    paddingTop: 27,
+
+                    "& > *:last-child": {
+                        marginBottom: 13,
+                    },
+                }}
+            >
+                {getIcon(Greys[800], SettingsTwoTone, openSettingsDialog)}
+            </Box>
         </Paper>
     );
 };
