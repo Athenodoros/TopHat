@@ -16,6 +16,7 @@ export const redirectToDropboxAuthURI = async () => {
         .then((authUrl) => {
             window.sessionStorage.clear();
             window.sessionStorage.setItem("codeVerifier", (dbxAuth as any).codeVerifier);
+            console.log((dbxAuth as any).codeVerifier, authUrl.toString());
             window.location.href = authUrl.toString();
         })
         .catch((error) => console.error(error));
@@ -78,6 +79,7 @@ export const maybeSaveDataToDropbox = async () => {
 };
 
 export const getMaybeDropboxRedirectCode = () => {
+    console.log(window.location.search);
     return window.location.search
         .replace("?", "")
         .split("&")

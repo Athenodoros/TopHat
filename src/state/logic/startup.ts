@@ -12,7 +12,7 @@ import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../
 import { DataKeys, StubUserID } from "../data/types";
 import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
-import * as DBUtils from "./dropbox";
+import * as DBUtils from "./dropbox2";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import { setIDBConnectionExists } from "./notifications/variants/idb";
 import * as Statement from "./statement";
