@@ -9,6 +9,7 @@ import { TopHatDialog } from "../dialog";
 import { TopHatStore } from "../state";
 import { handleStatementFileUpload } from "../state/logic/statement";
 import { TopHatTheme } from "../styles/theme";
+import { PageErrorBoundary } from "./error";
 import { TopHatTutorial } from "./tutorial";
 
 export const FileHandlerContext = React.createContext<{
@@ -51,21 +52,23 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
             >
                 <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={TopHatTheme}>
-                        <FileHandlerContext.Provider
-                            value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
-                        >
-                            <Provider store={TopHatStore}>
-                                <div {...omit(getRootProps(), ["onClick"])}>
-                                    <TopHatDialog />
-                                    <TopHatTutorial />
-                                    <input
-                                        id="file-upload-dropzone"
-                                        {...getInputProps({ style: { display: "none" } })}
-                                    />
-                                    {children}
-                                </div>
-                            </Provider>
-                        </FileHandlerContext.Provider>
+                        <PageErrorBoundary>
+                            <FileHandlerContext.Provider
+                                value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
+                            >
+                                <Provider store={TopHatStore}>
+                                    <div {...omit(getRootProps(), ["onClick"])}>
+                                        <TopHatDialog />
+                                        <TopHatTutorial />
+                                        <input
+                                            id="file-upload-dropzone"
+                                            {...getInputProps({ style: { display: "none" } })}
+                                        />
+                                        {children}
+                                    </div>
+                                </Provider>
+                            </FileHandlerContext.Provider>
+                        </PageErrorBoundary>
                     </ThemeProvider>
                 </StyledEngineProvider>
             </LocalizationProvider>

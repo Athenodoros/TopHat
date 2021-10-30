@@ -9,7 +9,7 @@ interface NonIdealStateProps {
     icon: IconType;
     title: string;
     intent?: keyof typeof Intents;
-    subtitle?: string;
+    subtitle?: React.ReactNode;
     action?: React.ReactNode;
 }
 export const NonIdealState: React.FC<NonIdealStateProps> = ({ icon: Icon, title, subtitle, intent, action }) => (
@@ -21,7 +21,13 @@ export const NonIdealState: React.FC<NonIdealStateProps> = ({ icon: Icon, title,
             sx={IconSx}
         />
         <Typography variant="h6">{title}</Typography>
-        {subtitle ? <SubtitleTypography variant="body2">{subtitle}</SubtitleTypography> : undefined}
+        {subtitle ? (
+            typeof subtitle === "string" ? (
+                <SubtitleTypography variant="body2">{subtitle}</SubtitleTypography>
+            ) : (
+                subtitle
+            )
+        ) : undefined}
         {action}
     </ContainerBox>
 );

@@ -7,6 +7,7 @@ import { CategoryPage } from "../pages/category";
 import { ForecastPage } from "../pages/forecasts";
 import { SummaryPage } from "../pages/summary";
 import { TransactionsPage } from "../pages/transactions";
+import { PageStateType } from "../state/app/pageTypes";
 import { useSelector } from "../state/shared/hooks";
 import { APP_BACKGROUND_COLOUR } from "../styles/theme";
 import { NavBar } from "./navbar";
@@ -17,15 +18,19 @@ export const View: React.FC = () => {
     return (
         <AppContainerBox>
             <NavBar />
-            {page === "summary" ? <SummaryPage /> : undefined}
-            {page === "accounts" ? <AccountsPage /> : undefined}
-            {page === "account" ? <AccountPage /> : undefined}
-            {page === "transactions" ? <TransactionsPage /> : undefined}
-            {page === "categories" ? <CategoriesPage /> : undefined}
-            {page === "category" ? <CategoryPage /> : undefined}
-            {page === "forecasts" ? <ForecastPage /> : undefined}
+            {Pages[page]}
         </AppContainerBox>
     );
+};
+
+const Pages: Record<PageStateType["id"], JSX.Element> = {
+    summary: <SummaryPage />,
+    accounts: <AccountsPage />,
+    account: <AccountPage />,
+    transactions: <TransactionsPage />,
+    categories: <CategoriesPage />,
+    category: <CategoryPage />,
+    forecasts: <ForecastPage />,
 };
 
 const AppContainerBox = styled("div")({
