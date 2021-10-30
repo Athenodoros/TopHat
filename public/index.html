@@ -22,6 +22,22 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
         <title>TopHat Finance</title>
+
+        <!-- c/o https://github.com/rafgraph/spa-github-pages -->
+        <script type="text/javascript">
+            (function (l) {
+                if (l.search[1] === "/") {
+                    var decoded = l.search
+                        .slice(1)
+                        .split("&")
+                        .map(function (s) {
+                            return s.replace(/~and~/g, "&");
+                        })
+                        .join("?");
+                    window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+                }
+            })(window.location);
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
