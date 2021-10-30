@@ -1,11 +1,15 @@
 import styled from "@emotion/styled";
 import { PlaylistAdd } from "@mui/icons-material";
 import { Button, Card, Checkbox } from "@mui/material";
-import { noop } from "lodash";
-import React, { useCallback, useMemo } from "react";
+import { Dictionary } from "@reduxjs/toolkit";
+import { noop, sumBy } from "lodash";
+import React, { useCallback, useMemo, useRef } from "react";
+import { WindowScroller } from "react-virtualized";
+import { VariableSizeList } from "react-window";
 import { TableHeaderContainer } from "..";
 import { flipListIncludes } from "../../../shared/data";
 import { useRefToValue } from "../../../shared/hooks";
+import { Transaction } from "../../../state/data";
 import { ID } from "../../../state/shared/values";
 import { TopHatTheme } from "../../../styles/theme";
 import { Section, SectionProps } from "../../layout";
@@ -50,6 +54,18 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     const [stateRef, setStatePartial] = useSetPartialValue(state, setState);
     const updaters = useTableUpdateFunctions(stateRef, setStatePartial, filtersRef, setFiltersPartial);
 
+    const listRef = useRef<VariableSizeList>(null);
+    const handleScroll = useCallback(({ scrollTop }: { scrollTop: number }) => {
+        console.log("Scrolling:", listRef.current);
+        listRef.current?.scrollTo(scrollTop);
+    }, []);
+
+    const newEditOffset = edit?.id !== undefined && !ids.includes(edit.id) ? 1 : 0;
+    const heights: number[] = useMemo(
+        () => groups.map(([_, ids]) => getGroupHeight(ids, metadata, edit?.id)),
+        [groups, metadata, edit?.id]
+    );
+
     return (
         <Section title="Transaction List" headers={headers} emptyBody={true}>
             <TableHeaderContainer
@@ -92,54 +108,68 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                     />
                 )}
             </TableHeaderContainer>
-            {edit?.id !== undefined && !ids.includes(edit.id) ? (
-                <RowGroupCard elevation={0}>
-                    <ContainerBox>
-                        <CheckboxContainer>
-                            <Checkbox checked={false} onChange={noop} color="primary" disabled={true} />
-                        </CheckboxContainer>
-                        <TransactionsTableEditEntry
-                            edit={edit}
-                            selected={[edit.id]}
-                            setEditPartial={updaters.editPartial}
-                            setStatePartial={setStatePartial}
-                            fixed={fixed}
-                        />
-                    </ContainerBox>
-                </RowGroupCard>
-            ) : undefined}
-            {groups.map(([date, list]) => (
-                <RowGroupCard key={date} elevation={0}>
-                    {list.map((id) => (
-                        <ContainerBox key={id}>
-                            <CheckboxContainer>
-                                <Checkbox
-                                    checked={selection.includes(id)}
-                                    onChange={updaters.selection(id)}
-                                    color="primary"
-                                    disabled={!!edit}
-                                />
-                            </CheckboxContainer>
-                            {edit?.id === id ? (
+            <WindowScroller onScroll={handleScroll}>{() => <div />}</WindowScroller>
+            <VariableSizeList
+                ref={listRef}
+                itemCount={groups.length + newEditOffset}
+                itemSize={(index) =>
+                    ROW_GROUP_MARGIN +
+                    (newEditOffset === 1 && index === 0 ? EDIT_ROW_HEIGHT : heights[index - newEditOffset])
+                }
+                width={window.innerWidth}
+                height={window.innerHeight}
+                style={{ width: "unset", height: "unset" }}
+            >
+                {({ index, style }) =>
+                    newEditOffset === 1 && index === 0 ? (
+                        <RowGroupCard elevation={0}>
+                            <ContainerBox>
+                                <CheckboxContainer>
+                                    <Checkbox checked={false} onChange={noop} color="primary" disabled={true} />
+                                </CheckboxContainer>
                                 <TransactionsTableEditEntry
-                                    original={metadata[id]!}
-                                    edit={edit}
-                                    selected={[id]}
+                                    edit={edit!}
+                                    selected={selection}
                                     setEditPartial={updaters.editPartial}
                                     setStatePartial={setStatePartial}
                                     fixed={fixed}
                                 />
-                            ) : (
-                                <TransactionsTableViewEntry
-                                    transaction={metadata[id]!}
-                                    updateState={setStatePartial}
-                                    fixed={fixed}
-                                />
-                            )}
-                        </ContainerBox>
-                    ))}
-                </RowGroupCard>
-            ))}
+                            </ContainerBox>
+                        </RowGroupCard>
+                    ) : (
+                        <RowGroupCard key={groups[index - newEditOffset][0]} elevation={0}>
+                            {groups[index - newEditOffset][1].map((id) => (
+                                <ContainerBox key={id}>
+                                    <CheckboxContainer>
+                                        <Checkbox
+                                            checked={selection.includes(id)}
+                                            onChange={updaters.selection(id)}
+                                            color="primary"
+                                            disabled={!!edit}
+                                        />
+                                    </CheckboxContainer>
+                                    {edit?.id === id ? (
+                                        <TransactionsTableEditEntry
+                                            original={metadata[id]!}
+                                            edit={edit}
+                                            selected={[id]}
+                                            setEditPartial={updaters.editPartial}
+                                            setStatePartial={setStatePartial}
+                                            fixed={fixed}
+                                        />
+                                    ) : (
+                                        <TransactionsTableViewEntry
+                                            transaction={metadata[id]!}
+                                            updateState={setStatePartial}
+                                            fixed={fixed}
+                                        />
+                                    )}
+                                </ContainerBox>
+                            ))}
+                        </RowGroupCard>
+                    )
+                }
+            </VariableSizeList>
             <LoadMoreButton
                 variant="outlined"
                 size="large"
@@ -189,8 +219,22 @@ const useTableUpdateFunctions = (
         [stateRef, setStatePartial, filterRef, setFiltersPartial]
     );
 
+const ROW_GROUP_MARGIN = 20;
+const EDIT_ROW_HEIGHT = 96;
+
+const getGroupHeight = (ids: ID[], metadata: Dictionary<Transaction>, edit?: ID) =>
+    sumBy(ids, (id) => {
+        if (edit === id) return EDIT_ROW_HEIGHT;
+
+        const description = metadata[id]!.description;
+        if (!description) return 51;
+
+        let TODO = 1; // Should be 52 + 16 * number of lines of description
+        return 68;
+    });
+
 const ActiveTableHeaderContainerSx = { boxShadow: TopHatTheme.shadows[5] };
-const RowGroupCard = styled(Card)({ marginTop: 20, borderRadius: "10px", padding: 0 });
+const RowGroupCard = styled(Card)({ marginTop: ROW_GROUP_MARGIN, borderRadius: "10px", padding: 0 });
 const ContainerBox = styled("div")({
     ...TransactionTableSxProps.Container,
 

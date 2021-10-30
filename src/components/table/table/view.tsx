@@ -160,7 +160,7 @@ const SubtextTypography = styled(Typography)({
     margin: "0 4px 9px 4px",
     lineHeight: 1,
 });
-const DescriptionTypographySx = { marginTop: 5, lineHeight: 1.4, color: Greys[700] };
+const DescriptionTypographySx = { marginTop: 5, lineHeight: 1.4, color: Greys[700], wordBreak: "break-word" } as const;
 const MissingText = (
     <TransactionTableMixedTypography variant="body1" noWrap={true}>
         (mixed)
