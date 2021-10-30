@@ -1,5 +1,5 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { get, range, trimEnd, trimStart } from "lodash";
+import { get, range, trimEnd } from "lodash";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
@@ -41,7 +41,7 @@ for (let i in range(document.head.childNodes.length)) {
 }
 
 export const getAppStateFromPagePath = (location: Location): AppState => {
-    const [_, page, id] = trimStart(trimEnd(location.pathname, "#"), BASE_PATHNAME).split("/");
+    const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
 
     if (page === "dropbox")
         return {
