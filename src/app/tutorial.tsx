@@ -51,7 +51,11 @@ export const TopHatTutorial: React.FC = () => {
                         It lets you track balances and expenses across multiple currencies, while preserving your
                         privacy: your data is stored on your computer, and you manage any external connections. Learn
                         more{" "}
-                        <Link href="https://github.com/Athenodoros/TopHat" underline="hover" target="_blank">
+                        <Link
+                            href="https://github.com/Athenodoros/TopHat/blob/main/README.md"
+                            underline="hover"
+                            target="_blank"
+                        >
                             here
                         </Link>
                         .
