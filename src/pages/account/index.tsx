@@ -24,8 +24,16 @@ const MiddleBox = styled("div")({
 export const AccountPage: React.FC = () => {
     const account = useAccountPageAccount();
     const table = useAccountPageState((state) => state.table);
-    const fixed = useMemo(() => ({ type: "account" as const, account: account.id }), [account]);
-    const filters = useMemo(() => ({ ...table.filters, account: [account.id] }), [table.filters, account.id]);
+    const id = account?.id ?? -1; // Continue hooks in case Account is deleted while on page
+    const fixed = useMemo(() => ({ type: "account" as const, account: id }), [id]);
+
+    // "table" is only undefined when redirecting to AccountsPage after deletion
+    const filters = useMemo(() => ({ ...table?.filters, account: [id] }), [table?.filters, id]);
+
+    if (!account) {
+        TopHatDispatch(AppSlice.actions.setPage("accounts"));
+        return <Page title="Accounts" />;
+    }
 
     return (
         <Page title="Accounts">

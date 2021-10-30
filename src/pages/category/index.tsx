@@ -31,12 +31,20 @@ export const CategoryPage: React.FC = () => {
     const category = useCategoryPageCategory();
     const table = useCategoryPageState((state) => state.table);
 
-    const hasChildren = useAllCategories().some(({ hierarchy }) => hierarchy.includes(category.id));
+    const id = category?.id ?? -1; // Continue hooks in case Account is deleted while on page
+    const hasChildren = useAllCategories().some(({ hierarchy }) => hierarchy.includes(id));
 
+    // "table" is only undefined when redirecting to AccountsPage after deletion
     const fixed: TransactionsTableFixedDataState = useMemo(
-        () => ({ type: "category", category: category.id, nested: table.nested && hasChildren }),
-        [category, table.nested, hasChildren]
+        () => ({ type: "category", category: id, nested: table?.nested && hasChildren }),
+        [id, table?.nested, hasChildren]
     );
+
+    // In case Category is deleted while on page
+    if (!category) {
+        TopHatDispatch(AppSlice.actions.setPage("categories"));
+        return <Page title="Categories" />;
+    }
 
     return (
         <Page title="Categories">
