@@ -53,7 +53,7 @@ export const getAppStateFromPagePath = (location: Location): AppState => {
     if (page === "category")
         return getDefaultPageState(ObjectIDRegex.test(id) ? { ...DefaultPages.category, category: Number(id) } : null);
 
-    return getDefaultPageState(get(DefaultPages, trimStart(location.pathname, "/"), null));
+    return getDefaultPageState(get(DefaultPages, page, DefaultPages.summary));
 };
 
 export const AppSlice = createSlice({
