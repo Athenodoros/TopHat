@@ -53,6 +53,7 @@ export const getAppStateFromPagePath = (location: Location): AppState => {
     if (page === "category")
         return getDefaultPageState(ObjectIDRegex.test(id) ? { ...DefaultPages.category, category: Number(id) } : null);
 
+    console.log(location, BASE_PATHNAME, page, DefaultPages);
     return getDefaultPageState(get(DefaultPages, page, DefaultPages.summary));
 };
 
