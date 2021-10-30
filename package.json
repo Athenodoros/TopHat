@@ -2,6 +2,7 @@
     "name": "tophat",
     "version": "0.1.0",
     "private": true,
+    "homepage": "https://athenodoros.github.io/TopHat",
     "dependencies": {
         "@date-io/luxon": "1.x",
         "@emotion/react": "^11.4.1",
@@ -26,9 +27,9 @@
         "@types/react-redux": "^7.1.16",
         "@types/victory": "^33.1.5",
         "chroma-js": "^2.1.2",
-        "cra-bundle-analyzer": "^0.1.0",
         "dexie": "^3.0.3",
         "dexie-observable": "^3.0.0-beta.11",
+        "gh-pages": "^3.2.3",
         "jszip": "^3.7.1",
         "lodash-es": "^4.17.21",
         "luxon": "^1.27.0",
@@ -46,6 +47,8 @@
         "web-vitals": "^1.0.1"
     },
     "scripts": {
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build",
         "start": "BROWSER=none react-scripts start",
         "build": "react-scripts build",
         "test": "react-scripts test",

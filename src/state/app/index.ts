@@ -29,8 +29,9 @@ const getDefaultPageState = (page: PageStateType | null) => ({
     dialog: DefaultDialogs,
     page: page || DefaultPages["summary"],
 });
+const BASE_PATHNAME = trimEnd(new URL((document.head.children[1] as any).href).pathname, "/favicon.png");
 export const getAppStateFromPagePath = (location: Location): AppState => {
-    const [_, page, id] = trimEnd(location.pathname, "#").split("/");
+    const [_, page, id] = trimStart(trimEnd(location.pathname, "#"), BASE_PATHNAME).split("/");
 
     if (page === "dropbox")
         return {
@@ -124,8 +125,8 @@ const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite 
 AppSlice.reducer = (state: AppState | undefined, action: AnyAction) => {
     const newState = oldReducer(state, action);
 
-    if (state && window.location.pathname !== getPagePathForPageState(newState.page)) {
-        window.history.pushState(null, "", getPagePathForPageState(newState.page));
+    if (state && window.location.pathname !== BASE_PATHNAME + getPagePathForPageState(newState.page)) {
+        window.history.pushState(null, "", BASE_PATHNAME + getPagePathForPageState(newState.page));
     }
 
     return newState;
