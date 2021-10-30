@@ -1,4 +1,5 @@
 import { MenuItem, Select } from "@mui/material";
+import React from "react";
 import { Section } from "../../components/layout";
 import {
     SummaryBarChart,
@@ -16,7 +17,7 @@ import { useTransactionsPageState } from "../../state/app/hooks";
 import { TransactionsPageAggregations, TransactionsPageState } from "../../state/app/pageTypes";
 import { ID } from "../../state/shared/values";
 
-export const TransactionsPageSummary: React.FC = () => {
+export const TransactionsPageSummary: React.FC = React.memo(() => {
     const aggregation = useTransactionsPageState((state) => state.chartAggregation);
     const sign = useTransactionsPageState((state) => state.chartSign);
     const { data, length } = useTransactionsSummaryData(aggregation);
@@ -58,7 +59,7 @@ export const TransactionsPageSummary: React.FC = () => {
             </Section>
         </SummarySection>
     );
-};
+});
 
 const setAggregation = handleSelectChange((chartAggregation: TransactionsPageState["chartAggregation"]) =>
     TopHatDispatch(AppSlice.actions.setTransactionsPagePartial({ chartAggregation }))

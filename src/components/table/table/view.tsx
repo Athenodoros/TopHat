@@ -37,122 +37,120 @@ export interface TransactionsTableViewEntryProps {
     updateState: (update: Partial<TransactionsTableState>) => void;
     fixed?: TransactionsTableFixedDataState;
 }
-export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProps> = ({
-    transaction: tx,
-    updateState,
-    fixed,
-}) => {
-    const currency = useCurrencyByID(tx.currency);
-    const category = useCategoryByID(tx.category);
-    const account = useAccountByID(tx.account);
-    const institution = useInstitutionByID(account?.institution);
-    const statement = useStatementByID(tx.statement);
+export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProps> = React.memo(
+    ({ transaction: tx, updateState, fixed }) => {
+        const currency = useCurrencyByID(tx.currency);
+        const category = useCategoryByID(tx.category);
+        const account = useAccountByID(tx.account);
+        const institution = useInstitutionByID(account?.institution);
+        const statement = useStatementByID(tx.statement);
 
-    const topLevelCategory = useCategoryByID(category && last(category.hierarchy));
+        const topLevelCategory = useCategoryByID(category && last(category.hierarchy));
 
-    const handleStartEdit = useCallback(() => updateState({ edit: tx }), [updateState, tx]);
+        const handleStartEdit = useCallback(() => updateState({ edit: tx }), [updateState, tx]);
 
-    const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
-        value !== undefined && value !== null ? (
-            <TransactionTableCompoundContainer>
-                {currency && (
-                    <SubtextTypography
-                        variant="caption"
-                        sx={missing ? TransactionTableSxProps.MissingValue : undefined}
-                    >
-                        {currency.symbol}
-                    </SubtextTypography>
-                )}
-                <Typography variant="body1" sx={missing ? TransactionTableSxProps.MissingValue : undefined}>
-                    {formatTransactionsTableNumber(value)}
-                </Typography>
-            </TransactionTableCompoundContainer>
-        ) : value === undefined ? (
-            MissingText
-        ) : undefined;
-
-    return (
-        <>
-            <TransactionTableDateContainer>
-                {tx.date ? (
-                    <TransactionTableCompoundContainer>
-                        <Typography variant="body1">{parseDate(tx.date).toFormat("MMM d")}</Typography>
-                        <SubtextTypography variant="caption">{parseDate(tx.date).year}</SubtextTypography>
-                    </TransactionTableCompoundContainer>
-                ) : (
-                    MissingText
-                )}
-            </TransactionTableDateContainer>
-            <TransactionTableTextContainer>
-                {(tx.summary || tx.reference) !== undefined ? (
-                    <>
-                        <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
-                            {tx.summary || tx.reference}
-                        </TransactionsTableSummaryTypography>
-                        {tx.description ? (
-                            <Typography variant="caption" sx={DescriptionTypographySx} component="div">
-                                {tx.description}
-                            </Typography>
-                        ) : undefined}
-                    </>
-                ) : (
-                    MissingText
-                )}
-            </TransactionTableTextContainer>
-            <TransactionTableValueContainer>{getCurrencyDisplay(tx.value)}</TransactionTableValueContainer>
-            {fixed?.type !== "category" || fixed.nested === true ? (
-                <TransactionTableCategoryContainer>
-                    {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
-                        <TransactionTableCompoundContainer
-                            sx={category.id === TRANSFER_CATEGORY_ID ? TransferCategorySx : undefined}
+        const getCurrencyDisplay = (value: number | null | undefined, missing?: boolean) =>
+            value !== undefined && value !== null ? (
+                <TransactionTableCompoundContainer>
+                    {currency && (
+                        <SubtextTypography
+                            variant="caption"
+                            sx={missing ? TransactionTableSxProps.MissingValue : undefined}
                         >
-                            {getCategoryIcon(category, CategoryIconSx)}
-                            <Typography noWrap={true}>
-                                {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
-                            </Typography>
+                            {currency.symbol}
+                        </SubtextTypography>
+                    )}
+                    <Typography variant="body1" sx={missing ? TransactionTableSxProps.MissingValue : undefined}>
+                        {formatTransactionsTableNumber(value)}
+                    </Typography>
+                </TransactionTableCompoundContainer>
+            ) : value === undefined ? (
+                MissingText
+            ) : undefined;
+
+        return (
+            <>
+                <TransactionTableDateContainer>
+                    {tx.date ? (
+                        <TransactionTableCompoundContainer>
+                            <Typography variant="body1">{parseDate(tx.date).toFormat("MMM d")}</Typography>
+                            <SubtextTypography variant="caption">{parseDate(tx.date).year}</SubtextTypography>
                         </TransactionTableCompoundContainer>
-                    ) : category === undefined ? (
+                    ) : (
                         MissingText
-                    ) : undefined}
-                </TransactionTableCategoryContainer>
-            ) : undefined}
-            <TransactionTableBalanceContainer>
-                {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
-            </TransactionTableBalanceContainer>
-            <TransactionTableStatementContainer>
-                {statement ? (
-                    <Tooltip title={statement.name}>
-                        <StatementDescriptionIcon
-                            fontSize="small"
-                            sx={statement.id === PLACEHOLDER_STATEMENT_ID ? { visibility: "hidden" } : undefined}
-                        />
-                    </Tooltip>
-                ) : (
-                    <Tooltip title="(mixed)">
-                        <StatementHelpIcon fontSize="small" />
-                    </Tooltip>
-                )}
-            </TransactionTableStatementContainer>
-            {fixed?.type !== "account" ? (
-                <TransactionTableAccountContainer>
-                    {account && institution ? (
+                    )}
+                </TransactionTableDateContainer>
+                <TransactionTableTextContainer>
+                    {(tx.summary || tx.reference) !== undefined ? (
                         <>
-                            {getInstitutionIcon(institution, InstitutionIconSx)}
-                            {account.name}
+                            <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
+                                {tx.summary || tx.reference}
+                            </TransactionsTableSummaryTypography>
+                            {tx.description ? (
+                                <Typography variant="caption" sx={DescriptionTypographySx} component="div">
+                                    {tx.description}
+                                </Typography>
+                            ) : undefined}
                         </>
                     ) : (
                         MissingText
                     )}
-                </TransactionTableAccountContainer>
-            ) : undefined}
-            <TransactionTableActionsContainer>
-                <IconButton size="small" onClick={handleStartEdit}>
-                    <Edit fontSize="small" />
-                </IconButton>
-            </TransactionTableActionsContainer>
-        </>
-    );
-};
+                </TransactionTableTextContainer>
+                <TransactionTableValueContainer>{getCurrencyDisplay(tx.value)}</TransactionTableValueContainer>
+                {fixed?.type !== "category" || fixed.nested === true ? (
+                    <TransactionTableCategoryContainer>
+                        {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
+                            <TransactionTableCompoundContainer
+                                sx={category.id === TRANSFER_CATEGORY_ID ? TransferCategorySx : undefined}
+                            >
+                                {getCategoryIcon(category, CategoryIconSx)}
+                                <Typography noWrap={true}>
+                                    {(topLevelCategory ? topLevelCategory.name + ": " : "") + category.name}
+                                </Typography>
+                            </TransactionTableCompoundContainer>
+                        ) : category === undefined ? (
+                            MissingText
+                        ) : undefined}
+                    </TransactionTableCategoryContainer>
+                ) : undefined}
+                <TransactionTableBalanceContainer>
+                    {getCurrencyDisplay(tx.recordedBalance ?? tx.balance, tx.recordedBalance === null)}
+                </TransactionTableBalanceContainer>
+                <TransactionTableStatementContainer>
+                    {statement ? (
+                        <Tooltip title={statement.name}>
+                            <StatementDescriptionIcon
+                                fontSize="small"
+                                sx={statement.id === PLACEHOLDER_STATEMENT_ID ? { visibility: "hidden" } : undefined}
+                            />
+                        </Tooltip>
+                    ) : (
+                        <Tooltip title="(mixed)">
+                            <StatementHelpIcon fontSize="small" />
+                        </Tooltip>
+                    )}
+                </TransactionTableStatementContainer>
+                {fixed?.type !== "account" ? (
+                    <TransactionTableAccountContainer>
+                        {account && institution ? (
+                            <>
+                                {getInstitutionIcon(institution, InstitutionIconSx)}
+                                {account.name}
+                            </>
+                        ) : (
+                            MissingText
+                        )}
+                    </TransactionTableAccountContainer>
+                ) : undefined}
+                <TransactionTableActionsContainer>
+                    <IconButton size="small" onClick={handleStartEdit}>
+                        <Edit fontSize="small" />
+                    </IconButton>
+                </TransactionTableActionsContainer>
+            </>
+        );
+    }
+);
 
 const SubtextTypography = styled(Typography)({
     color: Greys[500],
@@ -160,7 +158,7 @@ const SubtextTypography = styled(Typography)({
     margin: "0 4px 9px 4px",
     lineHeight: 1,
 });
-const DescriptionTypographySx = { marginTop: 5, lineHeight: 1.4, color: Greys[700] };
+const DescriptionTypographySx = { marginTop: 5, lineHeight: 1.4, color: Greys[700], wordBreak: "break-word" as const };
 const MissingText = (
     <TransactionTableMixedTypography variant="body1" noWrap={true}>
         (mixed)

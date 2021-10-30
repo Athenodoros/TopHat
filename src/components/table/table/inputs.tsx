@@ -15,7 +15,7 @@ import {
 import { Box, SxProps } from "@mui/system";
 import React, { useCallback, useMemo } from "react";
 import { handleTextFieldChange } from "../../../shared/events";
-import { useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
+import { useDebounced, useFirstValue, useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { useAllCurrencies } from "../../../state/data/hooks";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
@@ -37,7 +37,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     value,
     placeholder = null,
     onChangeCurrency,
-    onChangeValue,
+    onChangeValue: onChangeValueRaw,
     allowUndefinedCurrency,
     allowUndefinedValue,
 }) => {
@@ -46,6 +46,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     const currencies = useAllCurrencies();
     const symbol = currencies.find((c) => c.id === currency)?.symbol;
 
+    const onChangeValue = useDebounced(onChangeValueRaw);
     const { text, setText, onTextChange } = useNumericInputHandler(value || null, onChangeValue);
     const setValueToUndefined = useCallback(() => {
         setText("");
@@ -151,8 +152,10 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
     value,
     placeholder,
     allowUndefined,
-    onChange,
+    onChange: onChangeRaw,
 }) => {
+    const defaultValue = useFirstValue(value || "");
+    const onChange = useDebounced(onChangeRaw);
     const updateValue = useMemo(() => handleTextFieldChange((value) => onChange(value ? value : null)), [onChange]);
     const clearValue = useCallback(() => onChange(), [onChange]);
 
@@ -161,7 +164,7 @@ export const EditableTextValue: React.FC<EditableTextValueProps> = ({
             size="small"
             variant="outlined"
             placeholder={value === undefined ? "(mixed)" : placeholder || "(none)"}
-            value={value || ""}
+            defaultValue={defaultValue}
             onChange={updateValue}
             InputProps={{
                 endAdornment:

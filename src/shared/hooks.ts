@@ -1,3 +1,4 @@
+import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatNumber } from "./data";
 import { handleTextFieldChange } from "./events";
@@ -117,3 +118,6 @@ export const useRefToValue = <T>(t: T) => {
     }, [t]);
     return ref;
 };
+
+export const useDebounced = <Args extends Array<any>, Return>(fn: (...args: Args) => Return, wait: number = 0) =>
+    useMemo(() => debounce(fn, wait), [fn, wait]);
