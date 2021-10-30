@@ -20,4 +20,4 @@ It's a Single Page App bootstrapped with Create-React-App, built using Typescrip
 
 ### Should I use this?
 
-Probably not - I expect that it will have bugs, and the set of requirements is probably fairly niche. If you're interested though, the app is available at ![https://athenodoros.github.io/TopHat](https://athenodoros.github.io/TopHat) and can populate itself with demo data for an easy trial.
+Probably not - I expect that it will have bugs, and the set of requirements is probably fairly niche. If you're interested though, the app is available at [https://athenodoros.github.io/TopHat](https://athenodoros.github.io/TopHat) and can populate itself with demo data for an easy trial.
