@@ -50,7 +50,10 @@ const getDialogState = () => TopHatStore.getState().app.dialog;
 const getDataState = () => TopHatStore.getState().data;
 const getUserCurrency = () => getDataState().user.entities[StubUserID]!.currency;
 
-export const removeAllStatementFiles = () => setStatementState({ page: "file", rejections: [] });
+export const removeAllStatementFiles = () => {
+    const dialog = getDialogState();
+    setStatementState({ page: "file", rejections: [], account: dialog.import.account });
+};
 export const goBackToStatementParsing = () => {
     const dialog = getDialogState();
     if (dialog.id === "import" && dialog.import.page === "mapping")
