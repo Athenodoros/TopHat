@@ -4,6 +4,7 @@ import { TopHatDispatch, TopHatStore } from "..";
 import { formatDate, getCurrentMonth, SDate } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
+import { conditionallyUpdateNotificationState } from "./notifications/shared";
 import { CURRENCY_NOTIFICATION_ID } from "./notifications/variants/currency";
 
 const AlphaVantage = "https://www.alphavantage.co/query?function=";
@@ -91,10 +92,11 @@ export const updateSyncedCurrencies = () => {
     const token = user.entities[StubUserID]!.alphavantage;
 
     return Promise.all(
-        ids.map(async (id) => {
-            const currency = entities[id]!;
-            if (currency.sync) {
-                return getCurrencyRates(currency.sync.type, currency.sync.ticker, token, currency.start).then(
+        ids
+            .filter((id) => entities[id]?.sync)
+            .map(async (id) => {
+                const currency = entities[id]!;
+                return getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start).then(
                     (rates) => {
                         if (rates) {
                             TopHatDispatch(
@@ -104,27 +106,16 @@ export const updateSyncedCurrencies = () => {
                                 })
                             );
                         }
+                        return !!rates;
                     }
                 );
-            }
-        })
+            })
     )
-        .then(() =>
-            TopHatDispatch(
-                DataSlice.actions.updateNotificationState({
-                    user: {},
-                    id: CURRENCY_NOTIFICATION_ID,
-                    contents: null,
-                })
+        .then((results) =>
+            conditionallyUpdateNotificationState(
+                CURRENCY_NOTIFICATION_ID,
+                results.some((result) => result === false) ? "" : null
             )
         )
-        .catch(() =>
-            TopHatDispatch(
-                DataSlice.actions.updateNotificationState({
-                    user: {},
-                    id: CURRENCY_NOTIFICATION_ID,
-                    contents: "",
-                })
-            )
-        );
+        .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));
 };

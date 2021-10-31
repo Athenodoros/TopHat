@@ -1,5 +1,5 @@
 import { styled, Typography } from "@mui/material";
-import { TopHatDispatch } from "../..";
+import { TopHatDispatch, TopHatStore } from "../..";
 import { Intents } from "../../../styles/colours";
 import { DataSlice } from "../../data";
 
@@ -13,3 +13,9 @@ export const NotificationContents: React.FC = ({ children }) => (
         {children}
     </Typography>
 );
+
+export const conditionallyUpdateNotificationState = (id: string, contents: string | null) => {
+    const current = TopHatStore.getState().data.notification.entities[id];
+    if ((contents === null) !== (current === undefined))
+        TopHatDispatch(DataSlice.actions.updateNotificationState({ user: {}, id, contents }));
+};
