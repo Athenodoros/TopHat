@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { Description, Edit, Help } from "@mui/icons-material";
 import { IconButton, Tooltip, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import { last } from "lodash";
 import React, { useCallback } from "react";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
@@ -83,9 +84,19 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                 <TransactionTableTextContainer>
                     {(tx.summary || tx.reference) !== undefined ? (
                         <>
-                            <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
-                                {tx.summary || tx.reference}
-                            </TransactionsTableSummaryTypography>
+                            <Box
+                                sx={{
+                                    "&:hover": {
+                                        width: "min-content",
+                                        background: Greys[100],
+                                        position: "relative",
+                                    },
+                                }}
+                            >
+                                <TransactionsTableSummaryTypography variant="body1" noWrap={true}>
+                                    {tx.summary || tx.reference}
+                                </TransactionsTableSummaryTypography>
+                            </Box>
                             {tx.description ? (
                                 <Typography variant="caption" sx={DescriptionTypographySx} component="div">
                                     {tx.description}
