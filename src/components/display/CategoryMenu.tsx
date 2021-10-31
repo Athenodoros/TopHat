@@ -34,7 +34,7 @@ export const SingleCategoryMenuFunction = (
             <React.Fragment key={subitem}>
                 <MenuItem
                     dense={true}
-                    style={{ marginLeft: 36 + 15 * depth }}
+                    style={{ marginLeft: 36 + 15 * depth, paddingBottom: 0, paddingTop: 0 }}
                     selected={subitem === selected}
                     onClick={withSuppressEvent<HTMLLIElement>(() =>
                         setSelected(subitem === selected ? undefined : entities[subitem])

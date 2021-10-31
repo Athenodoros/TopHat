@@ -9,6 +9,7 @@ import {
     PayloadAction,
     Update,
 } from "@reduxjs/toolkit";
+import chroma from "chroma-js";
 import { WritableDraft } from "immer/dist/internal";
 import {
     clone,
@@ -23,12 +24,15 @@ import {
     uniq,
     uniqWith,
     upperFirst,
+    values,
 } from "lodash";
 import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
+    BaseTransactionHistory,
+    BaseTransactionHistoryWithLocalisation,
     formatDate,
     getCurrentMonth,
     getCurrentMonthString,
@@ -44,6 +48,7 @@ import {
     DEFAULT_CURRENCY,
     DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY,
+    PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION,
     PLACEHOLDER_STATEMENT,
     PLACEHOLDER_STATEMENT_ID,
@@ -88,7 +93,7 @@ const BaseObjects = {
 
 const adapters: Record<keyof DataState, EntityAdapter<any>> = {
     account: BaseAdapter,
-    category: BaseAdapter,
+    category: NameAdapter,
     currency: NameAdapter,
     institution: NameAdapter,
     rule: IndexedAdapter,
@@ -183,6 +188,21 @@ export const DataSlice = createSlice({
                 const budget = state.category.entities[Number(id)]!.budgets;
                 if (budget) budget.values[0] = payload[Number(id)];
             });
+        },
+        regenerateCategoryColours: (state) => {
+            const toplevel = (values(state.category.entities) as Category[]).filter(
+                (category) =>
+                    category.hierarchy.length === 0 &&
+                    category.id !== PLACEHOLDER_CATEGORY_ID &&
+                    category.id !== TRANSFER_CATEGORY_ID
+            );
+
+            const scale = chroma.scale("set1").domain([0, toplevel.length]);
+
+            adapters.category.updateMany(
+                state.category,
+                toplevel.map((category, idx) => ({ id: category.id, changes: { colour: scale(idx).hex() } }))
+            );
         },
         addNewTransactions: (
             state,
@@ -352,8 +372,30 @@ export const DataSlice = createSlice({
             });
         },
 
-        updateUserPartial: (state, { payload }: PayloadAction<Partial<User>>) =>
+        updateUserPartial: (state, { payload }: PayloadAction<Partial<Omit<User, "currency">>>) =>
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
+
+        setDefaultCurrency: (state, { payload: currency }: PayloadAction<ID>) => {
+            TransactionSummaries.forEach((type) => {
+                adapters[type].updateMany(
+                    state[type],
+                    state[type].ids.map((id) => ({
+                        id,
+                        changes: {
+                            transactions:
+                                type === "currency"
+                                    ? BaseTransactionHistoryWithLocalisation()
+                                    : BaseTransactionHistory(),
+                        },
+                    }))
+                );
+            });
+
+            state.user.entities[StubUserID]!.currency = currency;
+
+            updateTransactionSummariesWithTransactions(state);
+            updateBalanceSummaries(state); // Transaction balances and account metadata are unchanged
+        },
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {

@@ -1,6 +1,18 @@
 import styled from "@emotion/styled";
-import { Cached, Cancel, CheckCircle, Clear, Euro, EuroSymbol, Money, ShowChart, Sync } from "@mui/icons-material";
 import {
+    Cached,
+    Cancel,
+    CheckCircle,
+    Clear,
+    Euro,
+    EuroSymbol,
+    KeyboardArrowDown,
+    Money,
+    ShowChart,
+    Sync,
+} from "@mui/icons-material";
+import {
+    Button,
     CircularProgress,
     IconButton,
     ListItemText,
@@ -15,11 +27,12 @@ import { debounce, last, range } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
+import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
-import { TopHatStore } from "../../state";
+import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
-import { Currency } from "../../state/data";
-import { useUserData } from "../../state/data/hooks";
+import { Currency, DataSlice } from "../../state/data";
+import { useAllCurrencies, useDefaultCurrency, useUserData } from "../../state/data/hooks";
 import { getNextID } from "../../state/data/shared";
 import { CurrencySyncType } from "../../state/data/types";
 import { getCurrencyRates } from "../../state/logic/currencies";
@@ -30,6 +43,7 @@ import {
     getCurrentMonthString,
     getRandomColour,
     getTodayString,
+    ID,
 } from "../../state/shared/values";
 import { Greys, Intents } from "../../styles/colours";
 import { DialogContents, DialogMain, EditTitleContainer, EditValueContainer } from "../shared";
@@ -50,10 +64,47 @@ export const DialogCurrenciesView: React.FC = () => {
                         icon={Euro}
                         title="Currencies"
                         subtitle="Currencies are denominations for balances and transaction values: they could be fiat currencies, cryptocurrencies, or even assets like stocks or bonds."
+                        action={<DefaultCurrencySelector />}
                     />
                 )}
             </DialogContents>
         </DialogMain>
+    );
+};
+
+const updateDefaultCurrency = (id: ID) => TopHatDispatch(DataSlice.actions.setDefaultCurrency(id));
+const DefaultCurrencySelector: React.FC = () => {
+    const currencies = useAllCurrencies();
+    const current = useDefaultCurrency();
+
+    return (
+        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 50 }}>
+            <Typography variant="subtitle2">Default Currency</Typography>
+            <ObjectSelector
+                options={currencies}
+                render={(currency) => getCurrencyIcon(currency, CurrencyIconSx)}
+                selected={current.id}
+                setSelected={updateDefaultCurrency}
+            >
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    sx={{
+                        color: Greys[700],
+                        textTransform: "inherit",
+                        height: 40,
+
+                        "& > svg": { marginLeft: 10 },
+                    }}
+                >
+                    {getCurrencyIcon(current, CurrencyIconSx)}
+                    <Typography variant="body1" noWrap={true}>
+                        {current.name}
+                    </Typography>
+                    <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
+                </Button>
+            </ObjectSelector>
+        </Box>
     );
 };
 

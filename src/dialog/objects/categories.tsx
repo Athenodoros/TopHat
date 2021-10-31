@@ -1,5 +1,14 @@
 import styled from "@emotion/styled";
-import { Clear, FastForward, Forward10, KeyboardArrowDown, LooksOne, ShoppingBasket, Sync } from "@mui/icons-material";
+import {
+    Clear,
+    FastForward,
+    Forward10,
+    KeyboardArrowDown,
+    LooksOne,
+    ShoppingBasket,
+    Shuffle,
+    Sync,
+} from "@mui/icons-material";
 import { Button, IconButton, List, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { range } from "lodash";
@@ -9,9 +18,9 @@ import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCategoryIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange } from "../../shared/events";
-import { TopHatStore } from "../../state";
+import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogState } from "../../state/app/hooks";
-import { Category } from "../../state/data";
+import { Category, DataSlice } from "../../state/data";
 import { getCategoryColour, useAllCategories, useCategoryByID } from "../../state/data/hooks";
 import {
     getNextID,
@@ -50,6 +59,11 @@ export const DialogCategoriesView: React.FC = () => {
                         icon={ShoppingBasket}
                         title="Categories"
                         subtitle="Categories are a way to break down income and expenses into manageable chunks for tracking and budgeting."
+                        action={
+                            <Button sx={{ marginTop: 20 }} startIcon={<Shuffle />} onClick={regenerateCategoryColours}>
+                                Regenerate Colours
+                            </Button>
+                        }
                     />
                 )}
             </DialogContents>
@@ -65,6 +79,8 @@ export const createNewCategory = () =>
         colour: getRandomColour(),
         transactions: BaseTransactionHistory(),
     });
+
+const regenerateCategoryColours = () => TopHatDispatch(DataSlice.actions.regenerateCategoryColours());
 
 const EditCategoryView: React.FC = () => {
     const working = useDialogState("category")!;
