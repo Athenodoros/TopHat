@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { NoteAdd } from "@mui/icons-material";
 import { Button, Link, Typography } from "@mui/material";
-import { Box } from "@mui/system";
+import { alpha, Box } from "@mui/system";
 import React, { useContext } from "react";
 import { FileHandlerContext } from "../../app/context";
 import { TopHatDispatch } from "../../state";
@@ -60,24 +60,32 @@ const IconBox = styled(Box)({
     flexDirection: "column",
     alignItems: "center",
 
-    transformOrigin: "center center",
-    color: Greys[500],
-
-    transition: getThemeTransition(["transform", "color"]),
-
     "& > svg": {
         height: 80,
         width: 80,
         padding: 20,
         borderRadius: "50%",
-        color: "inherit",
-        background: Greys[300],
         marginBottom: 15,
+
+        transformOrigin: "center center",
+        color: Greys[500],
+        background: Greys[300],
+
+        transition: getThemeTransition(["transform", "color", "background"]),
+    },
+    "& > h6": {
+        color: Greys[600],
     },
 });
 const ActiveIconBoxSx = {
-    transform: "scale(1.05)",
-    color: Intents.primary.main,
+    "& > svg": {
+        transform: "scale(1.2)",
+        color: Intents.app.main + "!important",
+        background: alpha(Intents.app.light, 0.1) + "!important",
+    },
+    "& > h6": {
+        color: Greys[800] + "!important",
+    },
 };
 const TitleTypography = styled(Typography)({
     color: Greys[900],

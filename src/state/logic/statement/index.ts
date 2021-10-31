@@ -22,7 +22,15 @@ export const handleStatementFileUpload = (rawFiles: File[], rejections: FileReje
         );
     } else if (rawFiles.length) {
         if (id !== "import" || state.page !== "parse")
-            TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "import", import: DefaultDialogs.import }));
+            TopHatDispatch(
+                AppSlice.actions.setDialogPartial({
+                    id: "import",
+                    import: {
+                        account: state.account,
+                        ...DefaultDialogs.import,
+                    },
+                })
+            );
 
         getFilesContents(rawFiles).then((files) => addStatementFilesToDialog(files));
     }
