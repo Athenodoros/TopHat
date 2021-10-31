@@ -55,6 +55,8 @@ export const getCurrencyRates = async (
         cancelled = true;
     };
 
+    if (ticker === "") return;
+
     let results = await get(
         CurrencyRateRules,
         type,

@@ -11,7 +11,7 @@ import {
     Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import { last, range } from "lodash";
+import { debounce, last, range } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
@@ -105,6 +105,18 @@ const EditCurrencyView: React.FC = () => {
 
     const alphavantage = useUserData((user) => user.alphavantage);
 
+    const updateSyncDebounced = useMemo(
+        () =>
+            debounce(async (strategy: CurrencySyncType["type"], ticker: string) => {
+                const values = await getCurrencyRates(strategy, ticker, alphavantage, working.start);
+                if (values === undefined) setSyncStatus("fail");
+                else {
+                    update("rates")(values);
+                    setSyncStatus("success");
+                }
+            }, 500),
+        [alphavantage, working.start]
+    );
     const updateSyncType = useMemo(
         () =>
             handleButtonGroupChange(async (strategy: CurrencySyncType["type"] | "none") => {
@@ -114,16 +126,10 @@ const EditCurrencyView: React.FC = () => {
                 else {
                     setSyncStatus("loading");
                     update("sync")({ type: strategy, ticker });
-
-                    const values = await getCurrencyRates(strategy, ticker, alphavantage, working.start);
-                    if (values === undefined) setSyncStatus("fail");
-                    else {
-                        update("rates")(values);
-                        setSyncStatus("success");
-                    }
+                    updateSyncDebounced(strategy, ticker);
                 }
             }),
-        [ticker, alphavantage, working.start]
+        [updateSyncDebounced, ticker]
     );
 
     const handleTickerChange = useMemo(
@@ -131,16 +137,9 @@ const EditCurrencyView: React.FC = () => {
             handleTextFieldChange(async (value) => {
                 setSyncStatus("loading");
                 setTicker(value);
-
-                const values = await getCurrencyRates(working.sync!.type, value, alphavantage, working.start);
-                if (values === undefined) setSyncStatus("fail");
-                else {
-                    if (working.sync) update("sync")({ type: working.sync.type, ticker: value });
-                    update("rates")(values);
-                    setSyncStatus("success");
-                }
+                updateSyncDebounced(working.sync!.type, value);
             }),
-        [setTicker, alphavantage, working.sync, working.start]
+        [updateSyncDebounced, working.sync]
     );
 
     const timeSeriesInput = useCurrencyBudgetInput(
