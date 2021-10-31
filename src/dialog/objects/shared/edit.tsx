@@ -112,6 +112,6 @@ const ActionsBox = styled("div")({
     display: "flex",
     alignSelf: "flex-end",
     paddingTop: 8,
-    "& > *": { marginLeft: 10 },
+    "& > *": { marginLeft: "10px !important" },
 });
 const StubSubtitleBox = styled("div")({ height: 15 });
