@@ -58,7 +58,7 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
                     startIcon={<DeleteTwoTone fontSize="small" />}
                     onClick={reset}
                 >
-                    Reset
+                    {actual ? "Reset" : "Discard"}
                 </Button>
                 <Tooltip title={deleteObjectError || ""}>
                     <span>
