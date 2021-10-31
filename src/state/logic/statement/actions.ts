@@ -420,7 +420,7 @@ export const canGoToStatementImportScreen = (current: DialogFileState, currencie
         currency.column,
         (value) => !currencies.some((candidate) => candidate[currency.field] === value)
     );
-    if (missingCurrencyName) return `Currency field incorrect: could not find "${missingCurrencyName}`;
+    if (missingCurrencyName) return `Currency field incorrect: could not find "${missingCurrencyName}"`;
 
     return null;
 };

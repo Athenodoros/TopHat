@@ -135,6 +135,7 @@ const EditCurrencyView: React.FC = () => {
                 const values = await getCurrencyRates(working.sync!.type, value, alphavantage, working.start);
                 if (values === undefined) setSyncStatus("fail");
                 else {
+                    if (working.sync) update("sync")({ type: working.sync.type, ticker: value });
                     update("rates")(values);
                     setSyncStatus("success");
                 }
