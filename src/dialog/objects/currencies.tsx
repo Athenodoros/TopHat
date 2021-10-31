@@ -188,6 +188,7 @@ const EditCurrencyView: React.FC = () => {
             handleTextFieldChange(async (value) => {
                 setSyncStatus("loading");
                 setTicker(value);
+                update("sync")({ type: working.sync!.type, ticker: value });
                 updateSyncDebounced(working.sync!.type, value);
             }),
         [updateSyncDebounced, working.sync]

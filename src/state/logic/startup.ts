@@ -1,7 +1,7 @@
 import chroma from "chroma-js";
 import Dexie from "dexie";
 import { IDatabaseChange } from "dexie-observable/api";
-import _, { uniq, zipObject } from "lodash-es";
+import { uniq, zipObject } from "lodash-es";
 import { DateTime } from "luxon";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
@@ -145,7 +145,7 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
 const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).Papa = Papa;
     (window as any).DateTime = DateTime;
-    (window as any)._ = _;
+    (window as any)._ = import("lodash-es");
     (window as any).chroma = chroma;
     (window as any).store = TopHatStore;
     (window as any).AppSlice = AppSlice;
@@ -155,6 +155,7 @@ const attachDebugVariablesToWindow = (db: TopHatDexie) => {
     (window as any).DBUtils = DBUtils;
     (window as any).restart = () => TopHatDispatch(DataSlice.actions.restartTutorial());
     (window as any).formatNumber = formatNumber;
+    (window as any).updateSyncedCurrencies = updateSyncedCurrencies;
 
     console.log("Setting up debug variables...");
 };

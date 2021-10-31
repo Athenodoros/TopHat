@@ -21,11 +21,23 @@ const CurrencyRateRules = {
         getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series", "4. close"),
 };
 
-const getFromAPI = async (query: string, token: string, key: string, value: string) => {
+const getFromAPI = async (
+    query: string,
+    token: string,
+    key: string,
+    value: string
+): Promise<CurrencyExchangeRate[] | undefined> => {
     const request = await fetch(`${AlphaVantage}${query}&apikey=${token}`);
-    const data = ((await request.json()) as any)[key];
+    const response = await request.json();
+    const data = response[key];
 
-    if (data === undefined) return undefined;
+    if (data === undefined) {
+        if ((response?.Note as string | undefined)?.endsWith("target a higher API call frequency.")) {
+            // Standard AlphaVantage rate limit is 5 per second - this retries in case of bottlenecks
+            return new Promise((resolve) => setTimeout(() => resolve(getFromAPI(query, token, key, value)), 60 * 1000));
+        }
+        return undefined;
+    }
 
     const history = toPairs(data).map(([month, values]) => [month, Number((values as any)[value])]) as [
         string,
