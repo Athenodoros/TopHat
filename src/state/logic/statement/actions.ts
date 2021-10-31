@@ -1,6 +1,7 @@
 import {
     cloneDeep,
     debounce,
+    dropWhile,
     escapeRegExp,
     get,
     isEqual,
@@ -403,19 +404,23 @@ export const canGoToStatementImportScreen = (current: DialogFileState, currencie
     } = current;
 
     const anyColumnValue = (id: string, check: (value: string) => boolean) => {
-        return values(columns.all).some((file) => {
-            const column = file.columns?.find((column) => column.id === id) as StringColumn<false>;
-            return column.values.some(check);
-        });
+        return dropWhile(
+            values(columns.all).map((file) => {
+                const column = file.columns?.find((column) => column.id === id) as StringColumn<false>;
+                return column.values.find(check);
+            }),
+            (value) => !value
+        )[0];
     };
 
     if (anyColumnValue(date, (value) => !value)) return "There are missing dates";
 
     if (currency.type === "constant") return null;
-    if (
-        anyColumnValue(currency.column, (value) => !currencies.some((candidate) => candidate[currency.field] === value))
-    )
-        return "Currency field incorrect";
+    const missingCurrencyName = anyColumnValue(
+        currency.column,
+        (value) => !currencies.some((candidate) => candidate[currency.field] === value)
+    );
+    if (missingCurrencyName) return `Currency field incorrect: could not find "${missingCurrencyName}`;
 
     return null;
 };

@@ -55,7 +55,7 @@ export const DialogImportParseStepContent: React.FC<{ state: DialogStatementPars
                 </DialogImportOptionTitleContainerBox>
                 <DialogImportInputTextField
                     variant="standard"
-                    placeholder="YYYY-MM-DD"
+                    placeholder="yyyy-MM-dd"
                     size="small"
                     value={state.parse.dateFormat || ""}
                     onChange={changeDateFormat}
