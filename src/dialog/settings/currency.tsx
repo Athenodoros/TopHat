@@ -25,7 +25,6 @@ export const DialogCurrencyContents: React.FC = () => {
             }
 
             const values = await getCurrencyRates("currency", "AUD", key);
-            console.log(values, key);
             if (values === undefined) setSyncStatus("fail");
             else setSyncStatus("success");
         };

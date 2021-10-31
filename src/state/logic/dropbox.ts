@@ -111,7 +111,6 @@ export const maybeSaveDataToDropbox = async () => {
 
     // Refresh token if necessary
     if (token === null || DateTime.now() > token.expires) {
-        console.log(DateTime.now(), token?.expires);
         await fetch(`${TOKEN_REFRESH_URL}&refresh_token=${config.refreshToken}`, {
             headers: { "Content-Type": "application/json" },
             method: "POST",
