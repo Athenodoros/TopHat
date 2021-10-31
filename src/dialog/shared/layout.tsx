@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { Box, BoxProps } from "@mui/system";
 import React from "react";
-import { suppressEvent } from "../../shared/events";
+import { stopEventPropagation } from "../../shared/events";
 import { Greys } from "../../styles/colours";
 
 /**
@@ -32,4 +32,6 @@ const DialogContentsBox = styled(Box)({
     flexGrow: 1,
     overflow: "hidden",
 });
-export const DialogContents: React.FC<BoxProps> = (props) => <DialogContentsBox onClick={suppressEvent} {...props} />;
+export const DialogContents: React.FC<BoxProps> = (props) => (
+    <DialogContentsBox onClick={stopEventPropagation} {...props} />
+);

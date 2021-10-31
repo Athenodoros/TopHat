@@ -4,7 +4,6 @@ import { alpha, IconButton, ListItemText, Tooltip } from "@mui/material";
 import React from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getInstitutionIcon } from "../../components/display/ObjectDisplay";
-import { stopEventPropagation } from "../../shared/events";
 import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Institution } from "../../state/data";
@@ -26,7 +25,7 @@ export const DialogInstitutionsView: React.FC = () => {
                 render={render}
                 exclude={[PLACEHOLDER_INSTITUTION_ID]}
             />
-            <DialogContents onClick={stopEventPropagation}>
+            <DialogContents>
                 {working ? (
                     <EditInstitutionView />
                 ) : (
