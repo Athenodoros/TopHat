@@ -147,13 +147,19 @@ export const DataSlice = createSlice({
 
             // This is necessary because the EntityAdapters freeze objects when they are added
             return createNextState(state, (state) => {
-                updateTransactionSummariesWithTransactions(state, state.transaction.ids);
-
+                updateTransactionSummariesWithTransactions(state);
                 updateBalancesAndAccountSummaries(state);
                 updateCategoryTransactionDates(state);
 
                 finishDemoInitialisation(state, download);
             });
+        },
+        refreshCaches: (state) => {
+            wipeTransactionSummaries(state);
+
+            updateTransactionSummariesWithTransactions(state);
+            updateBalancesAndAccountSummaries(state);
+            updateCategoryTransactionDates(state);
         },
         updateSimpleObjects: <Name extends "rule">(
             state: DataState,
@@ -376,20 +382,7 @@ export const DataSlice = createSlice({
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
 
         setDefaultCurrency: (state, { payload: currency }: PayloadAction<ID>) => {
-            TransactionSummaries.forEach((type) => {
-                adapters[type].updateMany(
-                    state[type],
-                    state[type].ids.map((id) => ({
-                        id,
-                        changes: {
-                            transactions:
-                                type === "currency"
-                                    ? BaseTransactionHistoryWithLocalisation()
-                                    : BaseTransactionHistory(),
-                        },
-                    }))
-                );
-            });
+            wipeTransactionSummaries(state);
 
             state.user.entities[StubUserID]!.currency = currency;
 
@@ -425,6 +418,20 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
     return newState;
 };
 export const subscribeToDataUpdates = (listener: DataUpdateListener) => void listeners.push(listener);
+
+const wipeTransactionSummaries = (state: DataState) =>
+    TransactionSummaries.forEach((type) => {
+        adapters[type].updateMany(
+            state[type],
+            state[type].ids.map((id) => ({
+                id,
+                changes: {
+                    transactions:
+                        type === "currency" ? BaseTransactionHistoryWithLocalisation() : BaseTransactionHistory(),
+                },
+            }))
+        );
+    });
 
 export const useDeleteObjectError = <Type extends BasicObjectName>(type: Type, id: ID) =>
     useSelector((state) => deleteObjectError(state.data, type, id));

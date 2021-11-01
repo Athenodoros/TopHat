@@ -71,7 +71,8 @@ export const initialiseAndGetDBConnection = async () => {
     updateSyncedCurrencies();
 
     // Debug variables
-    if (debug) attachDebugVariablesToWindow(db);
+    (window as any).getDebugVariables = getDebugVariables(db);
+    if (debug) Object.assign(window, getDebugVariables(db)());
 };
 
 const initialiseIDBListener = (db: TopHatDexie, uuid: string) => {
@@ -142,20 +143,19 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
     TopHatDispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
-const attachDebugVariablesToWindow = (db: TopHatDexie) => {
-    (window as any).Papa = Papa;
-    (window as any).DateTime = DateTime;
-    (window as any)._ = import("lodash-es");
-    (window as any).chroma = chroma;
-    (window as any).store = TopHatStore;
-    (window as any).AppSlice = AppSlice;
-    (window as any).DataSlice = DataSlice;
-    (window as any).Statement = { ...Statement, ...Parsing };
-    (window as any).db = db;
-    (window as any).DBUtils = DBUtils;
-    (window as any).restart = () => TopHatDispatch(DataSlice.actions.restartTutorial());
-    (window as any).formatNumber = formatNumber;
-    (window as any).updateSyncedCurrencies = updateSyncedCurrencies;
-
-    console.log("Setting up debug variables...");
-};
+const getDebugVariables = (db: TopHatDexie) => () => ({
+    Papa,
+    DateTime,
+    _: import("lodash-es"),
+    chroma,
+    store: TopHatStore,
+    AppSlice,
+    DataSlice,
+    Statement: { ...Statement, ...Parsing },
+    db,
+    DBUtils,
+    formatNumber,
+    updateSyncedCurrencies,
+    restart: () => TopHatDispatch(DataSlice.actions.restartTutorial()),
+    refreshCaches: () => TopHatDispatch(DataSlice.actions.refreshCaches()),
+});
