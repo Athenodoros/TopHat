@@ -463,7 +463,7 @@ export const changeStatementDialogAccount = (id?: ID) => {
         });
 
     if (current.page === "import" && account)
-        return setStatementState({ ...current, exclude: getStatementExclusions({ ...current, account }) });
+        return setStatementState({ ...current, account, exclude: getStatementExclusions({ ...current, account }) });
 
     setStatementState({ ...current, account });
 };

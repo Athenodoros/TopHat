@@ -164,11 +164,13 @@ export const guessStatementColumnMapping = (
             .flatMap((file) => file.columns!.find(({ id }) => id === debit)!.values as (number | null)[]);
         const counts = countBy(debits, Math.sign);
 
+        console.log(counts);
+
         mapping.value = {
             type: "split",
             credit: findColumn("number", ["DEPOSIT", "CREDIT", "IN"]),
             debit: findColumn("number", ["WITHDRAWAL", "DEBIT", "OUT"]),
-            flip: counts["1"] > counts["-1"],
+            flip: (counts["1"] || 0) > (counts["-1"] || 0),
         };
     } else {
         mapping.value = {

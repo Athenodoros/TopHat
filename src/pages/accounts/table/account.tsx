@@ -9,6 +9,7 @@ import { VictoryArea, VictoryChart, VictoryScatter } from "victory";
 import { fadeSolidColour } from "../../../components/display/ObjectDisplay";
 import { getChartPerformanceProps, getHiddenTickZeroAxis } from "../../../components/display/PerformantCharts";
 import { getNewTransaction } from "../../../components/table/table/header";
+import { NBSP } from "../../../shared/constants";
 import { formatNumber } from "../../../shared/data";
 import { suppressEvent, withSuppressEvent } from "../../../shared/events";
 import { TopHatDispatch } from "../../../state";
@@ -188,9 +189,16 @@ const getAccountSummary = (
 ) => {
     const summary = balances
         .filter(([_, balance]) => range(12).some((i) => balance.localised[i]))
-        .map(([idStr, balance]) => (
-            <Typography variant="h6" style={{ color: getColour(Number(idStr), balance.original[0]) }} key={idStr}>
-                {currencies[Number(idStr)]!.symbol + " " + formatNumber(balance.original[0], { end: "k" })}
+        .map(([idStr, balance], _, array) => (
+            <Typography
+                variant="h6"
+                style={{ color: getColour(Number(idStr), balance.original[0]) }}
+                key={idStr}
+                noWrap={true}
+            >
+                {currencies[Number(idStr)]!.symbol +
+                    " " +
+                    formatNumber(balance.original[0], { end: "k", decimals: array.length === 1 ? 2 : 0 })}
             </Typography>
         ))
         .flatMap((element, i, array) =>
@@ -199,12 +207,12 @@ const getAccountSummary = (
                 : [
                       element,
                       <Typography key={i} variant="h6">
-                          ,{" "}
+                          ,{NBSP}
                       </Typography>,
                   ]
         );
     summary[0] = summary[0] || (
-        <Typography variant="h6" style={{ color: Greys[700] }} key={0}>
+        <Typography variant="h6" style={{ color: Greys[700] }} key={0} noWrap={true}>
             {defaultCurrency.symbol + " 0.00"}
         </Typography>
     );
@@ -252,11 +260,11 @@ const ContainerSx = {
     },
 };
 const AccountNameContainerBox = styled("div")({
-    flexGrow: 2,
+    flexGrow: 1,
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
-    width: 180,
+    width: 160,
     marginRight: 30,
 
     "& > *": {
@@ -272,8 +280,10 @@ const AccountValueContainerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
+    marginRight: 10,
+    overflow: "hidden",
 });
-const AccountValueSummaryBox = styled("div")({ display: "flex" });
+const AccountValueSummaryBox = styled("div")({ display: "flex", width: "100%" });
 const AccountIconSx = {
     color: Greys[700],
     backgroundColor: Greys[300],
