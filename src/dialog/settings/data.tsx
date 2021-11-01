@@ -54,7 +54,7 @@ export const DialogExportContents: React.FC = () => {
     );
 };
 
-const createJSONDownload = () => createAndDownloadFile("TopHat Data.json", JSON.stringify(TopHatStore.getState()));
+const createJSONDownload = () => createAndDownloadFile("TopHat Data.json", JSON.stringify(TopHatStore.getState().data));
 const createCSVDownload = () => {
     const state = TopHatStore.getState().data;
 

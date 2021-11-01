@@ -72,7 +72,7 @@ export const initialiseAndGetDBConnection = async () => {
 
     // Debug variables
     (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
-    if (debug) Object.assign(window, getDebugVariablesAsync(db)());
+    if (debug) Object.assign(window, await getDebugVariablesAsync(db)());
 };
 
 const initialiseIDBListener = (db: TopHatDexie, uuid: string) => {

@@ -59,14 +59,17 @@ export const getCurrencyRates = async (
     type: CurrencySyncType["type"],
     ticker: string,
     token: string,
-    start?: SDate
+    start?: SDate,
+    bulk?: boolean
 ) => {
-    if (cancel) cancel();
-
     let cancelled = false;
-    cancel = () => {
-        cancelled = true;
-    };
+    if (!bulk) {
+        if (cancel) cancel();
+
+        cancel = () => {
+            cancelled = true;
+        };
+    }
 
     if (ticker === "") return;
 
@@ -96,7 +99,7 @@ export const updateSyncedCurrencies = () => {
             .filter((id) => entities[id]?.sync)
             .map(async (id) => {
                 const currency = entities[id]!;
-                return getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start).then(
+                return getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start, true).then(
                     (rates) => {
                         if (rates) {
                             TopHatDispatch(
@@ -111,11 +114,16 @@ export const updateSyncedCurrencies = () => {
                 );
             })
     )
-        .then((results) =>
+        .then((results) => {
+            console.log(
+                results,
+                results.some((result) => result === false),
+                results.some((result) => result === false) ? "" : null
+            );
             conditionallyUpdateNotificationState(
                 CURRENCY_NOTIFICATION_ID,
                 results.some((result) => result === false) ? "" : null
-            )
-        )
+            );
+        })
         .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));
 };
