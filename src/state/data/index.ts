@@ -699,4 +699,9 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
             history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
         }
     });
+
+    (subset || getFullBalanceSubset(data.transaction)).forEach(({ account, currency }) => {
+        if (!data.account.entities[account]!.balances[currency].localised.some((x) => x))
+            delete data.account.entities[account]!.balances[currency];
+    });
 };
