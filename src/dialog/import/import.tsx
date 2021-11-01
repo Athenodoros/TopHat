@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { FormControlLabel, Step, StepLabel, Stepper, Switch } from "@mui/material";
 import { useEffect, useState } from "react";
 import { handleCheckboxChange } from "../../shared/events";
+import { DialogStatementImportState } from "../../state/app/statementTypes";
 import { Greys } from "../../styles/colours";
 import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogImportAccountSelector } from "./account";
@@ -55,7 +56,10 @@ export const DialogImportScreen: React.FC = () => {
                 {state.files.length > 1 ? <ImportDialogFileTabs /> : undefined}
                 {showParsed && state.columns.all[state.file].columns ? (
                     // <FileImportTableView columns={state.columns.all[state.file].columns!} />
-                    <FileImportTableView transfers={shouldDetectTransfers} />
+                    <FileImportTableView
+                        transfers={shouldDetectTransfers}
+                        reversed={(state as DialogStatementImportState).reverse}
+                    />
                 ) : (
                     <ImportDialogFileDisplay contents={state.files.find((file) => file.id === state.file)!.contents} />
                 )}

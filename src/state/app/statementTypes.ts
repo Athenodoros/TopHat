@@ -38,6 +38,7 @@ export interface DialogStatementImportState extends DialogStatementPageState<"im
     mapping: DialogColumnValueMapping;
     exclude: DialogColumnExclusionConfig;
     transfers: DialogColumnTransferConfig;
+    reverse: boolean;
 }
 
 export type DialogFileState =

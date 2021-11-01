@@ -1,6 +1,10 @@
 import { Button, Checkbox, StepContent, Tooltip, Typography } from "@mui/material";
 import { useState } from "react";
 import { handleCheckboxChange } from "../../../shared/events";
+import { TopHatDispatch, TopHatStore } from "../../../state";
+import { AppSlice } from "../../../state/app";
+import { useDialogState } from "../../../state/app/hooks";
+import { DialogStatementImportState } from "../../../state/app/statementTypes";
 import {
     canImportStatementsAndClearDialog,
     goBackToStatementMapping,
@@ -13,6 +17,7 @@ export const DialogImportImportStepContent: React.FC<{
     setShouldDetectTransfers: (value: boolean) => void;
 }> = ({ shouldDetectTransfers, setShouldDetectTransfers }) => {
     const [shouldRunRules, setShouldRunRules] = useState(true);
+    const reversed = useDialogState("import", (state) => (state as DialogStatementImportState).reverse);
 
     return (
         <StepContent>
@@ -35,6 +40,10 @@ export const DialogImportImportStepContent: React.FC<{
                         color="primary"
                     />
                 </DialogImportOptionBox>
+                <DialogImportOptionBox>
+                    <Typography variant="body2">Reverse Transaction Order</Typography>
+                    <Checkbox checked={reversed} onChange={toggleReverseOrder} size="small" color="primary" />
+                </DialogImportOptionBox>
             </DialogImportOptionsContainerBox>
             <DialogImportActionsBox>
                 <Button color="error" variant="outlined" size="small" onClick={goBackToStatementMapping}>
@@ -56,3 +65,16 @@ export const DialogImportImportStepContent: React.FC<{
         </StepContent>
     );
 };
+
+const toggleReverseOrder = handleCheckboxChange((reverse) => {
+    const current = TopHatStore.getState().app.dialog.import as DialogStatementImportState;
+    TopHatDispatch(
+        AppSlice.actions.setDialogPartial({
+            id: "import",
+            import: {
+                ...current,
+                reverse,
+            },
+        })
+    );
+});

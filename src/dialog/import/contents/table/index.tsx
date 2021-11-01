@@ -8,7 +8,7 @@ import { DialogImportTableColumnHeader } from "./header";
 import { DIALOG_IMPORT_TABLE_HEADER_STYLES, DIALOG_IMPORT_TABLE_ROW_STYLES } from "./shared";
 import { DialogImportTableTransferDisplay } from "./transfer";
 
-export const FileImportTableView: React.FC<{ transfers?: boolean }> = ({ transfers }) => {
+export const FileImportTableView: React.FC<{ transfers?: boolean; reversed?: boolean }> = ({ transfers, reversed }) => {
     const state = useNonFileDialogStatementState();
 
     const columns = state.columns.all[state.file].columns || [];
@@ -23,6 +23,7 @@ export const FileImportTableView: React.FC<{ transfers?: boolean }> = ({ transfe
               );
 
     const rows = unzip(columns.map((column) => column.values as (string | number | null)[]));
+    if (reversed) rows.reverse();
 
     return (
         <ContainerCard variant="outlined">

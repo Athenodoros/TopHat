@@ -50,6 +50,7 @@ export interface Account {
         columns: DialogColumnParseResult["common"];
         mapping: DialogColumnValueMapping;
         date: SDate;
+        reverse: boolean;
     };
 }
 

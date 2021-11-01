@@ -1,9 +1,10 @@
 import { EntityId } from "@reduxjs/toolkit";
-import { countBy, get, inRange, mapValues, maxBy, range, toPairs, values, zip } from "lodash";
+import { countBy, get, inRange, mapValues, maxBy, range, toPairs, uniq, values, zip } from "lodash";
 import { DateTime } from "luxon";
 import Papa from "papaparse";
 import { TopHatStore } from "../..";
 import { zipObject } from "../../../shared/data";
+import { DialogStatementMappingState } from "../../app/statementTypes";
 import { Account, changeCurrencyValue, Transaction } from "../../data";
 import { formatDate, formatJSDate, ID, parseDate, SDate } from "../../shared/values";
 import {
@@ -163,8 +164,6 @@ export const guessStatementColumnMapping = (
             .filter((file) => file.matches)
             .flatMap((file) => file.columns!.find(({ id }) => id === debit)!.values as (number | null)[]);
         const counts = countBy(debits, Math.sign);
-
-        console.log(counts);
 
         mapping.value = {
             type: "split",
@@ -346,4 +345,21 @@ export const getStatementExclusions = ({
                   .filter((x) => x !== null) as number[])
             : [];
     });
+};
+
+export const guessStatementsAreReversed = ({ columns: { all }, mapping: { date } }: DialogStatementMappingState) => {
+    const reversed = values(all)
+        .map((file) => {
+            const dates = file.columns!.find(({ id }) => id === date) as StringColumn<false>;
+
+            // Don't guess for files with only 1 date
+            if (uniq(dates.values).length <= 1) return null;
+
+            // If strictly ascending order, this statement looks like reverse order
+            return dates.values.every((value, idx) => idx === 0 || value >= dates.values[idx - 1]);
+        })
+        .filter((file) => file !== null) as boolean[];
+
+    if (reversed.length === 0) return false;
+    return reversed.every((file) => file === true); // Guess "reversed" iff all files look reversed
 };

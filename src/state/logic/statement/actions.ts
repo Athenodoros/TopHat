@@ -8,7 +8,6 @@ import {
     keys,
     max,
     min,
-    pick,
     range,
     reverse,
     set,
@@ -35,6 +34,7 @@ import {
     getFileColumnProperties,
     getStatementExclusions,
     guessStatementColumnMapping,
+    guessStatementsAreReversed,
     guessStatementTransfers,
     StatementMappingColumns,
 } from "./parsing";
@@ -133,6 +133,7 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
                 columns: columns as unknown as DialogColumnParseResult,
                 file: files[0].id,
                 mapping: account.lastStatementFormat.mapping,
+                reverse: account.lastStatementFormat.reverse,
             };
             const exclude = getStatementExclusions(newState);
             setStatementState({
@@ -435,6 +436,7 @@ export const goToStatementImportScreen = () => {
         page: "import",
         exclude,
         transfers: guessStatementTransfers(current, exclude),
+        reverse: guessStatementsAreReversed(current),
     });
 };
 
@@ -519,8 +521,8 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
         );
 
         const transferTransactionUpdates: ID[] = [];
-        const transactions = state.files.flatMap(({ id: fileID }, fileIndex) =>
-            ((state.columns.all[fileID].columns || [])[0].values as (string | null | null)[])
+        const transactions = state.files.flatMap(({ id: fileID }, fileIndex) => {
+            const transactions = ((state.columns.all[fileID].columns || [])[0].values as (string | null | null)[])
                 .map((_, rowID) => rowID)
                 .filter((rowID) => !state.exclude[fileID].includes(rowID))
                 .map((rowID) => {
@@ -535,7 +537,7 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                     }
 
                     const transaction: Transaction = {
-                        id: nextTransactionID,
+                        id: -1, // Temporary
                         account: state.account!.id,
                         statement: statements[fileIndex].id,
                         category,
@@ -557,11 +559,18 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                                 ? state.mapping.currency.currency
                                 : currencies[getColumnValue<string>("currency", rowID, fileID)],
                     };
-                    nextTransactionID++;
 
                     return transaction;
-                })
-        );
+                });
+
+            if (state.reverse) transactions.reverse();
+            transactions.forEach((transaction) => {
+                transaction.id = nextTransactionID;
+                nextTransactionID++;
+            });
+
+            return transactions;
+        });
 
         // Run import rules
         if (shouldRunRules) {
@@ -614,6 +623,7 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                         columns: state.columns.common,
                         mapping: state.mapping,
                         date: max(transactions.map(({ date }) => date)) || getTodayString(),
+                        reverse: state.reverse,
                     },
                 },
             })
@@ -623,12 +633,16 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
         const page = TopHatStore.getState().app.page;
         TopHatDispatch(
             AppSlice.actions.closeDialogAndGoToPage({
-                ...DefaultPages.transactions,
-                ...(page.id === "transactions" ? pick(page, "chartSign", "chartAggregation") : {}),
+                ...(page.id === "account" && page.account === state.account!.id
+                    ? page
+                    : {
+                          ...DefaultPages.account,
+                          account: state.account!.id,
+                      }),
                 table: {
-                    ...DefaultPages.transactions.table,
+                    ...DefaultPages.account.table,
                     filters: {
-                        ...DefaultPages.transactions.table.filters,
+                        ...DefaultPages.account.table.filters,
                         statement: statements.map(({ id }) => id),
                     },
                 },
