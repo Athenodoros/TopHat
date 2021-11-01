@@ -700,8 +700,16 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
         }
     });
 
-    (subset || getFullBalanceSubset(data.transaction)).forEach(({ account, currency }) => {
+    const maybeDeleteBalances = (account: ID, currency: ID) => {
         if (!data.account.entities[account]!.balances[currency].localised.some((x) => x))
             delete data.account.entities[account]!.balances[currency];
-    });
+    };
+
+    if (subset) subset.forEach(({ account, currency }) => maybeDeleteBalances(account, currency));
+    else
+        data.account.ids.forEach((account) =>
+            keys(data.account.entities[account]!.balances).forEach((currency) =>
+                maybeDeleteBalances(account as number, Number(currency))
+            )
+        );
 };
