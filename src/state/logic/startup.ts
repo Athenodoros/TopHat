@@ -143,19 +143,29 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
     TopHatDispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
-const getDebugVariables = (db: TopHatDexie) => () => ({
-    Papa,
-    DateTime,
-    _: import("lodash-es"),
-    chroma,
-    store: TopHatStore,
-    AppSlice,
-    DataSlice,
-    Statement: { ...Statement, ...Parsing },
-    db,
-    DBUtils,
-    formatNumber,
-    updateSyncedCurrencies,
-    restart: () => TopHatDispatch(DataSlice.actions.restartTutorial()),
-    refreshCaches: () => TopHatDispatch(DataSlice.actions.refreshCaches()),
-});
+const getDebugVariables = (db: TopHatDexie) => {
+    console.warn(
+        "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
+    );
+
+    return () => ({
+        db,
+        TopHatStore,
+        TopHatDispatch,
+        AppSlice,
+        DataSlice,
+
+        Papa,
+        DateTime,
+        _: import("lodash-es"),
+        chroma,
+
+        Statement: { ...Statement, ...Parsing },
+        DBUtils,
+        formatNumber,
+
+        updateSyncedCurrencies,
+        restart: () => TopHatDispatch(DataSlice.actions.restartTutorial()),
+        refreshCaches: () => TopHatDispatch(DataSlice.actions.refreshCaches()),
+    });
+};
