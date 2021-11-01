@@ -22,6 +22,12 @@ export const getChartEvents = <T extends ChartPointEvent>(
         mutation: (event: T) => {
             if (!alpha || !event) return;
 
+            /**
+             * event.datum should never be undefined, but Victory seems to have a bug where it doesn't update the
+             * data when new props are given (mostly around starting the tutorial on the Transactions page).
+             */
+            if (!event.datum) return;
+
             return {
                 style: Object.assign({}, event.style, { fill: fadeColour(event.datum.colour, alpha), transition }),
             };
