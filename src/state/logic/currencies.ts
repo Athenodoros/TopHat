@@ -114,16 +114,11 @@ export const updateSyncedCurrencies = () => {
                 );
             })
     )
-        .then((results) => {
-            console.log(
-                results,
-                results.some((result) => result === false),
-                results.some((result) => result === false) ? "" : null
-            );
+        .then((results) =>
             conditionallyUpdateNotificationState(
                 CURRENCY_NOTIFICATION_ID,
                 results.some((result) => result === false) ? "" : null
-            );
-        })
+            )
+        )
         .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));
 };
