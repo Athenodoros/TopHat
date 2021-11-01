@@ -148,7 +148,7 @@ const getDebugVariables = (db: TopHatDexie) => {
         "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
     );
 
-    return () => ({
+    return async () => ({
         db,
         TopHatStore,
         TopHatDispatch,
@@ -157,7 +157,7 @@ const getDebugVariables = (db: TopHatDexie) => {
 
         Papa,
         DateTime,
-        _: import("lodash-es"),
+        _: await import("lodash-es"),
         chroma,
 
         Statement: { ...Statement, ...Parsing },
