@@ -71,8 +71,8 @@ export const initialiseAndGetDBConnection = async () => {
     updateSyncedCurrencies();
 
     // Debug variables
-    (window as any).getDebugVariables = getDebugVariables(db);
-    if (debug) Object.assign(window, getDebugVariables(db)());
+    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
+    if (debug) Object.assign(window, getDebugVariablesAsync(db)());
 };
 
 const initialiseIDBListener = (db: TopHatDexie, uuid: string) => {
@@ -143,12 +143,12 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
     TopHatDispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
-const getDebugVariables = (db: TopHatDexie) => {
+const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
     console.warn(
         "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
     );
 
-    return async () => ({
+    return {
         db,
         TopHatStore,
         TopHatDispatch,
@@ -167,5 +167,5 @@ const getDebugVariables = (db: TopHatDexie) => {
         updateSyncedCurrencies,
         restart: () => TopHatDispatch(DataSlice.actions.restartTutorial()),
         refreshCaches: () => TopHatDispatch(DataSlice.actions.refreshCaches()),
-    });
+    };
 };
