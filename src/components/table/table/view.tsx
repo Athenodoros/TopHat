@@ -86,10 +86,14 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                         <>
                             <Box
                                 sx={{
+                                    marginLeft: -3,
+                                    padding: "0 3px",
+                                    borderRadius: "2px",
                                     "&:hover": {
                                         width: "min-content",
                                         background: Greys[100],
                                         position: "relative",
+                                        zIndex: 1,
                                     },
                                 }}
                             >
