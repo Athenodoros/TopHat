@@ -233,7 +233,9 @@ const EditRuleView: React.FC = () => {
                 >
                     <CategorySelectionButton variant="outlined" color="inherit">
                         {getCategoryIcon(category, CategoryIconSx)}
-                        <Typography variant="body1">{category.name}</Typography>
+                        <Typography variant="body1" noWrap={true}>
+                            {category.name}
+                        </Typography>
                         <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
                     </CategorySelectionButton>
                 </ObjectSelector>
@@ -263,6 +265,7 @@ const CategoryIconSx = {
     width: 20,
     height: 20,
     marginRight: 15,
+    flexShrink: 0,
 };
 const RangeBox = styled("div")({
     display: "flex",

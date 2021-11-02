@@ -289,6 +289,7 @@ const IconSx = {
     width: 24,
     marginRight: 15,
     borderRadius: "5px",
+    flexShrink: 0,
 };
 const CategoryButton = styled(Button)({
     textTransform: "inherit",
