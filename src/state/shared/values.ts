@@ -18,8 +18,8 @@ export interface BalanceHistory {
 }
 export const BaseBalanceValues = (): BalanceHistory => ({
     start: getCurrentMonthString(),
-    original: [0],
-    localised: [0],
+    original: [],
+    localised: [],
 });
 
 export interface TransactionHistory {
