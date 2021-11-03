@@ -13,6 +13,7 @@ import {
     Category,
     Currency,
     Institution,
+    Rule,
     Statement,
     StubUserID,
     User,
@@ -85,6 +86,12 @@ export function useStatementByID(id: ID): Statement;
 export function useStatementByID(id: ID | undefined): Statement | undefined;
 export function useStatementByID(id: ID | undefined): Statement | undefined {
     return useSelector((state) => state.data.statement.entities[id as ID]);
+}
+
+export function useRuleByID(id: ID): Rule;
+export function useRuleByID(id: ID | undefined): Rule | undefined;
+export function useRuleByID(id: ID | undefined): Rule | undefined {
+    return useSelector((state) => state.data.rule.entities[id as ID]);
 }
 
 export const useAllStatements = () =>

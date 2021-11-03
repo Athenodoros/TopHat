@@ -62,6 +62,7 @@ import {
     Category,
     Currency,
     DataState,
+    Rule,
     StubUserID,
     Transaction,
     User,
@@ -395,6 +396,11 @@ export const DataSlice = createSlice({
             updateBalanceSummaries(state); // Transaction balances and account metadata are unchanged
         },
 
+        runRule: (state, { payload: id }: PayloadAction<ID>) => {
+            const maybeApplyRule = getMaybeApplyRule(state.rule.entities[id]!);
+            state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
+        },
+
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {
         //         const table = (change.table === "transaction_" ? "transaction" : change.table) as keyof DataState;
@@ -717,4 +723,29 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
                 maybeDeleteBalances(account as number, Number(currency))
             )
         );
+};
+
+const getTestRegex = (regexes: string[]) => {
+    const master = new RegExp(regexes.join("|"));
+    return (reference: string) => reference.match(master) !== null;
+};
+export const getMaybeApplyRule = (rule: Rule) => {
+    const testReference = !rule.reference.length
+        ? (_: string) => true
+        : rule.regex
+        ? getTestRegex(rule.reference)
+        : (reference: string) => rule.reference.some((option) => reference.includes(option));
+
+    return (transaction: Transaction) => {
+        if (
+            (!rule.accounts.length || rule.accounts.includes(transaction.account)) &&
+            (rule.min === null || rule.min <= transaction.value!) &&
+            (rule.max === null || rule.max >= transaction.value!) &&
+            (!rule.reference.length || testReference(transaction.reference))
+        ) {
+            if (rule.summary !== undefined) transaction.summary = rule.summary;
+            if (rule.description !== undefined) transaction.description = rule.description;
+            if (rule.category !== PLACEHOLDER_CATEGORY_ID) transaction.category = rule.category;
+        }
+    };
 };

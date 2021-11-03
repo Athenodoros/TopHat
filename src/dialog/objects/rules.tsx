@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import { CallSplit, KeyboardArrowDown } from "@mui/icons-material";
 import { Autocomplete, Button, Checkbox, ListItemText, TextField, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import { identity, inRange } from "lodash";
+import { identity, inRange, isEqual } from "lodash";
 import React, { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
 import { NonIdealState } from "../../components/display/NonIdealState";
@@ -13,7 +13,7 @@ import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Account, DataSlice, Rule } from "../../state/data";
-import { useAccountMap, useAllAccounts, useAllCategories, useCategoryByID } from "../../state/data/hooks";
+import { useAccountMap, useAllAccounts, useAllCategories, useCategoryByID, useRuleByID } from "../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../state/data/shared";
 import { Greys } from "../../styles/colours";
 import { getThemeTransition } from "../../styles/theme";
@@ -110,6 +110,8 @@ const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => 
 
 const EditRuleView: React.FC = () => {
     const working = useDialogState("rule")!;
+    const actual = useRuleByID(working.id);
+
     const category = useCategoryByID(working.category);
     const categories = useAllCategories();
 
@@ -143,6 +145,11 @@ const EditRuleView: React.FC = () => {
                 />
             }
             onReset={onReset}
+            actions={
+                <Button variant="contained" disabled={!isEqual(working, actual)} onClick={runWorkingRule}>
+                    Run Rule
+                </Button>
+            }
         >
             <EditTitleContainer title="Conditions" />
             <EditValueContainer label="Reference">
@@ -244,7 +251,7 @@ const EditRuleView: React.FC = () => {
     );
 };
 
-const { update, remove } = getUpdateFunctions("rule");
+const { update, remove, getWorkingCopy } = getUpdateFunctions("rule");
 const updateWorkingIsInactive = update("isInactive");
 const updateWorkingReference = update("reference");
 const updateWorkingReferenceAuto = handleAutoCompleteChange(updateWorkingReference);
@@ -257,6 +264,11 @@ const updateWorkingAccounts = handleAutoCompleteChange((accounts: Account[]) =>
 const updateWorkingSummary = handleTextFieldChange(update("summary"));
 const updateWorkingDescription = handleTextFieldChange(update("description"));
 const updateWorkingCategory = update("category");
+
+const runWorkingRule = () => {
+    const id = getWorkingCopy().id;
+    TopHatDispatch(DataSlice.actions.runRule(id));
+};
 
 const InactiveCheckboxSx = { alignSelf: "flex-end" };
 const GrowingBox = styled("div")({ flexGrow: 1 });

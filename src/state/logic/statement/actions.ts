@@ -25,7 +25,7 @@ import { TopHatDispatch, TopHatStore } from "../..";
 import { updateListSelection } from "../../../shared/data";
 import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
-import { Currency, DataSlice, Statement, Transaction } from "../../data";
+import { Currency, DataSlice, getMaybeApplyRule, Statement, Transaction } from "../../data";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
 import { StubUserID } from "../../data/types";
 import { getTodayString, ID, SDate } from "../../shared/values";
@@ -576,28 +576,10 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
         if (shouldRunRules) {
             data.rule.ids.forEach((id) => {
                 const rule = data.rule.entities[id]!;
-                if (rule.isInactive) return;
-
-                const testReference = !rule.reference.length
-                    ? (_: string) => true
-                    : rule.regex
-                    ? getTestRegex(rule.reference)
-                    : (reference: string) => rule.reference.some((option) => reference.includes(option));
-
-                transactions
-                    .filter(({ category }) => category === PLACEHOLDER_CATEGORY_ID)
-                    .forEach((transaction) => {
-                        if (
-                            (!rule.accounts.length || rule.accounts.includes(transaction.account)) &&
-                            (rule.min === null || rule.min <= transaction.value!) &&
-                            (rule.max === null || rule.max >= transaction.value!) &&
-                            (!rule.reference.length || testReference(transaction.reference))
-                        ) {
-                            if (rule.summary !== undefined) transaction.summary = rule.summary;
-                            if (rule.description !== undefined) transaction.description = rule.description;
-                            if (rule.category !== PLACEHOLDER_CATEGORY_ID) transaction.category = rule.category;
-                        }
-                    });
+                if (!rule.isInactive) {
+                    const maybeApplyRule = getMaybeApplyRule(rule);
+                    transactions.filter(({ category }) => category === PLACEHOLDER_CATEGORY_ID).forEach(maybeApplyRule);
+                }
             });
         }
 
@@ -679,9 +661,4 @@ const combineStatementFileNamesToEstimateRegex = (names: string[]) => {
 
     // Rough benchmark for adequate "specificity", to stop ".*"-style stub regexes being returned
     if (start.length + end.length > 5 || characters.length <= 3) return final;
-};
-
-const getTestRegex = (regexes: string[]) => {
-    const master = new RegExp(regexes.join("|"));
-    return (reference: string) => reference.match(master) !== null;
 };

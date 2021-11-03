@@ -17,7 +17,14 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
     subtitle,
     onReset,
     valid,
-}: React.PropsWithChildren<{ type: Type; subtitle?: React.ReactNode; onReset?: () => void; valid?: boolean }>) => {
+    actions,
+}: React.PropsWithChildren<{
+    type: Type;
+    subtitle?: React.ReactNode;
+    onReset?: () => void;
+    valid?: boolean;
+    actions?: React.ReactElement;
+}>) => {
     const working = useDialogState(type) as BasicObjectType[Type];
     const actual = useObjectByID(type, working.id);
 
@@ -52,35 +59,38 @@ export const ObjectEditContainer = <Type extends BasicObjectName>({
             <EditDividerBox />
             <EditContainerBox>{children}</EditContainerBox>
             <ActionsBox>
-                <Button
-                    color="warning"
-                    disabled={isEqual(working, actual)}
-                    startIcon={<DeleteTwoTone fontSize="small" />}
-                    onClick={reset}
-                >
-                    {actual ? "Reset" : "Discard"}
-                </Button>
-                <Tooltip title={deleteObjectError || ""}>
-                    <span>
-                        <Button
-                            color="error"
-                            disabled={deleteObjectError !== undefined}
-                            startIcon={<DeleteForeverTwoTone fontSize="small" />}
-                            onClick={deleteEnabled ? destroy : enableDelete}
-                            variant={deleteEnabled ? "contained" : undefined}
-                        >
-                            {deleteEnabled ? "Confirm" : "Delete"}
-                        </Button>
-                    </span>
-                </Tooltip>
-                <Button
-                    disabled={isEqual(working, actual) || valid === false}
-                    variant="outlined"
-                    startIcon={<SaveTwoTone fontSize="small" />}
-                    onClick={save}
-                >
-                    Save
-                </Button>
+                {actions || <div />}
+                <ActionButtonContainer>
+                    <Button
+                        color="warning"
+                        disabled={isEqual(working, actual)}
+                        startIcon={<DeleteTwoTone fontSize="small" />}
+                        onClick={reset}
+                    >
+                        {actual ? "Reset" : "Discard"}
+                    </Button>
+                    <Tooltip title={deleteObjectError || ""}>
+                        <span>
+                            <Button
+                                color="error"
+                                disabled={deleteObjectError !== undefined}
+                                startIcon={<DeleteForeverTwoTone fontSize="small" />}
+                                onClick={deleteEnabled ? destroy : enableDelete}
+                                variant={deleteEnabled ? "contained" : undefined}
+                            >
+                                {deleteEnabled ? "Confirm" : "Delete"}
+                            </Button>
+                        </span>
+                    </Tooltip>
+                    <Button
+                        disabled={isEqual(working, actual) || valid === false}
+                        variant="outlined"
+                        startIcon={<SaveTwoTone fontSize="small" />}
+                        onClick={save}
+                    >
+                        Save
+                    </Button>
+                </ActionButtonContainer>
             </ActionsBox>
         </EditBox>
     );
@@ -110,8 +120,8 @@ const EditContainerBox = styled("div")({
 const ActionsBox = styled("div")({
     marginTop: "auto",
     display: "flex",
-    alignSelf: "flex-end",
+    justifyContent: "space-between",
     paddingTop: 8,
-    "& > *": { marginLeft: "10px !important" },
 });
+const ActionButtonContainer = styled("div")({ "& > *": { marginLeft: "10px !important" } });
 const StubSubtitleBox = styled("div")({ height: 15 });
