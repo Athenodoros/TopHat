@@ -161,6 +161,11 @@ export const DataSlice = createSlice({
             updateBalancesAndAccountSummaries(state);
             updateCategoryTransactionDates(state);
         },
+        removeUnusedStatements: (state) => {
+            const included = uniq(state.transaction.ids.map((id) => state.transaction.entities[id]!.statement));
+            const excluded = state.statement.ids.filter((id) => !included.includes(id as number));
+            adapters.statement.removeMany(state.statement, excluded);
+        },
         updateSimpleObjects: <Name extends "rule">(
             state: DataState,
             { payload }: PayloadAction<{ type: Name; updates: readonly Update<BasicObjectType[Name]>[] }>
