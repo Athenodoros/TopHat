@@ -18,7 +18,7 @@ const ContainerBox = styled("div")({
     top: 0,
     position: "sticky",
     backgroundColor: APP_BACKGROUND_COLOUR,
-    zIndex: 1,
+    zIndex: 2,
     margin: "-20px -10px 5px -10px",
     padding: "20px 10px 0 10px",
 });
