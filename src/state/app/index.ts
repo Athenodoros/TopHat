@@ -18,18 +18,6 @@ interface AppState {
     page: PageStateType;
 }
 
-const ObjectIDRegex = /^\d+$/;
-export const getPagePathForPageState = (state: PageStateType) => {
-    let path = "/" + state.id;
-    if (state.id === "account") path += "/" + state.account;
-    if (state.id === "category") path += "/" + state.category;
-    return path;
-};
-const getDefaultPageState = (page: PageStateType | null) => ({
-    dialog: DefaultDialogs,
-    page: page || DefaultPages["summary"],
-});
-
 // This is a gross hack to get the public URL, because I can't get process.env.PUBLIC_URL to work properly
 let BASE_PATHNAME = "";
 for (let i in range(document.head.childNodes.length)) {
@@ -39,6 +27,18 @@ for (let i in range(document.head.childNodes.length)) {
         break;
     }
 }
+
+const ObjectIDRegex = /^\d+$/;
+export const getPagePathForPageState = (state: PageStateType) => {
+    let path = BASE_PATHNAME + "/" + state.id;
+    if (state.id === "account") path += "/" + state.account;
+    if (state.id === "category") path += "/" + state.category;
+    return path;
+};
+const getDefaultPageState = (page: PageStateType | null) => ({
+    dialog: DefaultDialogs,
+    page: page || DefaultPages["summary"],
+});
 
 export const getAppStateFromPagePath = (location: Location): AppState => {
     const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
@@ -135,8 +135,8 @@ const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite 
 AppSlice.reducer = (state: AppState | undefined, action: AnyAction) => {
     const newState = oldReducer(state, action);
 
-    if (state && window.location.pathname !== BASE_PATHNAME + getPagePathForPageState(newState.page)) {
-        window.history.pushState(null, "", BASE_PATHNAME + getPagePathForPageState(newState.page));
+    if (state && window.location.pathname !== getPagePathForPageState(newState.page)) {
+        window.history.pushState(null, "", getPagePathForPageState(newState.page));
     }
 
     return newState;
