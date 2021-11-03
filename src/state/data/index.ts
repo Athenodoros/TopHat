@@ -398,8 +398,19 @@ export const DataSlice = createSlice({
 
         runRule: (state, { payload: id }: PayloadAction<ID>) => {
             const maybeApplyRule = getMaybeApplyRule(state.rule.entities[id]!);
+
+            // Ideally this would use adapters.transaction - but rules currently preserve ordering anyway
             state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
         },
+
+        fitAccountLastUpdateDates: (state) =>
+            void adapters.account.updateMany(
+                state.account,
+                state.account.ids.map((id) => ({
+                    id,
+                    changes: { lastUpdate: state.account.entities[id]!.lastTransactionDate },
+                }))
+            ),
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {

@@ -167,6 +167,7 @@ const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
 
         updateSyncedCurrencies,
         removeUnusedStatements: () => TopHatDispatch(DataSlice.actions.removeUnusedStatements()),
+        fitAccountUpdateDates: () => TopHatDispatch(DataSlice.actions.fitAccountLastUpdateDates()),
         restart: () => TopHatDispatch(DataSlice.actions.restartTutorial()),
         refreshCaches: () => TopHatDispatch(DataSlice.actions.refreshCaches()),
     };
