@@ -94,8 +94,11 @@ export function useRuleByID(id: ID | undefined): Rule | undefined {
     return useSelector((state) => state.data.rule.entities[id as ID]);
 }
 
-export const useAllStatements = () =>
-    useSelector((state) => state.data.statement.ids.map((id) => state.data.statement.entities[id]!), shallowEqual);
+export const useAllStatements = (filter?: (statement: Statement) => boolean) =>
+    useSelector((state) => {
+        const results = state.data.statement.ids.map((id) => state.data.statement.entities[id]!);
+        return filter ? results.filter(filter) : results;
+    }, shallowEqual);
 
 export function useObjectByID<Type extends BasicObjectName>(type: Type, id: ID): BasicObjectType[Type];
 export function useObjectByID<Type extends BasicObjectName>(type: Type, id?: ID): BasicObjectType[Type] | undefined;

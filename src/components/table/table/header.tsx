@@ -50,7 +50,9 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 }) => {
     const accounts = useAllAccounts();
     const getAccountIcon = useGetAccountIcon();
-    const statements = useAllStatements();
+    const statements = useAllStatements(
+        fixed?.type === "account" ? (statement) => statement.account === fixed.account : undefined
+    );
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();
