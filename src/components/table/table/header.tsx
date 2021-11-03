@@ -65,7 +65,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const updaters = useFilterUpdaters(setFiltersPartial);
 
-    const createNewTransaction = useCreateNewTransaction(setEdit);
+    const createNewTransaction = useCreateNewTransaction(setEdit, fixed);
 
     return (
         <>

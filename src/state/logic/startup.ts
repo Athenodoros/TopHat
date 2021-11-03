@@ -144,9 +144,10 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
 };
 
 const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
-    console.warn(
-        "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
-    );
+    if (!debug)
+        console.warn(
+            "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
+        );
 
     return {
         db,
