@@ -1,13 +1,14 @@
 import JSZip from "jszip";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
+import { BASE_PATHNAME } from "../app";
 import { DataSlice } from "../data";
 import { StubUserID, User } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
 import { DROPBOX_NOTIFICATION_ID } from "./notifications/variants/dropbox";
 
 const APP_KEY = "7ru69iyjvo0wz6t";
-const REDIRECT_URI = `${window.location.origin}/dropbox`;
+const REDIRECT_URI = `${window.location.origin}${BASE_PATHNAME}/dropbox`;
 
 const AUTH_URL = `https://dropbox.com/oauth2/authorize?response_type=code&client_id=${APP_KEY}&redirect_uri=${REDIRECT_URI}&token_access_type=offline&code_challenge_method=S256`;
 const TOKEN_AUTH_URL = `https://api.dropboxapi.com/oauth2/token?grant_type=authorization_code&client_id=${APP_KEY}&redirect_uri=${REDIRECT_URI}`;

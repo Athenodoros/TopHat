@@ -19,7 +19,7 @@ interface AppState {
 }
 
 // This is a gross hack to get the public URL, because I can't get process.env.PUBLIC_URL to work properly
-let BASE_PATHNAME = "";
+export let BASE_PATHNAME = "";
 for (let i in range(document.head.childNodes.length)) {
     const node = document.head.childNodes[i] as HTMLLinkElement;
     if (node.href?.endsWith("favicon.png")) {
