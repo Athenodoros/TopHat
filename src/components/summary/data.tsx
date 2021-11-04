@@ -1,5 +1,5 @@
-import { max, mean } from "lodash";
-import { omit, toPairs, unzip, zip } from "lodash-es";
+import { max, mean, values } from "lodash";
+import { toPairs, unzip, zip } from "lodash-es";
 import { SummaryBarChartPoint, SummaryBreakdownDatum } from ".";
 import { takeWithDefault, zipObject } from "../../shared/data";
 import { AccountsPageState, TransactionsPageState } from "../../state/app/pageTypes";
@@ -105,13 +105,18 @@ export function useBalanceSummaryData(
         });
     });
 
+    const length = Math.min(max(values(trends).map((trend) => trend.credits.length)) || 25, 25);
+
     // Create full summaries by category
     return toPairs(trends).map(([strID, trend]) => {
         const id = Number(strID);
         const common = {
             id,
             value: { credit: trend.credits[0], debit: trend.debits[0] },
-            trend: omit(trend, ["totals"]),
+            trend: {
+                credits: takeWithDefault(trend.credits, length, 0),
+                debits: takeWithDefault(trend.debits, length, 0),
+            },
         };
 
         if (aggregation === "institution") {

@@ -1,6 +1,6 @@
 import { range, sum, toPairs, unzip, zip } from "lodash";
 import { useMemo } from "react";
-import { equalZip } from "../../shared/data";
+import { equalZip, takeWithDefault } from "../../shared/data";
 import { useAllAccounts, useAllCategories } from "../../state/data/hooks";
 import { ID } from "../../state/shared/values";
 
@@ -68,7 +68,10 @@ export const useTransactionsSnapshot = (category?: ID): SnapshotSectionData => {
 };
 
 const getSnapshotDisplayValues = (trends: [number, number][], currency?: ID) => {
-    const [credits, debits] = trends.length ? unzip(trends) : [range(12).map((_) => 0), range(12).map((_) => 0)];
+    let [credits, debits] = trends.length ? unzip(trends) : [range(12).map((_) => 0), range(12).map((_) => 0)];
+    credits = takeWithDefault(credits, 25, 0);
+    debits = takeWithDefault(debits, 25, 0);
+
     const net = equalZip(credits, debits).map(sum);
     return { trends: { credits, debits }, net, currency };
 };
