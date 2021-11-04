@@ -84,6 +84,21 @@ const BaseAdapter = createEntityAdapter<object>();
 const NameAdapter = createEntityAdapter<{ name: string }>({ sortComparer: (a, b) => a.name.localeCompare(b.name) });
 const IndexedAdapter = createEntityAdapter<{ index: number }>({ sortComparer: (a, b) => a.index - b.index });
 const DateAdapter = createEntityAdapter<Transaction>({ sortComparer: compareTransactionsDescendingDates });
+const CategoryAdapter = createEntityAdapter<Category>({
+    sortComparer: (left, right) =>
+        left.id === PLACEHOLDER_CATEGORY_ID
+            ? -1
+            : right.id === PLACEHOLDER_CATEGORY_ID
+            ? 1
+            : left.id === TRANSFER_CATEGORY_ID
+            ? -1
+            : right.id === TRANSFER_CATEGORY_ID
+            ? 1
+            : left.name.localeCompare(right.name),
+});
+const AccountAdapter = createEntityAdapter<Account>({
+    sortComparer: (left, right) => left.institution - right.institution || left.id - right.id,
+});
 
 const BaseObjects = {
     category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
@@ -93,8 +108,8 @@ const BaseObjects = {
 };
 
 const adapters: Record<keyof DataState, EntityAdapter<any>> = {
-    account: BaseAdapter,
-    category: NameAdapter,
+    account: AccountAdapter,
+    category: CategoryAdapter,
     currency: NameAdapter,
     institution: NameAdapter,
     rule: IndexedAdapter,
