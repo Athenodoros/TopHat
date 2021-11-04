@@ -550,9 +550,9 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                         reference: getColumnValue<string | undefined>("reference", rowID, fileID) || "",
                         recordedBalance: getColumnValue<number | undefined>("balance", rowID, fileID) ?? null,
                         value:
-                            flipValue(getColumnValue<number | undefined>("value", rowID, fileID)) ??
-                            getColumnValue<number | undefined>("credit", rowID, fileID) ??
-                            flipValue(getColumnValue<number | undefined>("debit", rowID, fileID)) ??
+                            flipValue(getColumnValue<number | undefined>("value", rowID, fileID)) ||
+                            getColumnValue<number | undefined>("credit", rowID, fileID) ||
+                            flipValue(getColumnValue<number | undefined>("debit", rowID, fileID)) ||
                             null,
                         currency:
                             state.mapping.currency.type === "constant"
