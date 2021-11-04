@@ -25,7 +25,10 @@ const update = (data: DataState) => {
     const { accountOutOfDate } = data.user.entities[StubUserID]!;
 
     const account = sortBy(
-        data.account.ids.filter((id) => !accountOutOfDate.includes(id as ID)).map((id) => data.account.entities[id]!),
+        data.account.ids
+            .filter((id) => !accountOutOfDate.includes(id as ID))
+            .map((id) => data.account.entities[id]!)
+            .filter((account) => !account.isInactive),
         (account) => account.lastUpdate
     )[0];
 
