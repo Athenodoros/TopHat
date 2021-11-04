@@ -36,6 +36,7 @@ const ContainerBox = styled("div")({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    textAlign: "center",
     margin: "auto",
     padding: 40,
 });

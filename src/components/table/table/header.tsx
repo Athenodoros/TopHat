@@ -14,6 +14,7 @@ import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
 import { getTodayString, ID } from "../../../state/shared/values";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
+import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
 import { SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
@@ -207,16 +208,20 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     onRightClick={updaters.removeStatements}
                 />
                 <Menu {...StatementPopoverState.popoverProps} PaperProps={{ style: { maxHeight: 250, width: 300 } }}>
-                    {statements.map((option) => (
-                        <FilterMenuOption
-                            key={option.id}
-                            option={option}
-                            select={updaters.selectIDs.statement}
-                            selected={filters.statement}
-                            getOptionIcon={getStatementIcon}
-                            getSecondary={(option) => option.date}
-                        />
-                    ))}
+                    {statements.length ? (
+                        statements.map((option) => (
+                            <FilterMenuOption
+                                key={option.id}
+                                option={option}
+                                select={updaters.selectIDs.statement}
+                                selected={filters.statement}
+                                getOptionIcon={getStatementIcon}
+                                getSecondary={(option) => option.date}
+                            />
+                        ))
+                    ) : (
+                        <NonIdealState icon={Description} title="No Statements" intent="app" />
+                    )}
                 </Menu>
             </TransactionTableStatementContainer>
             {fixed?.type !== "account" ? (
