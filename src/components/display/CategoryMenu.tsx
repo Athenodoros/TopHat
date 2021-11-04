@@ -21,7 +21,7 @@ interface SingleCategoryMenuProps {
     exclude?: ID[];
     anchor?: Anchor;
 }
-export const SingleCategoryMenuFunction = (
+const SingleCategoryMenuFunction = (
     { selected, setSelected, exclude = [], anchor }: SingleCategoryMenuProps,
     ref: React.ForwardedRef<HTMLDivElement>
 ) => {

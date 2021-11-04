@@ -1,19 +1,20 @@
 import styled from "@emotion/styled";
 import { CallSplit, KeyboardArrowDown } from "@mui/icons-material";
-import { Autocomplete, Button, Checkbox, ListItemText, TextField, Typography } from "@mui/material";
+import { Autocomplete, Button, Checkbox, ListItemText, Menu, TextField, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { identity, inRange, isEqual } from "lodash";
 import React, { useCallback } from "react";
 import { DropResult } from "react-beautiful-dnd";
+import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCategoryIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
-import { ObjectSelector, SubItemCheckbox } from "../../components/inputs";
+import { SubItemCheckbox } from "../../components/inputs";
 import { handleAutoCompleteChange, handleTextFieldChange } from "../../shared/events";
-import { useNumericInputHandler } from "../../shared/hooks";
+import { useNumericInputHandler, usePopoverProps } from "../../shared/hooks";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
-import { Account, DataSlice, Rule } from "../../state/data";
-import { useAccountMap, useAllAccounts, useAllCategories, useCategoryByID, useRuleByID } from "../../state/data/hooks";
+import { Account, Category, DataSlice, Rule } from "../../state/data";
+import { useAccountMap, useAllAccounts, useCategoryByID, useRuleByID } from "../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID } from "../../state/data/shared";
 import { Greys } from "../../styles/colours";
 import { getThemeTransition } from "../../styles/theme";
@@ -113,7 +114,6 @@ const EditRuleView: React.FC = () => {
     const actual = useRuleByID(working.id);
 
     const category = useCategoryByID(working.category);
-    const categories = useAllCategories();
 
     const min = useNumericInputHandler(working.min ?? null, updateWorkingMin, working.id);
     const max = useNumericInputHandler(working.max ?? null, updateWorkingMax, working.id);
@@ -132,6 +132,18 @@ const EditRuleView: React.FC = () => {
             setMaxValue(actual.max);
         }
     }, [setMinValue, setMaxValue, working.id]);
+
+    const categoryButtonPopover = usePopoverProps();
+    const setIsPopoverOpen = categoryButtonPopover.setIsOpen;
+    const handleChangeCategory = useCallback(
+        (category?: Category) => {
+            if (category) {
+                updateWorkingCategory(category.id);
+                setIsPopoverOpen(false);
+            }
+        },
+        [setIsPopoverOpen]
+    );
 
     return (
         <ObjectEditContainer
@@ -215,6 +227,7 @@ const EditRuleView: React.FC = () => {
             <EditTitleContainer title="Updated Values" />
             <EditValueContainer label="Summary">
                 <TextField
+                    sx={{ width: 230 }}
                     value={working.summary || ""}
                     onChange={updateWorkingSummary}
                     size="small"
@@ -227,25 +240,21 @@ const EditRuleView: React.FC = () => {
                     onChange={updateWorkingDescription}
                     size="small"
                     label="New Description Text"
-                    style={{ width: "100%" }}
+                    sx={{ width: "100%" }}
                     multiline={true}
                 />
             </EditValueContainer>
             <EditValueContainer label="Category">
-                <ObjectSelector
-                    options={categories}
-                    render={(category) => getCategoryIcon(category, CategoryIconSx)}
-                    selected={working.category}
-                    setSelected={updateWorkingCategory}
-                >
-                    <CategorySelectionButton variant="outlined" color="inherit">
-                        {getCategoryIcon(category, CategoryIconSx)}
-                        <Typography variant="body1" noWrap={true}>
-                            {category.name}
-                        </Typography>
-                        <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                    </CategorySelectionButton>
-                </ObjectSelector>
+                <CategorySelectionButton variant="outlined" color="inherit" {...categoryButtonPopover.buttonProps}>
+                    {getCategoryIcon(category, CategoryIconSx)}
+                    <Typography variant="body1" noWrap={true}>
+                        {category.name}
+                    </Typography>
+                    <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
+                </CategorySelectionButton>
+                <Menu {...categoryButtonPopover.popoverProps} PaperProps={CategoryPaperProps}>
+                    <SingleCategoryMenu selected={working.category} setSelected={handleChangeCategory} />
+                </Menu>
             </EditValueContainer>
         </ObjectEditContainer>
     );
@@ -295,7 +304,7 @@ const AccountIconSx = {
     marginRight: 8,
 };
 const CategorySelectionButton = styled(Button)({
-    width: 200,
+    width: 230,
     textTransform: "inherit",
     height: 40,
 
@@ -308,3 +317,4 @@ const CategorySelectionButton = styled(Button)({
         marginLeft: 15,
     },
 });
+const CategoryPaperProps = { sx: { width: 230, maxHeight: 300 } };
