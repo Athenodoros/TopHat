@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
-import { IconButton, Menu, Popover, TextField, Typography } from "@mui/material";
+import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import { debounce, last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
@@ -12,11 +13,11 @@ import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
 import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
-import { getTodayString, ID } from "../../../state/shared/values";
+import { getTodayString, ID, parseDate } from "../../../state/shared/values";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
-import { SubItemCheckbox } from "../../inputs";
+import { ManagedDatePicker, SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
 import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
@@ -82,27 +83,31 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         ButtonProps={DateRangePopoverState.buttonProps}
                         onRightClick={updaters.removeDate}
                     />
-                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={RangePopoverPaperProps}>
+                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={DescriptionPopoverPaperProps}>
                         <div>
-                            <Typography
-                                variant="body1"
-                                sx={filters.fromDate ? undefined : TransactionTableSxProps.MissingValue}
-                            >
-                                {filters.fromDate || startDate || "Today"}
-                            </Typography>
-                            <Typography
-                                variant="body1"
-                                sx={filters.toDate ? undefined : TransactionTableSxProps.MissingValue}
-                            >
-                                {filters.toDate || "Today"}
-                            </Typography>
+                            <ManagedDatePicker
+                                value={filters.fromDate}
+                                onChange={updaters.fromDate}
+                                maxDate={parseDate(filters.toDate)}
+                                label="Start Date"
+                                {...ManagedDatePickerProps}
+                            />
+                            <ManagedDatePicker
+                                value={filters.toDate}
+                                onChange={updaters.toDate}
+                                minDate={parseDate(filters.fromDate)}
+                                label="End Date"
+                                {...ManagedDatePickerProps}
+                            />
                         </div>
-                        <DateRangeFilter
-                            min={startDate}
-                            from={filters.fromDate}
-                            to={filters.toDate}
-                            setRange={updaters.dates}
-                        />
+                        <Box sx={{ padding: "10px 10px 0 10px" }}>
+                            <DateRangeFilter
+                                min={startDate}
+                                from={filters.fromDate}
+                                to={filters.toDate}
+                                setRange={updaters.dates}
+                            />
+                        </Box>
                     </Popover>
                 </TransactionTableCompoundContainer>
             </TransactionTableDateContainer>
@@ -127,6 +132,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                                 label="Search Term"
                                 defaultValue={initialSearchValue}
                                 onChange={updaters.search}
+                                sx={{ width: 200 }}
                             />
                         </div>
                         <SubItemCheckbox
@@ -261,6 +267,8 @@ const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilters>) =>
     useMemo(
         () => ({
             // Set filters
+            fromDate: debounce((fromDate?: string) => update({ fromDate })),
+            toDate: debounce((toDate?: string) => update({ toDate })),
             dates: (fromDate?: string, toDate?: string) => update({ fromDate, toDate }),
             search: handleTextFieldChange(debounce((search: string) => update({ search }), 200)),
             searchRegex: (searchRegex: boolean) => update({ searchRegex }),
@@ -360,12 +368,13 @@ const DescriptionPopoverPaperProps = {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-
-            "& > div:last-child": {
-                width: 200,
-            },
         },
     },
 } as const;
 const TextBox = styled(TransactionTableTextContainer)({ marginTop: 9 });
 const SubItemSx = { alignSelf: "flex-end" };
+const ManagedDatePickerProps = {
+    nullable: true,
+    renderInput: (params: TextFieldProps) => <TextField {...params} size="small" sx={{ width: 140, ...params.sx }} />,
+    disableOpenPicker: true,
+};
