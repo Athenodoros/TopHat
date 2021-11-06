@@ -201,7 +201,7 @@ const accounts = (
                 date: formatDate(getToday().minus({ months: 8 })),
             } as Account["lastStatementFormat"],
         ],
-        ["Transaction Account", true, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
+        ["Transaction Account", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
         ["Mortgage", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action", "Mortgage Statement.csv"],
         ["Apartment", false, 2, PLACEHOLDER_INSTITUTION_ID],
         ["Euro Account", false, 1, 2, "https://www.onlinebanking.natwestinternational.com/default.aspx"],

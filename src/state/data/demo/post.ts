@@ -39,4 +39,12 @@ export const finishDemoInitialisation = (state: DataState, download: string) => 
         id: DEMO_NOTIFICATION_ID,
         contents: download,
     };
+
+    // Add some recordedBalances to demo
+    state.transaction.ids.forEach((id) => {
+        const tx = state.transaction.entities[id]!;
+
+        // Transaction Account
+        if (tx.account === 6) tx.recordedBalance = tx.balance;
+    });
 };
