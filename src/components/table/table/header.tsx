@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
-import { Box } from "@mui/system";
 import { debounce, last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
@@ -13,7 +12,7 @@ import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
 import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
-import { getTodayString, ID, parseDate } from "../../../state/shared/values";
+import { getTodayString, ID } from "../../../state/shared/values";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
@@ -88,26 +87,24 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             <ManagedDatePicker
                                 value={filters.fromDate}
                                 onChange={updaters.fromDate}
-                                maxDate={parseDate(filters.toDate)}
                                 label="Start Date"
                                 {...ManagedDatePickerProps}
                             />
                             <ManagedDatePicker
                                 value={filters.toDate}
                                 onChange={updaters.toDate}
-                                minDate={parseDate(filters.fromDate)}
                                 label="End Date"
                                 {...ManagedDatePickerProps}
                             />
                         </div>
-                        <Box sx={{ padding: "10px 10px 0 10px" }}>
+                        <div>
                             <DateRangeFilter
                                 min={startDate}
                                 from={filters.fromDate}
                                 to={filters.toDate}
                                 setRange={updaters.dates}
                             />
-                        </Box>
+                        </div>
                     </Popover>
                 </TransactionTableCompoundContainer>
             </TransactionTableDateContainer>
@@ -168,13 +165,15 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                                 {filters.valueTo === undefined ? "All" : formatCurrencyValue(filters.valueTo)}
                             </Typography>
                         </div>
-                        <NumericRangeFilter
-                            min={valueFilterDomain[0]}
-                            max={valueFilterDomain[1]}
-                            from={filters.valueFrom}
-                            to={filters.valueTo}
-                            setRange={updaters.values}
-                        />
+                        <div>
+                            <NumericRangeFilter
+                                min={valueFilterDomain[0]}
+                                max={valueFilterDomain[1]}
+                                from={filters.valueFrom}
+                                to={filters.valueTo}
+                                setRange={updaters.values}
+                            />
+                        </div>
                         <SubItemCheckbox
                             label="Hide Stubs"
                             checked={filters.hideStubs}
@@ -361,13 +360,16 @@ const DescriptionPopoverPaperProps = {
         display: "flex",
         flexDirection: "column",
         alignItems: "stretch",
-        padding: 20,
+        padding: "20px 20px 10px 20px",
         width: 350,
 
         "& > div:first-of-type": {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+        },
+        "& > div:nth-of-type(2)": {
+            padding: "10px 10px 0 10px",
         },
     },
 } as const;
