@@ -47,7 +47,7 @@ export const EditableCurrencyValue: React.FC<EditableCurrencyValueProps> = ({
     const symbol = currencies.find((c) => c.id === currency)?.symbol;
 
     const onChangeValue = useDebounced(onChangeValueRaw);
-    const { text, setText, onTextChange } = useNumericInputHandler(value || null, onChangeValue);
+    const { text, setText, onTextChange } = useNumericInputHandler(value ?? null, onChangeValue);
     const setValueToUndefined = useCallback(() => {
         setText("");
         onChangeValue();
