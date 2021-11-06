@@ -5,10 +5,10 @@ import { debounce, last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
-import { useFirstValue, usePopoverProps } from "../../../shared/hooks";
+import { useFirstValue, useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { TopHatStore } from "../../../state";
 import { Transaction } from "../../../state/data";
-import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
+import { useAllAccounts, useAllStatements } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
 import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
@@ -29,7 +29,6 @@ import {
     TransactionTableCompoundContainer,
     TransactionTableDateContainer,
     TransactionTableStatementContainer,
-    TransactionTableSxProps,
     TransactionTableTextContainer,
     TransactionTableValueContainer,
 } from "./styles";
@@ -57,7 +56,6 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();
-    const formatCurrencyValue = useFormatValue({ decimals: 1 });
 
     const DateRangePopoverState = usePopoverProps();
     const DescriptionPopoverState = usePopoverProps();
@@ -71,6 +69,8 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
     const createNewTransaction = useCreateNewTransaction(setEdit, fixed);
 
     const initialSearchValue = useFirstValue(filters.search);
+    const valueFromHandler = useNumericInputHandler(filters.valueFrom ?? null, updaters.valueFrom);
+    const valueToHandler = useNumericInputHandler(filters.valueTo ?? null, updaters.valueTo);
 
     return (
         <>
@@ -82,7 +82,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         ButtonProps={DateRangePopoverState.buttonProps}
                         onRightClick={updaters.removeDate}
                     />
-                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={DescriptionPopoverPaperProps}>
+                    <Popover {...DateRangePopoverState.popoverProps} PaperProps={PopoverPaperProps}>
                         <div>
                             <ManagedDatePicker
                                 value={filters.fromDate}
@@ -121,7 +121,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         }}
                         onRightClick={updaters.removeSearch}
                     />
-                    <Popover {...DescriptionPopoverState.popoverProps} PaperProps={DescriptionPopoverPaperProps}>
+                    <Popover {...DescriptionPopoverState.popoverProps} PaperProps={PopoverPaperProps}>
                         <div>
                             <Typography variant="body1">Search</Typography>
                             <TextField
@@ -150,20 +150,20 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         onRightClick={updaters.removeValue}
                     />
                     VALUE
-                    <Popover {...ValuePopoverState.popoverProps} PaperProps={RangePopoverPaperProps}>
+                    <Popover {...ValuePopoverState.popoverProps} PaperProps={PopoverPaperProps}>
                         <div>
-                            <Typography
-                                variant="body1"
-                                sx={filters.valueFrom === undefined ? TransactionTableSxProps.MissingValue : undefined}
-                            >
-                                {filters.valueFrom === undefined ? "All" : formatCurrencyValue(filters.valueFrom)}
-                            </Typography>
-                            <Typography
-                                variant="body1"
-                                sx={filters.valueTo === undefined ? TransactionTableSxProps.MissingValue : undefined}
-                            >
-                                {filters.valueTo === undefined ? "All" : formatCurrencyValue(filters.valueTo)}
-                            </Typography>
+                            <TextField
+                                value={valueFromHandler.text}
+                                onChange={valueFromHandler.onTextChange}
+                                size="small"
+                                label="Values From"
+                            />
+                            <TextField
+                                value={valueToHandler.text}
+                                onChange={valueToHandler.onTextChange}
+                                size="small"
+                                label="Values To"
+                            />
                         </div>
                         <div>
                             <NumericRangeFilter
@@ -271,6 +271,8 @@ const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilters>) =>
             dates: (fromDate?: string, toDate?: string) => update({ fromDate, toDate }),
             search: handleTextFieldChange(debounce((search: string) => update({ search }), 200)),
             searchRegex: (searchRegex: boolean) => update({ searchRegex }),
+            valueFrom: (value: number | null) => update({ valueFrom: value ?? undefined }),
+            valueTo: (value: number | null) => update({ valueTo: value ?? undefined }),
             values: (valueFrom: number | undefined, valueTo: number | undefined) => update({ valueFrom, valueTo }),
             hideStubs: (hideStubs: boolean) => update({ hideStubs }),
             selectIDs: zipObject(
@@ -341,21 +343,7 @@ const useCreateNewTransaction = (
         setEdit(transaction);
     }, [setEdit, fixed]);
 
-const RangePopoverPaperProps = {
-    sx: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        padding: "15px 25px",
-        width: 300,
-
-        "& > div:first-of-type": {
-            display: "flex",
-            justifyContent: "space-between",
-        },
-    },
-} as const;
-const DescriptionPopoverPaperProps = {
+const PopoverPaperProps = {
     sx: {
         display: "flex",
         flexDirection: "column",
@@ -367,6 +355,10 @@ const DescriptionPopoverPaperProps = {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+
+            input: {
+                width: 110, // Excluding default padding of 14 * 2
+            },
         },
         "& > div:nth-of-type(2)": {
             padding: "10px 10px 0 10px",
@@ -377,6 +369,6 @@ const TextBox = styled(TransactionTableTextContainer)({ marginTop: 9 });
 const SubItemSx = { alignSelf: "flex-end" };
 const ManagedDatePickerProps = {
     nullable: true,
-    renderInput: (params: TextFieldProps) => <TextField {...params} size="small" sx={{ width: 140, ...params.sx }} />,
+    renderInput: (params: TextFieldProps) => <TextField {...params} size="small" />,
     disableOpenPicker: true,
 };
