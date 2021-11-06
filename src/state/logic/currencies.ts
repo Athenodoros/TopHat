@@ -106,6 +106,7 @@ export const updateSyncedCurrencies = () => {
                                 DataSlice.actions.saveObject({
                                     type: "currency",
                                     working: { ...currency, rates },
+                                    automated: true,
                                 })
                             );
                         }

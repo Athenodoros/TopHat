@@ -2,6 +2,7 @@ import { LocalizationProvider } from "@mui/lab";
 import DateAdapter from "@mui/lab/AdapterLuxon";
 import { CssBaseline, StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { noop, omit } from "lodash-es";
+import { SnackbarProvider } from "notistack";
 import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
@@ -52,23 +53,25 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
             >
                 <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={TopHatTheme}>
-                        <PageErrorBoundary>
-                            <FileHandlerContext.Provider
-                                value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
-                            >
-                                <Provider store={TopHatStore}>
-                                    <div {...omit(getRootProps(), ["onClick"])}>
-                                        <TopHatDialog />
-                                        <TopHatTutorial />
-                                        <input
-                                            id="file-upload-dropzone"
-                                            {...getInputProps({ style: { display: "none" } })}
-                                        />
-                                        {children}
-                                    </div>
-                                </Provider>
-                            </FileHandlerContext.Provider>
-                        </PageErrorBoundary>
+                        <SnackbarProvider maxSnack={3}>
+                            <PageErrorBoundary>
+                                <FileHandlerContext.Provider
+                                    value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
+                                >
+                                    <Provider store={TopHatStore}>
+                                        <div {...omit(getRootProps(), ["onClick"])}>
+                                            <TopHatDialog />
+                                            <TopHatTutorial />
+                                            <input
+                                                id="file-upload-dropzone"
+                                                {...getInputProps({ style: { display: "none" } })}
+                                            />
+                                            {children}
+                                        </div>
+                                    </Provider>
+                                </FileHandlerContext.Provider>
+                            </PageErrorBoundary>
+                        </SnackbarProvider>
                     </ThemeProvider>
                 </StyledEngineProvider>
             </LocalizationProvider>

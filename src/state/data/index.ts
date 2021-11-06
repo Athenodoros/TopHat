@@ -17,6 +17,7 @@ import {
     get,
     isEqual,
     keys,
+    omit,
     range,
     reverse,
     round,
@@ -26,6 +27,7 @@ import {
     upperFirst,
     values,
 } from "lodash";
+import { VariantType } from "notistack";
 import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
@@ -63,6 +65,7 @@ import {
     Currency,
     DataState,
     Rule,
+    Statement,
     StubUserID,
     Transaction,
     User,
@@ -142,6 +145,14 @@ const initialTutorialState: DataState = {
     user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
 };
 
+// Undo notification submitter
+type SubmitType = (data: DataState, message: string, intent?: VariantType) => void;
+export let submitNotification: SubmitType = console.log;
+let rewindDisplaySpec: { message: string; intent?: VariantType } | null = null;
+export const setSubmitNotification = (newSubmit: SubmitType) => {
+    submitNotification = newSubmit;
+};
+
 // Create Slice automatically wraps reducer functions with Immer objects to allow mutation
 // See docs here: https://redux-toolkit.js.org/usage/immer-reducers
 export const DataSlice = createSlice({
@@ -149,10 +160,14 @@ export const DataSlice = createSlice({
     initialState: initialTutorialState,
     reducers: {
         restartTutorial: () => initialTutorialState,
-        reset: () => ({
-            ...DataBaseline,
-            user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
-        }),
+        reset: () => {
+            rewindDisplaySpec = { message: "All data wiped!", intent: "warning" };
+
+            return {
+                ...DataBaseline,
+                user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
+            };
+        },
         set: (_, { payload }: PayloadAction<DataState>) => payload,
         setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
             mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
@@ -182,18 +197,6 @@ export const DataSlice = createSlice({
             const excluded = state.statement.ids.filter((id) => !included.includes(id as number));
             adapters.statement.removeMany(state.statement, excluded);
         },
-        updateSimpleObjects: <Name extends "rule">(
-            state: DataState,
-            { payload }: PayloadAction<{ type: Name; updates: readonly Update<BasicObjectType[Name]>[] }>
-        ) => {
-            adapters[payload.type].updateMany(state[payload.type], payload.updates);
-        },
-        createSimpleObjects: <Name extends "rule" | "statement">(
-            state: DataState,
-            { payload }: PayloadAction<{ type: Name; objects: readonly BasicObjectType[Name][] }>
-        ) => {
-            adapters[payload.type].addMany(state[payload.type], payload.objects);
-        },
 
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (
@@ -209,12 +212,14 @@ export const DataSlice = createSlice({
             }>
         ) => {
             adapters.account.updateOne(state.account, payload);
+            rewindDisplaySpec = { message: "Account updated!" };
         },
         updateCategoryBudgets: (state, { payload }: PayloadAction<Record<ID, number>>) => {
             keys(payload).forEach((id) => {
                 const budget = state.category.entities[Number(id)]!.budgets;
                 if (budget) budget.values[0] = payload[Number(id)];
             });
+            rewindDisplaySpec = { message: "Category updated!" };
         },
         regenerateCategoryColours: (state) => {
             const toplevel = (values(state.category.entities) as Category[]).filter(
@@ -230,30 +235,20 @@ export const DataSlice = createSlice({
                 state.category,
                 toplevel.map((category, idx) => ({ id: category.id, changes: { colour: scale(idx).hex() } }))
             );
+
+            rewindDisplaySpec = { message: "Categories updated!" };
         },
-        addNewTransactions: (
-            state,
-            {
-                payload: { transactions, transfers = [] },
-            }: PayloadAction<{ transactions: Transaction[]; transfers?: ID[] }>
-        ) => {
+        addNewTransaction: (state, { payload: tx }: PayloadAction<Transaction>) => {
             updateTransactionSummaryStartDates(state);
-            updateTransactionSummariesWithTransactions(state, transfers, true);
 
-            adapters.transaction.updateMany(
-                state.transaction,
-                transfers.map((id) => ({ id, changes: { category: TRANSFER_CATEGORY_ID } }))
-            );
-            // Actions make arguments read-only, which breaks the balance calculations
-            adapters.transaction.addMany(state.transaction, cloneDeep(transactions));
+            // cloneDeep is to get around object freezing in the adapter
+            adapters.transaction.addOne(state.transaction, cloneDeep(tx));
 
-            const transactionIDs = transactions.map(({ id }) => id);
-            updateTransactionSummariesWithTransactions(state, transfers.concat(transactionIDs));
-            updateBalancesAndAccountSummaries(state, getBalanceSubset(transactionIDs, state.transaction.entities));
-            updateCategoryTransactionDates(
-                state,
-                uniq(transactionIDs.map((id) => state.transaction.entities[id]!.category))
-            );
+            updateTransactionSummariesWithTransactions(state, [tx.id]);
+            updateBalancesAndAccountSummaries(state, [{ currency: tx.currency, account: tx.account }]);
+            updateCategoryTransactionDates(state, [tx.category]);
+
+            rewindDisplaySpec = { message: "Transaction added!" };
         },
         updateTransactions: (state, { payload }: PayloadAction<Update<Transaction>[]>) => {
             const ids = payload.map(({ id }) => id);
@@ -268,6 +263,8 @@ export const DataSlice = createSlice({
             const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
             updateTransactionSummariesWithTransactions(state, ids);
             updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
+
+            rewindDisplaySpec = { message: "Transactions updated!" };
         },
         deleteTransactions: (state, { payload: ids }: PayloadAction<ID[]>) => {
             const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
@@ -277,11 +274,15 @@ export const DataSlice = createSlice({
             adapters.transaction.removeMany(state.transaction, ids);
 
             updateBalancesAndAccountSummaries(state, balanceSubset);
+
+            rewindDisplaySpec = { message: "Transactions deleted!" };
         },
 
         saveObject: <Type extends BasicObjectName>(
             state: WritableDraft<DataState>,
-            { payload: { type, working } }: PayloadAction<{ type: Type; working: BasicObjectType[Type] }>
+            {
+                payload: { type, working, automated },
+            }: PayloadAction<{ type: Type; working: BasicObjectType[Type]; automated?: boolean }>
         ) => {
             const original = state[type].entities[working.id] as BasicObjectType[Type] | undefined;
 
@@ -351,6 +352,8 @@ export const DataSlice = createSlice({
             } else {
                 adapters[type].upsertOne(state[type], working);
             }
+
+            if (!automated) rewindDisplaySpec = { message: upperFirst(type) + " updated!" };
         },
         deleteObject: (state, { payload: { type, id } }: PayloadAction<{ type: BasicObjectName; id: ID }>) => {
             if (deleteObjectError(state, type, id) !== undefined) return;
@@ -375,7 +378,56 @@ export const DataSlice = createSlice({
                     }
                 });
             }
+
+            rewindDisplaySpec = { message: upperFirst(type) + " deleted!" };
         },
+
+        finishStatementImport: (
+            state,
+            {
+                payload: { statements, transactions, transfers = [], account },
+            }: PayloadAction<{
+                statements: Statement[];
+                transactions: Transaction[];
+                transfers?: ID[];
+                account: Pick<Account, "id" | "statementFilePattern" | "lastStatementFormat">;
+            }>
+        ) => {
+            rewindDisplaySpec = { message: "Uploaded statement" + (statements.length === 1 ? "!" : "s!") };
+
+            // Add Statements
+            adapters.statement.addMany(state.statement, statements);
+
+            // Add Transactions
+            updateTransactionSummaryStartDates(state);
+            updateTransactionSummariesWithTransactions(state, transfers, true);
+
+            adapters.transaction.updateMany(
+                state.transaction,
+                transfers.map((id) => ({ id, changes: { category: TRANSFER_CATEGORY_ID } }))
+            );
+            // cloneDeep is to get around object freezing in the adapter
+            adapters.transaction.addMany(state.transaction, cloneDeep(transactions));
+
+            const transactionIDs = transactions.map(({ id }) => id);
+            updateTransactionSummariesWithTransactions(state, transfers.concat(transactionIDs));
+            updateBalancesAndAccountSummaries(state, getBalanceSubset(transactionIDs, state.transaction.entities));
+            updateCategoryTransactionDates(
+                state,
+                uniq(transactionIDs.map((id) => state.transaction.entities[id]!.category))
+            );
+
+            // Update Account metadata
+            adapters.account.updateOne(state.account, { id: account.id, changes: omit(account, "id") });
+        },
+
+        updateRuleIndices: (state, { payload }: PayloadAction<[ID, number][]>) =>
+            void adapters.rule.updateMany(
+                state.rule,
+                payload.map(([id, index]) => ({ id, changes: { index } }))
+            ),
+        createStatements: (state: DataState, { payload }: PayloadAction<Statement[]>) =>
+            void adapters.statement.addMany(state.statement, payload),
 
         // Notifications
         updateNotificationState: (
@@ -416,6 +468,8 @@ export const DataSlice = createSlice({
 
             // Ideally this would use adapters.transaction - but rules currently preserve ordering anyway
             state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
+
+            rewindDisplaySpec = { message: "Run operation complete!" };
         },
 
         fitAccountLastUpdateDates: (state) =>
@@ -447,11 +501,19 @@ const listeners: DataUpdateListener[] = [];
 const oldReducer = DataSlice.reducer; // Separate assignment to prevent infinite recursion
 DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
     const newState = oldReducer(state, action);
+
+    if (rewindDisplaySpec) {
+        if (state) submitNotification(state, rewindDisplaySpec.message, rewindDisplaySpec.intent);
+
+        rewindDisplaySpec = null;
+    }
+
     if (!isEqual(state, newState)) {
         return createNextState(newState, (newState) => {
             listeners.forEach((listener) => listener(state, newState));
         });
     }
+
     return newState;
 };
 export const subscribeToDataUpdates = (listener: DataUpdateListener) => void listeners.push(listener);

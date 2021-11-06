@@ -1,5 +1,5 @@
 import { unstable_createMuiStrictModeTheme as createMuiTheme } from "@mui/material";
-import { AppColours, Greys, Intents } from "./colours";
+import { AppColours, Greys, Intents, WHITE } from "./colours";
 
 // declare module "@mui/material/styles" {
 //     interface Palette {
@@ -34,6 +34,9 @@ export const TopHatTheme = createMuiTheme({
         app: {
             ...AppColours.summary,
             contrastText: "white",
+        },
+        white: {
+            main: WHITE,
         },
         background: {
             default: APP_BACKGROUND_COLOUR,
@@ -71,14 +74,23 @@ export const DEFAULT_BORDER_RADIUS = 4;
 declare module "@mui/material/styles" {
     interface Palette {
         app: Palette["primary"];
+        white: Palette["primary"];
     }
     interface PaletteOptions {
         app: PaletteOptions["primary"];
+        white: PaletteOptions["primary"];
     }
 }
 
 declare module "@mui/material/Button" {
     interface ButtonPropsColorOverrides {
         app: true;
+        white: true;
+    }
+}
+declare module "@mui/material/IconButton" {
+    interface IconButtonPropsColorOverrides {
+        app: true;
+        white: true;
     }
 }

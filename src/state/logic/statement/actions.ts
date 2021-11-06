@@ -497,7 +497,6 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
             date: getTodayString(),
             account: state.account!.id,
         }));
-        TopHatDispatch(DataSlice.actions.createSimpleObjects({ type: "statement", objects: statements }));
 
         // Create transaction objects
         let nextTransactionID = getNextID(data.transaction.ids);
@@ -583,14 +582,13 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
             });
         }
 
-        // Add transactions to data store (Including category & balance updates)
-        TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions, transfers: transferTransactionUpdates }));
-
-        // Update account statement fields
         TopHatDispatch(
-            DataSlice.actions.updateAccount({
-                id: state.account!.id,
-                changes: {
+            DataSlice.actions.finishStatementImport({
+                statements,
+                transactions,
+                transfers: transferTransactionUpdates,
+                account: {
+                    id: state.account!.id,
                     statementFilePattern: combineStatementFileNamesToEstimateRegex(
                         statements
                             .map(({ name }) => name)

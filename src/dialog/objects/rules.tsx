@@ -98,15 +98,10 @@ const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => 
     const rangeMax = Math.max(source.index, destination.index);
     const updates = ids
         .filter((id) => inRange(entities[id]!.index, rangeMin, rangeMax + 1) && entities[id]!.index !== source.index)
-        .map((id) => ({
-            id,
-            changes: {
-                index: entities[id]!.index + (source.index > destination.index ? 1 : -1),
-            },
-        }))
-        .concat([{ id: Number(draggableId), changes: { index: destination.index } }]);
+        .map((id) => [id, entities[id]!.index + (source.index > destination.index ? 1 : -1)] as [number, number])
+        .concat([[Number(draggableId), destination.index]]);
 
-    TopHatDispatch(DataSlice.actions.updateSimpleObjects({ type: "rule", updates }));
+    TopHatDispatch(DataSlice.actions.updateRuleIndices(updates));
 };
 
 const EditRuleView: React.FC = () => {

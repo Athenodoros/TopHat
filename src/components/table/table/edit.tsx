@@ -223,7 +223,7 @@ const useActions = (
             create: () =>
                 batch(() => {
                     setStatePartial({ edit: undefined });
-                    TopHatDispatch(DataSlice.actions.addNewTransactions({ transactions: [edit as Transaction] }));
+                    TopHatDispatch(DataSlice.actions.addNewTransaction(edit as Transaction));
                 }),
             save: () =>
                 batch(() => {
