@@ -245,6 +245,7 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     iconSx: SxProps;
     allowUndefined?: boolean;
     button?: ObjectSelectorCommonProps<T>["children"];
+    disabled?: boolean;
     getMenuContents?: (close: () => void) => React.ReactNode;
     MenuProps?: Partial<MenuProps>;
 }
@@ -256,6 +257,7 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
     iconSx,
     allowUndefined,
     button,
+    disabled,
     getMenuContents,
     MenuProps = { PaperProps: { style: { maxHeight: 170 } } },
 }: TransactionsTableObjectDropdownProps<T>) => {
@@ -279,7 +281,13 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
             }
         >
             {button || (
-                <Button sx={ObjectDropdownButtonSx} variant="outlined" component="div" color="inherit">
+                <Button
+                    sx={ObjectDropdownButtonSx}
+                    variant="outlined"
+                    component="div"
+                    color="inherit"
+                    disabled={disabled}
+                >
                     {option && getIcon(option, iconSx)}
                     <ObjectDropdownLabelTypography
                         variant="body1"

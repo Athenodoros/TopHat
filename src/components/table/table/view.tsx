@@ -12,7 +12,12 @@ import {
     useInstitutionByID,
     useStatementByID,
 } from "../../../state/data/hooks";
-import { PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../../state/data/shared";
+import {
+    FAKE_BALANCE_READING_CATEGORY,
+    FAKE_BALANCE_READING_CATEGORY_ID,
+    PLACEHOLDER_STATEMENT_ID,
+    TRANSFER_CATEGORY_ID,
+} from "../../../state/data/shared";
 import { parseDate } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
@@ -41,7 +46,8 @@ export interface TransactionsTableViewEntryProps {
 export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProps> = React.memo(
     ({ transaction: tx, updateState, fixed }) => {
         const currency = useCurrencyByID(tx.currency);
-        const category = useCategoryByID(tx.category);
+        let category = useCategoryByID(tx.category);
+        if (!tx.value) category = FAKE_BALANCE_READING_CATEGORY;
         const account = useAccountByID(tx.account);
         const institution = useInstitutionByID(account?.institution);
         const statement = useStatementByID(tx.statement);
@@ -118,7 +124,12 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                     <TransactionTableCategoryContainer>
                         {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
                             <TransactionTableCompoundContainer
-                                sx={category.id === TRANSFER_CATEGORY_ID ? TransferCategorySx : undefined}
+                                sx={
+                                    category.id === TRANSFER_CATEGORY_ID ||
+                                    category.id === FAKE_BALANCE_READING_CATEGORY_ID
+                                        ? BuiltinCategorySx
+                                        : undefined
+                                }
                             >
                                 {getCategoryIcon(category, CategoryIconSx)}
                                 <Typography noWrap={true}>
@@ -188,7 +199,7 @@ const CategoryIconSx = {
     borderRadius: "50%",
     marginRight: 6,
 };
-const TransferCategorySx = {
+const BuiltinCategorySx = {
     fontStyle: "italic",
     color: Greys[600],
     overflow: "visible",

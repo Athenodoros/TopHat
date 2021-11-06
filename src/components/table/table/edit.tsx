@@ -119,16 +119,21 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
             </TransactionTableValueContainer>
             {fixed?.type !== "category" || fixed.nested === true ? (
                 <TransactionTableCategoryContainer>
-                    <TransactionsTableObjectDropdown
-                        options={categories}
-                        selected={edit.category}
-                        select={updaters.category}
-                        getIcon={getCategoryIcon}
-                        iconSx={CategoryDropdownIconSx}
-                        allowUndefined={!!tx && tx.category === undefined}
-                        getMenuContents={getCategoryMenuContents}
-                        MenuProps={CategoryMenuProps}
-                    />
+                    <Tooltip title={edit.value ? "" : "Transaction has no value"}>
+                        <CategoryWrapperSpan>
+                            <TransactionsTableObjectDropdown
+                                options={categories}
+                                selected={edit.category}
+                                select={updaters.category}
+                                getIcon={getCategoryIcon}
+                                iconSx={CategoryDropdownIconSx}
+                                allowUndefined={!!tx && tx.category === undefined}
+                                getMenuContents={getCategoryMenuContents}
+                                MenuProps={CategoryMenuProps}
+                                disabled={!edit.value}
+                            />
+                        </CategoryWrapperSpan>
+                    </Tooltip>
                 </TransactionTableCategoryContainer>
             ) : undefined}
             <TransactionTableBalanceContainer>
@@ -286,3 +291,4 @@ const EditTextBox = styled(TransactionTableTextContainer)({
     },
 });
 const ActionsBox = styled(TransactionTableActionsContainer)({ visibility: "visible !important" as "visible" });
+const CategoryWrapperSpan = styled("span")({ width: "100%" });

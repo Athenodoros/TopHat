@@ -19,7 +19,11 @@ export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
 const update = (data: DataState) => {
     const { uncategorisedTransactionsAlerted } = data.user.entities[StubUserID]!;
 
-    const uncategorised = data.category.entities[PLACEHOLDER_CATEGORY_ID]!.transactions.count;
+    const uncategorised = data.transaction.ids.filter((id) => {
+        const tx = data.transaction.entities[id]!;
+        return tx.category === PLACEHOLDER_CATEGORY_ID && tx.value;
+    }).length;
+
     const notification = data.notification.entities[UNCATEGORISED_NOTIFICATION_ID];
 
     if (uncategorised === 0) {

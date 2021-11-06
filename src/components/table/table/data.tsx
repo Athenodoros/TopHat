@@ -61,7 +61,7 @@ export const useTransactionsTableData = (
             return Boolean(
                 filterListByID(filters.account, tx.account) &&
                     filterListByID(fixedCategoryFilter, tx.category) &&
-                    filterListByID(filters.category, tx.category) &&
+                    (filters.category.length === 0 || (tx.value && filterListByID(filters.category, tx.category))) &&
                     filterListByID(filters.currency, tx.currency) &&
                     filterListByID(filters.statement, tx.statement) &&
                     (!filters.fromDate || tx.date >= filters.fromDate) &&

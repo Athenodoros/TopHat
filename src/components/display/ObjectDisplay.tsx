@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { AccountBalance, Block, Description, ImportExport } from "@mui/icons-material";
+import { AccountBalance, Block, Description, ImportExport, Update } from "@mui/icons-material";
 import { Avatar, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import chroma from "chroma-js";
@@ -7,7 +7,12 @@ import { last } from "lodash";
 import React, { useCallback } from "react";
 import { Institution } from "../../state/data";
 import { getCategoryColour, useInstitutionMap } from "../../state/data/hooks";
-import { PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID, TRANSFER_CATEGORY_ID } from "../../state/data/shared";
+import {
+    FAKE_BALANCE_READING_CATEGORY_ID,
+    PLACEHOLDER_CATEGORY_ID,
+    PLACEHOLDER_STATEMENT_ID,
+    TRANSFER_CATEGORY_ID,
+} from "../../state/data/shared";
 import { Account, AccountTypes, Category, Currency, Statement } from "../../state/data/types";
 import { Greys } from "../../styles/colours";
 
@@ -43,6 +48,10 @@ export const getCategoryIcon = (category: Pick<Category, "id" | "colour">, sx: S
     ) : category.id === PLACEHOLDER_CATEGORY_ID ? (
         <Avatar sx={{ backgroundColor: "transparent", ...sx }}>
             <Block sx={{ height: "90%", color: category.colour }} />
+        </Avatar>
+    ) : category.id === FAKE_BALANCE_READING_CATEGORY_ID ? (
+        <Avatar sx={{ backgroundColor: "transparent", ...sx }}>
+            <Update sx={{ height: "90%", color: category.colour }} />
         </Avatar>
     ) : (
         <Box

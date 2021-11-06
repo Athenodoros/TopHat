@@ -54,6 +54,14 @@ export const TRANSFER_CATEGORY: Category = {
     colour: Greys[500],
     transactions: BaseTransactionHistory(),
 };
+export const FAKE_BALANCE_READING_CATEGORY_ID = -2;
+export const FAKE_BALANCE_READING_CATEGORY: Category = {
+    id: -2,
+    name: "Balance Reading",
+    hierarchy: [],
+    colour: Greys[500],
+    transactions: BaseTransactionHistory(),
+};
 
 export const PLACEHOLDER_INSTITUTION_ID = 0;
 export const PLACEHOLDER_INSTITUTION: Institution = {
