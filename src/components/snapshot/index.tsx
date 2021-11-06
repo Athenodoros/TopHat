@@ -83,7 +83,7 @@ export const useGetSummaryChart = (
     { trends: { credits, debits }, net, currency }: SnapshotSectionData,
     height: number = 220
 ) => {
-    const format = useFormatValue({ end: "k", decimals: 0, separator: "" }, currency);
+    const format = useFormatValue({ end: "k", decimals: 1, separator: "" }, currency);
 
     return useCallback(
         () => (
