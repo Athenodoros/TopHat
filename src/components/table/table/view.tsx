@@ -47,7 +47,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
     ({ transaction: tx, updateState, fixed }) => {
         const currency = useCurrencyByID(tx.currency);
         let category = useCategoryByID(tx.category);
-        if (!tx.value) category = FAKE_BALANCE_READING_CATEGORY;
+        if (tx.value === null) category = FAKE_BALANCE_READING_CATEGORY;
         const account = useAccountByID(tx.account);
         const institution = useInstitutionByID(account?.institution);
         const statement = useStatementByID(tx.statement);
@@ -118,7 +118,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                     )}
                 </TransactionTableTextContainer>
                 <TransactionTableValueContainer>
-                    {getCurrencyDisplay(tx.value || 0, tx.value === null)}
+                    {getCurrencyDisplay(tx.value === null ? 0 : tx.value, tx.value === null)}
                 </TransactionTableValueContainer>
                 {fixed?.type !== "category" || fixed.nested === true ? (
                     <TransactionTableCategoryContainer>
