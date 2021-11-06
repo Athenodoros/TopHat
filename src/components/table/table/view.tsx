@@ -111,7 +111,9 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                         MissingText
                     )}
                 </TransactionTableTextContainer>
-                <TransactionTableValueContainer>{getCurrencyDisplay(tx.value)}</TransactionTableValueContainer>
+                <TransactionTableValueContainer>
+                    {getCurrencyDisplay(tx.value || 0, tx.value === null)}
+                </TransactionTableValueContainer>
                 {fixed?.type !== "category" || fixed.nested === true ? (
                     <TransactionTableCategoryContainer>
                         {category && category.id !== PLACEHOLDER_CATEGORY_ID ? (
