@@ -62,7 +62,9 @@ const createCSVDownload = () => {
     DataKeys.forEach((key) => {
         zip.file(
             `${key}.csv`,
-            Papa.unparse(key === "user" ? toPairs(state[key]) : state[key].ids.map((id) => state[key].entities[id]!))
+            key === "user"
+                ? Papa.unparse(toPairs(state[key]))
+                : Papa.unparse(state[key].ids.map((id) => state[key].entities[id]!))
         );
     });
 
