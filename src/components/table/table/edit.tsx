@@ -130,7 +130,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                                 allowUndefined={!!tx && tx.category === undefined}
                                 getMenuContents={getCategoryMenuContents}
                                 MenuProps={CategoryMenuProps}
-                                disabled={!edit.value}
+                                disabled={edit.value === null}
                             />
                         </CategoryWrapperSpan>
                     </Tooltip>
