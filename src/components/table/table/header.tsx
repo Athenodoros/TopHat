@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, Typography } from "@mui/material";
-import { last } from "lodash-es";
+import { debounce, last } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
-import { usePopoverProps } from "../../../shared/hooks";
+import { useFirstValue, usePopoverProps } from "../../../shared/hooks";
 import { TopHatStore } from "../../../state";
 import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllStatements, useFormatValue } from "../../../state/data/hooks";
@@ -70,6 +70,8 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const createNewTransaction = useCreateNewTransaction(setEdit, fixed);
 
+    const initialSearchValue = useFirstValue(filters.search);
+
     return (
         <>
             <TransactionTableDateContainer>
@@ -123,7 +125,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             <TextField
                                 size="small"
                                 label="Search Term"
-                                value={filters.search}
+                                defaultValue={initialSearchValue}
                                 onChange={updaters.search}
                             />
                         </div>
@@ -260,7 +262,7 @@ const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilters>) =>
         () => ({
             // Set filters
             dates: (fromDate?: string, toDate?: string) => update({ fromDate, toDate }),
-            search: handleTextFieldChange((search) => update({ search })),
+            search: handleTextFieldChange(debounce((search: string) => update({ search }), 200)),
             searchRegex: (searchRegex: boolean) => update({ searchRegex }),
             values: (valueFrom: number | undefined, valueTo: number | undefined) => update({ valueFrom, valueTo }),
             hideStubs: (hideStubs: boolean) => update({ hideStubs }),
