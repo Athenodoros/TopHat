@@ -185,6 +185,8 @@ export const DataSlice = createSlice({
                 finishDemoInitialisation(state, download);
             });
         },
+
+        // Utilities functions for debugging
         refreshCaches: (state) => {
             wipeTransactionSummaries(state);
 
@@ -197,6 +199,14 @@ export const DataSlice = createSlice({
             const excluded = state.statement.ids.filter((id) => !included.includes(id as number));
             adapters.statement.removeMany(state.statement, excluded);
         },
+        fitAccountLastUpdateDates: (state) =>
+            void adapters.account.updateMany(
+                state.account,
+                state.account.ids.map((id) => ({
+                    id,
+                    changes: { lastUpdate: state.account.entities[id]!.lastTransactionDate },
+                }))
+            ),
 
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (
@@ -220,23 +230,6 @@ export const DataSlice = createSlice({
                 if (budget) budget.values[0] = payload[Number(id)];
             });
             rewindDisplaySpec = { message: "Category updated!" };
-        },
-        regenerateCategoryColours: (state) => {
-            const toplevel = (values(state.category.entities) as Category[]).filter(
-                (category) =>
-                    category.hierarchy.length === 0 &&
-                    category.id !== PLACEHOLDER_CATEGORY_ID &&
-                    category.id !== TRANSFER_CATEGORY_ID
-            );
-
-            const scale = chroma.scale("set1").domain([0, toplevel.length]);
-
-            adapters.category.updateMany(
-                state.category,
-                toplevel.map((category, idx) => ({ id: category.id, changes: { colour: scale(idx).hex() } }))
-            );
-
-            rewindDisplaySpec = { message: "Categories updated!" };
         },
         addNewTransaction: (state, { payload: tx }: PayloadAction<Transaction>) => {
             updateTransactionSummaryStartDates(state);
@@ -277,7 +270,6 @@ export const DataSlice = createSlice({
 
             rewindDisplaySpec = { message: "Transactions deleted!" };
         },
-
         saveObject: <Type extends BasicObjectName>(
             state: WritableDraft<DataState>,
             {
@@ -381,7 +373,10 @@ export const DataSlice = createSlice({
 
             rewindDisplaySpec = { message: upperFirst(type) + " deleted!" };
         },
+        updateUserPartial: (state, { payload }: PayloadAction<Partial<Omit<User, "currency">>>) =>
+            void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
 
+        // Workflow actions
         finishStatementImport: (
             state,
             {
@@ -420,6 +415,41 @@ export const DataSlice = createSlice({
             // Update Account metadata
             adapters.account.updateOne(state.account, { id: account.id, changes: omit(account, "id") });
         },
+        regenerateCategoryColours: (state) => {
+            const toplevel = (values(state.category.entities) as Category[]).filter(
+                (category) =>
+                    category.hierarchy.length === 0 &&
+                    category.id !== PLACEHOLDER_CATEGORY_ID &&
+                    category.id !== TRANSFER_CATEGORY_ID
+            );
+
+            const scale = chroma.scale("set1").domain([0, toplevel.length]);
+
+            adapters.category.updateMany(
+                state.category,
+                toplevel.map((category, idx) => ({ id: category.id, changes: { colour: scale(idx).hex() } }))
+            );
+
+            rewindDisplaySpec = { message: "Categories updated!" };
+        },
+
+        setDefaultCurrency: (state, { payload: currency }: PayloadAction<ID>) => {
+            wipeTransactionSummaries(state);
+
+            state.user.entities[StubUserID]!.currency = currency;
+
+            updateTransactionSummariesWithTransactions(state);
+            updateBalanceSummaries(state); // Transaction balances and account metadata are unchanged
+        },
+
+        runRule: (state, { payload: id }: PayloadAction<ID>) => {
+            const maybeApplyRule = getMaybeApplyRule(state.rule.entities[id]!);
+
+            // Ideally this would use adapters.transaction - but rules currently preserve ordering anyway
+            state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
+
+            rewindDisplaySpec = { message: "Run operation complete!" };
+        },
 
         updateRuleIndices: (state, { payload }: PayloadAction<[ID, number][]>) =>
             void adapters.rule.updateMany(
@@ -450,36 +480,6 @@ export const DataSlice = createSlice({
                 },
             });
         },
-
-        updateUserPartial: (state, { payload }: PayloadAction<Partial<Omit<User, "currency">>>) =>
-            void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
-
-        setDefaultCurrency: (state, { payload: currency }: PayloadAction<ID>) => {
-            wipeTransactionSummaries(state);
-
-            state.user.entities[StubUserID]!.currency = currency;
-
-            updateTransactionSummariesWithTransactions(state);
-            updateBalanceSummaries(state); // Transaction balances and account metadata are unchanged
-        },
-
-        runRule: (state, { payload: id }: PayloadAction<ID>) => {
-            const maybeApplyRule = getMaybeApplyRule(state.rule.entities[id]!);
-
-            // Ideally this would use adapters.transaction - but rules currently preserve ordering anyway
-            state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
-
-            rewindDisplaySpec = { message: "Run operation complete!" };
-        },
-
-        fitAccountLastUpdateDates: (state) =>
-            void adapters.account.updateMany(
-                state.account,
-                state.account.ids.map((id) => ({
-                    id,
-                    changes: { lastUpdate: state.account.entities[id]!.lastTransactionDate },
-                }))
-            ),
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {
