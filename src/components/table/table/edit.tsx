@@ -119,7 +119,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
             </TransactionTableValueContainer>
             {fixed?.type !== "category" || fixed.nested === true ? (
                 <TransactionTableCategoryContainer>
-                    <Tooltip title={edit.value ? "" : "Transaction has no value"}>
+                    <Tooltip title={edit.value === null ? "Transaction has no value" : ""}>
                         <CategoryWrapperSpan>
                             <TransactionsTableObjectDropdown
                                 options={categories}
