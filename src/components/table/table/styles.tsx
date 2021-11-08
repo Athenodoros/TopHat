@@ -116,6 +116,8 @@ export const TransactionTableSxProps = {
         "& p": {
             lineHeight: "1 !important",
             padding: "3px 0",
+            minWidth: 0,
+            overflow: "hidden",
         },
     },
     Mixed: MIXED_PLACEHOLDER,

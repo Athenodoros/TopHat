@@ -272,6 +272,7 @@ const CategoryDropdownIconSx = {
     width: 16,
     borderRadius: "50%",
     marginRight: 8,
+    flexShrink: 0,
 };
 const AccountDropdownIconSx = {
     height: 20,
