@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
-import { debounce, last } from "lodash-es";
+import { debounce, last, omit } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
@@ -68,7 +68,6 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const createNewTransaction = useCreateNewTransaction(setEdit, fixed);
 
-    const initialSearchValue = useFirstValue(filters.search);
     const valueFromHandler = useNumericInputHandler(filters.valueFrom ?? null, updaters.valueFrom);
     const valueToHandler = useNumericInputHandler(filters.valueTo ?? null, updaters.valueTo);
 
@@ -124,10 +123,10 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     <Popover {...DescriptionPopoverState.popoverProps} PaperProps={PopoverPaperProps}>
                         <div>
                             <Typography variant="body1">Search</Typography>
-                            <TextField
+                            <UnmountableTextField
                                 size="small"
                                 label="Search Term"
-                                defaultValue={initialSearchValue}
+                                value={filters.search}
                                 onChange={updaters.search}
                                 sx={{ width: 200 }}
                             />
@@ -259,6 +258,13 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
             </TransactionTableActionsContainer>
         </>
     );
+};
+
+// useFirstValue has to be contained within the popover so that when it unmounts and
+// mounts again, defaultValue is set to the latest value
+const UnmountableTextField: React.FC<TextFieldProps> = (props) => {
+    const defaultValue = useFirstValue(props.value);
+    return <TextField {...omit(props, "value")} defaultValue={defaultValue} />;
 };
 
 const arrayFilters = ["account", "category", "statement"] as const;
