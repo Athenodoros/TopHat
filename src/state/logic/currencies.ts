@@ -1,7 +1,7 @@
 import { get, min, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
-import { formatDate, getCurrentMonth, SDate } from "../../state/shared/values";
+import { formatDate, getCurrentMonth, getCurrentMonthString, SDate } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
@@ -10,7 +10,14 @@ import { CURRENCY_NOTIFICATION_ID } from "./notifications/variants/currency";
 const AlphaVantage = "https://www.alphavantage.co/query?function=";
 const CurrencyRateRules = {
     currency: (ticker: string, token: string) =>
-        getFromAPI(`FX_MONTHLY&from_symbol=${ticker}&to_symbol=USD`, token, "Time Series FX (Monthly)", "4. close"),
+        ticker === "USD"
+            ? getConstantRateHistory()
+            : getFromAPI(
+                  `FX_MONTHLY&from_symbol=${ticker}&to_symbol=USD`,
+                  token,
+                  "Time Series FX (Monthly)",
+                  "4. close"
+              ),
     crypto: (ticker: string, token: string) =>
         getFromAPI(
             `DIGITAL_CURRENCY_MONTHLY&symbol=${ticker}&market=USD`,
@@ -21,6 +28,16 @@ const CurrencyRateRules = {
     stock: (ticker: string, token: string) =>
         getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series", "4. close"),
 };
+
+const getConstantRateHistory = (): Promise<CurrencyExchangeRate[]> =>
+    new Promise((resolve) =>
+        resolve([
+            {
+                month: getCurrentMonthString(),
+                value: 1,
+            },
+        ])
+    );
 
 const getFromAPI = async (
     query: string,

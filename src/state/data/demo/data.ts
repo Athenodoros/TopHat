@@ -44,7 +44,7 @@ const currencies = (
     [
         ["£", "Pounds Sterling", "GBP", 1.35, "#00B3A4"],
         ["€", "Euros", "EUR", 1.15, "#96622D", { type: "currency", ticker: "EUR" }],
-        ["US$", "US Dollars", "USD", 1, "#DB2C6F"],
+        ["US$", "US Dollars", "USD", 1, "#DB2C6F", { type: "currency", ticker: "USD" }],
     ] as CurrencyArgs[]
 ).map(makeCurrency);
 
