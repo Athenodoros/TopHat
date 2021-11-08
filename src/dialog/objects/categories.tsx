@@ -9,15 +9,15 @@ import {
     Shuffle,
     Sync,
 } from "@mui/icons-material";
-import { Button, IconButton, List, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
+import { Button, IconButton, List, Menu, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { range } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCategoryIcon } from "../../components/display/ObjectDisplay";
-import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange } from "../../shared/events";
+import { usePopoverProps } from "../../shared/hooks";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogState } from "../../state/app/hooks";
 import { Category, DataSlice } from "../../state/data";
@@ -84,15 +84,6 @@ const regenerateCategoryColours = () => TopHatDispatch(DataSlice.actions.regener
 
 const EditCategoryView: React.FC = () => {
     const working = useDialogState("category")!;
-    const categories = useAllCategories();
-    const parentOptions = useMemo(
-        () =>
-            categories.filter(
-                ({ id }) =>
-                    !working.hierarchy.concat([PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID, working.id]).includes(id)
-            ),
-        [categories, working.id, working.hierarchy]
-    );
     const parent: Category | undefined = useCategoryByID(working.hierarchy[0]);
 
     const timeSeriesInput = useCategoryBudgetInput(working);
@@ -110,31 +101,41 @@ const EditCategoryView: React.FC = () => {
         [timeSeriesInput]
     );
 
+    const parentButtonPopover = usePopoverProps();
+    const setIsPopoverOpen = parentButtonPopover.setIsOpen;
+    const handleChangeCategory = useCallback(
+        (category?: Category) => {
+            if (category) {
+                updateWorkingParent(category.id === PLACEHOLDER_CATEGORY_ID ? undefined : category.id);
+                setIsPopoverOpen(false);
+            }
+        },
+        [setIsPopoverOpen]
+    );
+
+    const categories = useAllCategories();
+    const childCategoryIDs = useMemo(
+        () => categories.filter(({ hierarchy }) => hierarchy.includes(working.id)).map(({ id }) => id),
+        [working.id, categories]
+    );
+
     return (
         <ObjectEditContainer type="category" onReset={timeSeriesInput.onReset}>
             <EditValueContainer label="Parent">
-                <ObjectSelector<true, Category>
-                    options={parentOptions}
-                    render={(category) => getCategoryIcon(category, IconSx)}
-                    selected={parent?.id}
-                    setSelected={updateWorkingParent}
-                    placeholder={
-                        <>
-                            {getCategoryIcon(PLACEHOLDER_CATEGORY, IconSx)}
-                            <Typography variant="body1" noWrap={true}>
-                                No Parent
-                            </Typography>
-                        </>
-                    }
-                >
-                    <CategoryButton variant="outlined" color="inherit">
-                        {getCategoryIcon(parent || PLACEHOLDER_CATEGORY, IconSx)}
-                        <Typography variant="body1" noWrap={true}>
-                            {parent?.name || "No Parent"}
-                        </Typography>
-                        <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
-                    </CategoryButton>
-                </ObjectSelector>
+                <CategoryButton variant="outlined" color="inherit" {...parentButtonPopover.buttonProps}>
+                    {getCategoryIcon(parent || PLACEHOLDER_CATEGORY, IconSx)}
+                    <Typography variant="body1" noWrap={true}>
+                        {parent?.name || "No Parent"}
+                    </Typography>
+                    <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
+                </CategoryButton>
+                <Menu {...parentButtonPopover.popoverProps} PaperProps={ParentPaperProps}>
+                    <SingleCategoryMenu
+                        selected={parent ? parent.id : PLACEHOLDER_CATEGORY_ID}
+                        setSelected={handleChangeCategory}
+                        exclude={[TRANSFER_CATEGORY_ID, working.id].concat(childCategoryIDs)}
+                    />
+                </Menu>
             </EditValueContainer>
             <EditValueContainer label="Colour" disabled={parent && "Child categories inherit their parent's colour"}>
                 <ColourContainerBox sx={parent ? ColourContainerDisabledSx : undefined}>
@@ -292,10 +293,18 @@ const IconSx = {
     flexShrink: 0,
 };
 const CategoryButton = styled(Button)({
+    width: 250,
     textTransform: "inherit",
     height: 40,
 
-    "& > svg": { marginLeft: 15 },
+    "& > p": {
+        flexGrow: 1,
+        textAlign: "left",
+    },
+
+    "& > svg": {
+        marginLeft: 15,
+    },
 });
 const BudgetTypeToggleButtonGroup = styled(ToggleButtonGroup)({
     flexGrow: 1,
@@ -315,3 +324,4 @@ const BudgetTypeToggleInnerBox = styled("div")({
     flexDirection: "column",
     alignItems: "center",
 });
+const ParentPaperProps = { sx: { width: 250, maxHeight: 300 } };

@@ -50,8 +50,11 @@ export function useCategoryByID(id: ID | undefined): Category | undefined {
 }
 export const useCategoryIDs = () => useSelector((state) => state.data.category.ids);
 export const useCategoryMap = () => useSelector((state) => state.data.category.entities);
-export const useAllCategories = () =>
-    useSelector((state) => state.data.category.ids.map((id) => state.data.category.entities[id]!), shallowEqual);
+export const useAllCategories = (filter?: (category: Category) => boolean) =>
+    useSelector((state) => {
+        const results = state.data.category.ids.map((id) => state.data.category.entities[id]!);
+        return filter ? results.filter(filter) : results;
+    }, shallowEqual);
 
 export function useCurrencyByID(id: ID): Currency;
 export function useCurrencyByID(id: ID | undefined): Currency | undefined;
