@@ -1,18 +1,33 @@
 import styled from "@emotion/styled";
-import { Description } from "@mui/icons-material";
-import { List, ListItemText, ListSubheader, MenuItem, TextField, Typography, typographyClasses } from "@mui/material";
+import { Description, KeyboardArrowDown } from "@mui/icons-material";
+import {
+    Button,
+    List,
+    ListItemText,
+    ListSubheader,
+    MenuItem,
+    TextField,
+    Typography,
+    typographyClasses,
+} from "@mui/material";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../components/display/ObjectDisplay";
-import { ManagedDatePicker } from "../../components/inputs";
+import { ManagedDatePicker, ObjectSelector } from "../../components/inputs";
 import { withSuppressEvent } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Statement } from "../../state/data";
-import { useAccountByID, useAccountMap, useAllStatements, useInstitutionMap } from "../../state/data/hooks";
+import {
+    useAccountByID,
+    useAccountMap,
+    useAllAccounts,
+    useAllStatements,
+    useInstitutionMap,
+} from "../../state/data/hooks";
 import { PLACEHOLDER_STATEMENT_ID } from "../../state/data/shared";
 import { parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
@@ -115,6 +130,7 @@ const EditStatementView: React.FC = () => {
 
     const getAccountIcon = useGetAccountIcon();
     const account = useAccountByID(working.account);
+    const accounts = useAllAccounts();
 
     return (
         <ObjectEditContainer type="statement">
@@ -129,10 +145,20 @@ const EditStatementView: React.FC = () => {
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">
-                <AccountBox>
-                    {getAccountIcon(account, IconSx)}
-                    <Typography variant="body1">{account.name}</Typography>
-                </AccountBox>
+                <ObjectSelector
+                    options={accounts}
+                    render={(institution) => getAccountIcon(institution, IconSx)}
+                    selected={working.account}
+                    setSelected={updateWorkingAccount}
+                >
+                    <AccountButton variant="outlined" color="inherit">
+                        {getAccountIcon(account, IconSx)}
+                        <Typography variant="body1" noWrap={true}>
+                            {account.name}
+                        </Typography>
+                        <KeyboardArrowDown fontSize="small" htmlColor={Greys[600]} />
+                    </AccountButton>
+                </ObjectSelector>
             </EditValueContainer>
         </ObjectEditContainer>
     );
@@ -140,23 +166,17 @@ const EditStatementView: React.FC = () => {
 
 const { update, remove, set } = getUpdateFunctions("statement");
 const updateWorkingDate = update("date");
+const updateWorkingAccount = update("account");
 
-const AccountBox = styled("div")({
-    display: "flex",
-    alignItems: "center",
-    padding: 8,
-    paddingRight: 15,
-    borderRadius: "6px",
-    background: Greys[200],
-    border: "1px solid " + Greys[300],
-
-    "& > p:last-child": {
-        color: Greys[800],
-    },
-});
 const IconSx = {
     width: 24,
     height: 24,
     marginRight: 10,
     borderRadius: "4px",
 };
+const AccountButton = styled(Button)({
+    textTransform: "inherit",
+    height: 40,
+
+    "& > svg": { marginLeft: 15 },
+});
