@@ -30,7 +30,7 @@ export const TransactionsPageSummary: React.FC = React.memo(() => {
                     sign={sign}
                     creditsName="Monthly Income"
                     debitsName="Monthly Expenses"
-                    help={length === 25 ? "Average over previous 24 months" : "Average over all history"}
+                    help={length === 25 ? "Average over 2 years to last month" : "Average over history to last month"}
                     setFilter={setFilterID[aggregation]}
                 />
             </Section>
