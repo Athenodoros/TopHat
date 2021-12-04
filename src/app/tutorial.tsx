@@ -1,12 +1,15 @@
-import { Camera } from "@mui/icons-material";
+import { Camera, PhonelinkErase } from "@mui/icons-material";
 import { Button, CircularProgress, Dialog, Link, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { useCallback, useEffect, useState } from "react";
+import { NonIdealState } from "../components/display/NonIdealState";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
 import { initialiseDemoData } from "../state/logic/startup";
 import { AppColours, WHITE } from "../styles/colours";
+
+const MIN_WIDTH_FOR_APPLICATION = 1200;
 
 export const TopHatTutorial: React.FC = () => {
     const open = useUserData((user) => user.tutorial);
@@ -19,6 +22,27 @@ export const TopHatTutorial: React.FC = () => {
         setLoading(true);
         setTimeout(initialiseDemoData, 0);
     }, []);
+
+    const [width, setWidth] = useState(9001);
+    useEffect(() => {
+        const observer = new ResizeObserver((entries) => setWidth(entries[0].contentRect.width));
+        observer.observe(document.body);
+        return () => observer.disconnect();
+    }, [setWidth]);
+
+    if (width < MIN_WIDTH_FOR_APPLICATION)
+        return (
+            <Dialog open={true} maxWidth="md" fullWidth={true}>
+                <Box sx={{ flex: "1 1 200px" }} />
+                <NonIdealState
+                    icon={PhonelinkErase}
+                    title="Desktop Required"
+                    intent="app"
+                    subtitle="TopHat is designed for deskstop use only, and this browser appears to be too narrow to render correctly. Please come back when you're at a computer!"
+                />
+                <Box sx={{ flex: "1 1 200px" }} />
+            </Dialog>
+        );
 
     return (
         <Dialog open={open} maxWidth="md" fullWidth={true}>
