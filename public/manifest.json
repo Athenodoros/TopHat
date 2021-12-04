@@ -1,6 +1,7 @@
 {
-    "short_name": "React App",
-    "name": "Create React App Sample",
+    "short_name": "TopHat Finance",
+    "name": "TopHat Finance",
+    "description": "TopHat is a Personal Finance application which runs in the browser",
     "icons": [
         {
             "src": "favicon.png",
@@ -13,8 +14,8 @@
             "sizes": "104x104"
         }
     ],
-    "start_url": ".",
+    "start_url": "/TopHat/summary",
     "display": "standalone",
     "theme_color": "#7157D9",
-    "background_color": "#ffffff"
+    "background_color": "#F7FAFC"
 }
