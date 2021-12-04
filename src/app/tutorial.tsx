@@ -85,7 +85,16 @@ export const TopHatTutorial: React.FC = () => {
                         <Button color="app" variant="outlined" sx={{ width: 150, height: 40 }} component="div">
                             Upload Data
                         </Button>
-                        <input type="file" style={{ width: 0, height: 0 }} accept=".json" onChange={handleFileChange} />
+                        <input
+                            type="file"
+                            style={{
+                                // This stub value is so Safari doesn't render the button list weirdly
+                                width: 0.000001,
+                                height: 0,
+                            }}
+                            accept=".json"
+                            onChange={handleFileChange}
+                        />
                     </label>
                 </Box>
                 <Box sx={{ flex: "1 1 90px" }} />
