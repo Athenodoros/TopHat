@@ -5,13 +5,18 @@
     "icons": [
         {
             "src": "favicon.png",
-            "sizes": "64x64 32x32 24x24 16x16",
+            "sizes": "89x90",
             "type": "image/x-icon"
         },
         {
-            "src": "logo.png",
+            "src": "96x96.png",
             "type": "image/png",
-            "sizes": "104x104"
+            "sizes": "96x96"
+        },
+        {
+            "src": "logo_144x144.png",
+            "type": "image/png",
+            "sizes": "144x144"
         }
     ],
     "start_url": "/TopHat/summary",
