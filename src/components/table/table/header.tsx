@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
-import { debounce, last, omit } from "lodash-es";
+import { debounce, keys, last, omit } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
@@ -343,7 +343,13 @@ const useCreateNewTransaction = (
     useCallback(() => {
         const transaction = getNewTransaction();
 
-        if (fixed?.type === "account") transaction.account = fixed.account;
+        if (fixed?.type === "account") {
+            transaction.account = fixed.account;
+
+            transaction.currency =
+                Number(keys(TopHatStore.getState().data.account.entities[fixed.account]!.balances)[0]) ??
+                transaction.currency;
+        }
         if (fixed?.type === "category") transaction.category = fixed.category;
 
         setEdit(transaction);
