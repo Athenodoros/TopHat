@@ -28,11 +28,12 @@ export const finishDemoInitialisation = (state: DataState, download: string) => 
         base: 0,
     };
 
-    state.account.ids.forEach((id) => {
-        const account = state.account.entities[id]!;
-        account.lastUpdate = account.lastTransactionDate || getTodayString();
-        if (account.openDate > account.lastUpdate) account.openDate = account.lastUpdate;
-    });
+    // This leads to too many notifications on startup
+    // state.account.ids.forEach((id) => {
+    //     const account = state.account.entities[id]!;
+    //     account.lastUpdate = account.lastTransactionDate || getTodayString();
+    //     if (account.openDate > account.lastUpdate) account.openDate = account.lastUpdate;
+    // });
 
     state.notification.ids = [DEMO_NOTIFICATION_ID].concat(state.notification.ids as string[]);
     state.notification.entities[DEMO_NOTIFICATION_ID] = {
