@@ -3,14 +3,14 @@ import { Avatar } from "@mui/material";
 import { Box } from "@mui/system";
 import { isEqual, sortBy } from "lodash";
 import { TopHatDispatch, TopHatStore } from "../../..";
-import { OLD_ACCOUNT_AGE_LIMIT } from "../../../../pages/accounts/table/account";
+import { getAccountUpdateAgeLevel } from "../../../../pages/accounts/table/account";
 import { Greys, Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
 import { DefaultDialogs } from "../../../app/defaults";
 import { DataSlice, DataState, ensureNotificationExists, removeNotification } from "../../../data";
 import { useAccountByID, useInstitutionByID } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
-import { getTodayString, ID, parseDate } from "../../../shared/values";
+import { getTodayString, ID } from "../../../shared/values";
 import { DefaultDismissNotificationThunk, NotificationContents, OrangeNotificationText } from "../shared";
 import { NotificationRuleDefinition } from "../types";
 
@@ -35,9 +35,10 @@ const update = (data: DataState) => {
     if (!account) {
         removeNotification(data, ACCOUNTS_NOTIFICATION_ID);
     } else {
-        const age = -Math.floor(parseDate(account.lastUpdate).diffNow("days").days);
-        if (age >= OLD_ACCOUNT_AGE_LIMIT) {
-            const contents: AccountNotificationContents = { id: account.id, age };
+        const { age, level } = getAccountUpdateAgeLevel(account);
+
+        if (level === "danger") {
+            const contents: AccountNotificationContents = { id: account.id, age: Math.floor(age!) };
             ensureNotificationExists(data, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
         }
     }

@@ -18,7 +18,7 @@ import { openNewPage } from "../../../state/app/actions";
 import { DataSlice } from "../../../state/data";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
-import { BalanceHistory, getTodayString, parseDate } from "../../../state/shared/values";
+import { BalanceHistory, getToday, getTodayString, parseDate } from "../../../state/shared/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
 import { ACCOUNT_TABLE_LEFT_PADDING } from "./styles";
 
@@ -95,7 +95,7 @@ export const AccountTableEntry: React.FC<{ account: Account }> = ({ account }) =
             </AccountValueContainerBox>
             {account.lastStatementFormat ? <DescriptionAccountIcon /> : <EditAccountIcon />}
             <AccountUpdateContainerBox>
-                {getAccountAgeDescription(max([account.lastTransactionDate, account.lastUpdate]))}
+                {getAccountAgeDescription(account)}
                 <AccountUpdateActionsBox onMouseDown={suppressEvent}>
                     <Tooltip title="Mark Up-To-Date">
                         <Button
@@ -179,8 +179,6 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
     return { value, summary, charts, domain };
 };
 
-export const OLD_ACCOUNT_AGE_LIMIT = 60;
-
 const getAccountSummary = (
     balances: [string, BalanceHistory][],
     currencies: Dictionary<Currency>,
@@ -219,27 +217,41 @@ const getAccountSummary = (
     return summary;
 };
 
-const getAccountAgeDescription = (lastTransactionDate: string | undefined) => {
-    const date = parseDate(lastTransactionDate);
-    const age = date?.diffNow("days").days;
+export const getAccountUpdateAgeLevel = (account: Account) => {
+    const update = parseDate(max([account.lastTransactionDate, account.lastUpdate]));
+
+    const updateLength = account.lastTransactionDate
+        ? update!.diff(parseDate(account.lastTransactionDate), "days").days
+        : 0;
+    const updateSince = update && getToday().diff(update, "days").days;
+
+    return {
+        level:
+            updateSince === undefined
+                ? null
+                : updateSince <= 30 || updateSince <= updateLength
+                ? ("success" as const)
+                : updateSince <= 60 || updateSince <= 2 * updateLength
+                ? ("warning" as const)
+                : ("danger" as const),
+        age: updateSince,
+        date: update,
+    };
+};
+
+const getAccountAgeDescription = (account: Account) => {
+    const { age, level, date } = getAccountUpdateAgeLevel(account);
 
     return (
         <Typography
             variant="subtitle2"
             sx={{
                 marginLeft: 6,
-                color:
-                    age === undefined
-                        ? Greys[700]
-                        : age > -30
-                        ? Intents.success.main
-                        : age > -OLD_ACCOUNT_AGE_LIMIT
-                        ? Intents.warning.main
-                        : Intents.danger.main,
+                color: level === null ? Greys[700] : Intents[level].main,
             }}
         >
             {date
-                ? "Updated " + (age! <= -1 ? date.toRelative({ unit: ["years", "months", "weeks", "days"] }) : "today")
+                ? "Updated " + (age! >= 1 ? date.toRelative({ unit: ["years", "months", "weeks", "days"] }) : "today")
                 : "Never Updated"}
         </Typography>
     );
