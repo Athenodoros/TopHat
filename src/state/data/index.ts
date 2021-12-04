@@ -257,7 +257,7 @@ export const DataSlice = createSlice({
             updateTransactionSummariesWithTransactions(state, ids);
             updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
 
-            rewindDisplaySpec = { message: "Transactions updated!" };
+            rewindDisplaySpec = { message: `Transaction${payload.length === 1 ? "" : "s"} updated!` };
         },
         deleteTransactions: (state, { payload: ids }: PayloadAction<ID[]>) => {
             const balanceSubset = getBalanceSubset(ids, state.transaction.entities);
