@@ -346,9 +346,9 @@ const useCreateNewTransaction = (
         if (fixed?.type === "account") {
             transaction.account = fixed.account;
 
-            transaction.currency =
-                Number(keys(TopHatStore.getState().data.account.entities[fixed.account]!.balances)[0]) ??
-                transaction.currency;
+            transaction.currency = Number(
+                keys(TopHatStore.getState().data.account.entities[fixed.account]!.balances)[0] ?? transaction.currency
+            );
         }
         if (fixed?.type === "category") transaction.category = fixed.category;
 
