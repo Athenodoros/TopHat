@@ -62,7 +62,7 @@ const defaultValues = {
     statement: undefined as Statement | undefined,
     import: { page: "file", rejections: [] } as DialogFileState,
     rule: undefined as Rule | undefined,
-    settings: undefined as "import" | "export" | "storage" | "notifications" | "currency" | undefined,
+    settings: undefined as "summary" | "import" | "export" | "storage" | "notifications" | "currency" | undefined,
 };
 export const DefaultDialogs = { id: "closed" as "closed" | keyof typeof defaultValues, ...defaultValues };
 export type DialogState = typeof DefaultDialogs;

@@ -10,6 +10,7 @@ import { useDialogState } from "../../state/app/hooks";
 import { useUserData } from "../../state/data/hooks";
 import { Greys } from "../../styles/colours";
 import { DialogContents, DialogMain, DialogOptions } from "../shared";
+import { DialogAboutContents } from "./about";
 import { DialogCurrencyContents } from "./currency";
 import { DialogExportContents, DialogImportContents } from "./data";
 import { DialogNotificationsContents } from "./notifications";
@@ -21,11 +22,11 @@ export const DialogSettingsView: React.FC = () => {
     const isDemo = useUserData((user) => user.isDemo);
 
     return (
-        <DialogMain>
+        <DialogMain onClick={setEmptyPage}>
             <DialogOptions>
                 <SettingsList>
                     <SettingsSubheader>Data</SettingsSubheader>
-                    <MenuItem onClick={setEmptyPage} selected={page === undefined}>
+                    <MenuItem onClick={setPage["summary"]} selected={page === "summary"}>
                         <ListItemIcon>
                             <ListAlt fontSize="small" />
                         </ListItemIcon>
@@ -64,12 +65,12 @@ export const DialogSettingsView: React.FC = () => {
                     </MenuItem>
                 </SettingsList>
             </DialogOptions>
-            <DialogContents>{page ? Pages[page] : <DialogSummaryContents />}</DialogContents>
+            <DialogContents>{page ? Pages[page] : <DialogAboutContents />}</DialogContents>
         </DialogMain>
     );
 };
 
-const pages = ["import", "export", "storage", "notifications", "currency"] as const;
+const pages = ["summary", "import", "export", "storage", "notifications", "currency"] as const;
 const setPage = zipObject(
     pages,
     pages.map((settings) => withSuppressEvent(() => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings }))))
@@ -77,6 +78,7 @@ const setPage = zipObject(
 const setEmptyPage = () => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings: undefined }));
 
 const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
+    summary: <DialogSummaryContents />,
     import: <DialogImportContents />,
     export: <DialogExportContents />,
     storage: <DialogStorageContents />,
