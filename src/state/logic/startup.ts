@@ -9,6 +9,7 @@ import { formatNumber } from "../../shared/data";
 import { AppSlice } from "../app";
 import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
 import { DataKeys, StubUserID } from "../data/types";
+import { ID } from "../shared/values";
 import { updateSyncedCurrencies } from "./currencies";
 import { TopHatDexie } from "./database";
 import * as DBUtils from "./dropbox";
@@ -105,7 +106,7 @@ const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) =>
                     DataKeys.forEach((key) => {
                         if (previous && previous[key] === state[key]) return;
 
-                        const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids));
+                        const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids)) as ID[];
                         const deleted = previous
                             ? ids.filter(
                                   (id) =>
