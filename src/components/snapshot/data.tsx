@@ -2,6 +2,7 @@ import { range, sum, toPairs, unzip, zip } from "lodash";
 import { useMemo } from "react";
 import { equalZip, takeWithDefault } from "../../shared/data";
 import { useAllAccounts, useAllCategories } from "../../state/data/hooks";
+import { TRANSFER_CATEGORY_ID } from "../../state/data/shared";
 import { ID } from "../../state/shared/values";
 
 export interface SnapshotSectionData {
@@ -51,6 +52,7 @@ export const useTransactionsSnapshot = (category?: ID): SnapshotSectionData => {
             getSnapshotDisplayValues(
                 unzip(
                     categories
+                        .filter(({ id }) => id !== TRANSFER_CATEGORY_ID)
                         .filter(({ id }) => category === undefined || id === category)
                         .flatMap(({ transactions }) => transactions)
                         .reduce(
