@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import { Camera, PhonelinkErase } from "@mui/icons-material";
 import { Button, CircularProgress, Dialog, Link, Typography } from "@mui/material";
 import { Box } from "@mui/system";
@@ -38,7 +39,22 @@ export const TopHatTutorial: React.FC = () => {
                     icon={PhonelinkErase}
                     title="Desktop Required"
                     intent="app"
-                    subtitle="TopHat is designed for deskstop use only, and this browser appears to be too narrow to render correctly. Please come back when you're at a computer!"
+                    subtitle={
+                        <SubtitleTypography variant="body2">
+                            <br />
+                            TopHat isn't designed for mobile use, and this browser appears to be too narrow for it to
+                            render correctly.
+                            <br />
+                            <br />
+                            Please come back when you're at a computer!
+                            <br />
+                            Alternatively, learn more about TopHat{" "}
+                            <Link href="https://github.com/Athenodoros/TopHat/blob/main/README.md" underline="hover">
+                                here
+                            </Link>
+                            .
+                        </SubtitleTypography>
+                    }
                 />
                 <Box sx={{ flex: "1 1 200px" }} />
             </Dialog>
@@ -139,3 +155,10 @@ const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = (event) => 
     if (!file) return;
     ImportFileReader.readAsText(file);
 };
+
+const SubtitleTypography = styled(Typography)({
+    opacity: 0.8,
+    maxWidth: 300,
+    textAlign: "center",
+    margin: "5px 0 10px 0",
+});
