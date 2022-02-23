@@ -38,4 +38,4 @@ It does not: TopHat is designed for periodic updates and inspection, rather than
 
 **I found a bug/I have a cool idea/I want to say hi!**
 
-Let me know! No promises, though.
+Let me know! No promises, though, although I'll probably say hi back.
