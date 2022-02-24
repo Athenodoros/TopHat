@@ -12,6 +12,8 @@ The frontend is a Single Page App bootstrapped with Create-React-App, built usin
 
 ### Why have you done this?
 
+I know, another personal finance app.
+
 I wanted to track my expenses in a lightweight way, without doing something crazy like giving a 3rd party the passwords to my bank accounts. After looking around, I found that I wanted three main things:
 
 -   Privacy: I don't want my credentials or account details to be sold or used for ad targeting, or subject to the questionable infosec standards of the latest hip FinTech startup. This also rules out direct connections to most banks, so I need a smooth and automated experience for uploading bank statements, to save the manual gruntwork.
