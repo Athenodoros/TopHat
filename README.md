@@ -4,7 +4,15 @@ TopHat is an offline-first personal finances app. It is designed to let users ma
 
 ![Transactions View](screenshot.png)
 
+### What is it, technically speaking?
+
+It's a web app served by GitHub Pages, with no backend service.
+
+The frontend is a Single Page App bootstrapped with Create-React-App, built using Typescript/React/Redux and some other common libraries (primarily [Victory Charts](https://formidable.com/open-source/victory/) and [Material-UI](https://mui.com/)). It uses a Service Worker for offline behaviour, and IndexedDB (via dexie.js) for storage.
+
 ### Why have you done this?
+
+I know, another personal finance app.
 
 I wanted to track my expenses in a lightweight way, without doing something crazy like giving a 3rd party the passwords to my bank accounts. After looking around, I found that I wanted three main things:
 
@@ -14,13 +22,9 @@ I wanted to track my expenses in a lightweight way, without doing something craz
 
 I couldn't find anything which hit all three requirements, so after many weekends of work, TopHat is now what I'm using.
 
-### What is it, technically speaking?
-
-It's a Single Page App bootstrapped with Create-React-App, built using Typescript/React/Redux and some other common libraries (primarily [Victory Charts](https://formidable.com/open-source/victory/) and [Material-UI](https://mui.com/)). It uses a Service Worker for offline behaviour, and IndexedDB (via dexie.js) for storage. There is no backend service, although it can hit some third-party APIs if configured to do so.
-
 ### Should I use this?
 
-Probably not! The goals of TopHat are fairly niche interests, and there may be bugs that I'm not seeing. That said, I can at least vouch for the fact that I'm using it, and that I see no reason why I would take it down in the future. It's available publicly at [https://athenodoros.github.io/TopHat](https://athenodoros.github.io/TopHat), and can populate itself with notional data for an easy trial.
+Probably not! The goals of TopHat are fairly niche interests, and there may be bugs that I'm not seeing. That said, I can at least vouch for the fact that I'm using it, and that I see no reason why I would take it down in the future. It's available publicly at [https://athenodoros.github.io/TopHat](https://athenodoros.github.io/TopHat), and it can populate itself with notional data for an easy trial.
 
 ## Potentially Asked Questions
 
@@ -36,4 +40,4 @@ It does not: TopHat is designed for periodic updates and inspection, rather than
 
 **I found a bug/I have a cool idea/I want to say hi!**
 
-Let me know! No promises, though.
+Let me know! No promises, though, although I'll probably say hi back.
