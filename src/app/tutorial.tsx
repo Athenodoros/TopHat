@@ -10,7 +10,7 @@ import { useUserData } from "../state/data/hooks";
 import { initialiseDemoData } from "../state/logic/startup";
 import { AppColours, WHITE } from "../styles/colours";
 
-const MIN_WIDTH_FOR_APPLICATION = 1200;
+export const MIN_WIDTH_FOR_APPLICATION = 1200;
 
 export const TopHatTutorial: React.FC = () => {
     const open = useUserData((user) => user.tutorial);
@@ -30,8 +30,10 @@ export const TopHatTutorial: React.FC = () => {
         observer.observe(document.body);
         return () => observer.disconnect();
     }, [setWidth]);
+    const [widthDismissed, setWidthDismissed] = useState(false);
+    const dismissWidth = useCallback(() => setWidthDismissed(true), []);
 
-    if (width < MIN_WIDTH_FOR_APPLICATION)
+    if (width < MIN_WIDTH_FOR_APPLICATION && !widthDismissed)
         return (
             <Dialog open={true} maxWidth="md" fullWidth={true}>
                 <Box sx={{ flex: "1 1 200px" }} />
@@ -42,11 +44,17 @@ export const TopHatTutorial: React.FC = () => {
                     subtitle={
                         <SubtitleTypography variant="body2">
                             <br />
-                            TopHat isn't designed for mobile use, and this browser appears to be too narrow for it to
-                            render correctly.
+                            TopHat isn't designed for mobile use, and this browser window appears to be too narrow for
+                            it to render correctly. It may look broken like this, or at least strange.
                             <br />
-                            <br />
-                            Please come back when you're at a computer!
+                            <Button
+                                color="app"
+                                variant="outlined"
+                                onClick={dismissWidth}
+                                sx={{ height: 40, marginTop: 30, marginBottom: 50 }}
+                            >
+                                Continue Anyway
+                            </Button>
                             <br />
                             Alternatively, learn more about TopHat{" "}
                             <Link href="https://github.com/Athenodoros/TopHat/blob/main/README.md" underline="hover">

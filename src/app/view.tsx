@@ -17,6 +17,7 @@ import { DataSlice, setSubmitNotification } from "../state/data";
 import { useSelector } from "../state/shared/hooks";
 import { APP_BACKGROUND_COLOUR } from "../styles/theme";
 import { NavBar } from "./navbar";
+import { MIN_WIDTH_FOR_APPLICATION } from "./tutorial";
 
 export const View: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
@@ -68,6 +69,7 @@ const Pages: Record<PageStateType["id"], JSX.Element> = {
 const AppContainerBox = styled("div")({
     height: "100vh",
     width: "100vw",
+    minWidth: MIN_WIDTH_FOR_APPLICATION,
     display: "flex",
     backgroundColor: APP_BACKGROUND_COLOUR,
     "& *:focus": { outline: "none" },
