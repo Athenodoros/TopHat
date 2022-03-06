@@ -187,6 +187,9 @@ export interface User {
     // Just for dexie compatibility, this is actually a singleton - always equal to DBUserID;
     id: ID;
 
+    // Internal state for potential migrations
+    generation?: number;
+
     // Instance metadata
     isDemo: boolean;
     start: SDate;

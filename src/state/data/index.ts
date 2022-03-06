@@ -208,6 +208,9 @@ export const DataSlice = createSlice({
                 }))
             ),
 
+        setUserGeneration: (state, { payload: generation }: PayloadAction<number>) =>
+            void adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } }),
+
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (
             state,

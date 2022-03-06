@@ -24,6 +24,8 @@ export const DEFAULT_CURRENCY: Currency = {
 
 export const DEFAULT_USER_VALUE: User = {
     id: StubUserID,
+    generation: 1,
+
     currency: 1,
     isDemo: false,
     tutorial: false,

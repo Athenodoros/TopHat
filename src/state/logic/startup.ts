@@ -43,6 +43,7 @@ export const initialiseAndGetDBConnection = async () => {
                 // IDB contains existing TopHat state
                 if (debug) console.log("Hydrating store from IndexedDB...");
                 await hydrateReduxFromIDB(db);
+                handleMigrationsAndUpdates(user.generation);
                 loadedStateFromIDB = true;
             }
 
@@ -142,6 +143,21 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
     );
 
     TopHatDispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
+};
+
+// This handles data changes over time, or required cache refreshes
+const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
+    let generation = oldGeneration ?? 0;
+
+    // Migrations for each generation
+    if (generation === 0) {
+        // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/8
+        TopHatDispatch(DataSlice.actions.refreshCaches());
+        generation = 1;
+    }
+
+    // Update app state
+    if (oldGeneration !== generation) TopHatDispatch(DataSlice.actions.setUserGeneration(generation));
 };
 
 const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
