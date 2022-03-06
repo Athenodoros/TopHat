@@ -15,6 +15,7 @@ import {
     Button,
     CircularProgress,
     IconButton,
+    Link,
     ListItemText,
     TextField,
     ToggleButton,
@@ -30,10 +31,11 @@ import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
+import { AppSlice } from "../../state/app";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Currency, DataSlice } from "../../state/data";
 import { useAllCurrencies, useDefaultCurrency, useUserData } from "../../state/data/hooks";
-import { getNextID } from "../../state/data/shared";
+import { DEMO_ALPHAVANTAGE_TOKEN, getNextID } from "../../state/data/shared";
 import { CurrencySyncType } from "../../state/data/types";
 import { getCurrencyRates } from "../../state/logic/currencies";
 import {
@@ -155,6 +157,7 @@ const EditCurrencyView: React.FC = () => {
     }, [working.id]);
 
     const alphavantage = useUserData((user) => user.alphavantage);
+    const isDemoError = alphavantage === DEMO_ALPHAVANTAGE_TOKEN && ticker !== "" && ticker !== "EUR";
 
     const updateSyncDebounced = useMemo(
         () =>
@@ -202,10 +205,22 @@ const EditCurrencyView: React.FC = () => {
                     value={ticker}
                     onChange={handleTickerChange}
                     size="small"
-                    label={TickerDescriptions[working.sync?.type || "currency"]}
                     placeholder={TickerPlaceholders[working.sync?.type || "currency"]}
                     disabled={working.sync === undefined}
                     key={working.id + "-" + working.sync?.type}
+                    error={isDemoError}
+                    label={
+                        isDemoError ? (
+                            <>
+                                No Currency Token - See{" "}
+                                <Link onClick={goToTokenSetup} href="#" underline="hover" sx={{ pointerEvents: "all" }}>
+                                    Here
+                                </Link>
+                            </>
+                        ) : (
+                            TickerDescriptions[working.sync?.type || "currency"]
+                        )
+                    }
                 />
                 {syncStatus === "fail" ? (
                     <Cancel htmlColor={Intents.danger.light} />
@@ -402,3 +417,6 @@ const ColourContainerBox = styled("div")({
 
     "& input": { width: 40, height: 40 },
 });
+
+const goToTokenSetup = () =>
+    TopHatDispatch(AppSlice.actions.setDialogPartial({ currency: undefined, settings: "currency", id: "settings" }));

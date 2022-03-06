@@ -22,6 +22,7 @@ export const DEFAULT_CURRENCY: Currency = {
     ticker: "AUD",
 };
 
+export const DEMO_ALPHAVANTAGE_TOKEN = "demo";
 export const DEFAULT_USER_VALUE: User = {
     id: StubUserID,
     generation: 1,
@@ -30,7 +31,7 @@ export const DEFAULT_USER_VALUE: User = {
     isDemo: false,
     tutorial: false,
     start: getTodayString(),
-    alphavantage: "demo",
+    alphavantage: DEMO_ALPHAVANTAGE_TOKEN,
 
     disabled: [],
     milestone: 0,
