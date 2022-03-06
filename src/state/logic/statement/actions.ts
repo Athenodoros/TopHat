@@ -25,7 +25,7 @@ import { TopHatDispatch, TopHatStore } from "../..";
 import { updateListSelection } from "../../../shared/data";
 import { AppSlice, DefaultPages } from "../../app";
 import { DialogFileState, DialogStatementMappingState, DialogStatementParseState } from "../../app/statementTypes";
-import { Currency, DataSlice, getMaybeApplyRule, Statement, Transaction } from "../../data";
+import { Currency, DataSlice, getGetTransactionChangesForRule, Statement, Transaction } from "../../data";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
 import { StubUserID } from "../../data/types";
 import { getTodayString, ID, SDate } from "../../shared/values";
@@ -573,11 +573,19 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
 
         // Run import rules
         if (shouldRunRules) {
+            const ruleRunners: ((tx: Transaction) => Partial<Transaction> | undefined)[] = [];
             data.rule.ids.forEach((id) => {
                 const rule = data.rule.entities[id]!;
-                if (!rule.isInactive) {
-                    const maybeApplyRule = getMaybeApplyRule(rule);
-                    transactions.filter(({ category }) => category === PLACEHOLDER_CATEGORY_ID).forEach(maybeApplyRule);
+                if (!rule.isInactive) ruleRunners.push(getGetTransactionChangesForRule(rule));
+            });
+
+            transactions.forEach((transaction) => {
+                for (let ruleRunner of ruleRunners) {
+                    const changes = ruleRunner(transaction);
+                    if (changes) {
+                        Object.assign(transaction, changes);
+                        return;
+                    }
                 }
             });
         }

@@ -244,19 +244,7 @@ export const DataSlice = createSlice({
             rewindDisplaySpec = { message: "Transaction added!" };
         },
         updateTransactions: (state, { payload }: PayloadAction<Update<Transaction>[]>) => {
-            const ids = payload.map(({ id }) => id);
-
-            const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
-
-            updateTransactionSummaryStartDates(state);
-            updateTransactionSummariesWithTransactions(state, ids, true);
-
-            adapters.transaction.updateMany(state.transaction, payload);
-
-            const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
-            updateTransactionSummariesWithTransactions(state, ids);
-            updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
-
+            updateTransactions(state, payload);
             rewindDisplaySpec = { message: `Transaction${payload.length === 1 ? "" : "s"} updated!` };
         },
         deleteTransactions: (state, { payload: ids }: PayloadAction<ID[]>) => {
@@ -443,10 +431,15 @@ export const DataSlice = createSlice({
         },
 
         runRule: (state, { payload: id }: PayloadAction<ID>) => {
-            const maybeApplyRule = getMaybeApplyRule(state.rule.entities[id]!);
+            const getTransactionChanges = getGetTransactionChangesForRule(state.rule.entities[id]!);
 
-            // Ideally this would use adapters.transaction - but rules currently preserve ordering anyway
-            state.transaction.ids.forEach((id) => maybeApplyRule(state.transaction.entities[id]!));
+            const updates: Update<Transaction>[] = [];
+            state.transaction.ids.forEach((id) => {
+                const changes = getTransactionChanges(state.transaction.entities[id]!);
+                if (changes) updates.push({ id, changes });
+            });
+
+            updateTransactions(state, updates);
 
             rewindDisplaySpec = { message: "Run operation complete!" };
         },
@@ -517,6 +510,21 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
     return newState;
 };
 export const subscribeToDataUpdates = (listener: DataUpdateListener) => void listeners.push(listener);
+
+const updateTransactions = (state: DataState, updates: Update<Transaction>[]) => {
+    const ids = updates.map(({ id }) => id);
+
+    const oldBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
+
+    updateTransactionSummaryStartDates(state);
+    updateTransactionSummariesWithTransactions(state, ids, true);
+
+    adapters.transaction.updateMany(state.transaction, updates);
+
+    const newBalanceSubset = getBalanceSubset(ids, state.transaction.entities);
+    updateTransactionSummariesWithTransactions(state, ids);
+    updateBalancesAndAccountSummaries(state, uniqWith(oldBalanceSubset.concat(newBalanceSubset), isEqual));
+};
 
 const wipeTransactionSummaries = (state: DataState) =>
     TransactionSummaries.forEach((type) => {
@@ -817,7 +825,7 @@ const getTestRegex = (regexes: string[]) => {
     const master = new RegExp(regexes.join("|"));
     return (reference: string) => reference.match(master) !== null;
 };
-export const getMaybeApplyRule = (rule: Rule) => {
+export const getGetTransactionChangesForRule = (rule: Rule) => {
     const testReference = !rule.reference.length
         ? (_: string) => true
         : rule.regex
@@ -831,9 +839,11 @@ export const getMaybeApplyRule = (rule: Rule) => {
             (rule.max === null || rule.max >= transaction.value!) &&
             (!rule.reference.length || testReference(transaction.reference))
         ) {
-            if (rule.summary !== undefined) transaction.summary = rule.summary;
-            if (rule.description !== undefined) transaction.description = rule.description;
-            if (rule.category !== PLACEHOLDER_CATEGORY_ID) transaction.category = rule.category;
+            const changes: Partial<Transaction> = {};
+            if (rule.summary !== undefined) changes.summary = rule.summary;
+            if (rule.description !== undefined) changes.description = rule.description;
+            if (rule.category !== PLACEHOLDER_CATEGORY_ID) changes.category = rule.category;
+            return changes;
         }
     };
 };
