@@ -181,6 +181,10 @@ const EditRuleView: React.FC = () => {
                                         (event.target as HTMLInputElement).value = "";
                                     }
                                 }}
+                                onBlur={() => {
+                                    const { value } = params.inputProps as unknown as HTMLInputElement;
+                                    if (value) updateWorkingReference(working.reference.concat([value]));
+                                }}
                             />
                         )}
                         open={false}
