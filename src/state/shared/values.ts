@@ -51,6 +51,7 @@ export const BaseTransactionHistoryWithLocalisation = (): TransactionHistoryWith
 /* eslint-disable no-redeclare */
 export type ID = number;
 export type SDate = string; // YYYY-MM-DD
+export type STime = string; // ISO Timestamp
 
 export const getToday = () => DateTime.local();
 export const getTodayString = () => formatDate(getToday());

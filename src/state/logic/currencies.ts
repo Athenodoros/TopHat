@@ -132,11 +132,12 @@ export const updateSyncedCurrencies = () => {
                 );
             })
     )
-        .then((results) =>
+        .then((results) => {
             conditionallyUpdateNotificationState(
                 CURRENCY_NOTIFICATION_ID,
                 results.some((result) => result === false) ? "" : null
-            )
-        )
+            );
+            TopHatDispatch(DataSlice.actions.setLastSyncTime(DateTime.local().toISO()));
+        })
         .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));
 };

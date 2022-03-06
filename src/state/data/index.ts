@@ -40,6 +40,7 @@ import {
     getCurrentMonthString,
     ID,
     parseDate,
+    STime,
     TransactionHistory,
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
@@ -210,6 +211,8 @@ export const DataSlice = createSlice({
 
         setUserGeneration: (state, { payload: generation }: PayloadAction<number>) =>
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } }),
+        setLastSyncTime: (state, { payload: lastSyncTime }: PayloadAction<STime>) =>
+            void adapters.user.updateOne(state.user, { id: StubUserID, changes: { lastSyncTime } }),
 
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (

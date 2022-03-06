@@ -7,6 +7,7 @@ import {
     ColourScale,
     ID,
     SDate,
+    STime,
     TransactionHistory,
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
@@ -200,6 +201,7 @@ export interface User {
 
     // External Services
     alphavantage: string;
+    lastSyncTime?: STime;
     dropbox?: DropboxSpec | "loading";
 
     // Notification State
