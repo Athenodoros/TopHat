@@ -43,7 +43,7 @@ export const DialogCurrencyContents: React.FC = () => {
     return (
         <SettingsDialogPage title="Currency Exchange Rate Syncs">
             <Typography variant="body2">
-                TopHat can pull currencies exchange rate data from{" "}
+                TopHat can pull currency exchange rate data from{" "}
                 <Link href="https://www.alphavantage.co/" underline="hover">
                     AlphaVantage
                 </Link>
@@ -53,6 +53,10 @@ export const DialogCurrencyContents: React.FC = () => {
                     sign up for a free API key
                 </Link>
                 .
+            </Typography>
+            <Typography variant="caption" sx={{ marginTop: 8, color: Greys[700], fontStyle: "italic" }}>
+                Note that free AlphaVantage keys are limited to 5 requests per minute, and 500 requests per day: if
+                necessary, TopHat batches requests and waits for capacity.
             </Typography>
             <SettingsDialogDivider />
             <SettingsDialogContents>
