@@ -1,5 +1,5 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { get, range, trimEnd } from "lodash";
+import { get, trimEnd } from "lodash";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
@@ -18,15 +18,7 @@ interface AppState {
     page: PageStateType;
 }
 
-// This is a gross hack to get the public URL, because I can't get process.env.PUBLIC_URL to work properly
-export let BASE_PATHNAME = "";
-for (let i in range(document.head.childNodes.length)) {
-    const node = document.head.childNodes[i] as HTMLLinkElement;
-    if (node.href?.endsWith("favicon.png")) {
-        BASE_PATHNAME = trimEnd(new URL(node.href).pathname, "/favicon.png");
-        break;
-    }
-}
+export const BASE_PATHNAME = "/TopHat";
 
 const ObjectIDRegex = /^\d+$/;
 export const getPagePathForPageState = (state: PageStateType) => {

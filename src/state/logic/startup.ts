@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
 import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { formatNumber } from "../../shared/data";
-import { AppSlice } from "../app";
+import { AppSlice, BASE_PATHNAME } from "../app";
 import { DataSlice, DataState, ListDataState, subscribeToDataUpdates } from "../data";
 import { DataKeys, StubUserID } from "../data/types";
 import { ID } from "../shared/values";
@@ -175,6 +175,9 @@ const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
         TopHatDispatch,
         AppSlice,
         DataSlice,
+
+        BASE_PATHNAME: BASE_PATHNAME,
+        PUBLIC_URL: process.env.PUBLIC_URL,
 
         Papa,
         DateTime,
