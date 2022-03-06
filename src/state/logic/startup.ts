@@ -157,7 +157,10 @@ const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
     }
 
     // Update app state
-    if (oldGeneration !== generation) TopHatDispatch(DataSlice.actions.setUserGeneration(generation));
+    if (oldGeneration !== generation) {
+        console.log("Updated user data to generation: " + generation);
+        TopHatDispatch(DataSlice.actions.setUserGeneration(generation));
+    }
 };
 
 const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
