@@ -11,11 +11,12 @@ import { TopHatDispatch, TopHatStore } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { DataKeys } from "../../state/data/types";
 import { initialiseDemoData } from "../../state/logic/startup";
-import { WHITE } from "../../styles/colours";
+import { Greys, WHITE } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 const ActionSx = { textAlign: "center", width: 100, height: 61 } as const;
+const ItalicsSx = { fontStyle: "italic", color: Greys[700] } as const;
 const InputTextField = styled(TextField)({ margin: "10px 50px 0 50px" });
 
 export const DialogExportContents: React.FC = () => {
@@ -34,7 +35,7 @@ export const DialogExportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={ItalicsSx}>
                         Good for Excel analysis or uploads to other personal finance applications.
                     </Typography>
                 </EditValueContainer>
@@ -45,7 +46,7 @@ export const DialogExportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={ItalicsSx}>
                         Used to restore information to TopHat, or for analytical and programming tools.
                     </Typography>
                 </EditValueContainer>
@@ -114,7 +115,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={ItalicsSx}>
                         <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
                     </Typography>
                 </EditValueContainer>
@@ -135,7 +136,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={ItalicsSx}>
                         <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
                     </Typography>
                 </EditValueContainer>
@@ -146,7 +147,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1">
+                    <Typography variant="body1" sx={ItalicsSx}>
                         <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty
                         state.
                     </Typography>

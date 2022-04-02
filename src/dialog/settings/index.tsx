@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Cached, CloudDone, Edit, GetApp, ListAlt, Notifications } from "@mui/icons-material";
+import { Cached, CloudDone, Edit, GetApp, ListAlt, Notifications, PestControl } from "@mui/icons-material";
 import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
 import React from "react";
 import { zipObject } from "../../shared/data";
@@ -16,6 +16,7 @@ import { DialogExportContents, DialogImportContents } from "./data";
 import { DialogNotificationsContents } from "./notifications";
 import { DialogStorageContents } from "./storage";
 import { DialogSummaryContents } from "./summary";
+import { DialogDebugContents } from "./debug";
 
 export const DialogSettingsView: React.FC = () => {
     const page = useDialogState("settings");
@@ -44,6 +45,12 @@ export const DialogSettingsView: React.FC = () => {
                         </ListItemIcon>
                         <SettingsListItemText>Export</SettingsListItemText>
                     </MenuItem>
+                    <MenuItem onClick={setPage["debug"]} selected={page === "debug"}>
+                        <ListItemIcon>
+                            <PestControl fontSize="small" />
+                        </ListItemIcon>
+                        <SettingsListItemText>Debug</SettingsListItemText>
+                    </MenuItem>
                     <SettingsSubheader>Settings</SettingsSubheader>
                     <MenuItem onClick={setPage["notifications"]} selected={page === "notifications"}>
                         <ListItemIcon>
@@ -70,7 +77,7 @@ export const DialogSettingsView: React.FC = () => {
     );
 };
 
-const pages = ["summary", "import", "export", "storage", "notifications", "currency"] as const;
+const pages = ["summary", "import", "export", "debug", "storage", "notifications", "currency"] as const;
 const setPage = zipObject(
     pages,
     pages.map((settings) => withSuppressEvent(() => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings }))))
@@ -81,6 +88,7 @@ const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
     summary: <DialogSummaryContents />,
     import: <DialogImportContents />,
     export: <DialogExportContents />,
+    debug: <DialogDebugContents />,
     storage: <DialogStorageContents />,
     notifications: <DialogNotificationsContents />,
     currency: <DialogCurrencyContents />,
