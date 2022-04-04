@@ -1,9 +1,9 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
-import { debounce, keys, last, omit } from "lodash-es";
+import { debounce, keys, omit } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
-import { zipObject } from "../../../shared/data";
+import { formatNumber, zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
 import { useFirstValue, useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
 import { TopHatStore } from "../../../state";
@@ -19,7 +19,6 @@ import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay
 import { ManagedDatePicker, SubItemCheckbox } from "../../inputs";
 import { FilterIcon } from "../filters/FilterIcon";
 import { FilterMenuOption } from "../filters/FilterMenuOption";
-import { DateRangeFilter, NumericRangeFilter } from "../filters/RangeFilters";
 import {
     TransactionsTableSummaryTypography,
     TransactionTableAccountContainer,
@@ -54,7 +53,6 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
         fixed?.type === "account" ? (statement) => statement.account === fixed.account : undefined
     );
 
-    const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
     const valueFilterDomain = useTransactionValueRange();
 
     const DateRangePopoverState = usePopoverProps();
@@ -82,28 +80,21 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         onRightClick={updaters.removeDate}
                     />
                     <Popover {...DateRangePopoverState.popoverProps} PaperProps={PopoverPaperProps}>
-                        <div>
+                        <SubHeader name="Start Date">
                             <ManagedDatePicker
                                 value={filters.fromDate}
                                 onChange={updaters.fromDate}
-                                label="Start Date"
                                 {...ManagedDatePickerProps}
                             />
+                        </SubHeader>
+                        <SubHeader name="End Date">
                             <ManagedDatePicker
                                 value={filters.toDate}
                                 onChange={updaters.toDate}
-                                label="End Date"
                                 {...ManagedDatePickerProps}
                             />
-                        </div>
-                        <div>
-                            <DateRangeFilter
-                                min={startDate}
-                                from={filters.fromDate}
-                                to={filters.toDate}
-                                setRange={updaters.dates}
-                            />
-                        </div>
+                        </SubHeader>
+                        <div />
                     </Popover>
                 </TransactionTableCompoundContainer>
             </TransactionTableDateContainer>
@@ -121,8 +112,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                         onRightClick={updaters.removeSearch}
                     />
                     <Popover {...DescriptionPopoverState.popoverProps} PaperProps={PopoverPaperProps}>
-                        <div>
-                            <Typography variant="body1">Search</Typography>
+                        <SubHeader name="Search">
                             <UnmountableTextField
                                 size="small"
                                 label="Search Term"
@@ -130,7 +120,7 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                                 onChange={updaters.search}
                                 sx={{ width: 200 }}
                             />
-                        </div>
+                        </SubHeader>
                         <SubItemCheckbox
                             label="Regex Search"
                             checked={filters.searchRegex}
@@ -150,29 +140,22 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                     />
                     VALUE
                     <Popover {...ValuePopoverState.popoverProps} PaperProps={PopoverPaperProps}>
-                        <div>
+                        <SubHeader name="Values From">
                             <TextField
                                 value={valueFromHandler.text}
                                 onChange={valueFromHandler.onTextChange}
                                 size="small"
-                                label="Values From"
+                                placeholder={maybeFormatNumberValue(valueFilterDomain[0])}
                             />
+                        </SubHeader>
+                        <SubHeader name="Values To">
                             <TextField
                                 value={valueToHandler.text}
                                 onChange={valueToHandler.onTextChange}
                                 size="small"
-                                label="Values To"
+                                placeholder={maybeFormatNumberValue(valueFilterDomain[1])}
                             />
-                        </div>
-                        <div>
-                            <NumericRangeFilter
-                                min={valueFilterDomain[0]}
-                                max={valueFilterDomain[1]}
-                                from={filters.valueFrom}
-                                to={filters.valueTo}
-                                setRange={updaters.values}
-                            />
-                        </div>
+                        </SubHeader>
                         <SubItemCheckbox
                             label="Hide Stubs"
                             checked={filters.hideStubs}
@@ -362,25 +345,42 @@ const PopoverPaperProps = {
         alignItems: "stretch",
         padding: "20px 20px 10px 20px",
         width: 350,
-
-        "& > div:first-of-type": {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-
-            input: {
-                width: 110, // Excluding default padding of 14 * 2
-            },
-        },
-        "& > div:nth-of-type(2)": {
-            padding: "10px 10px 0 10px",
-        },
     },
 } as const;
 const TextBox = styled(TransactionTableTextContainer)({ marginTop: 9 });
 const SubItemSx = { alignSelf: "flex-end" };
 const ManagedDatePickerProps = {
     nullable: true,
-    renderInput: (params: TextFieldProps) => <TextField {...params} size="small" />,
-    disableOpenPicker: true,
+    renderInput: (params: TextFieldProps) => (
+        <TextField {...params} size="small" inputProps={{ ...params.inputProps, placeholder: "YYYY-MM-DD" }} />
+    ),
+    clearable: true,
+    showTodayButton: true,
+    PaperProps: {
+        sx: {
+            "& .PrivatePickersSlideTransition-root": { minHeight: 230 },
+        },
+    },
 };
+
+const SubHeaderDiv = styled("div")({
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+
+    "&:not(:last-of-type)": { paddingBottom: 8 },
+    input: {
+        width: 110, // Excluding default padding of 14 * 2
+    },
+});
+const SubHeader: React.FC<{ name: string }> = ({ name, children }) => (
+    <>
+        <SubHeaderDiv>
+            <Typography variant="body1">{name}</Typography>
+            {children}
+        </SubHeaderDiv>
+    </>
+);
+
+const maybeFormatNumberValue = (value?: number) =>
+    value !== undefined ? formatNumber(value, { decimals: 2 }) : undefined;
