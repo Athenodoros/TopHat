@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { AddCircleOutline, Description } from "@mui/icons-material";
 import { IconButton, Menu, Popover, TextField, TextFieldProps, Typography } from "@mui/material";
-import { debounce, keys, omit } from "lodash-es";
+import { debounce, keys, last, omit } from "lodash-es";
 import React, { useCallback, useMemo } from "react";
 import { formatNumber, zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
@@ -55,6 +55,11 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
 
     const valueFilterDomain = useTransactionValueRange();
 
+    const startDate = useSelector(({ data: { transaction } }) => transaction.entities[last(transaction.ids)!]?.date);
+    const endDate = useSelector(({ data: { transaction } }) => transaction.entities[transaction.ids[0]]?.date);
+    const startDatePickerProps = useManagedDatePickerProps(startDate || getTodayString());
+    const endDatePickerProps = useManagedDatePickerProps(endDate || getTodayString());
+
     const DateRangePopoverState = usePopoverProps();
     const DescriptionPopoverState = usePopoverProps();
     const StatementPopoverState = usePopoverProps();
@@ -84,14 +89,14 @@ export const TransactionsTableHeader: React.FC<TransactionsTableHeaderProps> = (
                             <ManagedDatePicker
                                 value={filters.fromDate}
                                 onChange={updaters.fromDate}
-                                {...ManagedDatePickerProps}
+                                {...startDatePickerProps}
                             />
                         </SubHeader>
                         <SubHeader name="End Date">
                             <ManagedDatePicker
                                 value={filters.toDate}
                                 onChange={updaters.toDate}
-                                {...ManagedDatePickerProps}
+                                {...endDatePickerProps}
                             />
                         </SubHeader>
                         <div />
@@ -349,19 +354,23 @@ const PopoverPaperProps = {
 } as const;
 const TextBox = styled(TransactionTableTextContainer)({ marginTop: 9 });
 const SubItemSx = { alignSelf: "flex-end" };
-const ManagedDatePickerProps = {
-    nullable: true,
-    renderInput: (params: TextFieldProps) => (
-        <TextField {...params} size="small" inputProps={{ ...params.inputProps, placeholder: "YYYY-MM-DD" }} />
-    ),
-    clearable: true,
-    showTodayButton: true,
-    PaperProps: {
-        sx: {
-            "& .PrivatePickersSlideTransition-root": { minHeight: 230 },
-        },
-    },
-};
+const useManagedDatePickerProps = (placeholder: string) =>
+    useMemo(
+        () => ({
+            nullable: true,
+            renderInput: (params: TextFieldProps) => (
+                <TextField {...params} size="small" inputProps={{ ...params.inputProps, placeholder }} />
+            ),
+            clearable: true,
+            showTodayButton: true,
+            PaperProps: {
+                sx: {
+                    "& .PrivatePickersSlideTransition-root": { minHeight: 230 },
+                },
+            },
+        }),
+        [placeholder]
+    );
 
 const SubHeaderDiv = styled("div")({
     display: "flex",
