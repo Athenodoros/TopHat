@@ -155,6 +155,11 @@ const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
         TopHatDispatch(DataSlice.actions.refreshCaches());
         generation = 1;
     }
+    if (generation === 1) {
+        // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/13
+        TopHatDispatch(DataSlice.actions.refreshCaches());
+        generation = 2;
+    }
 
     // Update app state
     if (oldGeneration !== generation) {

@@ -38,6 +38,7 @@ import {
     formatDate,
     getCurrentMonth,
     getCurrentMonthString,
+    getToday,
     ID,
     parseDate,
     STime,
@@ -803,28 +804,34 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
         const history = data.account.entities[tx.account]!.balances[tx.currency];
         const bucket = getDateBucket(tx.date, history.start);
 
-        if (bucket >= history.localised.length) {
-            history.localised = takeWithDefault(
-                history.localised,
-                bucket + 1,
-                changeCurrencyValue(userDefaultCurrency, data.currency.entities[tx.currency]!, tx.balance, tx.date)
-            );
+        if (bucket >= history.original.length)
             history.original = takeWithDefault(history.original, bucket + 1, tx.balance);
-        }
     });
 
-    const maybeDeleteBalances = (account: ID, currency: ID) => {
-        if (!data.account.entities[account]!.balances[currency].localised.some((x) => x))
-            delete data.account.entities[account]!.balances[currency];
-    };
+    if (!subset)
+        subset = data.account.ids.flatMap((account) =>
+            keys(data.account.entities[account]!.balances).map((currency) => ({
+                account: account as ID,
+                currency: Number(currency),
+            }))
+        );
 
-    if (subset) subset.forEach(({ account, currency }) => maybeDeleteBalances(account, currency));
-    else
-        data.account.ids.forEach((account) =>
-            keys(data.account.entities[account]!.balances).forEach((currency) =>
-                maybeDeleteBalances(account as number, Number(currency))
+    subset.forEach(({ account, currency }) => {
+        const { balances } = data.account.entities[account]!;
+
+        // Calculate localised balances
+        balances[currency].localised = balances[currency].original.map((value, idx) =>
+            changeCurrencyValue(
+                userDefaultCurrency,
+                data.currency.entities[currency]!,
+                value,
+                formatDate(getToday().endOf("month").minus({ months: idx }))
             )
         );
+
+        // Clean up empty balances
+        if (!balances[currency].localised.some((x) => x)) delete balances[currency];
+    });
 };
 
 const getTestRegex = (regexes: string[]) => {
