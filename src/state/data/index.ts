@@ -291,8 +291,13 @@ export const DataSlice = createSlice({
                 draft.transactions = state.currency.entities[working.id]!.transactions;
                 adapters.currency.upsertOne(state.currency, draft);
 
-                updateTransactionSummariesWithTransactions(state, transactions);
-                updateBalancesAndAccountSummaries(state, getBalanceSubset(transactions, state.transaction.entities));
+                const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
+
+                updateTransactionSummariesWithTransactions(state, isDefaultCurrency ? undefined : transactions);
+                updateBalancesAndAccountSummaries(
+                    state,
+                    isDefaultCurrency ? undefined : getBalanceSubset(transactions, state.transaction.entities)
+                );
             } else if (
                 original &&
                 type === "category" &&
