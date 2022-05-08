@@ -149,16 +149,14 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
 export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
     let generation = oldGeneration ?? 0;
 
-    // Migrations for each generation
-    if (generation === 0) {
-        // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/8
+    // Migrations for each generation, with batched cache refreshes
+    if (
+        generation === 0 || // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/8
+        generation === 1 || // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/13
+        generation === 2 // Fix incorrect rate ordering in earlier manual currency data input
+    ) {
         TopHatDispatch(DataSlice.actions.refreshCaches());
-        generation = 1;
-    }
-    if (generation === 1) {
-        // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/13
-        TopHatDispatch(DataSlice.actions.refreshCaches());
-        generation = 2;
+        generation = 3;
     }
 
     // Update app state

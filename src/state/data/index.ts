@@ -18,6 +18,7 @@ import {
     isEqual,
     keys,
     omit,
+    orderBy,
     range,
     reverse,
     round,
@@ -190,6 +191,10 @@ export const DataSlice = createSlice({
 
         // Utilities functions for debugging
         refreshCaches: (state) => {
+            values(state.currency.entities).forEach((currency) => {
+                currency!.rates = orderBy(currency!.rates, "month", "desc");
+            });
+
             wipeTransactionSummaries(state);
 
             updateTransactionSummariesWithTransactions(state);

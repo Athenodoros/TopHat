@@ -24,7 +24,7 @@ import {
     Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import { debounce, last, range } from "lodash";
+import { debounce, last, orderBy, range } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
@@ -394,7 +394,7 @@ const useCurrencyBudgetInput = (working: Currency, inputs?: React.ReactNode) => 
 
 const updateMonthsRate = (index: number, value: number | null) => {
     const month = formatDate(getCurrentMonth().minus({ months: index }));
-    const { rates } = getWorking();
+    let { rates } = getWorking();
 
     const number = rates.findIndex((rate) => rate.month === month);
     if (number !== -1) {
@@ -405,6 +405,7 @@ const updateMonthsRate = (index: number, value: number | null) => {
         }
     } else if (value !== null) {
         rates.push({ month, value });
+        rates = orderBy(rates, "month", "desc");
     }
 
     update("rates")(rates);
