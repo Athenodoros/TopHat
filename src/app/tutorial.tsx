@@ -3,11 +3,13 @@ import { Camera, PhonelinkErase } from "@mui/icons-material";
 import { Button, CircularProgress, Dialog, Link, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { useCallback, useEffect, useState } from "react";
+import { batch } from "react-redux";
 import { NonIdealState } from "../components/display/NonIdealState";
 import { TopHatDispatch } from "../state";
-import { DataSlice } from "../state/data";
+import { DataSlice, DataState } from "../state/data";
 import { useUserData } from "../state/data/hooks";
-import { initialiseDemoData } from "../state/logic/startup";
+import { StubUserID } from "../state/data/types";
+import { handleMigrationsAndUpdates, initialiseDemoData } from "../state/logic/startup";
 import { AppColours, WHITE } from "../styles/colours";
 
 export const MIN_WIDTH_FOR_APPLICATION = 1200;
@@ -155,8 +157,11 @@ const closeTutorial = () => TopHatDispatch(DataSlice.actions.updateUserPartial({
 
 const ImportFileReader = new FileReader();
 ImportFileReader.onload = (event) => {
-    const result = event.target!.result as string;
-    TopHatDispatch(DataSlice.actions.set(JSON.parse(result)));
+    const result = JSON.parse(event.target!.result as string) as DataState;
+    batch(() => {
+        TopHatDispatch(DataSlice.actions.set(result));
+        handleMigrationsAndUpdates(result.user.entities[StubUserID]?.generation);
+    });
 };
 const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = (event) => {
     const file = (event.target.files || [])[0];

@@ -146,7 +146,7 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
 };
 
 // This handles data changes over time, or required cache refreshes
-const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
+export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
     let generation = oldGeneration ?? 0;
 
     // Migrations for each generation
