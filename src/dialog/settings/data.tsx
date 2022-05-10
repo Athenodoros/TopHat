@@ -35,7 +35,7 @@ export const DialogExportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1" sx={ItalicsSx}>
+                    <Typography variant="body2" sx={ItalicsSx}>
                         Good for Excel analysis or uploads to other personal finance applications.
                     </Typography>
                 </EditValueContainer>
@@ -46,7 +46,7 @@ export const DialogExportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1" sx={ItalicsSx}>
+                    <Typography variant="body2" sx={ItalicsSx}>
                         Used to restore information to TopHat, or for analytical and programming tools.
                     </Typography>
                 </EditValueContainer>
@@ -115,7 +115,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1" sx={ItalicsSx}>
+                    <Typography variant="body2" sx={ItalicsSx}>
                         <strong>Import</strong> - Upload a JSON export of a TopHat state to recreate it.
                     </Typography>
                 </EditValueContainer>
@@ -136,7 +136,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1" sx={ItalicsSx}>
+                    <Typography variant="body2" sx={ItalicsSx}>
                         <strong>Restart Demo</strong> - Wipe all data stored in TopHat and restart with example data.
                     </Typography>
                 </EditValueContainer>
@@ -147,7 +147,7 @@ export const DialogImportContents: React.FC = () => {
                         </Button>
                     }
                 >
-                    <Typography variant="body1" sx={ItalicsSx}>
+                    <Typography variant="body2" sx={ItalicsSx}>
                         <strong>Delete all Data</strong> - Wipe all data stored in TopHat and restart with an empty
                         state.
                     </Typography>
