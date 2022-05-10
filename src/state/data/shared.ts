@@ -25,7 +25,7 @@ export const DEFAULT_CURRENCY: Currency = {
 export const DEMO_ALPHAVANTAGE_TOKEN = "demo";
 export const DEFAULT_USER_VALUE: User = {
     id: StubUserID,
-    generation: 1,
+    generation: 3,
 
     currency: 1,
     isDemo: false,
