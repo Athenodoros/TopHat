@@ -15,11 +15,20 @@ interface TimeSeriesInputProps {
         disabled?: boolean;
         getOriginal: () => number | undefined;
     };
+    getMouseOverText?: (value: number) => string;
     inputs?: React.ReactNode;
     id?: any;
 }
 
-export const useTimeSeriesInput = ({ values, update, secondary, id, getOriginals, inputs }: TimeSeriesInputProps) => {
+export const useTimeSeriesInput = ({
+    values,
+    update,
+    secondary,
+    id,
+    getMouseOverText,
+    getOriginals,
+    inputs,
+}: TimeSeriesInputProps) => {
     const [selectedMonth, setSelectedMonthRaw] = useState(0);
 
     const month = useNumericInputHandler(values[selectedMonth] ?? null, (value) => update(selectedMonth, value), id);
@@ -63,6 +72,7 @@ export const useTimeSeriesInput = ({ values, update, secondary, id, getOriginals
                         height: 30,
                         marginBottom: 15,
                     }}
+                    getMouseOverText={getMouseOverText}
                     values={values}
                     selected={inputs ? undefined : selectedMonth}
                     setSelected={inputs ? undefined : setSelectedMonth}

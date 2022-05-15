@@ -16,12 +16,13 @@ import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCategoryIcon } from "../../components/display/ObjectDisplay";
+import { formatNumber } from "../../shared/data";
 import { handleButtonGroupChange } from "../../shared/events";
 import { usePopoverProps } from "../../shared/hooks";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogState } from "../../state/app/hooks";
 import { Category, DataSlice } from "../../state/data";
-import { getCategoryColour, useAllCategories, useCategoryByID } from "../../state/data/hooks";
+import { getCategoryColour, useAllCategories, useCategoryByID, useDefaultCurrency } from "../../state/data/hooks";
 import {
     getNextID,
     PLACEHOLDER_CATEGORY,
@@ -243,6 +244,12 @@ const updateBaseBudgetFlipped = (value: number | null) => updateBaseBudget(value
 const updateBaseBudget = (value: number | null) => updateBudget({ base: value || 0 });
 
 const useCategoryBudgetInput = (working: Category) => {
+    const defaultCurrency = useDefaultCurrency().symbol;
+    const useCategoryMouseoverText = useCallback(
+        (value: number) => defaultCurrency + " " + formatNumber(value, { end: "k", decimals: 2 }),
+        [defaultCurrency]
+    );
+
     const getOriginalBudget = useCallback(() => {
         const actual = TopHatStore.getState().data.category.entities[working.id];
         return actual?.budgets?.values;
@@ -273,6 +280,7 @@ const useCategoryBudgetInput = (working: Category) => {
             getOriginal: getOriginalBase,
         },
         id: working.id + "-" + flipped,
+        getMouseOverText: useCategoryMouseoverText,
     });
 };
 

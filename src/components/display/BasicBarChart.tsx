@@ -1,4 +1,4 @@
-import { lighten } from "@mui/material";
+import { lighten, Tooltip } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import { identity } from "lodash";
 import React from "react";
@@ -15,11 +15,12 @@ export const getBasicBarChartColour = (success: boolean | null, stub?: boolean) 
 
 export const BasicBarChart: React.FC<{
     className?: string;
+    getMouseOverText?: (value: number) => string;
     values: number[];
     selected?: number;
     setSelected?: (index: number) => void;
     sx?: SxProps;
-}> = ({ className, sx, values, selected: selectedIndex, setSelected }) => {
+}> = ({ className, getMouseOverText, sx, values, selected: selectedIndex, setSelected }) => {
     const { getPoint, getOffsetAndSizeForRange } = getChartDomainFunctions(values);
     const width = (1 / values.length) * 100 + "%";
 
@@ -45,16 +46,20 @@ export const BasicBarChart: React.FC<{
 
                 return (
                     <React.Fragment key={idx}>
+                        <Tooltip title={getMouseOverText ? getMouseOverText(value) : ""}>
+                            <div
+                                // Selection handler and indicator
+                                style={{
+                                    ...common,
+                                    cursor: setSelected && "pointer",
+                                    height: "100%",
+                                    background: selected ? Greys[300] : undefined,
+                                }}
+                                onClick={setSelected && (() => setSelected(idx))}
+                            />
+                        </Tooltip>
                         <div
-                            style={{
-                                ...common,
-                                cursor: setSelected && "pointer",
-                                height: "100%",
-                                background: selected ? Greys[300] : undefined,
-                            }}
-                            onClick={setSelected && (() => setSelected(idx))}
-                        />
-                        <div
+                            // Main bar
                             style={{
                                 ...common,
                                 pointerEvents: "none",
@@ -64,6 +69,7 @@ export const BasicBarChart: React.FC<{
                             }}
                         />
                         <div
+                            // Border at edge
                             style={{
                                 ...common,
                                 bottom: getPoint(value),

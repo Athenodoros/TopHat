@@ -29,6 +29,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
 import { getCurrencyIcon } from "../../components/display/ObjectDisplay";
 import { ObjectSelector } from "../../components/inputs";
+import { formatNumber } from "../../shared/data";
 import { handleButtonGroupChange, handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { AppSlice } from "../../state/app";
@@ -375,6 +376,7 @@ const getTimeSeriesFromRates = (rates: Currency["rates"]) => {
     });
 };
 
+const getCurrencyMouseOverText = (value: number) => "US$ " + formatNumber(value, { decimals: 2 });
 const useCurrencyBudgetInput = (working: Currency, inputs?: React.ReactNode) => {
     const getOriginalBudget = useCallback(() => {
         const actual = TopHatStore.getState().data.currency.entities[working.id];
@@ -389,6 +391,7 @@ const useCurrencyBudgetInput = (working: Currency, inputs?: React.ReactNode) => 
         update: updateMonthsRate,
         id: working.id,
         inputs,
+        getMouseOverText: getCurrencyMouseOverText,
     });
 };
 
