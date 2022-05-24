@@ -29,7 +29,6 @@
         "chroma-js": "^2.1.2",
         "dexie": "^3.0.3",
         "dexie-observable": "^3.0.0-beta.11",
-        "gh-pages": "^3.2.3",
         "jszip": "^3.7.1",
         "lodash-es": "^4.17.21",
         "luxon": "^1.27.0",
