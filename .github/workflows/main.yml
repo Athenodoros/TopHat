@@ -30,16 +30,19 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Build from source
+      - name: Populate environment
         run: |
           cd $GITHUB_WORKSPACE
           npm install yarn
           yarn
+          
+      - name: Build from source
+        run: |
           yarn build
           
       - name: Deploy to gh-pages branch
         run: |
-          cd dist
+          cd build
           git init -b main
           git add -A
           git config user.name 'GH Action'
