@@ -47,5 +47,5 @@ jobs:
           git add -A
           git config user.name 'GH Action'
           git config user.email 'Athenodoros@noreply.github.com'
-          git commit -m "Package /dist for gh-pages"
+          git commit -m "Package resources for gh-pages"
           git push -f https://Athenodoros:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} main:gh-pages
