@@ -31,7 +31,12 @@ export const useTransactionsTableData = (
     });
 
     useEffect(() => {
-        const regex = new RegExp(filters.search);
+        let regex: RegExp;
+        try {
+            regex = new RegExp(filters.search);
+        } catch (e) {
+            regex = new RegExp("");
+        }
 
         const included = takeWithFilter(transactions as number[], filters.tableLimit + 1, (id) => {
             const tx = metadata[id]!;
