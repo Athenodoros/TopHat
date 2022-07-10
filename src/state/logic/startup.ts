@@ -72,6 +72,9 @@ export const initialiseAndGetDBConnection = async () => {
     // Currency syncs
     updateSyncedCurrencies();
 
+    // Update caches to latest month
+    TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
+
     // Debug variables
     (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
     if (debug) Object.assign(window, await getDebugVariablesAsync(db)());

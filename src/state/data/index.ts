@@ -219,6 +219,7 @@ export const DataSlice = createSlice({
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } }),
         setLastSyncTime: (state, { payload: lastSyncTime }: PayloadAction<STime>) =>
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: { lastSyncTime } }),
+        updateTransactionSummaryStartDates: (state) => updateTransactionSummaryStartDates(state),
 
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (

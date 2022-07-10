@@ -8,8 +8,9 @@ import React, { useCallback, useState } from "react";
 import { createAndDownloadFile } from "../../shared/data";
 import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch, TopHatStore } from "../../state";
-import { DataSlice, DataState } from "../../state/data";
+import { DataSlice } from "../../state/data";
 import { DataKeys } from "../../state/data/types";
+import { importJSONData } from "../../state/logic/import";
 import { initialiseDemoData } from "../../state/logic/startup";
 import { Greys, WHITE } from "../../styles/colours";
 import { EditValueContainer } from "../shared";
@@ -158,18 +159,13 @@ export const DialogImportContents: React.FC = () => {
 };
 
 const deleteAllData = () => TopHatDispatch(DataSlice.actions.reset());
+
+const reader = new FileReader();
+reader.onload = () => importJSONData(reader.result as string);
 const onCreateFileInput = (input: HTMLInputElement) => {
     if (!input) return;
 
     input.onchange = () => {
-        const files = input.files;
-        if (!files) return;
-
-        const reader = new FileReader();
-        reader.onload = function () {
-            const data = JSON.parse(reader.result as string) as DataState;
-            TopHatDispatch(DataSlice.actions.set(data));
-        };
-        reader.readAsText(files[0]);
+        if (input?.files) reader.readAsText(input.files[0]);
     };
 };
