@@ -1,0 +1,21 @@
+{
+    "short_name": "TopHat Finance",
+    "name": "TopHat Finance",
+    "description": "TopHat is a Personal Finance application which runs in the browser",
+    "icons": [
+        {
+            "src": "favicon.png",
+            "sizes": "89x90",
+            "type": "image/x-icon"
+        },
+        {
+            "src": "logo_144x144.png",
+            "type": "image/png",
+            "sizes": "144x144"
+        }
+    ],
+    "start_url": "/TopHat/summary",
+    "display": "standalone",
+    "theme_color": "#7157D9",
+    "background_color": "#F7FAFC"
+}
