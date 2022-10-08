@@ -137,12 +137,7 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
             sumBy(balances, ([_, balance]) => balance.localised[0]),
             { end: "k" }
         );
-    const summary = getAccountSummary(
-        balances,
-        currencies,
-        defaultCurrency,
-        (_, balance) => Intents[!balance ? "default" : balance < 0 ? "danger" : "success"].main
-    );
+    const summary = getAccountSummary(balances, currencies, defaultCurrency);
 
     const values = range(12).map((i) => sumBy(balances, ([_, balance]) => balance.localised[i]) || 0);
     const domain = {
@@ -182,18 +177,21 @@ const getAccountSummaries = (account: Account, currencies: Dictionary<Currency>,
 const getAccountSummary = (
     balances: [string, BalanceHistory][],
     currencies: Dictionary<Currency>,
-    defaultCurrency: Currency,
-    getColour: (id: number, balance: number) => string
+    defaultCurrency: Currency
 ) => {
+    const getColour = (balance: number) => Intents[!balance ? "default" : balance < 0 ? "danger" : "success"].main;
+    const hasBalance = ([_, balance]: [string, BalanceHistory]) => !!balance.localised[0];
+    const hadRecentBalance = ([_, balance]: [string, BalanceHistory]) => range(12).some((i) => balance.localised[i]);
+
     const summary = balances
-        .filter(([_, balance]) => range(12).some((i) => balance.localised[i]))
+        .filter(
+            // prettier-ignore
+            balances.some(hasBalance) ? hasBalance
+          : balances.some(hadRecentBalance) ? hadRecentBalance
+          : () => true
+        )
         .map(([idStr, balance], _, array) => (
-            <Typography
-                variant="h6"
-                style={{ color: getColour(Number(idStr), balance.original[0]) }}
-                key={idStr}
-                noWrap={true}
-            >
+            <Typography variant="h6" style={{ color: getColour(balance.localised[0]) }} key={idStr} noWrap={true}>
                 {currencies[Number(idStr)]!.symbol +
                     " " +
                     formatNumber(balance.original[0], { end: "k", decimals: array.length === 1 ? 2 : 0 })}
@@ -210,7 +208,7 @@ const getAccountSummary = (
                   ]
         );
     summary[0] = summary[0] || (
-        <Typography variant="h6" style={{ color: Greys[700] }} key={0} noWrap={true}>
+        <Typography variant="h6" style={{ color: getColour(0) }} key={0} noWrap={true}>
             {defaultCurrency.symbol + " 0.00"}
         </Typography>
     );
