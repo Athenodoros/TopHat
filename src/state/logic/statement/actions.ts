@@ -124,7 +124,7 @@ export const addStatementFilesToDialog = (files: DialogFileDescription[]) => {
             }))
         );
 
-        if (allMatch && account?.lastStatementFormat) {
+        if (allMatch && account?.lastStatementFormat && isEqual(account.lastStatementFormat.columns, columns.common)) {
             const newState = {
                 page: "import" as const,
                 account,
