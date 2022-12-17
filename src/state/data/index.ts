@@ -286,23 +286,22 @@ export const DataSlice = createSlice({
                 !isEqual((working as Currency).rates, (original as Currency).rates)
             ) {
                 // Update local values if exchange rate changes
-                const transactions = state.transaction.ids.filter(
-                    (id) => state.transaction.entities[id]!.currency === working.id
-                );
+                const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
+                const transactionSubset = isDefaultCurrency
+                    ? undefined
+                    : state.transaction.ids.filter((id) => state.transaction.entities[id]!.currency === working.id);
 
-                updateTransactionSummariesWithTransactions(state, transactions, true);
+                updateTransactionSummariesWithTransactions(state, transactionSubset, true);
 
                 // Don't overwrite transaction summary with old version
                 const draft = cloneDeep(working as Currency);
                 draft.transactions = state.currency.entities[working.id]!.transactions;
                 adapters.currency.upsertOne(state.currency, draft);
 
-                const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
-
-                updateTransactionSummariesWithTransactions(state, isDefaultCurrency ? undefined : transactions);
+                updateTransactionSummariesWithTransactions(state, transactionSubset);
                 updateBalancesAndAccountSummaries(
                     state,
-                    isDefaultCurrency ? undefined : getBalanceSubset(transactions, state.transaction.entities)
+                    transactionSubset && getBalanceSubset(transactionSubset, state.transaction.entities)
                 );
             } else if (
                 original &&

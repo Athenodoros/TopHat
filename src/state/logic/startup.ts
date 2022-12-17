@@ -156,10 +156,11 @@ export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) =>
     if (
         generation === 0 || // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/8
         generation === 1 || // Refresh caches to deal with https://github.com/Athenodoros/TopHat/issues/13
-        generation === 2 // Fix incorrect rate ordering in earlier manual currency data input
+        generation === 2 || // Fix incorrect rate ordering in earlier manual currency data input
+        generation === 3 // Fix incorrect currency conversions for rate updates in default currency
     ) {
         TopHatDispatch(DataSlice.actions.refreshCaches());
-        generation = 3;
+        generation = 4;
     }
 
     // Update app state
