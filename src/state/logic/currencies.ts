@@ -1,7 +1,7 @@
 import { get, min, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
-import { formatDate, getCurrentMonth, getCurrentMonthString, SDate } from "../../state/shared/values";
+import { formatDate, getCurrentMonth, getCurrentMonthString, ID, SDate } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
@@ -112,31 +112,25 @@ export const updateSyncedCurrencies = () => {
     const token = user.entities[StubUserID]!.alphavantage;
 
     return Promise.all(
-        ids
+        (ids as ID[])
             .filter((id) => entities[id]?.sync)
             .map(async (id) => {
                 const currency = entities[id]!;
                 return getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start, true).then(
                     (rates) => {
-                        if (rates) {
-                            TopHatDispatch(
-                                DataSlice.actions.saveObject({
-                                    type: "currency",
-                                    working: { ...currency, rates },
-                                    automated: true,
-                                })
-                            );
-                        }
-                        return !!rates;
+                        return rates && { id, rates };
                     }
                 );
             })
     )
         .then((results) => {
-            conditionallyUpdateNotificationState(
-                CURRENCY_NOTIFICATION_ID,
-                results.some((result) => result === false) ? "" : null
-            );
+            const succeeded = results.every((result) => result);
+
+            if (succeeded) {
+                TopHatDispatch(DataSlice.actions.updateCurrencyRates(results as NonNullable<typeof results[0]>[]));
+            }
+
+            conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, succeeded ? null : "");
             TopHatDispatch(DataSlice.actions.setLastSyncTime(DateTime.local().toISO()));
         })
         .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));

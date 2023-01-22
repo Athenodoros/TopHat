@@ -66,6 +66,7 @@ import {
     BasicObjectType,
     Category,
     Currency,
+    CurrencyExchangeRate,
     DataState,
     Rule,
     Statement,
@@ -271,11 +272,19 @@ export const DataSlice = createSlice({
 
             rewindDisplaySpec = { message: "Transactions deleted!" };
         },
+        updateCurrencyRates: (
+            state: WritableDraft<DataState>,
+            { payload: currencies }: PayloadAction<{ id: ID; rates: CurrencyExchangeRate[] }[]>
+        ) => {
+            currencies.forEach(({ id, rates }) =>
+                updateStateWithCurrency(state, { ...state.currency.entities[id]!, rates })
+            );
+
+            rewindDisplaySpec = { message: "Currency rates updated!" };
+        },
         saveObject: <Type extends BasicObjectName>(
             state: WritableDraft<DataState>,
-            {
-                payload: { type, working, automated },
-            }: PayloadAction<{ type: Type; working: BasicObjectType[Type]; automated?: boolean }>
+            { payload: { type, working } }: PayloadAction<{ type: Type; working: BasicObjectType[Type] }>
         ) => {
             const original = state[type].entities[working.id] as BasicObjectType[Type] | undefined;
 
@@ -285,24 +294,7 @@ export const DataSlice = createSlice({
                 type === "currency" &&
                 !isEqual((working as Currency).rates, (original as Currency).rates)
             ) {
-                // Update local values if exchange rate changes
-                const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
-                const transactionSubset = isDefaultCurrency
-                    ? undefined
-                    : state.transaction.ids.filter((id) => state.transaction.entities[id]!.currency === working.id);
-
-                updateTransactionSummariesWithTransactions(state, transactionSubset, true);
-
-                // Don't overwrite transaction summary with old version
-                const draft = cloneDeep(working as Currency);
-                draft.transactions = state.currency.entities[working.id]!.transactions;
-                adapters.currency.upsertOne(state.currency, draft);
-
-                updateTransactionSummariesWithTransactions(state, transactionSubset);
-                updateBalancesAndAccountSummaries(
-                    state,
-                    transactionSubset && getBalanceSubset(transactionSubset, state.transaction.entities)
-                );
+                updateStateWithCurrency(state, working as Currency);
             } else if (
                 original &&
                 type === "category" &&
@@ -350,7 +342,7 @@ export const DataSlice = createSlice({
                 adapters[type].upsertOne(state[type], working);
             }
 
-            if (!automated) rewindDisplaySpec = { message: upperFirst(type) + " updated!" };
+            rewindDisplaySpec = { message: upperFirst(type) + " updated!" };
         },
         deleteObject: (state, { payload: { type, id } }: PayloadAction<{ type: BasicObjectName; id: ID }>) => {
             if (deleteObjectError(state, type, id) !== undefined) return;
@@ -869,4 +861,25 @@ export const getGetTransactionChangesForRule = (rule: Rule) => {
             return changes;
         }
     };
+};
+
+export const updateStateWithCurrency = (state: WritableDraft<DataState>, working: Currency) => {
+    // Update local values if exchange rate changes
+    const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
+    const transactionSubset = isDefaultCurrency
+        ? undefined
+        : state.transaction.ids.filter((id) => state.transaction.entities[id]!.currency === working.id);
+
+    updateTransactionSummariesWithTransactions(state, transactionSubset, true);
+
+    // Don't overwrite transaction summary with old version
+    const draft = cloneDeep(working as Currency);
+    draft.transactions = state.currency.entities[working.id]!.transactions;
+    adapters.currency.upsertOne(state.currency, draft);
+
+    updateTransactionSummariesWithTransactions(state, transactionSubset);
+    updateBalancesAndAccountSummaries(
+        state,
+        transactionSubset && getBalanceSubset(transactionSubset, state.transaction.entities)
+    );
 };
