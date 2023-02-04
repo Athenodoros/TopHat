@@ -2,7 +2,6 @@ import { Dictionary } from "@reduxjs/toolkit";
 import { identity, last } from "lodash";
 import { useCallback } from "react";
 import { shallowEqual } from "react-redux";
-import { TopHatStore } from "..";
 import { formatNumber, NumberFormatConfig } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
 import { ID } from "../shared/values";
@@ -124,9 +123,4 @@ export const useAllObjects = <T extends BasicObjectName>(type: T) =>
 export const useCategoryColour = (category: Category) => {
     const parent = last(category.hierarchy) || category.id;
     return useCategoryByID(parent).colour;
-};
-export const getCategoryColour = (id: ID, working?: Category) => {
-    const { entities } = TopHatStore.getState().data.category;
-    const { hierarchy } = working || entities[id]!;
-    return hierarchy.length ? entities[last(hierarchy)!]!.colour : working?.colour || entities[id]!.colour;
 };

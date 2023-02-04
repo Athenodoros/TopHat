@@ -15,14 +15,14 @@ import { range } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { SingleCategoryMenu } from "../../components/display/CategoryMenu";
 import { NonIdealState } from "../../components/display/NonIdealState";
-import { getCategoryIcon } from "../../components/display/ObjectDisplay";
+import { getCategoryColour, getCategoryIcon } from "../../components/display/ObjectDisplay";
 import { formatNumber } from "../../shared/data";
 import { handleButtonGroupChange } from "../../shared/events";
 import { usePopoverProps } from "../../shared/hooks";
 import { TopHatDispatch, TopHatStore } from "../../state";
 import { useDialogState } from "../../state/app/hooks";
 import { Category, DataSlice } from "../../state/data";
-import { getCategoryColour, useAllCategories, useCategoryByID, useDefaultCurrency } from "../../state/data/hooks";
+import { useAllCategories, useCategoryByID, useDefaultCurrency } from "../../state/data/hooks";
 import {
     getNextID,
     PLACEHOLDER_CATEGORY,

@@ -4,9 +4,10 @@ import { Avatar, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import chroma from "chroma-js";
 import { last } from "lodash";
-import React, { useCallback } from "react";
+import { useCallback } from "react";
+import { TopHatStore } from "../../state";
 import { Institution } from "../../state/data";
-import { getCategoryColour, useInstitutionMap } from "../../state/data/hooks";
+import { useInstitutionMap } from "../../state/data/hooks";
 import {
     FAKE_BALANCE_READING_CATEGORY_ID,
     PLACEHOLDER_CATEGORY_ID,
@@ -14,6 +15,7 @@ import {
     TRANSFER_CATEGORY_ID,
 } from "../../state/data/shared";
 import { Account, AccountTypes, Category, Currency, Statement } from "../../state/data/types";
+import { ID } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 
 export function fadeSolidColour(colour: string): string;
@@ -63,6 +65,11 @@ export const getCategoryIcon = (category: Pick<Category, "id" | "colour">, sx: S
             }}
         />
     );
+export const getCategoryColour = (id: ID, working?: Category) => {
+    const { entities } = TopHatStore.getState().data.category;
+    const { hierarchy } = working || entities[id]!;
+    return hierarchy.length ? entities[last(hierarchy)!]!.colour : working?.colour || entities[id]!.colour;
+};
 export const getAccountCategoryIcon = (type: typeof AccountTypes[number], sx: SxProps) => (
     <Avatar sx={sx} style={{ backgroundColor: type.colour }}>
         <type.icon sx={{ height: "60%" }} />

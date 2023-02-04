@@ -29,7 +29,7 @@ import { handleTextFieldChange } from "./events";
 export const useDivBoundingRect = <T extends Element = HTMLDivElement>(
     inputRef?: React.MutableRefObject<T> | React.LegacyRef<T>
 ) => {
-    const [rect, setRect] = useState<DOMRectReadOnly>(new DOMRectReadOnly(0, 0, 0, 0));
+    const [rect, setRect] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
 
     const observer = useMemo(() => new ResizeObserver((entries) => setRect(entries[0].contentRect)), [setRect]);
     useEffect(() => () => observer.disconnect(), [observer]);

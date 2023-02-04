@@ -17,6 +17,7 @@ import {
     get,
     isEqual,
     keys,
+    noop,
     omit,
     orderBy,
     range,
@@ -151,7 +152,7 @@ const initialTutorialState: DataState = {
 
 // Undo notification submitter
 type SubmitType = (data: DataState, message: string, intent?: VariantType) => void;
-export let submitNotification: SubmitType = console.log;
+export let submitNotification: SubmitType = noop;
 let rewindDisplaySpec: { message: string; intent?: VariantType } | null = null;
 export const setSubmitNotification = (newSubmit: SubmitType) => {
     submitNotification = newSubmit;
@@ -191,17 +192,7 @@ export const DataSlice = createSlice({
         },
 
         // Utilities functions for debugging
-        refreshCaches: (state) => {
-            values(state.currency.entities).forEach((currency) => {
-                currency!.rates = orderBy(currency!.rates, "month", "desc");
-            });
-
-            wipeTransactionSummaries(state);
-
-            updateTransactionSummariesWithTransactions(state);
-            updateBalancesAndAccountSummaries(state);
-            updateCategoryTransactionDates(state);
-        },
+        refreshCaches,
         removeUnusedStatements: (state) => {
             const included = uniq(state.transaction.ids.map((id) => state.transaction.entities[id]!.statement));
             const excluded = state.statement.ids.filter((id) => !included.includes(id as number));
@@ -497,6 +488,18 @@ export const DataSlice = createSlice({
         // },
     },
 });
+
+export function refreshCaches(state: WritableDraft<DataState>) {
+    values(state.currency.entities).forEach((currency) => {
+        currency!.rates = orderBy(currency!.rates, "month", "desc");
+    });
+
+    wipeTransactionSummaries(state);
+
+    updateTransactionSummariesWithTransactions(state);
+    updateBalancesAndAccountSummaries(state);
+    updateCategoryTransactionDates(state);
+}
 
 export type DataUpdateListener = (previous: DataState | undefined, next: DataState) => void;
 const listeners: DataUpdateListener[] = [];
