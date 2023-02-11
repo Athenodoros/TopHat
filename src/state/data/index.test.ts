@@ -1,5 +1,10 @@
+/**
+ * @vitest-environment jsdom
+ */
+
 import produce from "immer";
 import { cloneDeep, keys, mapValues, sortBy } from "lodash";
+import { expect, test } from "vitest";
 import { DataSlice, DataState, refreshCaches } from ".";
 import { TopHatDispatch, TopHatStore } from "..";
 import { ID } from "../shared/values";

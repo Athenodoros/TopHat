@@ -18,7 +18,7 @@ import { setIDBConnectionExists } from "./notifications/variants/idb";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 
-const debug = process.env.NODE_ENV !== "production";
+const debug = !import.meta.env.PROD;
 
 export const initialiseDemoData = async () => {
     const { DemoData } = await import("../data/demo/data");
@@ -98,7 +98,9 @@ const initialiseIDBListener = (db: TopHatDexie, uuid: string) => {
     });
 };
 
-const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) =>
+const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) => {
+    let syncHasRun = false;
+
     subscribeToDataUpdates((previous) =>
         setTimeout(() => {
             db.transaction(
@@ -106,9 +108,17 @@ const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) =>
                 db.tables.filter(({ name }) => !name.startsWith("_")),
                 (tx) => {
                     (tx as any).source = uuid;
+
                     const state = TopHatStore.getState().data;
                     DataKeys.forEach((key) => {
-                        if (previous && previous[key] === state[key]) return;
+                        if (syncHasRun && previous && previous[key] === state[key]) return;
+
+                        if (!syncHasRun) {
+                            (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
+                                state[key].ids.map((id) => state[key].entities[id]!)
+                            );
+                            return;
+                        }
 
                         const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids)) as ID[];
                         const deleted = previous
@@ -129,10 +139,13 @@ const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) =>
                                 updated.map((id) => state[key].entities[id]!)
                             );
                     });
+
+                    syncHasRun = true;
                 }
             );
         }, 0)
     );
+};
 
 const initialiseMaybeDropboxSyncFromRedux = () =>
     subscribeToDataUpdates(() => setTimeout(() => DBUtils.maybeSaveDataToDropbox(), 0));
@@ -184,7 +197,6 @@ const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
         DataSlice,
 
         BASE_PATHNAME: BASE_PATHNAME,
-        PUBLIC_URL: process.env.PUBLIC_URL,
 
         Papa,
         DateTime,
