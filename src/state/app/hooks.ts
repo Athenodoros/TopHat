@@ -12,29 +12,29 @@ import {
 export const useAccountsPageState = <T = AccountsPageState>(
     selector: (state: AccountsPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
-) => useSelector((state) => selector(state.app.page as AccountsPageState), equalityFn);
+) => useSelector<T>((state) => selector(state.app.page as AccountsPageState), equalityFn);
 
 export const useAccountPageState = <T = AccountPageState>(
     selector: (state: AccountPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
-) => useSelector((state) => selector(state.app.page as AccountPageState), equalityFn);
+) => useSelector<T>((state) => selector(state.app.page as AccountPageState), equalityFn);
 export const useAccountPageAccount = () =>
     useSelector((state) => state.data.account.entities[(state.app.page as AccountPageState).account]!);
 
 export const useTransactionsPageState = <T = TransactionsPageState>(
     selector: (state: TransactionsPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
-) => useSelector((state) => selector(state.app.page as TransactionsPageState), equalityFn);
+) => useSelector<T>((state) => selector(state.app.page as TransactionsPageState), equalityFn);
 
 export const useCategoriesPageState = <T = CategoriesPageState>(
     selector: (state: CategoriesPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
-) => useSelector((state) => selector(state.app.page as CategoriesPageState), equalityFn);
+) => useSelector<T>((state) => selector(state.app.page as CategoriesPageState), equalityFn);
 
 export const useCategoryPageState = <T = CategoryPageState>(
     selector: (state: CategoryPageState) => T = identity,
     equalityFn?: (left: T, right: T) => boolean
-) => useSelector((state) => selector(state.app.page as CategoryPageState), equalityFn);
+) => useSelector<T>((state) => selector(state.app.page as CategoryPageState), equalityFn);
 export const useCategoryPageCategory = () =>
     useSelector((state) => state.data.category.entities[(state.app.page as CategoryPageState).category]!);
 

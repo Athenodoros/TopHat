@@ -4,7 +4,7 @@ import { VictoryChart } from "victory";
 import { useDivBoundingRect } from "../../shared/hooks";
 
 interface FlexWidthChartProps {
-    getChart: (width: number) => React.ReactElement<VictoryChart>;
+    getChart: (width: number) => React.ReactElement<typeof VictoryChart>;
     style?: React.CSSProperties;
     sx?: SxProps;
 }

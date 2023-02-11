@@ -1,5 +1,5 @@
 import { DatePicker, DatePickerProps } from "@mui/lab";
-import { Checkbox, FormControlLabel } from "@mui/material";
+import { Checkbox, FormControlLabel, TextFieldProps } from "@mui/material";
 import { SxProps } from "@mui/system";
 import { noop } from "lodash";
 import { DateTime } from "luxon";
@@ -53,7 +53,7 @@ export const ManagedDatePicker = <Nullable extends boolean>({
     disableFuture,
     disablePast,
     ...props
-}: Omit<DatePickerProps, "value" | "onChange"> & {
+}: Omit<DatePickerProps<unknown>, "value" | "onChange"> & {
     value: Nullable extends true ? SDate | undefined : SDate;
     onChange: (value: Nullable extends true ? SDate | undefined : SDate) => void;
     nullable: Nullable;
@@ -61,7 +61,7 @@ export const ManagedDatePicker = <Nullable extends boolean>({
     const [value, setValue] = useState<DateTime | null>(parseDate(initial) || null);
     useEffect(() => setValue(parseDate(initial || null)), [initial]);
 
-    const onChangeHandler = useCallback<DatePickerProps["onChange"]>(
+    const onChangeHandler = useCallback<DatePickerProps<unknown>["onChange"]>(
         // Either called with null (empty), an invalid DateTime, or a valid DateTime
         (newValue: unknown, text?: string) => {
             setValue(newValue as DateTime | null);
@@ -79,8 +79,8 @@ export const ManagedDatePicker = <Nullable extends boolean>({
         },
         [nullable, onChange, minDate, maxDate, disableFuture, disablePast]
     );
-    const renderInputWrapped = useCallback<DatePickerProps["renderInput"]>(
-        (params) =>
+    const renderInputWrapped = useCallback<DatePickerProps<unknown>["renderInput"]>(
+        (params: TextFieldProps) =>
             renderInput({
                 ...params,
                 error: (value === null && nullable === false) || (value && !value.isValid) || params.error,

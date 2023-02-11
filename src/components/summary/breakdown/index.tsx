@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { orderBy, sumBy } from "lodash";
-import React from "react";
+import { FCWithChildren } from "../../../shared/types";
 import { ChartSign } from "../../../state/app/pageTypes";
 import { ID } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
@@ -41,7 +41,7 @@ interface SummaryBreakdownProps {
     setFilter?: (id: ID, sign?: SummaryChartSign) => void;
     colorise?: boolean;
 }
-export const SummaryBreakdown: React.FC<SummaryBreakdownProps> = ({
+export const SummaryBreakdown: FCWithChildren<SummaryBreakdownProps> = ({
     data,
     sign,
     creditsName,

@@ -9,6 +9,7 @@ import { getChartPerformanceProps } from "../../components/display/PerformantCha
 import { SECTION_MARGIN } from "../../components/layout";
 import { formatNumber } from "../../shared/data";
 import { useNumericInputHandler } from "../../shared/hooks";
+import { FCWithChildren } from "../../shared/types";
 import { Greys, Intents } from "../../styles/colours";
 
 export const CalculatorContainer = styled("div")({
@@ -17,7 +18,7 @@ export const CalculatorContainer = styled("div")({
     "& > div:last-of-type": { flexGrow: 1 },
 });
 
-export const CalculatorInputGrid: React.FC = ({ children }) => (
+export const CalculatorInputGrid: FCWithChildren = ({ children }) => (
     <Grid container={true} spacing={24}>
         {children}
     </Grid>

@@ -4,9 +4,10 @@ import { Badge, IconButton, Popover, Typography } from "@mui/material";
 import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
 import { Notifications } from "../../app/notifications";
 import { usePopoverProps } from "../../shared/hooks";
+import { FCWithChildren } from "../../shared/types";
 import { useNotificationCount } from "../../state/data/hooks";
 
-export const Page: React.FC<{ title: string }> = ({ children, title }) => {
+export const Page: FCWithChildren<{ title: string }> = ({ children, title }) => {
     const notifications = useNotificationCount();
     const { buttonProps, popoverProps } = usePopoverProps();
 

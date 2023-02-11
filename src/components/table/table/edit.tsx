@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { CancelTwoTone, DeleteTwoTone, Description, Help, SaveTwoTone } from "@mui/icons-material";
-import { Button, IconButton, MenuProps, TextField, Tooltip } from "@mui/material";
+import { Button, IconButton, MenuProps, TextField, TextFieldProps, Tooltip } from "@mui/material";
 import { fromPairs, isEqual, toPairs } from "lodash";
 import React, { useCallback, useMemo } from "react";
 import { batch } from "react-redux";
@@ -78,7 +78,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     nullable={tx !== undefined && tx.date === undefined}
                     disableOpenPicker={true}
                     disableFuture={true}
-                    renderInput={(params) => (
+                    renderInput={(params: TextFieldProps) => (
                         <TextField
                             {...params}
                             size="small"

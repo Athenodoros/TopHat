@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from "react";
 import { formatNumber, zipObject } from "../../../shared/data";
 import { handleTextFieldChange } from "../../../shared/events";
 import { useFirstValue, useNumericInputHandler, usePopoverProps } from "../../../shared/hooks";
+import { FCWithChildren } from "../../../shared/types";
 import { TopHatStore } from "../../../state";
 import { Transaction } from "../../../state/data";
 import { useAllAccounts, useAllStatements } from "../../../state/data/hooks";
@@ -382,7 +383,7 @@ const SubHeaderDiv = styled("div")({
         width: 110, // Excluding default padding of 14 * 2
     },
 });
-const SubHeader: React.FC<{ name: string }> = ({ name, children }) => (
+const SubHeader: FCWithChildren<{ name: string }> = ({ name, children }) => (
     <>
         <SubHeaderDiv>
             <Typography variant="body1">{name}</Typography>

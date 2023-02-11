@@ -90,7 +90,7 @@ const createNewRule = (): Rule => {
 };
 
 const onDragEnd = ({ source, destination, reason, draggableId }: DropResult) => {
-    if (reason !== "DROP" || destination === undefined) return;
+    if (reason !== "DROP" || !destination) return;
 
     const { ids, entities } = TopHatStore.getState().data.rule;
 

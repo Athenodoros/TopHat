@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import React from "react";
 import { VictoryAxis, VictoryChartProps } from "victory";
-import { DomainPropObjectType, DomainTuple } from "victory-core";
+import { DomainTuple } from "victory-core";
 import { BLACK } from "../../styles/colours";
 
 const DummyComponent: React.FC<any> = () => <div />;
@@ -34,7 +34,7 @@ export const getBottomAlignedDateAxis = (value: number = 0) => (
 // Victory renders charts using an incredibly slow recursive method for many props.
 // This fills in some of the major ones manually.
 export const getChartPerformanceProps = (
-    domain: VictoryChartProps["domain"],
+    domain: { x: DomainTuple; y: DomainTuple },
     scale: VictoryChartProps["scale"] = "linear",
     categories: VictoryChartProps["categories"] = []
 ) => {
@@ -43,9 +43,9 @@ export const getChartPerformanceProps = (
 
     return {
         domain: {
-            x: fixEmptyRange((domain as DomainPropObjectType).x),
-            y: fixEmptyRange((domain as DomainPropObjectType).y),
-        } as DomainPropObjectType,
+            x: fixEmptyRange(domain.x),
+            y: fixEmptyRange(domain.y),
+        },
         scale,
         categories,
     };

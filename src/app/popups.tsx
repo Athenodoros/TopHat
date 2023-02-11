@@ -1,6 +1,7 @@
 import { Close } from "@mui/icons-material";
 import { Alert, AlertColor, Button, IconButton, Snackbar } from "@mui/material";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { FCWithChildren } from "../shared/types";
 
 export interface PopupAlert {
     message: string;
@@ -16,7 +17,7 @@ export let setPopupAlert = (alert: PopupAlert) => undefined as void;
 const PopupContext = createContext(setPopupAlert);
 export const useSetAlert = () => useContext(PopupContext);
 
-export const PopupDisplay: React.FC = ({ children }) => {
+export const PopupDisplay: FCWithChildren = ({ children }) => {
     const [alert, setAlert] = useState<PopupAlert>();
     useEffect(() => void (setPopupAlert = (newAlert: PopupAlert) => setAlert(newAlert)), []);
     const close = useCallback(() => setAlert(undefined), []);

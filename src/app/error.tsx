@@ -1,10 +1,10 @@
 import { BrokenImage } from "@mui/icons-material";
 import { Link } from "@mui/material";
 import { Box } from "@mui/system";
-import React from "react";
+import React, { PropsWithChildren } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
 
-export class PageErrorBoundary extends React.Component<{}, { hasError: boolean }> {
+export class PageErrorBoundary extends React.Component<PropsWithChildren, { hasError: boolean }> {
     constructor(props: any) {
         super(props);
         this.state = { hasError: false };

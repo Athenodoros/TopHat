@@ -2,9 +2,10 @@ import styled from "@emotion/styled";
 import { Tooltip, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import React from "react";
+import { FCWithChildren } from "../../shared/types";
 import { Greys } from "../../styles/colours";
 
-export const EditValueContainer: React.FC<{ label?: React.ReactNode; disabled?: string; sx?: SxProps }> = ({
+export const EditValueContainer: FCWithChildren<{ label?: React.ReactNode; disabled?: string; sx?: SxProps }> = ({
     label,
     children,
     disabled,

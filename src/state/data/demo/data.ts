@@ -1,6 +1,6 @@
 import chroma from "chroma-js";
 import { random as randomInt, range, values } from "lodash";
-import { DurationObject } from "luxon";
+import { DurationLike } from "luxon";
 import { takeWithDefault, zipObject } from "../../../shared/data";
 import {
     BaseTransactionHistory,
@@ -223,7 +223,7 @@ const rules: Rule[] = [
 
 let id = 0;
 const make = (
-    diff: DurationObject,
+    diff: DurationLike,
     reference: string,
     account: ID,
     partial?: Partial<Omit<Transaction, "id" | "date" | "reference" | "account">>

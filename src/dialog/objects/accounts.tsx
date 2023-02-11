@@ -1,6 +1,14 @@
 import styled from "@emotion/styled";
 import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
-import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import {
+    Button,
+    ListItemText,
+    TextField,
+    TextFieldProps,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
+} from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
@@ -142,14 +150,16 @@ const EditAccountView: React.FC = () => {
                         disableOpenPicker={true}
                         disableFuture={true}
                         maxDate={parseDate(working.lastUpdate)}
-                        renderInput={(params) => <TextField {...params} size="small" label="Open Date" />}
+                        renderInput={(params: TextFieldProps) => (
+                            <TextField {...params} size="small" label="Open Date" />
+                        )}
                     />
                     <ManagedDatePicker
                         value={working.lastUpdate}
                         onChange={updateWorkingUpdateDate}
                         nullable={false}
                         disableOpenPicker={true}
-                        renderInput={(params) => (
+                        renderInput={(params: TextFieldProps) => (
                             <TextField
                                 {...params}
                                 size="small"

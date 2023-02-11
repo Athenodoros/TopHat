@@ -19,7 +19,7 @@ import {
 } from "./types";
 
 export const useUserData = <T = User>(selector: (user: User) => T = identity, equality?: (t1: T, t2: T) => boolean) =>
-    useSelector((state) => selector(state.data.user.entities[StubUserID]!), equality);
+    useSelector<T>((state) => selector(state.data.user.entities[StubUserID]!), equality);
 
 export const useDefaultCurrency = () => useMaybeDefaultCurrency();
 export const useMaybeDefaultCurrency = (currency?: ID) =>

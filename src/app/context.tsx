@@ -6,6 +6,7 @@ import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
 import { TopHatDialog } from "../dialog";
+import { FCWithChildren } from "../shared/types";
 import { TopHatStore } from "../state";
 import { handleStatementFileUpload } from "../state/logic/statement";
 import { TopHatTheme } from "../styles/theme";
@@ -27,7 +28,7 @@ export const FileHandlerContext = React.createContext<{
     dropzoneRef: null,
 });
 
-export const TopHatContextProvider: React.FC = ({ children }) => {
+export const TopHatContextProvider: FCWithChildren = ({ children }) => {
     const {
         open: openFileDialog,
         acceptedFiles,
@@ -37,7 +38,7 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
         isDragActive,
         rootRef: dropzoneRef,
     } = useDropzone({
-        accept: "text/csv",
+        accept: { "text/csv": [".csv"] },
         onDrop: handleStatementFileUpload,
     });
 

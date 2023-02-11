@@ -112,7 +112,7 @@ export const useSummaryChartData = (series: SummaryBarChartPoint[], sign: ChartS
                     (y, idx) =>
                         ({
                             id: category.id,
-                            x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
+                            x: getToday().startOf("month").minus({ months: idx }).toJSDate(),
                             y,
                             colour: category.colour,
                             sign: trend,

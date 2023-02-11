@@ -7,6 +7,7 @@ import {
     ListSubheader,
     MenuItem,
     TextField,
+    TextFieldProps,
     Typography,
     typographyClasses,
 } from "@mui/material";
@@ -141,7 +142,9 @@ const EditStatementView: React.FC = () => {
                     nullable={false}
                     disableFuture={true}
                     disableOpenPicker={true}
-                    renderInput={(params) => <TextField {...params} size="small" label="Statement Date" />}
+                    renderInput={(params: TextFieldProps) => (
+                        <TextField {...params} size="small" label="Statement Date" />
+                    )}
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">

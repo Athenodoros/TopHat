@@ -5,7 +5,7 @@ import React from "react";
 import { NBSP } from "../../../shared/constants";
 import { suppressEvent } from "../../../shared/events";
 import { usePopoverProps } from "../../../shared/hooks";
-import { IconType } from "../../../shared/types";
+import { FCWithChildren, IconType } from "../../../shared/types";
 
 const PaddedListItemText = styled(ListItemText)({
     paddingTop: "4px",
@@ -69,5 +69,5 @@ export const FilterMenuNestedOptionFunction = (
 /**
  * The material-ui `Menu` component passes in refs to its children - this allows a function component to use the ref.
  */
-export const FilterMenuNestedOption: React.FC<FilterMenuNestedOptionProps> =
+export const FilterMenuNestedOption: FCWithChildren<FilterMenuNestedOptionProps> =
     React.forwardRef(FilterMenuNestedOptionFunction);

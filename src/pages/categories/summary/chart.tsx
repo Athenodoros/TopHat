@@ -173,7 +173,7 @@ const useBarChartData = (sign: ChartSign) => {
                             const y = Math[type === "credit" ? "max" : "min"](value, 0);
 
                             return {
-                                x: getToday().startOf("months").minus({ months: idx }).toJSDate(),
+                                x: getToday().startOf("month").minus({ months: idx }).toJSDate(),
                                 y,
                                 label: `${point.name} ${key === "budgets" ? " (Budget)" : ""}: ${formatNumber(y, {
                                     end: "k",

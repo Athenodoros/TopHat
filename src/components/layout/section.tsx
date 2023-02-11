@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { Paper, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import React from "react";
+import { FCWithChildren } from "../../shared/types";
 import { Greys } from "../../styles/colours";
 import { getThemeTransition } from "../../styles/theme";
 
@@ -15,7 +16,15 @@ export interface SectionProps {
     sx?: SxProps;
     PaperSx?: SxProps;
 }
-export const Section: React.FC<SectionProps> = ({ title, headers, children, emptyBody, onClick, sx, PaperSx }) => {
+export const Section: FCWithChildren<SectionProps> = ({
+    title,
+    headers,
+    children,
+    emptyBody,
+    onClick,
+    sx,
+    PaperSx,
+}) => {
     return (
         <SectionBox sx={sx}>
             {title || headers ? (
