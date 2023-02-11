@@ -6,6 +6,7 @@ import { FCWithChildren } from "../shared/types";
 export interface PopupAlert {
     message: string;
     severity: AlertColor;
+    duration?: number | null;
     action?: {
         name: string;
         callback: () => void;
@@ -24,28 +25,36 @@ export const PopupDisplay: FCWithChildren = ({ children }) => {
 
     return (
         <>
-            <Snackbar open={!!alert} autoHideDuration={6000} onClose={close}>
+            <Snackbar
+                open={!!alert}
+                autoHideDuration={alert?.duration === undefined ? 6000 : alert.duration}
+                onClose={close}
+            >
                 {alert && (
                     <Alert
                         onClose={close}
                         severity={alert.severity}
                         variant="filled"
                         action={
-                            <React.Fragment>
-                                {alert.action && (
-                                    <Button
-                                        color="inherit"
-                                        size="small"
-                                        onClick={getWrappedCallback(alert.action.callback, close)}
-                                        sx={{ height: 28 }}
-                                    >
-                                        {alert.action.name}
-                                    </Button>
-                                )}
-                                <IconButton color="inherit" sx={{ p: "1px 0.5px 0.5px 0.5px" }} onClick={close}>
-                                    <Close />
-                                </IconButton>
-                            </React.Fragment>
+                            alert.action || alert.duration !== null ? (
+                                <React.Fragment>
+                                    {alert.action && (
+                                        <Button
+                                            color="inherit"
+                                            size="small"
+                                            onClick={getWrappedCallback(alert.action.callback, close)}
+                                            sx={{ height: 28 }}
+                                        >
+                                            {alert.action.name}
+                                        </Button>
+                                    )}
+                                    {alert.duration !== null ? (
+                                        <IconButton color="inherit" sx={{ p: "1px 0.5px 0.5px 0.5px" }} onClick={close}>
+                                            <Close />
+                                        </IconButton>
+                                    ) : undefined}
+                                </React.Fragment>
+                            ) : undefined
                         }
                     >
                         {alert.message}

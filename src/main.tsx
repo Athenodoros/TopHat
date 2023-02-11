@@ -27,6 +27,7 @@ if ("serviceWorker" in navigator) {
             setPopupAlert({
                 message: "New version available!",
                 severity: "info",
+                duration: null,
                 action: {
                     name: "Refresh",
                     callback: () => updateSW(),
