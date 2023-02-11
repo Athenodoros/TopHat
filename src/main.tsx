@@ -8,7 +8,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { registerSW } from "virtual:pwa-register";
 import { App } from "./app";
-import { enqueueSnackbar } from "./app/context";
+import { setPopupAlert } from "./app/popups";
 import { initialiseAndGetDBConnection } from "./state/logic/startup";
 
 initialiseAndGetDBConnection().then(() => {
@@ -22,5 +22,15 @@ initialiseAndGetDBConnection().then(() => {
 
 if ("serviceWorker" in navigator) {
     // && !/localhost/.test(window.location)) {
-    registerSW({ onNeedRefresh: () => enqueueSnackbar("New version available!") });
+    const updateSW = registerSW({
+        onNeedRefresh: () =>
+            setPopupAlert({
+                message: "New version available!",
+                severity: "info",
+                action: {
+                    name: "Refresh",
+                    callback: () => updateSW(),
+                },
+            }),
+    });
 }

@@ -2,8 +2,7 @@ import { LocalizationProvider } from "@mui/lab";
 import DateAdapter from "@mui/lab/AdapterLuxon";
 import { CssBaseline, StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { noop, omit } from "lodash-es";
-import { SnackbarProvider, useSnackbar } from "notistack";
-import React, { useEffect } from "react";
+import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
 import { TopHatDialog } from "../dialog";
@@ -11,6 +10,7 @@ import { TopHatStore } from "../state";
 import { handleStatementFileUpload } from "../state/logic/statement";
 import { TopHatTheme } from "../styles/theme";
 import { PageErrorBoundary } from "./error";
+import { PopupDisplay } from "./popups";
 import { TopHatTutorial } from "./tutorial";
 
 export const FileHandlerContext = React.createContext<{
@@ -26,8 +26,6 @@ export const FileHandlerContext = React.createContext<{
     isDragActive: false,
     dropzoneRef: null,
 });
-
-export let enqueueSnackbar = (message: string) => void null;
 
 export const TopHatContextProvider: React.FC = ({ children }) => {
     const {
@@ -55,11 +53,16 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
             >
                 <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={TopHatTheme}>
-                        <SnackbarProvider maxSnack={3}>
-                            <SnackBarUpdateUser />
+                        <PopupDisplay>
                             <PageErrorBoundary>
                                 <FileHandlerContext.Provider
-                                    value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
+                                    value={{
+                                        openFileDialog,
+                                        acceptedFiles,
+                                        fileRejections,
+                                        isDragActive,
+                                        dropzoneRef,
+                                    }}
                                 >
                                     <Provider store={TopHatStore}>
                                         <div {...omit(getRootProps(), ["onClick"])}>
@@ -74,18 +77,10 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
                                     </Provider>
                                 </FileHandlerContext.Provider>
                             </PageErrorBoundary>
-                        </SnackbarProvider>
+                        </PopupDisplay>
                     </ThemeProvider>
                 </StyledEngineProvider>
             </LocalizationProvider>
         </>
     );
-};
-
-const SnackBarUpdateUser: React.FC = () => {
-    const { enqueueSnackbar: enqueueSnackbarFunction } = useSnackbar();
-    useEffect(() => {
-        enqueueSnackbar = (message) => void enqueueSnackbarFunction(message);
-    });
-    return <></>;
 };

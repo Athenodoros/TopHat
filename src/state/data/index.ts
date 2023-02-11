@@ -1,3 +1,4 @@
+import { AlertColor } from "@mui/material";
 import {
     createEntityAdapter,
     createNextState,
@@ -29,7 +30,6 @@ import {
     upperFirst,
     values,
 } from "lodash";
-import { VariantType } from "notistack";
 import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { useSelector } from "../shared/hooks";
@@ -151,9 +151,9 @@ const initialTutorialState: DataState = {
 };
 
 // Undo notification submitter
-type SubmitType = (data: DataState, message: string, intent?: VariantType) => void;
-export let submitNotification: SubmitType = noop;
-let rewindDisplaySpec: { message: string; intent?: VariantType } | null = null;
+type SubmitType = (data: DataState, message: string, intent?: AlertColor) => void;
+let submitNotification: SubmitType = noop;
+let rewindDisplaySpec: { message: string; intent?: AlertColor } | null = null;
 export const setSubmitNotification = (newSubmit: SubmitType) => {
     submitNotification = newSubmit;
 };
