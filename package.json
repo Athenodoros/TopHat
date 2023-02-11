@@ -2,6 +2,7 @@
     "name": "tophat",
     "version": "0.1.0",
     "private": true,
+    "homepage": "https://athenodoros.github.io/TopHat",
     "type": "module",
     "dependencies": {
         "@date-io/luxon": "1.x",
