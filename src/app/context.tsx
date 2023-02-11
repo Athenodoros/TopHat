@@ -2,8 +2,8 @@ import { LocalizationProvider } from "@mui/lab";
 import DateAdapter from "@mui/lab/AdapterLuxon";
 import { CssBaseline, StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { noop, omit } from "lodash-es";
-import { SnackbarProvider } from "notistack";
-import React from "react";
+import { SnackbarProvider, useSnackbar } from "notistack";
+import React, { useEffect } from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Provider } from "react-redux";
 import { TopHatDialog } from "../dialog";
@@ -26,6 +26,8 @@ export const FileHandlerContext = React.createContext<{
     isDragActive: false,
     dropzoneRef: null,
 });
+
+export let enqueueSnackbar = (message: string) => void null;
 
 export const TopHatContextProvider: React.FC = ({ children }) => {
     const {
@@ -54,6 +56,7 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
                 <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={TopHatTheme}>
                         <SnackbarProvider maxSnack={3}>
+                            <SnackBarUpdateUser />
                             <PageErrorBoundary>
                                 <FileHandlerContext.Provider
                                     value={{ openFileDialog, acceptedFiles, fileRejections, isDragActive, dropzoneRef }}
@@ -77,4 +80,12 @@ export const TopHatContextProvider: React.FC = ({ children }) => {
             </LocalizationProvider>
         </>
     );
+};
+
+const SnackBarUpdateUser: React.FC = () => {
+    const { enqueueSnackbar: enqueueSnackbarFunction } = useSnackbar();
+    useEffect(() => {
+        enqueueSnackbar = (message) => void enqueueSnackbarFunction(message);
+    });
+    return <></>;
 };

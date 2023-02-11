@@ -7,7 +7,7 @@ import { DataSlice } from "../../state/data";
 import { useUserData } from "../../state/data/hooks";
 import { redirectToDropboxAuthURI } from "../../state/logic/dropbox";
 import { Greys, Intents } from "../../styles/colours";
-import { ReactComponent as DropboxLogo } from "./dropbox.svg";
+import DropboxLogo from "./dropbox.svg";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogStorageContents: React.FC = () => {
@@ -30,15 +30,16 @@ export const DialogStorageContents: React.FC = () => {
                         margin: "10px 50px",
                         padding: "20px 0 40px 0",
                         flexShrink: 0,
-                        "& > svg:first-of-type": {
+                        "& > img:first-of-type": {
                             width: 150,
+                            padding: "16px 0",
                         },
                         "& > button": {
                             marginTop: 10,
                         },
                     }}
                 >
-                    <DropboxLogo />
+                    <img src={DropboxLogo} />
                     {config === "loading" ? (
                         <CircularProgress />
                     ) : config ? (

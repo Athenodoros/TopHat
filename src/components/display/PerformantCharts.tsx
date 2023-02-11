@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import React from "react";
-import { DomainTuple, VictoryAxis, VictoryChartProps } from "victory";
-import { DomainPropObjectType } from "victory-core";
+import { VictoryAxis, VictoryChartProps } from "victory";
+import { DomainPropObjectType, DomainTuple } from "victory-core";
 import { BLACK } from "../../styles/colours";
 
 const DummyComponent: React.FC<any> = () => <div />;
