@@ -4,48 +4,48 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    # Triggers the workflow on push or pull request events but only for the main branch
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    # Allows you to run this workflow manually from the Actions tab
+    workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    # This workflow contains a single job called "build"
+    build:
+        # The type of runner that the job will run on
+        runs-on: ubuntu-latest
 
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout code to action runner
-        uses: actions/checkout@v3
+        steps:
+            # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+            - name: Checkout code to action runner
+              uses: actions/checkout@v3
 
-      - name: Add node to environment
-        uses: actions/setup-node@v2
-        with:
-          node-version: '16'
+            - name: Add node to environment
+              uses: actions/setup-node@v2
+              with:
+                  node-version: "16"
 
-      - name: Populate environment
-        run: |
-          cd $GITHUB_WORKSPACE
-          npm install yarn
-          yarn
-          
-      - name: Build from source
-        run: |
-          yarn build
-          
-      - name: Deploy to gh-pages branch
-        run: |
-          cd build
-          git init -b main
-          git add -A
-          git config user.name 'GH Action'
-          git config user.email 'Athenodoros@noreply.github.com'
-          git commit -m "Package resources for gh-pages"
-          git push -f https://Athenodoros:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} main:gh-pages
+            - name: Populate environment
+              run: |
+                  cd $GITHUB_WORKSPACE
+                  npm install yarn
+                  yarn
+
+            - name: Build from source
+              run: |
+                  yarn build
+
+            - name: Deploy to gh-pages branch
+              run: |
+                  cd dist
+                  git init -b main
+                  git add -A
+                  git config user.name 'GH Action'
+                  git config user.email 'Athenodoros@noreply.github.com'
+                  git commit -m "Package resources for gh-pages"
+                  git push -f https://Athenodoros:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} main:gh-pages
