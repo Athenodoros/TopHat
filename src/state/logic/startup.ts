@@ -196,16 +196,6 @@ const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
         AppSlice,
         DataSlice,
 
-        getIDBValues: () =>
-            Promise.all(
-                DataKeys.map(
-                    (name) =>
-                        db[
-                            name === "transaction" ? "transaction_" : (name as DBDataTables)
-                        ].toArray() as Promise<unknown>
-                )
-            ),
-
         BASE_PATHNAME: BASE_PATHNAME,
 
         Papa,
