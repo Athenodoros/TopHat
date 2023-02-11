@@ -1,6 +1,6 @@
-import { LocalizationProvider } from "@mui/lab";
-import DateAdapter from "@mui/lab/AdapterLuxon";
 import { CssBaseline, StyledEngineProvider, ThemeProvider } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterLuxon } from "@mui/x-date-pickers/AdapterLuxon";
 import { noop, omit } from "lodash-es";
 import React from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
@@ -45,13 +45,7 @@ export const TopHatContextProvider: FCWithChildren = ({ children }) => {
     return (
         <>
             <CssBaseline />
-            <LocalizationProvider
-                dateAdapter={
-                    // Typescript thinks that some functions are missing in DateAdapter
-                    // This seems just to be a bug in the type definitions
-                    DateAdapter as any
-                }
-            >
+            <LocalizationProvider dateAdapter={AdapterLuxon}>
                 <StyledEngineProvider injectFirst={true}>
                     <ThemeProvider theme={TopHatTheme}>
                         <PopupDisplay>

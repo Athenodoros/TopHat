@@ -4,20 +4,15 @@ import "@fontsource/roboto/400-italic.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import { App } from "./app";
 import { setPopupAlert } from "./app/popups";
 import { initialiseAndGetDBConnection } from "./state/logic/startup";
 
 initialiseAndGetDBConnection().then(() => {
-    ReactDOM.render(
-        <React.StrictMode>
-            <App />
-        </React.StrictMode>,
-        document.getElementById("root")
-    );
+    const root = createRoot(document.getElementById("root")!);
+    root.render(<App />);
 });
 
 if ("serviceWorker" in navigator) {
