@@ -338,8 +338,6 @@ export const DataSlice = createSlice({
         deleteObject: (state, { payload: { type, id } }: PayloadAction<{ type: BasicObjectName; id: ID }>) => {
             if (deleteObjectError(state, type, id) !== undefined) return;
 
-            adapters[type].removeOne(state[type], id);
-
             if (type === "rule") {
                 const { index } = state.rule.entities[id]!;
                 adapters.rule.updateMany(
@@ -349,6 +347,8 @@ export const DataSlice = createSlice({
                         .map((ruleID) => ({ id: ruleID, changes: { index: state.rule.entities[ruleID]!.index - 1 } }))
                 );
             }
+
+            adapters[type].removeOne(state[type], id);
 
             if (type === "statement") {
                 state.transaction.ids.forEach((txID) => {
