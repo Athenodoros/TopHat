@@ -1,7 +1,7 @@
 import { get, min, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
-import { formatDate, getCurrentMonth, getCurrentMonthString, ID, SDate } from "../../state/shared/values";
+import { ID, SDate, formatDate, getCurrentMonth, getCurrentMonthString } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
@@ -23,7 +23,7 @@ const CurrencyRateRules = {
             `DIGITAL_CURRENCY_MONTHLY&symbol=${ticker}&market=USD`,
             token,
             "Time Series (Digital Currency Monthly)",
-            "4a. close (USD)"
+            "4. close"
         ),
     stock: (ticker: string, token: string) =>
         getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series", "4. close"),
@@ -127,7 +127,7 @@ export const updateSyncedCurrencies = () => {
             const succeeded = results.every((result) => result);
 
             if (succeeded) {
-                TopHatDispatch(DataSlice.actions.updateCurrencyRates(results as NonNullable<typeof results[0]>[]));
+                TopHatDispatch(DataSlice.actions.updateCurrencyRates(results as NonNullable<(typeof results)[0]>[]));
             }
 
             conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, succeeded ? null : "");
