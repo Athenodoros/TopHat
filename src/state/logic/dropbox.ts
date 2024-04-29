@@ -120,9 +120,13 @@ export const maybeSaveDataToDropbox = async () => {
             })
             .catch((error) => {
                 console.error(error);
-                updateDropboxNotificationState(true);
                 token = null;
             });
+    }
+
+    if (token === null) {
+        updateDropboxNotificationState(true);
+        return;
     }
 
     // Generate Zip file
@@ -139,7 +143,7 @@ export const maybeSaveDataToDropbox = async () => {
         headers: {
             "Content-Type": "application/octet-stream",
             "Dropbox-API-Arg": `{"path": "/data.zip","mode": "overwrite"}`,
-            authorization: `Bearer ${token!.access_token}`,
+            authorization: `Bearer ${token.access_token}`,
         },
         body: data,
     })
