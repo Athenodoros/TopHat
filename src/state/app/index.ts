@@ -115,8 +115,9 @@ export const AppSlice = createSlice({
             if (state.dialog.id !== "closed") state.dialog[state.dialog.id] = DefaultDialogs[state.dialog.id] as any;
             state.dialog.id = payload;
         },
-        setDialogPartial: (state, { payload }: PayloadAction<Partial<DialogState>>) =>
-            void Object.assign(state.dialog, payload),
+        setDialogPartial: (state, { payload }: PayloadAction<Partial<DialogState>>) => {
+            state.dialog = { ...state.dialog, ...payload };
+        },
         closeDialogAndGoToPage: (_, { payload: page }: PayloadAction<PageStateType>) => ({
             dialog: DefaultDialogs,
             page,
