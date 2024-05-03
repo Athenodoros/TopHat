@@ -21,3 +21,10 @@ export interface NotificationRuleDefinition {
 }
 
 export const DEMO_NOTIFICATION_ID = "demo";
+export const ACCOUNTS_NOTIFICATION_ID = "old-accounts";
+export const CURRENCY_NOTIFICATION_ID = "currency-sync-broken";
+export const DEBT_NOTIFICATION_ID = "debt-level";
+export const DROPBOX_NOTIFICATION_ID = "dropbox-sync-broken";
+export const IDB_NOTIFICATION_ID = "idb-sync-failed";
+export const MILESTONE_NOTIFICATION_ID = "new-milestone";
+export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";

@@ -5,7 +5,7 @@ import { BASE_PATHNAME } from "../app";
 import { DataSlice } from "../data";
 import { StubUserID, User } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
-import { DROPBOX_NOTIFICATION_ID } from "./notifications/variants/dropbox";
+import { DROPBOX_NOTIFICATION_ID } from "./notifications/types";
 
 const APP_KEY = "7ru69iyjvo0wz6t";
 const REDIRECT_URI = `${window.location.origin}${BASE_PATHNAME}/dropbox`;

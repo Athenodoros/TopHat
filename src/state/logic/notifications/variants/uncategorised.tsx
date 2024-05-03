@@ -5,16 +5,14 @@ import { Intents } from "../../../../styles/colours";
 import { AppSlice, DefaultPages } from "../../../app";
 import {
     DataState,
-    ensureNotificationExists,
     PLACEHOLDER_CATEGORY_ID,
+    ensureNotificationExists,
     removeNotification,
     updateUserData,
 } from "../../../data";
 import { StubUserID } from "../../../data/types";
 import { DefaultDismissNotificationThunk, NotificationContents, OrangeNotificationText } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-
-export const UNCATEGORISED_NOTIFICATION_ID = "uncategorised-transactions";
+import { NotificationRuleDefinition, UNCATEGORISED_NOTIFICATION_ID } from "../types";
 
 const update = (data: DataState) => {
     const { uncategorisedTransactionsAlerted } = data.user.entities[StubUserID]!;

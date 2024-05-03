@@ -3,9 +3,7 @@ import { TopHatDispatch } from "../../..";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
 import { NotificationContents } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-
-export const CURRENCY_NOTIFICATION_ID = "currency-sync-broken";
+import { CURRENCY_NOTIFICATION_ID, NotificationRuleDefinition } from "../types";
 
 export const CurrencyNotificationDefinition: NotificationRuleDefinition = {
     id: CURRENCY_NOTIFICATION_ID,

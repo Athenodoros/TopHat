@@ -32,6 +32,7 @@ import {
 } from "lodash";
 import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
+import { DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -472,6 +473,12 @@ export const DataSlice = createSlice({
                     disabled: updateListSelection(payload, state.user.entities[StubUserID]!.disabled),
                 },
             });
+        },
+
+        removeDropSync: (state) => {
+            state.user.entities[StubUserID]!.dropbox = undefined;
+            adapters.notification.removeOne(state.notification, DROPBOX_NOTIFICATION_ID);
+            rewindDisplaySpec = { message: "Dropbox sync removed!" };
         },
 
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {

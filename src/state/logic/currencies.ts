@@ -5,7 +5,7 @@ import { ID, SDate, formatDate, getCurrentMonth, getCurrentMonthString } from ".
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
 import { conditionallyUpdateNotificationState } from "./notifications/shared";
-import { CURRENCY_NOTIFICATION_ID } from "./notifications/variants/currency";
+import { CURRENCY_NOTIFICATION_ID } from "./notifications/types";
 
 const AlphaVantage = "https://www.alphavantage.co/query?function=";
 const CurrencyRateRules = {

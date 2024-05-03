@@ -10,11 +10,9 @@ import { DefaultDialogs } from "../../../app/defaults";
 import { DataSlice, DataState, ensureNotificationExists, removeNotification } from "../../../data";
 import { useAccountByID, useInstitutionByID } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
-import { getTodayString, ID } from "../../../shared/values";
+import { ID, getTodayString } from "../../../shared/values";
 import { DefaultDismissNotificationThunk, NotificationContents, OrangeNotificationText } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-
-export const ACCOUNTS_NOTIFICATION_ID = "old-accounts";
+import { ACCOUNTS_NOTIFICATION_ID, NotificationRuleDefinition } from "../types";
 
 interface AccountNotificationContents {
     id: ID;

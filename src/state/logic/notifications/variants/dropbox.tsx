@@ -3,9 +3,7 @@ import { TopHatDispatch } from "../../..";
 import { Intents } from "../../../../styles/colours";
 import { AppSlice } from "../../../app";
 import { NotificationContents } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-
-export const DROPBOX_NOTIFICATION_ID = "dropbox-sync-broken";
+import { DROPBOX_NOTIFICATION_ID, NotificationRuleDefinition } from "../types";
 
 export const DropboxNotificationDefinition: NotificationRuleDefinition = {
     id: DROPBOX_NOTIFICATION_ID,

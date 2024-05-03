@@ -5,8 +5,7 @@ import { DataState, ensureNotificationExists, removeNotification, updateUserData
 import { useFormatValue } from "../../../data/hooks";
 import { StubUserID } from "../../../data/types";
 import { DefaultDismissNotificationThunk, GreenNotificationText, NotificationContents } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-export const MILESTONE_NOTIFICATION_ID = "new-milestone";
+import { MILESTONE_NOTIFICATION_ID, NotificationRuleDefinition } from "../types";
 
 const update = (data: DataState) => {
     const user = data.user.entities[StubUserID]!;

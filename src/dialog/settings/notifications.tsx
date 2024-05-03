@@ -4,12 +4,12 @@ import {
     Autocomplete,
     Checkbox,
     Collapse,
-    collapseClasses,
-    inputBaseClasses,
     ListItemText,
     Switch,
     TextField,
     Typography,
+    collapseClasses,
+    inputBaseClasses,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
@@ -18,10 +18,12 @@ import { useNumericInputHandler } from "../../shared/hooks";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
 import { useAllAccounts, useUserData } from "../../state/data/hooks";
-import { ACCOUNTS_NOTIFICATION_ID } from "../../state/logic/notifications/variants/accounts";
-import { DEBT_NOTIFICATION_ID } from "../../state/logic/notifications/variants/debt";
-import { MILESTONE_NOTIFICATION_ID } from "../../state/logic/notifications/variants/milestone";
-import { UNCATEGORISED_NOTIFICATION_ID } from "../../state/logic/notifications/variants/uncategorised";
+import {
+    ACCOUNTS_NOTIFICATION_ID,
+    DEBT_NOTIFICATION_ID,
+    MILESTONE_NOTIFICATION_ID,
+    UNCATEGORISED_NOTIFICATION_ID,
+} from "../../state/logic/notifications/types";
 import { EditValueContainer } from "../shared";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 

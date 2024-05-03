@@ -2,9 +2,7 @@ import { FileDownloadOff } from "@mui/icons-material";
 import { Intents } from "../../../../styles/colours";
 import { ensureNotificationExists, removeNotification } from "../../../data";
 import { NotificationContents } from "../shared";
-import { NotificationRuleDefinition } from "../types";
-
-export const IDB_NOTIFICATION_ID = "idb-sync-failed";
+import { IDB_NOTIFICATION_ID, NotificationRuleDefinition } from "../types";
 
 let iDBConnectionExists = false;
 export const setIDBConnectionExists = (value: boolean) => (iDBConnectionExists = value);
