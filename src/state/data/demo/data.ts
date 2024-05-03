@@ -5,22 +5,22 @@ import { takeWithDefault, zipObject } from "../../../shared/data";
 import {
     BaseTransactionHistory,
     BaseTransactionHistoryWithLocalisation,
+    ID,
+    SDate,
     formatDate,
     getCurrentMonthString,
     getToday,
     getTodayString,
-    ID,
     parseDate,
-    SDate,
 } from "../../shared/values";
 import {
-    compareTransactionsDescendingDates,
     DEFAULT_CURRENCY,
     DEFAULT_USER_VALUE,
     PLACEHOLDER_CATEGORY_ID,
     PLACEHOLDER_INSTITUTION_ID,
     PLACEHOLDER_STATEMENT_ID,
     TRANSFER_CATEGORY_ID,
+    compareTransactionsDescendingDates,
 } from "../shared";
 import { Account, Category, Currency, CurrencySyncType, Institution, Rule, Statement, Transaction } from "../types";
 import { ING_DIRECT_DEMO_ICON, NATWEST_DEMO_ICON, ST_GEORGE_DEMO_ICON, TRANSFERWISE_DEMO_ICON } from "./icons";
@@ -485,7 +485,7 @@ transactions = transactions.filter(
 
 // Initialise Demo
 const DemoObjects = {
-    user: [{ ...DEFAULT_USER_VALUE, isDemo: true }],
+    user: [{ ...DEFAULT_USER_VALUE, isDemo: true, generation: 4 }],
     account: accounts,
     institution: institutions,
     category: categories,
