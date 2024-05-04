@@ -23,10 +23,10 @@ jobs:
         steps:
             # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
             - name: Checkout code to action runner
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
 
             - name: Add node to environment
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v4
               with:
                   node-version: "21"
 
@@ -34,13 +34,9 @@ jobs:
               run: |
                   cd $GITHUB_WORKSPACE
 
-            - name: Install yarn
-              run: |
-                  npm install yarn
-
             - name: Install dependencies
               run: |
-                  yarn
+                  yarn install --frozen-lockfile
 
             - name: Build from source
               run: |
