@@ -96,12 +96,8 @@ export const getCurrencyRates = async (
         () => new Promise((resolve) => resolve([])) as Promise<CurrencyExchangeRate[]>
     )(ticker, token);
 
-    console.log({ type, ticker, start, results });
-
     start = min([start, formatDate(getCurrentMonth().minus({ months: 24 }))])!;
     if (results) results = results.filter(({ month }) => month >= start!);
-
-    console.log({ type, ticker, start, results });
 
     if (!cancelled) return results;
 };
