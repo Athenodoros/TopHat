@@ -1,14 +1,6 @@
 import styled from "@emotion/styled";
 import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
-import {
-    Button,
-    ListItemText,
-    TextField,
-    TextFieldProps,
-    ToggleButton,
-    ToggleButtonGroup,
-    Typography,
-} from "@mui/material";
+import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
@@ -19,13 +11,13 @@ import { TopHatStore } from "../../state";
 import { useDialogHasWorking, useDialogState } from "../../state/app/hooks";
 import { Account } from "../../state/data";
 import { useAllInstitutions, useInstitutionByID } from "../../state/data/hooks";
-import { getNextID, PLACEHOLDER_INSTITUTION_ID } from "../../state/data/shared";
+import { PLACEHOLDER_INSTITUTION_ID, getNextID } from "../../state/data/shared";
 import { AccountTypes } from "../../state/data/types";
 import { BaseTransactionHistory, getTodayString, parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 import { getThemeTransition } from "../../styles/theme";
 import { DialogContents, DialogMain, EditValueContainer } from "../shared";
-import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
+import { BasicDialogObjectSelector, ObjectEditContainer, getUpdateFunctions } from "./shared";
 
 export const DialogAccountsView: React.FC = () => {
     const getAccountIcon = useGetAccountIcon();
@@ -150,22 +142,16 @@ const EditAccountView: React.FC = () => {
                         disableOpenPicker={true}
                         disableFuture={true}
                         maxDate={parseDate(working.lastUpdate)}
-                        renderInput={(params: TextFieldProps) => (
-                            <TextField {...params} size="small" label="Open Date" />
-                        )}
+                        slotProps={{ textField: { size: "small", label: "Open Date" } }}
                     />
                     <ManagedDatePicker
                         value={working.lastUpdate}
                         onChange={updateWorkingUpdateDate}
                         nullable={false}
                         disableOpenPicker={true}
-                        renderInput={(params: TextFieldProps) => (
-                            <TextField
-                                {...params}
-                                size="small"
-                                label={working.isInactive ? "Inactive Since" : "Last Update"}
-                            />
-                        )}
+                        slotProps={{
+                            textField: { size: "small", label: working.isInactive ? "Inactive Since" : "Last Update" },
+                        }}
                     />
                 </DatesBox>
             </EditValueContainer>

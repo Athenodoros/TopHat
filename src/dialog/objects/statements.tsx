@@ -1,16 +1,6 @@
 import styled from "@emotion/styled";
 import { Description, KeyboardArrowDown } from "@mui/icons-material";
-import {
-    Button,
-    List,
-    ListItemText,
-    ListSubheader,
-    MenuItem,
-    TextField,
-    TextFieldProps,
-    Typography,
-    typographyClasses,
-} from "@mui/material";
+import { Button, List, ListItemText, ListSubheader, MenuItem, Typography, typographyClasses } from "@mui/material";
 import { groupBy, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import React, { useMemo } from "react";
@@ -33,7 +23,7 @@ import { PLACEHOLDER_STATEMENT_ID } from "../../state/data/shared";
 import { parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 import { DialogContents, DialogMain, DialogOptions, EditValueContainer } from "../shared";
-import { DialogObjectOptionsBox, DialogSelectorAddNewButton, getUpdateFunctions, ObjectEditContainer } from "./shared";
+import { DialogObjectOptionsBox, DialogSelectorAddNewButton, ObjectEditContainer, getUpdateFunctions } from "./shared";
 
 export const DialogStatementView: React.FC = () => {
     const working = useDialogHasWorking();
@@ -142,9 +132,9 @@ const EditStatementView: React.FC = () => {
                     nullable={false}
                     disableFuture={true}
                     disableOpenPicker={true}
-                    renderInput={(params: TextFieldProps) => (
-                        <TextField {...params} size="small" label="Statement Date" />
-                    )}
+                    slotProps={{
+                        textField: { size: "small", label: "Statement Date" },
+                    }}
                 />
             </EditValueContainer>
             <EditValueContainer label="Account">

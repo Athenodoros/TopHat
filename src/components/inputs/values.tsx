@@ -1,10 +1,10 @@
-import { DatePicker, DatePickerProps } from "@mui/lab";
-import { Checkbox, FormControlLabel, TextFieldProps } from "@mui/material";
+import { Checkbox, FormControlLabel } from "@mui/material";
 import { SxProps } from "@mui/system";
+import { DatePicker, DatePickerProps } from "@mui/x-date-pickers";
 import { noop } from "lodash";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
-import { formatDate, getToday, parseDate, SDate } from "../../state/shared/values";
+import { SDate, formatDate, getToday, parseDate } from "../../state/shared/values";
 
 interface SubItemCheckboxProps {
     label: string;
@@ -47,13 +47,13 @@ export const ManagedDatePicker = <Nullable extends boolean>({
     value: initial,
     onChange,
     nullable,
-    renderInput,
+    slotProps,
     maxDate,
     minDate,
     disableFuture,
     disablePast,
     ...props
-}: Omit<DatePickerProps<unknown>, "value" | "onChange"> & {
+}: Omit<DatePickerProps<DateTime<boolean>>, "value" | "onChange"> & {
     value: Nullable extends true ? SDate | undefined : SDate;
     onChange: (value: Nullable extends true ? SDate | undefined : SDate) => void;
     nullable: Nullable;
@@ -61,10 +61,10 @@ export const ManagedDatePicker = <Nullable extends boolean>({
     const [value, setValue] = useState<DateTime | null>(parseDate(initial) || null);
     useEffect(() => setValue(parseDate(initial || null)), [initial]);
 
-    const onChangeHandler = useCallback<DatePickerProps<unknown>["onChange"]>(
+    const onChangeHandler = useCallback<NonNullable<DatePickerProps<DateTime<boolean>>["onChange"]>>(
         // Either called with null (empty), an invalid DateTime, or a valid DateTime
-        (newValue: unknown, text?: string) => {
-            setValue(newValue as DateTime | null);
+        (newValue: DateTime<boolean> | null, _context: any) => {
+            setValue(newValue);
 
             if (nullable && newValue === null) return (onChange as any)(undefined);
             if (
@@ -79,28 +79,24 @@ export const ManagedDatePicker = <Nullable extends boolean>({
         },
         [nullable, onChange, minDate, maxDate, disableFuture, disablePast]
     );
-    const renderInputWrapped = useCallback<DatePickerProps<unknown>["renderInput"]>(
-        (params: TextFieldProps) =>
-            renderInput({
-                ...params,
-                error: (value === null && nullable === false) || (value && !value.isValid) || params.error,
-            }),
-        [renderInput, nullable, value]
-    );
 
     return (
         <DatePicker
-            inputFormat="yyyy-MM-dd"
-            mask="____-__-__"
+            format="yyyy-MM-dd"
             value={value}
             onChange={onChangeHandler}
-            allowSameDateSelection={true}
             minDate={minDate}
             maxDate={maxDate}
             disableFuture={disableFuture}
             disablePast={disablePast}
             {...props}
-            renderInput={renderInputWrapped}
+            slotProps={{
+                ...slotProps,
+                textField: {
+                    ...slotProps?.textField,
+                    error: ((value === null && nullable === false) || (value && !value.isValid)) ?? undefined,
+                },
+            }}
         />
     );
 };

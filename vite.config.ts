@@ -12,7 +12,5 @@ export default defineConfig({
             },
         }),
     ],
-    server: {
-        base: "/TopHat",
-    },
+    base: "/TopHat",
 });
