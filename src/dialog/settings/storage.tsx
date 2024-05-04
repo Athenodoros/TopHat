@@ -66,4 +66,4 @@ export const DialogStorageContents: React.FC = () => {
     );
 };
 
-const removeDropboxSync = () => TopHatDispatch(DataSlice.actions.removeDropSync());
+const removeDropboxSync = () => TopHatDispatch(DataSlice.actions.removeDropoxSync());

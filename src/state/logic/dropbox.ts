@@ -4,7 +4,6 @@ import { TopHatDispatch, TopHatStore } from "..";
 import { BASE_PATHNAME } from "../app";
 import { DataSlice } from "../data";
 import { StubUserID, User } from "../data/types";
-import { conditionallyUpdateNotificationState } from "./notifications/shared";
 import { DROPBOX_NOTIFICATION_ID } from "./notifications/types";
 
 const APP_KEY = "7ru69iyjvo0wz6t";
@@ -51,7 +50,9 @@ export const getMaybeDropboxRedirectCode = () => {
 };
 
 const updateDropboxNotificationState = (failed: boolean) =>
-    conditionallyUpdateNotificationState(DROPBOX_NOTIFICATION_ID, failed ? "" : null);
+    TopHatDispatch(
+        DataSlice.actions.updateNotificationState({ id: DROPBOX_NOTIFICATION_ID, contents: failed ? "" : null })
+    );
 const updateDropboxState = (dropbox: User["dropbox"]) =>
     TopHatDispatch(DataSlice.actions.updateUserPartial({ dropbox }));
 let token: {

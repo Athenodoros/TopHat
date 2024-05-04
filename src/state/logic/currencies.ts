@@ -1,63 +1,28 @@
-import { get, min, toPairs } from "lodash";
+import { min, toPairs } from "lodash";
 import { DateTime } from "luxon";
 import { TopHatDispatch, TopHatStore } from "..";
-import { ID, SDate, formatDate, getCurrentMonth, getCurrentMonthString } from "../../state/shared/values";
+import { ID, SDate, formatDate, getCurrentMonth } from "../../state/shared/values";
 import { DataSlice } from "../data";
 import { CurrencyExchangeRate, CurrencySyncType, StubUserID } from "../data/types";
-import { conditionallyUpdateNotificationState } from "./notifications/shared";
+import { DailyCache } from "../shared/dailycache";
 import { CURRENCY_NOTIFICATION_ID } from "./notifications/types";
 
-const AlphaVantage = "https://www.alphavantage.co/query?function=";
-const CurrencyRateRules = {
-    currency: (ticker: string, token: string) =>
-        ticker === "USD"
-            ? getConstantRateHistory()
-            : getFromAPI(
-                  `FX_MONTHLY&from_symbol=${ticker}&to_symbol=USD`,
-                  token,
-                  "Time Series FX (Monthly)",
-                  "4. close"
-              ),
-    crypto: (ticker: string, token: string) =>
-        getFromAPI(
-            `DIGITAL_CURRENCY_MONTHLY&symbol=${ticker}&market=USD`,
-            token,
-            "Time Series (Digital Currency Monthly)",
-            "4. close"
-        ),
-    stock: (ticker: string, token: string) =>
-        getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series", "4. close"),
-};
+const CACHE = new DailyCache<CurrencyExchangeRate[]>("CURRENCY_RATE_CACHE");
 
-const getConstantRateHistory = (): Promise<CurrencyExchangeRate[]> =>
-    new Promise((resolve) =>
-        resolve([
-            {
-                month: getCurrentMonthString(),
-                value: 1,
-            },
-        ])
-    );
-
-const getFromAPI = async (
-    query: string,
-    token: string,
-    key: string,
-    value: string
-): Promise<CurrencyExchangeRate[] | undefined> => {
-    const request = await fetch(`${AlphaVantage}${query}&apikey=${token}`);
+const getFromAPI = async (query: string, token: string, key: string): Promise<CurrencyExchangeRate[] | undefined> => {
+    const request = await fetch(`https://www.alphavantage.co/query?function=${query}&apikey=${token}`);
     const response = await request.json();
     const data = response[key];
 
     if (data === undefined) {
         if ((response?.Note as string | undefined)?.endsWith("target a higher API call frequency.")) {
             // Standard AlphaVantage rate limit is 5 per second - this retries in case of bottlenecks
-            return new Promise((resolve) => setTimeout(() => resolve(getFromAPI(query, token, key, value)), 60 * 1000));
+            return new Promise((resolve) => setTimeout(() => resolve(getFromAPI(query, token, key)), 60 * 1000));
         }
         return undefined;
     }
 
-    const history = toPairs(data).map(([month, values]) => [month, Number((values as any)[value])]) as [
+    const history = toPairs(data).map(([month, values]) => [month, Number((values as any)["4. close"])]) as [
         string,
         number
     ][];
@@ -71,35 +36,39 @@ const getFromAPI = async (
     );
 };
 
-let cancel: (() => void) | undefined = undefined;
+const requestCurrencyRates = async (type: CurrencySyncType["type"], ticker: string, token: string) => {
+    if (ticker === "") return;
+    if (type === "currency" && ticker === "USD") return [{ month: "1970-01-01", value: 1 }];
+    if (type === "currency")
+        return getFromAPI(`FX_MONTHLY&from_symbol=${ticker}&to_symbol=USD`, token, "Time Series FX (Monthly)");
+    if (type === "crypto")
+        return getFromAPI(
+            `DIGITAL_CURRENCY_MONTHLY&symbol=${ticker}&market=USD`,
+            token,
+            "Time Series (Digital Currency Monthly)"
+        );
+    if (type === "stock")
+        return getFromAPI(`TIME_SERIES_MONTHLY_ADJUSTED&symbol=${ticker}`, token, "Monthly Adjusted Time Series");
+
+    return undefined;
+};
+
 export const getCurrencyRates = async (
     type: CurrencySyncType["type"],
     ticker: string,
     token: string,
-    start?: SDate,
-    bulk?: boolean
+    start?: SDate
 ) => {
-    let cancelled = false;
-    if (!bulk) {
-        if (cancel) cancel();
-
-        cancel = () => {
-            cancelled = true;
-        };
+    let values = CACHE.get(`${type}-${ticker}`);
+    if (values === undefined) {
+        values = await requestCurrencyRates(type, ticker, token);
+        if (values) {
+            CACHE.set(`${type}-${ticker}`, values);
+        }
     }
 
-    if (ticker === "") return;
-
-    let results = await get(
-        CurrencyRateRules,
-        type,
-        () => new Promise((resolve) => resolve([])) as Promise<CurrencyExchangeRate[]>
-    )(ticker, token);
-
-    start = min([start, formatDate(getCurrentMonth().minus({ months: 24 }))])!;
-    if (results) results = results.filter(({ month }) => month >= start!);
-
-    if (!cancelled) return results;
+    const startWithMinimum = min([start, formatDate(getCurrentMonth().minus({ months: 24 }))])!;
+    return values?.filter(({ month }) => month >= startWithMinimum);
 };
 
 export const updateSyncedCurrencies = () => {
@@ -114,24 +83,24 @@ export const updateSyncedCurrencies = () => {
     return Promise.all(
         (ids as ID[])
             .filter((id) => entities[id]?.sync)
-            .map(async (id) => {
-                const currency = entities[id]!;
-                return getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start, true).then(
-                    (rates) => {
-                        return rates && { id, rates };
-                    }
-                );
+            .map((id) => entities[id]!)
+            .map(async (currency) => {
+                const rates = await getCurrencyRates(currency.sync!.type, currency.sync!.ticker, token, currency.start);
+                return rates && { id: currency.id, rates };
             })
     )
         .then((results) => {
-            const succeeded = results.every((result) => result);
-
-            if (succeeded) {
+            if (results.every((result) => result))
                 TopHatDispatch(DataSlice.actions.updateCurrencyRates(results as NonNullable<(typeof results)[0]>[]));
-            }
-
-            conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, succeeded ? null : "");
-            TopHatDispatch(DataSlice.actions.setLastSyncTime(DateTime.local().toISO()));
+            else setSyncError();
         })
-        .catch(() => conditionallyUpdateNotificationState(CURRENCY_NOTIFICATION_ID, ""));
+        .catch(setSyncError);
 };
+
+const setSyncError = () =>
+    TopHatDispatch(
+        DataSlice.actions.updateNotificationState({
+            id: CURRENCY_NOTIFICATION_ID,
+            contents: "",
+        })
+    );

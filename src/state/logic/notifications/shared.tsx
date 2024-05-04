@@ -1,5 +1,5 @@
 import { styled, Typography } from "@mui/material";
-import { TopHatDispatch, TopHatStore } from "../..";
+import { TopHatDispatch } from "../..";
 import { FCWithChildren } from "../../../shared/types";
 import { Intents } from "../../../styles/colours";
 import { DataSlice } from "../../data";
@@ -14,9 +14,3 @@ export const NotificationContents: FCWithChildren = ({ children }) => (
         {children}
     </Typography>
 );
-
-export const conditionallyUpdateNotificationState = (id: string, contents: string | null) => {
-    const current = TopHatStore.getState().data.notification.entities[id];
-    if ((contents === null) !== (current === undefined))
-        TopHatDispatch(DataSlice.actions.updateNotificationState({ user: {}, id, contents }));
-};

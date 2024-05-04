@@ -32,7 +32,7 @@ import {
 } from "lodash";
 import { AnyAction } from "redux";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
-import { DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
+import { CURRENCY_NOTIFICATION_ID, DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -42,9 +42,9 @@ import {
     getCurrentMonth,
     getCurrentMonthString,
     getToday,
+    getTodayString,
     ID,
     parseDate,
-    STime,
     TransactionHistory,
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
@@ -210,8 +210,6 @@ export const DataSlice = createSlice({
 
         setUserGeneration: (state, { payload: generation }: PayloadAction<number>) =>
             void adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } }),
-        setLastSyncTime: (state, { payload: lastSyncTime }: PayloadAction<STime>) =>
-            void adapters.user.updateOne(state.user, { id: StubUserID, changes: { lastSyncTime } }),
         updateTransactionSummaryStartDates: (state) => updateTransactionSummaryStartDates(state),
 
         // Custom updates for objects with flow-on effects or calculated fields
@@ -268,11 +266,19 @@ export const DataSlice = createSlice({
             state: WritableDraft<DataState>,
             { payload: currencies }: PayloadAction<{ id: ID; rates: CurrencyExchangeRate[] }[]>
         ) => {
-            currencies.forEach(({ id, rates }) =>
-                updateStateWithCurrency(state, { ...state.currency.entities[id]!, rates })
-            );
+            currencies = currencies.filter(({ id, rates }) => !isEqual(state.currency.entities[id]?.rates, rates));
 
-            rewindDisplaySpec = { message: "Currency rates updated!" };
+            if (currencies.length !== 0) {
+                // TODO: check whether default currency is included to avoid recalculating everything twice
+                currencies.forEach(({ id, rates }) =>
+                    updateStateWithCurrency(state, { ...state.currency.entities[id]!, rates })
+                );
+
+                rewindDisplaySpec = { message: "Currency rates updated!" };
+            }
+
+            adapters.notification.removeOne(state.notification, CURRENCY_NOTIFICATION_ID);
+            adapters.user.updateOne(state.user, { id: StubUserID, changes: { lastSyncTime: getTodayString() } });
         },
         saveObject: <Type extends BasicObjectName>(
             state: WritableDraft<DataState>,
@@ -456,13 +462,10 @@ export const DataSlice = createSlice({
         // Notifications
         updateNotificationState: (
             state,
-            {
-                payload: { user, id, contents },
-            }: PayloadAction<{ user: Partial<User>; id: string; contents?: string | null }>
+            { payload: { id, contents } }: PayloadAction<{ id: string; contents: string | null }>
         ) => {
-            adapters.user.updateOne(state.user, { id: StubUserID, changes: user });
             if (contents === null) adapters.notification.removeOne(state.notification, id);
-            else if (contents !== undefined) adapters.notification.upsertOne(state.notification, { id, contents });
+            else adapters.notification.upsertOne(state.notification, { id, contents });
         },
         deleteNotification: (state, { payload }: PayloadAction<string>) =>
             void adapters.notification.removeOne(state.notification, payload),
@@ -475,7 +478,7 @@ export const DataSlice = createSlice({
             });
         },
 
-        removeDropSync: (state) => {
+        removeDropoxSync: (state) => {
             state.user.entities[StubUserID]!.dropbox = undefined;
             adapters.notification.removeOne(state.notification, DROPBOX_NOTIFICATION_ID);
             rewindDisplaySpec = { message: "Dropbox sync removed!" };
