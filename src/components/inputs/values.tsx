@@ -47,7 +47,6 @@ export const ManagedDatePicker = <Nullable extends boolean>({
     value: initial,
     onChange,
     nullable,
-    slotProps,
     maxDate,
     minDate,
     disableFuture,
@@ -91,10 +90,10 @@ export const ManagedDatePicker = <Nullable extends boolean>({
             disablePast={disablePast}
             {...props}
             slotProps={{
-                ...slotProps,
+                ...props.slotProps,
                 textField: {
-                    ...slotProps?.textField,
-                    error: ((value === null && nullable === false) || (value && !value.isValid)) ?? undefined,
+                    ...props.slotProps?.textField,
+                    ...((value === null && nullable === false) || (value && !value.isValid) ? { error: true } : {}),
                 },
             }}
         />

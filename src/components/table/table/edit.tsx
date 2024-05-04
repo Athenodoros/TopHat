@@ -81,7 +81,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                     slotProps={{
                         textField: {
                             size: "small",
-                            inputProps: { placeholder: "(mixed)" },
+                            inputProps: { placeholder: tx && tx.date === undefined ? "(mixed)" : "unset" },
                             sx: {
                                 "& input": { textAlign: "center" },
                                 ...TransactionTableSxProps.MixedPlaceholder,
