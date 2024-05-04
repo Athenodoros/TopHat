@@ -30,10 +30,16 @@ jobs:
               with:
                   node-version: "16"
 
-            - name: Populate environment
+            - name: Move into the project directory
               run: |
                   cd $GITHUB_WORKSPACE
+            
+            - name: Install yarn
+                run: |
                   npm install yarn
+            
+            - name: Install dependencies
+              run: |
                   yarn
 
             - name: Build from source
