@@ -1,4 +1,5 @@
-import { Box, TextField } from "@mui/material";
+import { VerticalAlignCenter } from "@mui/icons-material";
+import { Box, Button, TextField, textFieldClasses } from "@mui/material";
 import { noop } from "lodash";
 import React, { useCallback, useState } from "react";
 import { BasicBarChart } from "../../components/display/BasicBarChart";
@@ -7,6 +8,7 @@ import { useNumericInputHandler } from "../../shared/hooks";
 interface TimeSeriesInputProps {
     values: number[];
     getOriginals: () => number[] | undefined;
+    pullForward?: () => void;
     update: (index: number, value: number | null) => void;
     secondary?: {
         label: string;
@@ -23,6 +25,7 @@ interface TimeSeriesInputProps {
 export const useTimeSeriesInput = ({
     values,
     update,
+    pullForward,
     secondary,
     id,
     getMouseOverText,
@@ -82,8 +85,7 @@ export const useTimeSeriesInput = ({
                         sx={{
                             display: "flex",
                             justifyContent: "space-between",
-
-                            "& > *": { width: 160 },
+                            ["& > ." + textFieldClasses.root]: { width: 160 },
                         }}
                     >
                         <TextField
@@ -100,6 +102,14 @@ export const useTimeSeriesInput = ({
                                 label={secondary.label}
                                 disabled={secondary.disabled}
                             />
+                        ) : pullForward ? (
+                            <Button
+                                variant="outlined"
+                                startIcon={<VerticalAlignCenter fontSize="small" />}
+                                onClick={pullForward}
+                            >
+                                Flatten
+                            </Button>
                         ) : undefined}
                     </Box>
                 )}

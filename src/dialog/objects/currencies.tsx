@@ -41,17 +41,17 @@ import { CurrencySyncType } from "../../state/data/types";
 import { getCurrencyRates } from "../../state/logic/currencies";
 import {
     BaseTransactionHistoryWithLocalisation,
+    ID,
     formatDate,
     getCurrentMonth,
     getCurrentMonthString,
     getRandomColour,
     getTodayString,
-    ID,
 } from "../../state/shared/values";
 import { Greys, Intents } from "../../styles/colours";
 import { DialogContents, DialogMain, EditTitleContainer, EditValueContainer } from "../shared";
 import { useTimeSeriesInput } from "../shared/TimeSeriesInput";
-import { BasicDialogObjectSelector, getUpdateFunctions, ObjectEditContainer } from "./shared";
+import { BasicDialogObjectSelector, ObjectEditContainer, getUpdateFunctions } from "./shared";
 
 export const DialogCurrenciesView: React.FC = () => {
     const working = useDialogHasWorking();
@@ -186,6 +186,7 @@ const EditCurrencyView: React.FC = () => {
             }),
         [updateSyncDebounced, ticker]
     );
+    const pullForwardConstValue = useCallback(() => void null, []);
 
     const handleTickerChange = useMemo(
         () =>
@@ -198,7 +199,7 @@ const EditCurrencyView: React.FC = () => {
         [updateSyncDebounced, working.sync]
     );
 
-    const timeSeriesInput = useCurrencyBudgetInput(
+    const timeSeriesInput = useCurrencyRatesInput(
         working,
         working.sync?.type && (
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -377,22 +378,28 @@ const getTimeSeriesFromRates = (rates: Currency["rates"]) => {
 };
 
 const getCurrencyMouseOverText = (value: number) => "US$ " + formatNumber(value, { decimals: 2 });
-const useCurrencyBudgetInput = (working: Currency, inputs?: React.ReactNode) => {
-    const getOriginalBudget = useCallback(() => {
+const useCurrencyRatesInput = (working: Currency, inputs?: React.ReactNode) => {
+    const getOriginalRates = useCallback(() => {
         const actual = TopHatStore.getState().data.currency.entities[working.id];
         return actual && getTimeSeriesFromRates(actual.rates);
     }, [working.id]);
 
-    const budgets = getTimeSeriesFromRates(working.rates);
+    const rates = getTimeSeriesFromRates(working.rates);
 
     return useTimeSeriesInput({
-        values: budgets,
-        getOriginals: getOriginalBudget,
+        values: rates,
+        getOriginals: getOriginalRates,
         update: updateMonthsRate,
         id: working.id,
         inputs,
+        pullForward: pullForwardRate,
         getMouseOverText: getCurrencyMouseOverText,
     });
+};
+
+const pullForwardRate = () => {
+    let { rates } = getWorking();
+    update("rates")([{ month: getCurrentMonthString(), value: rates[0].value }]);
 };
 
 const updateMonthsRate = (index: number, value: number | null) => {
