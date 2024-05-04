@@ -28,5 +28,7 @@ if ("serviceWorker" in navigator) {
                     callback: () => updateSW(),
                 },
             }),
+        onOfflineReady: () =>
+            setPopupAlert({ message: "App ready for offline use!", severity: "info", duration: null }),
     });
 }
