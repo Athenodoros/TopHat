@@ -28,16 +28,16 @@ jobs:
             - name: Add node to environment
               uses: actions/setup-node@v2
               with:
-                  node-version: "16"
+                  node-version: "21"
 
             - name: Move into the project directory
               run: |
                   cd $GITHUB_WORKSPACE
-            
+
             - name: Install yarn
-                run: |
+              run: |
                   npm install yarn
-            
+
             - name: Install dependencies
               run: |
                   yarn
