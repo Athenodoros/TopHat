@@ -22,23 +22,20 @@ interface AccountNotificationContents {
 const update = (data: DataState) => {
     const { accountOutOfDate } = data.user.entities[StubUserID]!;
 
-    const account = sortBy(
+    const alert = sortBy(
         data.account.ids
             .filter((id) => !accountOutOfDate.includes(id as ID))
             .map((id) => data.account.entities[id]!)
-            .filter((account) => !account.isInactive),
-        (account) => account.lastUpdate
+            .filter((account) => !account.isInactive && account.lastUpdate)
+            .map((account) => ({ id: account.id, ...getAccountUpdateAgeLevel(account) }))
+            .filter((alert) => alert.level === "danger"),
+        (alert) => -(alert.age ?? 0)
     )[0];
 
-    if (!account) {
-        removeNotification(data, ACCOUNTS_NOTIFICATION_ID);
-    } else {
-        const { age, level } = getAccountUpdateAgeLevel(account);
-
-        if (level === "danger") {
-            const contents: AccountNotificationContents = { id: account.id, age: Math.floor(age!) };
-            ensureNotificationExists(data, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
-        }
+    if (!alert) removeNotification(data, ACCOUNTS_NOTIFICATION_ID);
+    else {
+        const contents: AccountNotificationContents = { id: alert.id, age: Math.floor(alert.age ?? 0) };
+        ensureNotificationExists(data, ACCOUNTS_NOTIFICATION_ID, JSON.stringify(contents));
     }
 };
 
