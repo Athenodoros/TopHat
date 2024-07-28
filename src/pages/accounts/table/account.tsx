@@ -194,7 +194,7 @@ const getAccountSummary = (
             <Typography variant="h6" style={{ color: getColour(balance.localised[0]) }} key={idStr} noWrap={true}>
                 {currencies[Number(idStr)]!.symbol +
                     " " +
-                    formatNumber(balance.original[0], { end: "k", decimals: array.length === 1 ? 2 : 0 })}
+                    formatNumber(balance.original[0], { end: "k", maxDecimals: array.length === 1 ? 2 : 0 })}
             </Typography>
         ))
         .flatMap((element, i, array) =>

@@ -77,4 +77,4 @@ export const NumericRangeFilter: React.FC<NumericRangeFilterProps> = ({ min, max
     );
 };
 
-const formatLarge = (value: number) => formatNumber(value, { end: "k", decimals: 0 });
+const formatLarge = (value: number) => formatNumber(value, { end: "k", maxDecimals: 0 });

@@ -79,18 +79,33 @@ export interface NumberFormatConfig {
     separator?: string | null;
     start?: "+" | "-" | null;
     end?: "k" | "%" | null;
-    decimals?: number;
+    minDecimals?: number;
+    maxDecimals?: number;
+    signficants?: number | null;
 }
 export const formatNumber = (value: number, config?: NumberFormatConfig) => {
-    const { separator = ",", start = "-", end = null, decimals = 2 } = config || {};
+    const {
+        separator = ",",
+        start = "-",
+        end = null,
+        minDecimals = 0,
+        maxDecimals = 2,
+        signficants = null,
+    } = config || {};
 
     const sign = value < 0 ? (start !== null ? "-" : "") : start === "+" ? "+" : "";
     value = Math.abs(value || 0);
+
+    if (signficants !== null) {
+        const magnitude = Math.pow(10, Math.floor(Math.log10(value)) - signficants + 1);
+        value = Math.round(value / magnitude) * magnitude;
+    }
 
     let final = "";
     if (end === "k") {
         const size = (
             [
+                [12, "t"],
                 [9, "b"],
                 [6, "m"],
                 [3, "k"],
@@ -106,17 +121,20 @@ export const formatNumber = (value: number, config?: NumberFormatConfig) => {
         final = "%";
     }
 
-    const integer = "" + (decimals ? Math.floor(value) : Math.round(value));
+    const integer = "" + (maxDecimals ? Math.floor(value) : Math.round(value));
     const integerDisplay =
         reverse(range(integer.length, 0, -3))
             .map((i) => integer.substring(i - 3, i))
             .join(separator || "")
             .replace(/^0*/, "") || "0";
 
-    const decimal = "" + Math.round((value - Math.floor(value)) * Math.pow(10, decimals)) / Math.pow(10, decimals);
-    const decimalDisplay = decimals
-        ? "." + (decimal.split(".")[1] || "").concat("0".repeat(decimals)).substring(0, decimals)
-        : "";
+    if (maxDecimals === 0) return sign + integerDisplay + final;
+
+    const decimal =
+        "" + Math.round((value - Math.floor(value)) * Math.pow(10, maxDecimals)) / Math.pow(10, maxDecimals);
+    let decimalDisplay = (decimal.split(".")[1] || "").concat("0".repeat(maxDecimals)).substring(0, maxDecimals);
+    decimalDisplay = decimalDisplay.replace(/0*$/, "").padEnd(Math.min(minDecimals, maxDecimals), "0");
+    decimalDisplay = decimalDisplay ? "." + decimalDisplay : "";
 
     return sign + integerDisplay + decimalDisplay + final;
 };

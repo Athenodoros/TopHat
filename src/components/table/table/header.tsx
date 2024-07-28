@@ -393,4 +393,4 @@ const SubHeader: FCWithChildren<{ name: string }> = ({ name, children }) => (
 );
 
 const maybeFormatNumberValue = (value?: number) =>
-    value !== undefined ? formatNumber(value, { decimals: 2 }) : undefined;
+    value !== undefined ? formatNumber(value, { minDecimals: 2 }) : undefined;

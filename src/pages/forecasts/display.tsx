@@ -138,7 +138,7 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
                     labels={({ datum }) =>
                         `${Math.round((datum.x / 12) * 10) / 10} Years: ${symbol} ${formatNumber(datum.y, {
                             end: "k",
-                            decimals: 1,
+                            maxDecimals: 1,
                         })}`
                     }
                     labelComponent={<VictoryTooltip flyoutStyle={{ fill: "white" }} />}
@@ -148,7 +148,7 @@ export const getCalculatorBalanceDisplayChart = (balances: number[], symbol: str
         >
             <VictoryAxis
                 dependentAxis={true}
-                tickFormat={(value: number) => symbol + " " + formatNumber(value, { end: "k", decimals: 1 })}
+                tickFormat={(value: number) => symbol + " " + formatNumber(value, { end: "k", maxDecimals: 1 })}
             />
             <VictoryAxis
                 tickValues={tickValues}

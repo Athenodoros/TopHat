@@ -246,7 +246,7 @@ const updateBaseBudget = (value: number | null) => updateBudget({ base: value ||
 const useCategoryBudgetInput = (working: Category) => {
     const defaultCurrency = useDefaultCurrency().symbol;
     const useCategoryMouseoverText = useCallback(
-        (value: number) => defaultCurrency + " " + formatNumber(value, { end: "k", decimals: 2 }),
+        (value: number) => defaultCurrency + " " + formatNumber(value, { end: "k", maxDecimals: 1 }),
         [defaultCurrency]
     );
 

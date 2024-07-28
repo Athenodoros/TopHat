@@ -23,9 +23,7 @@ const update = (data: DataState) => {
         return;
     }
 
-    let milestone = Math.pow(10, Math.floor(Math.log10(balance)));
-    if (balance >= milestone * 5) milestone *= 5;
-    else if (balance >= milestone * 2) milestone *= 2;
+    const milestone = getMilestone(balance);
 
     if (milestone > user.milestone && milestone >= 10000) {
         ensureNotificationExists(data, MILESTONE_NOTIFICATION_ID, "" + milestone);
@@ -48,6 +46,7 @@ export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
     maybeUpdateState: (previous, current) => {
         if (
             !isEqual(previous?.account, current.account) ||
+            !isEqual(previous?.user.entities[StubUserID]!.currency, current.user.entities[StubUserID]!.currency) ||
             !isEqual(previous?.user.entities[StubUserID]!.milestone, current.user.entities[StubUserID]!.milestone)
         )
             update(current);
@@ -55,11 +54,18 @@ export const MilestoneNotificationDefinition: NotificationRuleDefinition = {
 };
 
 const NewMilestoneContents: React.FC<{ value: number }> = ({ value }) => {
-    const format = useFormatValue({ separator: "", decimals: 0, end: "k" });
+    const format = useFormatValue({ separator: "", end: "k" });
     return (
         <NotificationContents>
             You have a net worth of over <GreenNotificationText>{format(value)}</GreenNotificationText>, and more every
             day. Keep up the good work!
         </NotificationContents>
     );
+};
+
+const getMilestone = (balance: number) => {
+    const magnitude = Math.pow(10, Math.floor(Math.log10(balance)));
+    const leading = Math.floor(balance / magnitude);
+    const step = (leading >= 5 ? 0.5 : leading >= 3 ? 0.2 : 0.1) * magnitude;
+    return Math.floor(balance / step) * step;
 };

@@ -377,7 +377,7 @@ const getTimeSeriesFromRates = (rates: Currency["rates"]) => {
     });
 };
 
-const getCurrencyMouseOverText = (value: number) => "US$ " + formatNumber(value, { decimals: 2 });
+const getCurrencyMouseOverText = (value: number) => "US$ " + formatNumber(value, { minDecimals: 2 });
 const useCurrencyRatesInput = (working: Currency, inputs?: React.ReactNode) => {
     const getOriginalRates = useCallback(() => {
         const actual = TopHatStore.getState().data.currency.entities[working.id];
