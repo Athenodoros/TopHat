@@ -95,7 +95,7 @@ export const useNumericInputHandler = (
     const { onTextChange, setValue } = useMemo(
         () => ({
             onTextChange: handleTextFieldChange((raw) => {
-                const value = raw.replaceAll(/[^0-9\.]/g, "");
+                const value = raw.replaceAll(/[^\-0-9\.]/g, "");
                 if (NumberRegex.test(value)) {
                     setText(value);
                     onChange(value === "" ? null : +value);
