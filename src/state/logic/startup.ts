@@ -158,7 +158,7 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
         )
     );
 
-    TopHatDispatch(DataSlice.actions.setFromLists(zipObject(DataKeys, values) as unknown as ListDataState));
+    TopHatDispatch(DataSlice.actions.setFromIndexedDB(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
 // This handles data changes over time, or required cache refreshes

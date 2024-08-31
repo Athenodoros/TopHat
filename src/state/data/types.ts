@@ -216,7 +216,6 @@ export interface User {
     debt: number; // Debt Milestone of last notification
     accountOutOfDate: ID[]; // Accounts already flagged
     uncategorisedTransactionsAlerted: boolean; // Whether notification has been generated since backlog last cleared
-    historyRetentionPeriod?: number; // Optional for backcompat - number of days to keep history for
 }
 
 export interface Notification {

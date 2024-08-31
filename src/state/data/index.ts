@@ -161,7 +161,12 @@ const initialTutorialState: DataState = {
 // Undo notification submitter
 type SubmitType = (patch: string, message: string, intent?: AlertColor) => void;
 let submitNotification: SubmitType = noop;
-let rewindDisplaySpec: { message: string; intent?: AlertColor } | null = null;
+let rewindDisplaySpec: {
+    message: string;
+    intent?: AlertColor;
+    suppressSnack?: boolean;
+    suppressPatch?: boolean;
+} | null = null;
 export const setSubmitNotification = (newSubmit: SubmitType) => {
     submitNotification = newSubmit;
 };
@@ -172,24 +177,35 @@ export const DataSlice = createSlice({
     name: "data",
     initialState: initialTutorialState,
     reducers: {
-        restartTutorial: () => initialTutorialState,
+        restartTutorial: () => {
+            rewindDisplaySpec = { message: "Tutorial reset!", suppressPatch: true };
+
+            return initialTutorialState;
+        },
         reset: () => {
-            rewindDisplaySpec = { message: "All data wiped!", intent: "warning" };
+            rewindDisplaySpec = { message: "All data wiped!", intent: "warning", suppressPatch: true };
 
             return {
                 ...DataBaseline,
                 user: adapters.user.addOne(adapters.user.getInitialState(), DEFAULT_USER_VALUE),
             };
         },
-        set: (_, { payload }: PayloadAction<DataState>) => payload,
-        setFromLists: (_, { payload }: PayloadAction<ListDataState>) =>
-            mapValuesWithKeys(adapters, (name, adapter) => adapter.addMany(adapter.getInitialState(), payload[name])),
+        setFromJSON: (_, { payload }: PayloadAction<DataState>) => {
+            rewindDisplaySpec = { message: "Loaded from JSON", suppressPatch: true, suppressSnack: true };
+            return payload;
+        },
+        setFromIndexedDB: (_, { payload }: PayloadAction<ListDataState>) => {
+            rewindDisplaySpec = { message: "Loaded from IndexedDB", suppressPatch: true, suppressSnack: true };
+            return mapValuesWithKeys(adapters, (name, adapter) =>
+                adapter.addMany(adapter.getInitialState(), payload[name])
+            );
+        },
         setUpDemo: (_, { payload: { demo, download } }: PayloadAction<{ demo: ListDataState; download: string }>) => {
             const state = mapValuesWithKeys(adapters, (name, adapter) =>
                 adapter.addMany(cloneDeep(DataBaseline[name]), demo[name])
             ) as DataState;
 
-            rewindDisplaySpec = { message: "Demo data loaded!" };
+            rewindDisplaySpec = { message: "Demo data loaded!", suppressPatch: true };
 
             // This is necessary because the EntityAdapters freeze objects when they are added
             return createNextState(state, (state) => {
@@ -204,22 +220,34 @@ export const DataSlice = createSlice({
         // Utilities functions for debugging
         refreshCaches,
         removeUnusedStatements: (state) => {
+            rewindDisplaySpec = { message: "Removed unused statements" };
+
             const included = uniq(state.transaction.ids.map((id) => state.transaction.entities[id]!.statement));
             const excluded = state.statement.ids.filter((id) => !included.includes(id as number));
             adapters.statement.removeMany(state.statement, excluded);
         },
-        fitAccountLastUpdateDates: (state) =>
-            void adapters.account.updateMany(
+        fitAccountLastUpdateDates: (state) => {
+            rewindDisplaySpec = { message: "Fitted account last update dates" };
+
+            adapters.account.updateMany(
                 state.account,
                 state.account.ids.map((id) => ({
                     id,
                     changes: { lastUpdate: state.account.entities[id]!.lastTransactionDate },
                 }))
-            ),
+            );
+        },
 
-        setUserGeneration: (state, { payload: generation }: PayloadAction<number>) =>
-            void adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } }),
-        updateTransactionSummaryStartDates: (state) => updateTransactionSummaryStartDates(state),
+        setUserGeneration: (state, { payload: generation }: PayloadAction<number>) => {
+            rewindDisplaySpec = { message: "Updated data schema!", suppressSnack: true };
+
+            adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } });
+        },
+        updateTransactionSummaryStartDates: (state) => {
+            rewindDisplaySpec = { message: "Updated transaction summary start dates!" };
+
+            updateTransactionSummaryStartDates(state);
+        },
 
         // Custom updates for objects with flow-on effects or calculated fields
         updateAccount: (
@@ -377,8 +405,11 @@ export const DataSlice = createSlice({
 
             rewindDisplaySpec = { message: upperFirst(type) + " deleted!" };
         },
-        updateUserPartial: (state, { payload }: PayloadAction<Partial<Omit<User, "currency">>>) =>
-            void adapters.user.updateOne(state.user, { id: StubUserID, changes: payload }),
+        updateUserPartial: (state, { payload }: PayloadAction<Partial<Omit<User, "currency">>>) => {
+            rewindDisplaySpec = { message: "User settings updated", suppressSnack: true };
+
+            adapters.user.updateOne(state.user, { id: StubUserID, changes: payload });
+        },
 
         // Workflow actions
         finishStatementImport: (
@@ -444,6 +475,8 @@ export const DataSlice = createSlice({
 
             updateTransactionSummariesWithTransactions(state);
             updateBalanceSummaries(state); // Transaction balances and account metadata are unchanged
+
+            rewindDisplaySpec = { message: "Default currency updated!", suppressSnack: true };
         },
 
         runRule: (state, { payload: id }: PayloadAction<ID>) => {
@@ -457,16 +490,22 @@ export const DataSlice = createSlice({
 
             updateTransactions(state, updates);
 
-            rewindDisplaySpec = { message: "Run operation complete!" };
+            rewindDisplaySpec = { message: "Rule applied!" };
         },
 
-        updateRuleIndices: (state, { payload }: PayloadAction<[ID, number][]>) =>
-            void adapters.rule.updateMany(
+        updateRuleIndices: (state, { payload }: PayloadAction<[ID, number][]>) => {
+            adapters.rule.updateMany(
                 state.rule,
                 payload.map(([id, index]) => ({ id, changes: { index } }))
-            ),
-        createStatements: (state: DataState, { payload }: PayloadAction<Statement[]>) =>
-            void adapters.statement.addMany(state.statement, payload),
+            );
+
+            rewindDisplaySpec = { message: "Rule order updated!", suppressSnack: true };
+        },
+        createStatements: (state: DataState, { payload }: PayloadAction<Statement[]>) => {
+            adapters.statement.addMany(state.statement, payload);
+
+            rewindDisplaySpec = { message: "Statements created!", suppressSnack: true };
+        },
 
         // Notifications
         updateNotificationState: (
@@ -475,9 +514,14 @@ export const DataSlice = createSlice({
         ) => {
             if (contents === null) adapters.notification.removeOne(state.notification, id);
             else adapters.notification.upsertOne(state.notification, { id, contents });
+
+            rewindDisplaySpec = { message: "Notification updated!", suppressSnack: true };
         },
-        deleteNotification: (state, { payload }: PayloadAction<string>) =>
-            void adapters.notification.removeOne(state.notification, payload),
+        deleteNotification: (state, { payload }: PayloadAction<string>) => {
+            adapters.notification.removeOne(state.notification, payload);
+
+            rewindDisplaySpec = { message: "Notification deleted!", suppressSnack: true };
+        },
         toggleNotification: (state, { payload }: PayloadAction<string>) => {
             adapters.user.updateOne(state.user, {
                 id: StubUserID,
@@ -485,6 +529,8 @@ export const DataSlice = createSlice({
                     disabled: updateListSelection(payload, state.user.entities[StubUserID]!.disabled),
                 },
             });
+
+            rewindDisplaySpec = { message: "Notification state toggled", suppressSnack: true };
         },
 
         removeDropoxSync: (state) => {
@@ -495,11 +541,18 @@ export const DataSlice = createSlice({
 
         createInitialPatchState: (state) => {
             state.patches = PatchAdapter.getInitialState();
+            rewindDisplaySpec = { message: "Initial patch state created!", suppressPatch: true, suppressSnack: true };
         },
         rewindToPatch: (state, { payload: target }: PayloadAction<string>) => {
             if (!state.patches?.ids.includes(target)) return;
 
-            rewindDisplaySpec = { message: "Rewound to old version!" };
+            rewindDisplaySpec = {
+                message:
+                    "Rewound to before " +
+                    DateTime.fromISO(state.patches.entities[target]!.date).toLocaleString(
+                        DateTime.DATETIME_MED_WITH_SECONDS
+                    ),
+            };
 
             for (const patchID of state.patches.ids) {
                 const patch = state.patches.entities[patchID]!;
@@ -525,6 +578,8 @@ export const DataSlice = createSlice({
 });
 
 export function refreshCaches(state: WritableDraft<DataState>) {
+    rewindDisplaySpec = { message: "Refreshed caches", suppressSnack: true };
+
     values(state.currency.entities).forEach((currency) => {
         currency!.rates = orderBy(currency!.rates, "month", "desc");
     });
@@ -546,25 +601,25 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
     const patch: PatchGroup = {
         id: new Date().toISOString() + Math.random(),
         date: new Date().toISOString(),
-        action: rewindDisplaySpec?.message ?? (state ? null : "Initial state"),
+        action: rewindDisplaySpec?.message
+            ? rewindDisplaySpec?.message.replace("!", "")
+            : state
+            ? null
+            : "Initial state",
         patches: createPatch(rawNewState, state ?? initialTutorialState),
     };
     let patches = rawNewState.patches ? cloneDeep(rawNewState.patches) : PatchAdapter.getInitialState();
     patches = PatchAdapter.removeMany(
         patches,
-        patches.ids.filter(
-            (id) =>
-                DateTime.fromISO(patches.entities[id]!.date).diffNow("days").days >
-                (rawNewState.user.entities[StubUserID]!.historyRetentionPeriod ?? 30)
-        )
+        patches.ids.filter((id) => DateTime.fromISO(patches.entities[id]!.date).diffNow("days").days > 30)
     );
-    if (patch.patches.length !== 0) {
+    if (patch.patches.length !== 0 && !rewindDisplaySpec?.suppressPatch) {
         patches = PatchAdapter.addOne(patches, patch);
     }
     const newState = { ...rawNewState, patches };
 
     // Maybe show notification
-    if (rewindDisplaySpec) {
+    if (rewindDisplaySpec && !rewindDisplaySpec.suppressSnack) {
         if (state) submitNotification(patch.id, rewindDisplaySpec.message, rewindDisplaySpec.intent);
 
         rewindDisplaySpec = null;

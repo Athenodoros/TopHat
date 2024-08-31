@@ -8,7 +8,7 @@ import { handleMigrationsAndUpdates } from "./startup";
 export const importJSONData = (file: string) =>
     batch(() => {
         const data = JSON.parse(file) as DataState;
-        TopHatDispatch(DataSlice.actions.set(data));
+        TopHatDispatch(DataSlice.actions.setFromJSON(data));
         handleMigrationsAndUpdates(data.user.entities[StubUserID]?.generation);
         TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 

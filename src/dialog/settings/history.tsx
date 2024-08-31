@@ -36,7 +36,7 @@ export const DialogHistoryContents: React.FC = () => {
                                     "& > *": { flexShrink: 0 },
                                 }}
                             >
-                                <Typography variant="body2" sx={{ width: 80 }}>
+                                <Typography variant="body2" sx={{ width: 70 }}>
                                     {formatDateString(patch.date, DateTime.TIME_WITH_SECONDS)}
                                 </Typography>
                                 <Typography
@@ -53,14 +53,11 @@ export const DialogHistoryContents: React.FC = () => {
                                 >
                                     {patch.action ?? "Automated Update"}
                                 </Typography>
-                                <Typography variant="body2" sx={{ width: 80, textAlign: "right" }}>
-                                    {patches.length} Updates
-                                </Typography>
                                 <Button
                                     variant="text"
                                     size="small"
                                     endIcon={<Launch />}
-                                    sx={{ marginLeft: 16 }}
+                                    sx={{ marginLeft: 8 }}
                                     onClick={() => revertToRevision(patch.id)}
                                 >
                                     Undo
