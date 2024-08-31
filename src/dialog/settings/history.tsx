@@ -60,7 +60,7 @@ export const DialogHistoryContents: React.FC = () => {
                                     sx={{ marginLeft: 8 }}
                                     onClick={() => revertToRevision(patch.id)}
                                 >
-                                    Undo
+                                    Rewind
                                 </Button>
                             </Box>
                         </React.Fragment>
