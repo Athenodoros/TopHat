@@ -30,7 +30,9 @@ import {
     upperFirst,
     values,
 } from "lodash";
+import { DateTime } from "luxon";
 import { AnyAction } from "redux";
+import { applyPatch, createPatch } from "rfc6902";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { CURRENCY_NOTIFICATION_ID, DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
@@ -70,6 +72,7 @@ import {
     Currency,
     CurrencyExchangeRate,
     DataState,
+    PatchGroup,
     Rule,
     Statement,
     StubUserID,
@@ -108,6 +111,9 @@ const CategoryAdapter = createEntityAdapter<Category>({
 const AccountAdapter = createEntityAdapter<Account>({
     sortComparer: (left, right) => left.institution - right.institution || left.id - right.id,
 });
+const PatchAdapter = createEntityAdapter<PatchGroup>({
+    sortComparer: (left, right) => -left.id.localeCompare(right.id),
+});
 
 const BaseObjects = {
     category: [PLACEHOLDER_CATEGORY, TRANSFER_CATEGORY],
@@ -126,6 +132,7 @@ const adapters: Record<keyof DataState, EntityAdapter<any>> = {
     statement: BaseAdapter,
     notification: BaseAdapter,
     user: BaseAdapter,
+    patches: PatchAdapter,
 };
 
 export const updateUserData = (state: DataState, changes: Partial<User>) =>
@@ -143,7 +150,7 @@ const DataBaseline: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
 );
 
 export type ListDataState = {
-    [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> ? T[] : DataState[Key];
+    [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> | undefined ? T[] : never;
 };
 
 const initialTutorialState: DataState = {
@@ -152,7 +159,7 @@ const initialTutorialState: DataState = {
 };
 
 // Undo notification submitter
-type SubmitType = (data: DataState, message: string, intent?: AlertColor) => void;
+type SubmitType = (patch: string, message: string, intent?: AlertColor) => void;
 let submitNotification: SubmitType = noop;
 let rewindDisplaySpec: { message: string; intent?: AlertColor } | null = null;
 export const setSubmitNotification = (newSubmit: SubmitType) => {
@@ -181,6 +188,8 @@ export const DataSlice = createSlice({
             const state = mapValuesWithKeys(adapters, (name, adapter) =>
                 adapter.addMany(cloneDeep(DataBaseline[name]), demo[name])
             ) as DataState;
+
+            rewindDisplaySpec = { message: "Demo data loaded!" };
 
             // This is necessary because the EntityAdapters freeze objects when they are added
             return createNextState(state, (state) => {
@@ -484,6 +493,22 @@ export const DataSlice = createSlice({
             rewindDisplaySpec = { message: "Dropbox sync removed!" };
         },
 
+        createInitialPatchState: (state) => {
+            state.patches = PatchAdapter.getInitialState();
+        },
+        rewindToPatch: (state, { payload: target }: PayloadAction<string>) => {
+            if (!state.patches?.ids.includes(target)) return;
+
+            rewindDisplaySpec = { message: "Rewound to old version!" };
+
+            for (const patchID of state.patches.ids) {
+                const patch = state.patches.entities[patchID]!;
+                applyPatch(state, patch.patches);
+
+                if (patchID === target) break;
+            }
+        },
+
         // syncIDBChanges: (state, { payload: changes }: PayloadAction<IDatabaseChange[]>) => {
         //     changes.forEach((change) => {
         //         const table = (change.table === "transaction_" ? "transaction" : change.table) as keyof DataState;
@@ -515,15 +540,38 @@ export type DataUpdateListener = (previous: DataState | undefined, next: DataSta
 const listeners: DataUpdateListener[] = [];
 const oldReducer = DataSlice.reducer; // Separate assignment to prevent infinite recursion
 DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
-    const newState = oldReducer(state, action);
+    const rawNewState = oldReducer(state, action);
 
+    // Apply patch
+    const patch: PatchGroup = {
+        id: new Date().toISOString() + Math.random(),
+        date: new Date().toISOString(),
+        action: rewindDisplaySpec?.message ?? (state ? null : "Initial state"),
+        patches: createPatch(rawNewState, state ?? initialTutorialState),
+    };
+    let patches = rawNewState.patches ? cloneDeep(rawNewState.patches) : PatchAdapter.getInitialState();
+    patches = PatchAdapter.removeMany(
+        patches,
+        patches.ids.filter(
+            (id) =>
+                DateTime.fromISO(patches.entities[id]!.date).diffNow("days").days >
+                (rawNewState.user.entities[StubUserID]!.historyRetentionPeriod ?? 30)
+        )
+    );
+    if (patch.patches.length !== 0) {
+        patches = PatchAdapter.addOne(patches, patch);
+    }
+    const newState = { ...rawNewState, patches };
+
+    // Maybe show notification
     if (rewindDisplaySpec) {
-        if (state) submitNotification(state, rewindDisplaySpec.message, rewindDisplaySpec.intent);
+        if (state) submitNotification(patch.id, rewindDisplaySpec.message, rewindDisplaySpec.intent);
 
         rewindDisplaySpec = null;
     }
 
-    if (!isEqual(state, newState)) {
+    // Call listeners
+    if (!isEqual(omit(state, "patches"), omit(newState, "patches"))) {
         return createNextState(newState, (newState) => {
             listeners.forEach((listener) => listener(state, newState));
         });

@@ -27,6 +27,7 @@
         "react-dom": "^18.2.0",
         "react-dropzone": "^14.2.3",
         "react-redux": "^8.0.5",
+        "rfc6902": "^5.1.1",
         "victory": "^36.6.8",
         "vite-plugin-pwa": "^0.20.0"
     },

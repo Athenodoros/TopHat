@@ -1,5 +1,5 @@
 import { Close } from "@mui/icons-material";
-import { Alert, AlertColor, Button, IconButton, Snackbar } from "@mui/material";
+import { Alert, AlertColor, Button, IconButton, Snackbar, SnackbarCloseReason } from "@mui/material";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { FCWithChildren } from "../shared/types";
 
@@ -22,13 +22,17 @@ export const PopupDisplay: FCWithChildren = ({ children }) => {
     const [alert, setAlert] = useState<PopupAlert>();
     useEffect(() => void (setPopupAlert = (newAlert: PopupAlert) => setAlert(newAlert)), []);
     const close = useCallback(() => setAlert(undefined), []);
+    const closeAll = useCallback((_: unknown, reason: SnackbarCloseReason) => {
+        if (reason === "clickaway") return;
+        setAlert(undefined);
+    }, []);
 
     return (
         <>
             <Snackbar
                 open={!!alert}
                 autoHideDuration={alert?.duration === undefined ? 6000 : alert.duration}
-                onClose={close}
+                onClose={closeAll}
             >
                 {alert && (
                     <Alert

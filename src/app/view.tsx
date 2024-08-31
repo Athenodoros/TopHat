@@ -21,13 +21,13 @@ export const View: React.FC = () => {
     const setAlert = useSetAlert();
     useEffect(
         () =>
-            setSubmitNotification((data, message, intent) =>
+            setSubmitNotification((id, message, intent) =>
                 setAlert({
                     message,
                     severity: intent || "success",
                     action: {
                         name: "UNDO",
-                        callback: () => TopHatDispatch(DataSlice.actions.set(data)),
+                        callback: () => TopHatDispatch(DataSlice.actions.rewindToPatch(id)),
                     },
                 })
             ),

@@ -1,5 +1,14 @@
 import styled from "@emotion/styled";
-import { Cached, CloudDone, Edit, GetApp, ListAlt, Notifications, PestControl } from "@mui/icons-material";
+import {
+    Cached,
+    CloudDone,
+    Edit,
+    GetApp,
+    ListAlt,
+    ManageHistory,
+    Notifications,
+    PestControl,
+} from "@mui/icons-material";
 import { List, ListItemIcon, ListItemText, ListSubheader, MenuItem } from "@mui/material";
 import React from "react";
 import { zipObject } from "../../shared/data";
@@ -13,10 +22,11 @@ import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogAboutContents } from "./about";
 import { DialogCurrencyContents } from "./currency";
 import { DialogExportContents, DialogImportContents } from "./data";
+import { DialogDebugContents } from "./debug";
+import { DialogHistoryContents } from "./history";
 import { DialogNotificationsContents } from "./notifications";
 import { DialogStorageContents } from "./storage";
 import { DialogSummaryContents } from "./summary";
-import { DialogDebugContents } from "./debug";
 
 export const DialogSettingsView: React.FC = () => {
     const page = useDialogState("settings");
@@ -51,6 +61,12 @@ export const DialogSettingsView: React.FC = () => {
                         </ListItemIcon>
                         <SettingsListItemText>Debug</SettingsListItemText>
                     </MenuItem>
+                    <MenuItem onClick={setPage["history"]} selected={page === "history"}>
+                        <ListItemIcon>
+                            <ManageHistory fontSize="small" />
+                        </ListItemIcon>
+                        <SettingsListItemText>History</SettingsListItemText>
+                    </MenuItem>
                     <SettingsSubheader>Settings</SettingsSubheader>
                     <MenuItem onClick={setPage["notifications"]} selected={page === "notifications"}>
                         <ListItemIcon>
@@ -77,7 +93,7 @@ export const DialogSettingsView: React.FC = () => {
     );
 };
 
-const pages = ["summary", "import", "export", "debug", "storage", "notifications", "currency"] as const;
+const pages = ["summary", "import", "export", "debug", "storage", "notifications", "currency", "history"] as const;
 const setPage = zipObject(
     pages,
     pages.map((settings) => withSuppressEvent(() => TopHatDispatch(AppSlice.actions.setDialogPartial({ settings }))))
@@ -92,6 +108,7 @@ const Pages: Record<NonNullable<DialogState["settings"]>, React.ReactNode> = {
     storage: <DialogStorageContents />,
     notifications: <DialogNotificationsContents />,
     currency: <DialogCurrencyContents />,
+    history: <DialogHistoryContents />,
 };
 
 const SettingsList = styled(List)({

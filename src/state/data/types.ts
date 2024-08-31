@@ -1,5 +1,6 @@
 import { AccountBalance, Home, TrendingUp } from "@mui/icons-material";
 import { EntityState } from "@reduxjs/toolkit";
+import { Operation } from "rfc6902";
 import { zipObject } from "../../shared/data";
 import { DialogColumnParseResult, DialogColumnValueMapping, DialogParseSpecification } from "../logic/statement";
 import {
@@ -215,11 +216,19 @@ export interface User {
     debt: number; // Debt Milestone of last notification
     accountOutOfDate: ID[]; // Accounts already flagged
     uncategorisedTransactionsAlerted: boolean; // Whether notification has been generated since backlog last cleared
+    historyRetentionPeriod?: number; // Optional for backcompat - number of days to keep history for
 }
 
 export interface Notification {
     id: string;
     contents: string;
+}
+
+export interface PatchGroup {
+    id: string;
+    date: STime;
+    action: string | null;
+    patches: Operation[];
 }
 
 /**
@@ -245,6 +254,7 @@ export interface DataState {
     statement: EntityState<Statement>;
     user: EntityState<User>;
     notification: EntityState<Notification>;
+    patches: EntityState<PatchGroup>;
 }
 
 export const DataKeys: (keyof DataState)[] = [
@@ -257,4 +267,5 @@ export const DataKeys: (keyof DataState)[] = [
     "statement",
     "user",
     "notification",
+    "patches",
 ];

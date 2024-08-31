@@ -61,7 +61,7 @@ const createCSVDownload = () => {
     const state = TopHatStore.getState().data;
 
     const zip = new JSZip();
-    DataKeys.forEach((key) => {
+    DataKeys.filter((key) => key !== "patches").forEach((key) => {
         zip.file(
             `${key}.csv`,
             key === "user"

@@ -70,6 +70,7 @@ const defaultValues = {
         | "storage"
         | "notifications"
         | "currency"
+        | "history"
         | undefined,
 };
 export const DefaultDialogs = { id: "closed" as "closed" | keyof typeof defaultValues, ...defaultValues };

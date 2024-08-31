@@ -494,6 +494,7 @@ const DemoObjects = {
     transaction: transactions,
     statement: statements,
     notification: [],
+    patches: [],
 };
 
 const DemoStatementFile = JSON.stringify(statementMap.international[1]);

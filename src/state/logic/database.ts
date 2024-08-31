@@ -6,6 +6,7 @@ import {
     Currency,
     Institution,
     Notification,
+    PatchGroup,
     Rule,
     Statement,
     Transaction,
@@ -24,10 +25,11 @@ export class TopHatDexie extends Dexie {
     transaction_: Dexie.Table<Transaction, ID>; // "transaction" conflicts with Dexie-internal property
     statement: Dexie.Table<Statement, ID>;
     notification: Dexie.Table<Notification, ID>;
+    patches: Dexie.Table<PatchGroup, ID>;
 
     constructor(options?: DexieOptions) {
         super("TopHatDatabase", options);
-        this.version(1).stores({
+        this.version(2).stores({
             user: "id",
             account: "id",
             category: "id",
@@ -37,6 +39,7 @@ export class TopHatDexie extends Dexie {
             transaction_: "id, statement",
             statement: "id",
             notification: "id",
+            patches: "id",
         });
 
         // This is for compatibility with babel-preset-typescript
@@ -49,6 +52,7 @@ export class TopHatDexie extends Dexie {
         this.transaction_ = this.table("transaction_");
         this.statement = this.table("statement");
         this.notification = this.table("notification");
+        this.patches = this.table("patches");
 
         // This would enable functions on objects - it would require classes rather than interfaces
         // this.user.mapToClass(UserState);

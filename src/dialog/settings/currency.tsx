@@ -75,11 +75,14 @@ export const DialogCurrencyContents: React.FC = () => {
                     )}
                 </EditValueContainer>
                 <EditValueContainer label="Manual Sync">
-                    <Button onClick={syncCurrencies} variant="outlined" sx={{ height: 36, width: 100 }}>
+                    <Button onClick={syncCurrencies} variant="outlined" sx={{ height: 36, width: 110 }}>
                         {isSyncing ? <CircularProgress size={20} /> : "Sync All"}
                     </Button>
                     {lastSyncTime !== undefined ? (
-                        <Typography variant="body2" sx={{ fontStyle: "italic", color: Greys[700], marginLeft: 16 }}>
+                        <Typography
+                            variant="body2"
+                            sx={{ fontStyle: "italic", color: Greys[700], marginLeft: 16, width: 150 }}
+                        >
                             Last synced {DateTime.fromISO(lastSyncTime).toRelative({ unit: "minutes" })}
                         </Typography>
                     ) : undefined}

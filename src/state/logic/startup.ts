@@ -176,6 +176,11 @@ export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) =>
         generation = 4;
     }
 
+    if (generation === 4) {
+        TopHatDispatch(DataSlice.actions.createInitialPatchState());
+        generation = 5;
+    }
+
     // Update app state
     if (oldGeneration !== generation) {
         console.log("Updated user data to generation: " + generation);

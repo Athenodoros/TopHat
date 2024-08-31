@@ -3,7 +3,17 @@ import { FCWithChildren } from "../../shared/types";
 import { Greys } from "../../styles/colours";
 
 export const SettingsDialogPage: FCWithChildren<{ title: string }> = ({ title, children }) => (
-    <Box sx={{ width: 450, margin: "30px auto", display: "flex", flexDirection: "column", flexGrow: 1 }}>
+    <Box
+        sx={{
+            width: 450,
+            margin: "30px auto",
+            display: "flex",
+            flexDirection: "column",
+            flexShrink: 1,
+            minHeight: 0,
+            flexGrow: 1,
+        }}
+    >
         <Typography variant="h6" sx={{ marginBottom: 20, color: Greys[600] }}>
             {title}
         </Typography>
