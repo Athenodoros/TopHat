@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { buttonClasses, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import { formatNumber } from "../../../shared/data";
 import { Greys } from "../../../styles/colours";
 import { getThemeTransition, TopHatTheme } from "../../../styles/theme";
 
@@ -130,5 +129,3 @@ export const TransactionTableSxProps = {
         overflow: "visible",
     },
 };
-
-export const formatTransactionsTableNumber = (value: number) => formatNumber(value);

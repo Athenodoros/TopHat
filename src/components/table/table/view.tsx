@@ -4,6 +4,7 @@ import { IconButton, Tooltip, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import { last } from "lodash";
 import React, { useCallback } from "react";
+import { formatNumber } from "../../../shared/data";
 import { PLACEHOLDER_CATEGORY_ID } from "../../../state/data";
 import {
     useAccountByID,
@@ -22,7 +23,6 @@ import { parseDate } from "../../../state/shared/values";
 import { Greys } from "../../../styles/colours";
 import { getCategoryIcon, getInstitutionIcon } from "../../display/ObjectDisplay";
 import {
-    formatTransactionsTableNumber,
     TransactionsTableSummaryTypography,
     TransactionTableAccountContainer,
     TransactionTableActionsContainer,
@@ -68,7 +68,7 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                         </SubtextTypography>
                     )}
                     <Typography variant="body1" sx={missing ? TransactionTableSxProps.MissingValue : undefined}>
-                        {formatTransactionsTableNumber(value)}
+                        {formatNumber(value, { minDecimals: 2 })}
                     </Typography>
                 </TransactionTableCompoundContainer>
             ) : value === undefined ? (
