@@ -302,20 +302,22 @@ export const guessStatementTransfers = (
     assignTransferCandidates(
         (c, t) =>
             c.reference === t.reference &&
+            c.currency !== t.currency &&
             inRange(
                 -c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!, t.date),
-                0.8,
-                1.2
+                0.95,
+                1.05
             ),
         5
     );
     assignTransferCandidates((c, t) => c.currency === t.currency && -c.value === t.value, 5);
     assignTransferCandidates(
         (c, t) =>
+            c.currency !== t.currency &&
             inRange(
                 -c.value / changeCurrencyValue(getCurrency(c.currency), getCurrency(t.currency), t.value!, t.date),
-                0.8,
-                1.2
+                0.95,
+                1.05
             ),
         5
     );
