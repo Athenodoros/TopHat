@@ -107,9 +107,9 @@ export const TransactionsTableViewEntry: React.FC<TransactionsTableViewEntryProp
                                     {tx.summary || tx.reference}
                                 </TransactionsTableSummaryTypography>
                             </Box>
-                            {tx.description ? (
+                            {tx.description || tx.longReference ? (
                                 <Typography variant="caption" sx={DescriptionTypographySx} component="div">
-                                    {tx.description}
+                                    {tx.description || tx.longReference}
                                 </Typography>
                             ) : undefined}
                         </>

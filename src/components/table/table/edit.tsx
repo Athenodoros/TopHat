@@ -99,6 +99,7 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
                 />
                 <EditableTextValue
                     value={edit.description}
+                    placeholder={tx?.longReference}
                     allowUndefined={!!tx && tx.description === undefined}
                     onChange={updaters.description}
                 />

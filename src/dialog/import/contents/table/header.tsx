@@ -101,7 +101,7 @@ const getColumnOptions = (column: ColumnProperties, splitValues: boolean): (keyo
         return ["balance"].concat(
             splitValues ? ["credit", "debit"] : ["value"]
         ) as (keyof typeof StatementMappingColumns)[];
-    return column.nullable === false ? ["currency", "reference"] : ["reference"];
+    return column.nullable === false ? ["currency", "reference", "longReference"] : ["reference", "longReference"];
 };
 
 const COLUMN_TYPE_ICONS = {

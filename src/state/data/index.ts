@@ -851,21 +851,23 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
 
 const getTestRegex = (regexes: string[]) => {
     const master = new RegExp(regexes.join("|"));
-    return (reference: string) => reference.match(master) !== null;
+    return (value: string) => value.match(master) !== null;
 };
 export const getGetTransactionChangesForRule = (rule: Rule) => {
-    const testReference = !rule.reference.length
-        ? (_: string) => true
-        : rule.regex
-        ? getTestRegex(rule.reference)
-        : (reference: string) => rule.reference.some((option) => reference.includes(option));
+    const testTextField = (tests: string[], regex: boolean, value: string | undefined) => {
+        if (tests.length === 0) return true;
+        if (regex) return getTestRegex(tests)(value ?? "");
+        if (!value) return false;
+        return tests.some((option) => value.includes(option));
+    };
 
     return (transaction: Transaction) => {
         if (
             (!rule.accounts.length || rule.accounts.includes(transaction.account)) &&
             (rule.min === null || rule.min <= transaction.value!) &&
             (rule.max === null || rule.max >= transaction.value!) &&
-            (!rule.reference.length || testReference(transaction.reference))
+            testTextField(rule.reference, rule.regex, transaction.reference) &&
+            testTextField(rule.longReference ?? [], rule.longReferenceRegex ?? false, transaction.longReference)
         ) {
             const changes: Partial<Transaction> = {};
             if (rule.summary !== undefined) changes.summary = rule.summary;

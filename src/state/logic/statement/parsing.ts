@@ -127,6 +127,7 @@ export const getCombinedColumnProperties = (
 export const StatementMappingColumns = {
     date: "date",
     reference: "reference",
+    longReference: "longReference",
     balance: "balance",
     value: "value.value",
     credit: "value.credit",

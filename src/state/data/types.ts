@@ -132,6 +132,9 @@ export interface Rule {
     reference: string[];
     regex: boolean;
 
+    longReference?: string[]; // Optional for backcompat
+    longReferenceRegex?: boolean; // Optional for backcompat
+
     min: number | null;
     max: number | null;
 
@@ -151,6 +154,7 @@ export interface Transaction {
 
     date: SDate;
     reference: string;
+    longReference?: string; // optional for backcompat
     summary: string | null;
     description: string | null;
 

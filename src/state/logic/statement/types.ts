@@ -61,6 +61,7 @@ export interface DialogColumnCurrencyColumnMapping {
 export interface DialogColumnValueMapping {
     date: COLUMN_ID;
     reference?: COLUMN_ID;
+    longReference?: COLUMN_ID;
     balance?: COLUMN_ID;
     value:
         | {

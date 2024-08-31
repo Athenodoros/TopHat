@@ -64,6 +64,22 @@ export const DialogImportMappingStepContent: React.FC<{ state: DialogStatementMa
                 </MappingColumnTextField>
                 <MappingColumnTextField
                     select={true}
+                    value={state.mapping.longReference || ""}
+                    onChange={onChangeMappingLongReference}
+                    size="small"
+                    label="Long Description"
+                >
+                    {state.columns.common
+                        .filter(({ type }) => type === "string")
+                        .map(({ id, name }) => (
+                            <MenuItem key={id} value={id}>
+                                {name}
+                            </MenuItem>
+                        ))}
+                    {NullColumnMenuItem}
+                </MappingColumnTextField>
+                <MappingColumnTextField
+                    select={true}
                     value={state.mapping.balance || ""}
                     onChange={onChangeMappingBalance}
                     size="small"
@@ -244,6 +260,7 @@ const getOnChangeMapping = (key: keyof typeof StatementMappingColumns) =>
     handleTextFieldChange((value: string) => changeStatementMappingValue(key, value || undefined));
 const onChangeMappingDate = getOnChangeMapping("date");
 const onChangeMappingReference = getOnChangeMapping("reference");
+const onChangeMappingLongReference = getOnChangeMapping("longReference");
 const onChangeMappingBalance = getOnChangeMapping("balance");
 const changeMappingValueSplit = (split: boolean) => changeStatementMappingValue(split ? "credit" : "value", undefined);
 const onChangeMappingValue = getOnChangeMapping("value");

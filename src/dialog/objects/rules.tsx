@@ -82,6 +82,8 @@ const createNewRule = (): Rule => {
         isInactive: false,
         reference: [],
         regex: false,
+        longReference: [],
+        longReferenceRegex: false,
         accounts: [],
         min: null,
         max: null,
@@ -197,6 +199,47 @@ const EditRuleView: React.FC = () => {
                     />
                 </GrowingBox>
             </EditValueContainer>
+            <EditValueContainer label="Long Reference">
+                <GrowingBox>
+                    <Autocomplete
+                        limitTags={1}
+                        multiple={true}
+                        options={[] as string[]}
+                        getOptionLabel={identity}
+                        value={working.longReference}
+                        onChange={updateWorkingLongReferenceAuto}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Transaction Long Reference"
+                                size="small"
+                                onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                                    if (event.key === "Enter") {
+                                        updateWorkingLongReference(
+                                            (working.longReference ?? []).concat([
+                                                (event.target as HTMLInputElement).value,
+                                            ])
+                                        );
+                                        (event.target as HTMLInputElement).value = "";
+                                    }
+                                }}
+                                onBlur={() => {
+                                    const { value } = params.inputProps as unknown as HTMLInputElement;
+                                    if (value)
+                                        updateWorkingLongReference((working.longReference ?? []).concat([value]));
+                                }}
+                            />
+                        )}
+                        open={false}
+                    />
+                    <SubItemCheckbox
+                        label="As Regex"
+                        checked={working.longReferenceRegex ?? false}
+                        setChecked={updateWorkingLongRegex}
+                        left={true}
+                    />
+                </GrowingBox>
+            </EditValueContainer>
             <EditValueContainer label="Value">
                 <RangeBox>
                     <TextField value={min.text} onChange={min.onTextChange} size="small" label="Minimum" />
@@ -264,6 +307,9 @@ const updateWorkingIsInactive = update("isInactive");
 const updateWorkingReference = update("reference");
 const updateWorkingReferenceAuto = handleAutoCompleteChange(updateWorkingReference);
 const updateWorkingRegex = update("regex");
+const updateWorkingLongReference = update("longReference");
+const updateWorkingLongReferenceAuto = handleAutoCompleteChange(updateWorkingLongReference);
+const updateWorkingLongRegex = update("longReferenceRegex");
 const updateWorkingMin = update("min");
 const updateWorkingMax = update("max");
 const updateWorkingAccounts = handleAutoCompleteChange((accounts: Account[]) =>

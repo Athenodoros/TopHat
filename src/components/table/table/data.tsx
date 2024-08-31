@@ -44,10 +44,12 @@ export const useTransactionsTableData = (
             const search =
                 filters.search && filters.searchRegex
                     ? (tx.reference && regex.test(tx.reference)) ||
+                      (tx.longReference && regex.test(tx.longReference)) ||
                       (tx.summary && regex.test(tx.summary)) ||
                       (tx.description && regex.test(tx.description))
                     : filters.search
                     ? tx.reference.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
+                      tx.longReference?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
                       tx.summary?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase()) ||
                       tx.description?.toLocaleLowerCase().includes(filters.search.toLocaleLowerCase())
                     : true;

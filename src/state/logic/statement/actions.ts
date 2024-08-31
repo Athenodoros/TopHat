@@ -246,7 +246,7 @@ export const changeStatementMappingValue = (key: keyof typeof StatementMappingCo
         current.currency = { type: "constant", currency: getUserCurrency() };
     }
 
-    if (["date", "reference", "balance"].includes(key)) {
+    if (["date", "reference", "longReference", "balance"].includes(key)) {
         set(current, key, value);
     } else if (key === "value") {
         current.value =
@@ -547,6 +547,7 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
 
                         date: getColumnValue<SDate>("date", rowID, fileID),
                         reference: getColumnValue<string | undefined>("reference", rowID, fileID) || "",
+                        longReference: getColumnValue<string | undefined>("longReference", rowID, fileID),
                         recordedBalance: getColumnValue<number | undefined>("balance", rowID, fileID) ?? null,
                         value:
                             flipValue(getColumnValue<number | undefined>("value", rowID, fileID)) ||
