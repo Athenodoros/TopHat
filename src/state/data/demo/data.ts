@@ -9,7 +9,7 @@ import {
     SDate,
     formatDate,
     getCurrentMonthString,
-    getToday,
+    getNow,
     getTodayString,
     parseDate,
 } from "../../shared/values";
@@ -25,7 +25,7 @@ import {
 import { Account, Category, Currency, CurrencySyncType, Institution, Rule, Statement, Transaction } from "../types";
 import { ING_DIRECT_DEMO_ICON, NATWEST_DEMO_ICON, ST_GEORGE_DEMO_ICON, TRANSFERWISE_DEMO_ICON } from "./icons";
 
-const today = getToday();
+const today = getNow();
 
 const random = (x: number, y: number) => randomInt(x * 100, y * 100) / 100;
 
@@ -183,7 +183,7 @@ const accounts = (
                         field: "ticker",
                     },
                 },
-                date: formatDate(getToday().minus({ months: 8 })),
+                date: formatDate(getNow().minus({ months: 8 })),
             } as Account["lastStatementFormat"],
         ],
         ["Transaction Account", false, 1, 4, "https://ibanking.stgeorge.com.au/ibank/loginPage.action"],
@@ -399,14 +399,14 @@ const statementMap = {
             id: 1,
             name: "transactions.csv",
             contents: "DAT\tDES\tVAL\tCUR\n",
-            date: formatDate(getToday().minus({ months: 8 })),
+            date: formatDate(getNow().minus({ months: 8 })),
             account: 5,
         },
         {
             id: 2,
             name: "transactions.csv",
             contents: "DAT\tDES\tVAL\tCUR\n",
-            date: formatDate(getToday().minus({ month: 1 })),
+            date: formatDate(getNow().minus({ month: 1 })),
             account: 5,
         },
     ],
@@ -461,7 +461,7 @@ transactions.forEach((tx) => {
         const line = `${tx.date}\t${tx.reference}\t${tx.value}\t${
             [DEFAULT_CURRENCY].concat(currencies)[tx.currency - 1].ticker
         }\n`;
-        if (formatDate(getToday().minus({ months: 8 })) > tx.date) {
+        if (formatDate(getNow().minus({ months: 8 })) > tx.date) {
             tx.statement = statementMap.international[0].id;
             statementMap.international[0].contents += line;
             statementMap.international[1].contents += line;

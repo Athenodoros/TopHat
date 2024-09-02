@@ -28,7 +28,7 @@ import { DialogFileState, DialogStatementMappingState, DialogStatementParseState
 import { Currency, DataSlice, getGetTransactionChangesForRule, Statement, Transaction } from "../../data";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, TRANSFER_CATEGORY_ID } from "../../data/shared";
 import { StubUserID } from "../../data/types";
-import { getTodayString, ID, SDate } from "../../shared/values";
+import { getTodayString, ID, parseDate, SDate } from "../../shared/values";
 import {
     getCombinedColumnProperties,
     getFileColumnProperties,
@@ -591,6 +591,8 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
             });
         }
 
+        console.log(state.account!.lastStatementFilePatternReset);
+
         TopHatDispatch(
             DataSlice.actions.finishStatementImport({
                 statements,
@@ -604,6 +606,16 @@ export const importStatementsAndClearDialog = (shouldRunRules: boolean, shouldDe
                             .concat(
                                 values(data.statement.entities)
                                     .filter((statement) => statement!.account === state.account!.id)
+                                    .filter(
+                                        (statement) =>
+                                            state.account!.lastStatementFilePatternReset === undefined ||
+                                            // This is not ideal - it should use statement.date as an STime rather than a SDate
+                                            //     and removing the .startOf("day") call
+                                            // That would probably require migrating all existing statements, which I don't
+                                            //     want to do until there's a proper test setup
+                                            parseDate(statement!.date) >=
+                                                parseDate(state.account!.lastStatementFilePatternReset).startOf("day")
+                                    )
                                     .map((statement) => statement!.name)
                             )
                     ),
@@ -644,6 +656,8 @@ const LowerCharRegex = /[a-z]/;
 const UpperCharRegex = /[A-Z]/;
 const OverallCharRegex = /[a-zA-Z\d]/g;
 const combineStatementFileNamesToEstimateRegex = (names: string[]) => {
+    console.log(names);
+
     const start = takeWhile(unzip(names.map((name) => name.split(""))), (row) => uniq(row).length === 1)
         .map((row) => row[0])
         .join("");

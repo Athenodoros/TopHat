@@ -4,7 +4,7 @@ import { DatePicker, DatePickerProps } from "@mui/x-date-pickers";
 import { noop } from "lodash";
 import { DateTime } from "luxon";
 import { useCallback, useEffect, useState } from "react";
-import { SDate, formatDate, getToday, parseDate } from "../../state/shared/values";
+import { SDate, formatDate, getNow, parseDate } from "../../state/shared/values";
 
 interface SubItemCheckboxProps {
     label: string;
@@ -71,8 +71,8 @@ export const ManagedDatePicker = <Nullable extends boolean>({
                 (newValue as DateTime).isValid &&
                 (!minDate || (minDate as DateTime) <= (newValue as DateTime)) &&
                 (!maxDate || (maxDate as DateTime) >= (newValue as DateTime)) &&
-                (!disableFuture || (newValue as DateTime) <= getToday()) &&
-                (!disablePast || (newValue as DateTime) >= getToday())
+                (!disableFuture || (newValue as DateTime) <= getNow()) &&
+                (!disablePast || (newValue as DateTime) >= getNow())
             )
                 return onChange(formatDate(newValue as DateTime));
         },

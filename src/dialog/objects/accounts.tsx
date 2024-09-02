@@ -1,6 +1,16 @@
 import styled from "@emotion/styled";
-import { AccountBalanceWallet, KeyboardArrowDown } from "@mui/icons-material";
-import { Button, ListItemText, TextField, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import { AccountBalanceWallet, Clear, KeyboardArrowDown } from "@mui/icons-material";
+import {
+    Button,
+    IconButton,
+    InputAdornment,
+    ListItemText,
+    OutlinedInput,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
+} from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useCallback } from "react";
 import { NonIdealState } from "../../components/display/NonIdealState";
@@ -13,7 +23,7 @@ import { Account } from "../../state/data";
 import { useAllInstitutions, useInstitutionByID } from "../../state/data/hooks";
 import { PLACEHOLDER_INSTITUTION_ID, getNextID } from "../../state/data/shared";
 import { AccountTypes } from "../../state/data/types";
-import { BaseTransactionHistory, getTodayString, parseDate } from "../../state/shared/values";
+import { BaseTransactionHistory, getNowString, getTodayString, parseDate } from "../../state/shared/values";
 import { Greys } from "../../styles/colours";
 import { getThemeTransition } from "../../styles/theme";
 import { DialogContents, DialogMain, EditValueContainer } from "../shared";
@@ -156,19 +166,28 @@ const EditAccountView: React.FC = () => {
                 </DatesBox>
             </EditValueContainer>
             <EditValueContainer label="Statements">
-                <TextField
+                <OutlinedInput
                     value={working.statementFilePatternManual || ""}
                     onChange={updateWorkingFilePattern}
                     size="small"
                     style={{ width: "100%" }}
-                    placeholder={working.statementFilePattern}
+                    placeholder={working.statementFilePattern || "None"}
+                    endAdornment={
+                        working.statementFilePatternManual ? null : (
+                            <InputAdornment position="end">
+                                <IconButton onClick={removeWorkingFilePattern} edge="end" size="small">
+                                    <Clear fontSize="small" />
+                                </IconButton>
+                            </InputAdornment>
+                        )
+                    }
                 />
             </EditValueContainer>
         </ObjectEditContainer>
     );
 };
 
-const { update, remove } = getUpdateFunctions("account");
+const { update, remove, setPartial } = getUpdateFunctions("account");
 const updateWorkingIsInactive = update("isInactive");
 const updateWorkingInstitution = update("institution");
 const updateWorkingWebsite = handleTextFieldChange(update("website"));
@@ -176,6 +195,8 @@ const updateWorkingCategory = handleButtonGroupChange(update("category"));
 const updateWorkingOpenDate = update("openDate");
 const updateWorkingUpdateDate = update("lastUpdate");
 const updateWorkingFilePattern = handleTextFieldChange(update("statementFilePatternManual"));
+const removeWorkingFilePattern = () =>
+    setPartial({ statementFilePattern: undefined, lastStatementFilePatternReset: getNowString() });
 
 const InstitutionButton = styled(Button)({
     textTransform: "inherit",

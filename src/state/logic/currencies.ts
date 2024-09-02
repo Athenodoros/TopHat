@@ -38,7 +38,7 @@ const getFromAPI = async (query: string, token: string, key: string): Promise<Cu
 
 const requestCurrencyRates = async (type: CurrencySyncType["type"], ticker: string, token: string) => {
     if (ticker === "") return;
-    if (type === "currency" && ticker === "USD") return [{ month: "1970-01-01", value: 1 }];
+    if (type === "currency" && ticker === "USD") return [{ month: "1970-01-01" as SDate, value: 1 }];
     if (type === "currency")
         return getFromAPI(`FX_MONTHLY&from_symbol=${ticker}&to_symbol=USD`, token, "Time Series FX (Monthly)");
     if (type === "crypto")

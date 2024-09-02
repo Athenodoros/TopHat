@@ -13,7 +13,7 @@ import { useAllAccounts, useAllStatements } from "../../../state/data/hooks";
 import { getNextID, PLACEHOLDER_CATEGORY_ID, PLACEHOLDER_STATEMENT_ID } from "../../../state/data/shared";
 import { StubUserID } from "../../../state/data/types";
 import { useLocaliseCurrencies, useSelector } from "../../../state/shared/hooks";
-import { getTodayString, ID } from "../../../state/shared/values";
+import { getTodayString, ID, SDate } from "../../../state/shared/values";
 import { MultipleCategoryMenu } from "../../display/CategoryMenu";
 import { NonIdealState } from "../../display/NonIdealState";
 import { getStatementIcon, useGetAccountIcon } from "../../display/ObjectDisplay";
@@ -261,9 +261,9 @@ const useFilterUpdaters = (update: (value: Partial<TransactionsTableFilters>) =>
     useMemo(
         () => ({
             // Set filters
-            fromDate: debounce((fromDate?: string) => update({ fromDate })),
-            toDate: debounce((toDate?: string) => update({ toDate })),
-            dates: (fromDate?: string, toDate?: string) => update({ fromDate, toDate }),
+            fromDate: debounce((fromDate?: SDate) => update({ fromDate })),
+            toDate: debounce((toDate?: SDate) => update({ toDate })),
+            dates: (fromDate?: SDate, toDate?: SDate) => update({ fromDate, toDate }),
             search: handleTextFieldChange(debounce((search: string) => update({ search }), 200)),
             searchRegex: (searchRegex: boolean) => update({ searchRegex }),
             valueFrom: (value: number | null) => update({ valueFrom: value ?? undefined }),

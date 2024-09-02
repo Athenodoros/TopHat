@@ -6,7 +6,7 @@ import React from "react";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
 import { useAllPatches } from "../../state/data/hooks";
-import { SDate } from "../../state/shared/values";
+import { STime } from "../../state/shared/values";
 import { SettingsDialogPage } from "./shared";
 
 export const DialogHistoryContents: React.FC = () => {
@@ -73,6 +73,6 @@ export const DialogHistoryContents: React.FC = () => {
 
 const revertToRevision = (patch: string) => TopHatDispatch(DataSlice.actions.rewindToPatch(patch));
 
-const formatDateString = (date: SDate, format: DateTimeFormatOptions = DateTime.DATE_FULL) => {
+const formatDateString = (date: STime, format: DateTimeFormatOptions = DateTime.DATE_FULL) => {
     return DateTime.fromISO(date).toLocaleString(format);
 };

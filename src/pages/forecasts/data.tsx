@@ -1,7 +1,7 @@
 import { dropRightWhile, identity, mapValues, mean, range, sum, sumBy, unzip, values } from "lodash";
 import { TopHatStore } from "../../state";
 import { Account, getDateBucket } from "../../state/data";
-import { formatDate, getToday } from "../../state/shared/values";
+import { formatDate, getNow } from "../../state/shared/values";
 
 const getAccountBalances = (account: Account) =>
     unzip(values(account.balances).map((balance) => balance.localised)).map((values) => sum(values.filter(identity)));
@@ -23,7 +23,7 @@ export const CalculatorEstimates = {
     },
     repayments: () => {
         const repayments = range(12).map((_) => 0);
-        const previous = formatDate(getToday().startOf("month").minus({ months: 1 }));
+        const previous = formatDate(getNow().startOf("month").minus({ months: 1 }));
 
         const accounts = mapValues(getDataState().account.entities, (account) => getAccountBalances(account!));
 

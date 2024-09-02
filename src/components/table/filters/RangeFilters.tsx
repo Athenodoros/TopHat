@@ -3,20 +3,20 @@ import { DateTime } from "luxon";
 import React, { useCallback, useMemo } from "react";
 import { formatNumber } from "../../../shared/data";
 import { useFirstValue } from "../../../shared/hooks";
-import { formatDate, getToday, parseDate } from "../../../state/shared/values";
+import { formatDate, getNow, parseDate, SDate } from "../../../state/shared/values";
 
 interface DateRangeFilterProps {
-    min?: string;
-    max?: string;
-    from?: string;
-    to?: string;
+    min?: SDate;
+    max?: SDate;
+    from?: SDate;
+    to?: SDate;
     setRange: (from: string | undefined, to: string | undefined) => void;
 }
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ min, max, from: rawFrom, to: rawTo, setRange }) => {
     const { range, values, onChange } = useMemo(() => {
-        const start = min ? parseDate(min) : getToday();
+        const start = min ? parseDate(min) : getNow();
         const getNumericValue = (date: DateTime) => date.diff(start, "days").days;
-        const range = Math.floor(getNumericValue(max ? parseDate(max) : getToday()));
+        const range = Math.floor(getNumericValue(max ? parseDate(max) : getNow()));
         const values = [
             rawFrom ? getNumericValue(parseDate(rawFrom)) : 0,
             rawTo ? getNumericValue(parseDate(rawTo)) : range,

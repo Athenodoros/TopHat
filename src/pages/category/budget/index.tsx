@@ -13,7 +13,7 @@ import { AppSlice } from "../../../state/app";
 import { useCategoryPageCategory } from "../../../state/app/hooks";
 import { Category } from "../../../state/data";
 import { useCategoryByID, useFormatValue } from "../../../state/data/hooks";
-import { getToday } from "../../../state/shared/values";
+import { getNow } from "../../../state/shared/values";
 import { Greys, Intents } from "../../../styles/colours";
 import { CategoryBudgetTransferElements } from "./transfers";
 
@@ -58,7 +58,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
                 total={total}
                 subtotal={subtotal}
                 budget={budget}
-                date={getToday()}
+                date={getNow()}
                 subtitle="of budget so far"
                 functions={chartFunctions}
             />
@@ -66,7 +66,7 @@ export const CategoryPageBudgetSummary: React.FC = () => {
                 total={lastTotal}
                 subtotal={lastSubtotal}
                 budget={lastBudget}
-                date={getToday().minus({ months: 1 })}
+                date={getNow().minus({ months: 1 })}
                 subtitle="of budget last month"
                 functions={chartFunctions}
             />

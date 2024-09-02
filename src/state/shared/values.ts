@@ -50,42 +50,43 @@ export const BaseTransactionHistoryWithLocalisation = (): TransactionHistoryWith
  */
 /* eslint-disable no-redeclare */
 export type ID = number;
-export type SDate = string; // YYYY-MM-DD
-export type STime = string; // ISO Timestamp
+export type SDate = string & { __tag: "SDate" }; // YYYY-MM-DD
+export type STime = string & { __tag: "STime" }; // ISO Timestamp
 
-export const getToday = () => DateTime.local();
-export const getTodayString = () => formatDate(getToday());
-export const getCurrentMonth = () => getToday().startOf("month");
-export const getCurrentMonthString = () => formatDate(getCurrentMonth());
+export const getNow = (): DateTime => DateTime.local();
+export const getTodayString = (): SDate => formatDate(getNow());
+export const getNowString = (): STime => formatDateTime(getNow());
+export const getCurrentMonth = (): DateTime => getNow().startOf("month");
+export const getCurrentMonthString = (): SDate => formatDate(getCurrentMonth());
 
-export function formatJSDate(date: Date): string;
-export function formatJSDate(date: Date | null): string | null;
-export function formatJSDate(date: Date | undefined): string | undefined;
-export function formatJSDate(date: Date | null | undefined): string | null | undefined;
-export function formatJSDate(date: Date | null | undefined): string | null | undefined {
-    return date && DateTime.fromJSDate(date as Date).toISODate();
+export function formatJSDate(date: Date): SDate;
+export function formatJSDate(date: Date | null): SDate | null;
+export function formatJSDate(date: Date | undefined): SDate | undefined;
+export function formatJSDate(date: Date | null | undefined): SDate | null | undefined;
+export function formatJSDate(date: Date | null | undefined): SDate | null | undefined {
+    return date && formatDate(DateTime.fromJSDate(date));
 }
 
-export function parseJSDate(date: string): Date;
-export function parseJSDate(date: string | null): Date | null;
-export function parseJSDate(date: string | undefined): Date | undefined;
-export function parseJSDate(date: string | null | undefined): Date | null | undefined;
-export function parseJSDate(date: string | null | undefined): Date | null | undefined {
-    return date == null ? (date as null | undefined) : new Date(date);
+export function formatDate(date: DateTime): SDate;
+export function formatDate(date: DateTime | null): SDate | null;
+export function formatDate(date: DateTime | undefined): SDate | undefined;
+export function formatDate(date: DateTime | null | undefined): SDate | null | undefined;
+export function formatDate(date: DateTime | null | undefined): SDate | null | undefined {
+    return date && (date.toISODate() as SDate);
 }
 
-export function formatDate(date: DateTime): string;
-export function formatDate(date: DateTime | null): string | null;
-export function formatDate(date: DateTime | undefined): string | undefined;
-export function formatDate(date: DateTime | null | undefined): string | null | undefined;
-export function formatDate(date: DateTime | null | undefined): string | null | undefined {
-    return date && date.toISODate();
+export function formatDateTime(date: DateTime): STime;
+export function formatDateTime(date: DateTime | null): STime | null;
+export function formatDateTime(date: DateTime | undefined): STime | undefined;
+export function formatDateTime(date: DateTime | null | undefined): STime | null | undefined;
+export function formatDateTime(date: DateTime | null | undefined): STime | null | undefined {
+    return date && (date.toISO() as STime);
 }
 
-export function parseDate(date: string): DateTime;
-export function parseDate(date: string | null): DateTime | null;
-export function parseDate(date: string | undefined): DateTime | undefined;
-export function parseDate(date: string | null | undefined): DateTime | null | undefined;
-export function parseDate(date: string | null | undefined): DateTime | null | undefined {
+export function parseDate(date: SDate | STime): DateTime;
+export function parseDate(date: SDate | STime | null): DateTime | null;
+export function parseDate(date: SDate | STime | undefined): DateTime | undefined;
+export function parseDate(date: SDate | STime | null | undefined): DateTime | null | undefined;
+export function parseDate(date: SDate | STime | null | undefined): DateTime | null | undefined {
     return date == null ? (date as null | undefined) : DateTime.fromISO(date);
 }

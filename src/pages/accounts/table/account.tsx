@@ -18,7 +18,7 @@ import { openNewPage } from "../../../state/app/actions";
 import { DataSlice } from "../../../state/data";
 import { useCurrencyMap, useDefaultCurrency } from "../../../state/data/hooks";
 import { Account, AccountTypeMap, Currency } from "../../../state/data/types";
-import { BalanceHistory, getToday, getTodayString, parseDate } from "../../../state/shared/values";
+import { BalanceHistory, getNow, getTodayString, parseDate } from "../../../state/shared/values";
 import { Greys, Intents, WHITE } from "../../../styles/colours";
 import { ACCOUNT_TABLE_LEFT_PADDING } from "./styles";
 
@@ -221,7 +221,7 @@ export const getAccountUpdateAgeLevel = (account: Account) => {
     const updateLength = account.lastTransactionDate
         ? update!.diff(parseDate(account.lastTransactionDate), "days").days
         : 0;
-    const updateSince = update && getToday().diff(update, "days").days;
+    const updateSince = update && getNow().diff(update, "days").days;
 
     return {
         level:

@@ -234,7 +234,7 @@ export const guessStatementTransfers = (
         const getMaybeColumn = <T extends number | string | null>(id?: string) =>
             id !== undefined ? getColumn<T>(id) : ([] as (T | undefined)[]);
 
-        const dates = getColumn<string>(mapping.date);
+        const dates = getColumn<SDate>(mapping.date);
         const values =
             mapping.value.type === "value"
                 ? getMaybeColumn<number | null>(mapping.value.value)

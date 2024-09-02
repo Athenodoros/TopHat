@@ -82,7 +82,7 @@ export const useTransactionsTableData = (
 
         setResult({
             ids: take(included, filters.tableLimit),
-            groups: toPairs(groupBy(included, (id) => metadata[id]!.date)),
+            groups: toPairs(groupBy(included, (id) => metadata[id]!.date)) as [SDate, number[]][],
             metadata,
             more: included.length > filters.tableLimit,
         });

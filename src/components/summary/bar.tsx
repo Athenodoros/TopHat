@@ -5,7 +5,7 @@ import { VictoryAxis, VictoryBar, VictoryChart, VictoryStack } from "victory";
 import { formatNumber } from "../../shared/data";
 import { ChartSign } from "../../state/app/pageTypes";
 import { useDefaultCurrency } from "../../state/data/hooks";
-import { formatDate, formatJSDate, getToday, ID } from "../../state/shared/values";
+import { formatDate, formatJSDate, getNow, ID, SDate } from "../../state/shared/values";
 import { FlexWidthChart } from "../display/FlexWidthChart";
 import {
     getBottomAlignedDateAxisFromDomain,
@@ -23,7 +23,7 @@ export interface SummaryBarChartPoint {
 type SummaryBarChartProps = {
     series: SummaryBarChartPoint[];
     sign: ChartSign;
-    setFilter?: (id: ID, sign?: SummaryChartSign, fromDate?: string, toDate?: string) => void;
+    setFilter?: (id: ID, sign?: SummaryChartSign, fromDate?: SDate, toDate?: SDate) => void;
     id?: string;
     highlightSeries?: boolean;
 };
@@ -112,7 +112,7 @@ export const useSummaryChartData = (series: SummaryBarChartPoint[], sign: ChartS
                     (y, idx) =>
                         ({
                             id: category.id,
-                            x: getToday().startOf("month").minus({ months: idx }).toJSDate(),
+                            x: getNow().startOf("month").minus({ months: idx }).toJSDate(),
                             y,
                             colour: category.colour,
                             sign: trend,
@@ -126,7 +126,7 @@ export const useSummaryChartData = (series: SummaryBarChartPoint[], sign: ChartS
                 DateTime.fromJSDate(min(charts.map((c) => last(c)?.x)) || new Date())
                     .minus({ months: 1 })
                     .toJSDate(),
-                getToday().startOf("month").plus({ months: 1 }).toJSDate(),
+                getNow().startOf("month").plus({ months: 1 }).toJSDate(),
             ] as [Date, Date],
             y: [
                 min(

@@ -15,7 +15,7 @@ import { TopHatDispatch, TopHatStore } from "../../state";
 import { AppSlice } from "../../state/app";
 import { useTransactionsPageState } from "../../state/app/hooks";
 import { TransactionsPageAggregations, TransactionsPageState } from "../../state/app/pageTypes";
-import { ID } from "../../state/shared/values";
+import { ID, SDate } from "../../state/shared/values";
 
 export const TransactionsPageSummary: React.FC = React.memo(() => {
     const aggregation = useTransactionsPageState((state) => state.chartAggregation);
@@ -87,7 +87,7 @@ const getCategoryFilter = (category: ID): ID[] => {
 const setFilterID = zipObject(
     TransactionsPageAggregations,
     TransactionsPageAggregations.map(
-        (aggregation) => (id: number, sign?: SummaryChartSign, fromDate?: string, toDate?: string) =>
+        (aggregation) => (id: number, sign?: SummaryChartSign, fromDate?: SDate, toDate?: SDate) =>
             updateFilters({
                 ...zipObject(
                     TransactionsPageAggregations,

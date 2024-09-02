@@ -43,10 +43,12 @@ import {
     formatDate,
     getCurrentMonth,
     getCurrentMonthString,
-    getToday,
+    getNow,
+    getNowString,
     getTodayString,
     ID,
     parseDate,
+    SDate,
     TransactionHistory,
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
@@ -599,8 +601,8 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
 
     // Apply patch
     const patch: PatchGroup = {
-        id: new Date().toISOString() + Math.random(),
-        date: new Date().toISOString(),
+        id: getNowString() + Math.random(),
+        date: getNowString(),
         action: rewindDisplaySpec?.message
             ? rewindDisplaySpec?.message.replace("!", "")
             : state
@@ -694,7 +696,7 @@ const deleteObjectError = <Type extends BasicObjectName>(state: DataState, type:
     }
 };
 
-export const getDateBucket = (date: string, start: string) =>
+export const getDateBucket = (date: SDate, start: SDate) =>
     parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
 
 type BalanceSubset = { account: ID; currency: ID }[];
@@ -943,7 +945,7 @@ const updateBalanceSummaries = (data: DataState, subset?: BalanceSubset) => {
                 userDefaultCurrency,
                 data.currency.entities[currency]!,
                 value,
-                formatDate(getToday().endOf("month").minus({ months: idx }))
+                formatDate(getNow().endOf("month").minus({ months: idx }))
             )
         );
 

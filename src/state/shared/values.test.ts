@@ -1,9 +1,8 @@
+import { DateTime } from "luxon";
 import { expect, test } from "vitest";
-import { formatJSDate, parseJSDate } from "./values";
+import { formatDate, parseDate } from "./values";
 
 test("Date formatters are reversible", () => {
-    const date = new Date();
-    const start = new Date(date);
-    start.setUTCHours(0, 0, 0, 0);
-    expect(parseJSDate(formatJSDate(date)).toISOString()).toBe(start.toISOString());
+    const date = DateTime.now().startOf("day");
+    expect(parseDate(formatDate(date)).toISO()).toBe(date.toISO());
 });

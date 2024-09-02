@@ -45,6 +45,7 @@ export interface Account {
     };
     transactions: TransactionHistory;
 
+    lastStatementFilePatternReset?: STime;
     statementFilePattern?: string;
     statementFilePatternManual?: string;
     lastStatementFormat?: {
@@ -176,7 +177,7 @@ export interface Statement {
     id: ID;
     name: string;
     account: ID;
-    date: SDate;
+    date: SDate; // TODO: change this to STime for proper lastStatementFilePatternReset functioning
     contents: string;
 }
 
@@ -206,7 +207,7 @@ export interface User {
 
     // External Services
     alphavantage: string;
-    lastSyncTime?: STime;
+    lastSyncTime?: SDate;
     dropbox?: DropboxSpec | "loading";
 
     // Notification State

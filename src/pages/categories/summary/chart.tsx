@@ -19,7 +19,7 @@ import { AppSlice } from "../../../state/app";
 import { useCategoriesPageState } from "../../../state/app/hooks";
 import { CategoriesPageState, ChartSign } from "../../../state/app/pageTypes";
 import { useAllCategories, useDefaultCurrency } from "../../../state/data/hooks";
-import { getToday, ID } from "../../../state/shared/values";
+import { getNow, ID } from "../../../state/shared/values";
 
 export interface CategoriesBarChartPoint {
     id: ID;
@@ -173,7 +173,7 @@ const useBarChartData = (sign: ChartSign) => {
                             const y = Math[type === "credit" ? "max" : "min"](value, 0);
 
                             return {
-                                x: getToday().startOf("month").minus({ months: idx }).toJSDate(),
+                                x: getNow().startOf("month").minus({ months: idx }).toJSDate(),
                                 y,
                                 label: `${point.name} ${key === "budgets" ? " (Budget)" : ""}: ${formatNumber(y, {
                                     end: "k",
@@ -197,7 +197,7 @@ const useBarChartData = (sign: ChartSign) => {
                 DateTime.fromJSDate(min(totals.concat(budgets).map((c) => last(c.data)?.x)) || new Date())
                     // .minus({ months: 1 })
                     .toJSDate(),
-                getToday()
+                getNow()
                     .startOf("month")
                     // .plus({ months: 1 })
                     .toJSDate(),

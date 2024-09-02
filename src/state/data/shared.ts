@@ -78,7 +78,7 @@ export const PLACEHOLDER_STATEMENT: Statement = {
     id: PLACEHOLDER_STATEMENT_ID,
     name: "No Statement",
     contents: "",
-    date: "",
+    date: getTodayString(),
     account: -1,
 };
 
