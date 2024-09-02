@@ -42,7 +42,6 @@ export const ObjectSelector = <Nullable extends boolean, Option extends { id: ID
     const close = useCallback(() => popover.setIsOpen(false), [popover]);
 
     const [search, setSearch] = useState<string>("");
-    console.log(search);
 
     return (
         <>
@@ -106,7 +105,6 @@ export const ObjectSelector = <Nullable extends boolean, Option extends { id: ID
                     ? getMenuContents(close, search)
                     : options
                           .filter((_, idx) => {
-                              console.log({ idx, searchTerms, search });
                               if (searchTerms === undefined || search === "") return true;
 
                               const index = placeholder ? idx + 1 : idx;
