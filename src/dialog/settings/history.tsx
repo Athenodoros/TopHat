@@ -19,7 +19,7 @@ export const DialogHistoryContents: React.FC = () => {
                     const date = formatDateString(patch.date);
                     const header =
                         idx > 0 && date === formatDateString(patches[idx - 1]?.date) ? undefined : (
-                            <Typography variant="subtitle2" sx={{ marginBottom: 10 }}>
+                            <Typography variant="subtitle2" sx={{ marginBottom: 10, marginTop: idx === 0 ? 0 : 20 }}>
                                 {date}
                             </Typography>
                         );
