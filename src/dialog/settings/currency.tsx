@@ -1,7 +1,8 @@
 import { Cancel, CheckCircle, Info } from "@mui/icons-material";
 import { Button, CircularProgress, Link, TextField, Tooltip, Typography } from "@mui/material";
+import { debounce } from "lodash-es";
 import { DateTime } from "luxon";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { handleTextFieldChange } from "../../shared/events";
 import { TopHatDispatch } from "../../state";
 import { DataSlice } from "../../state/data";
@@ -40,6 +41,16 @@ export const DialogCurrencyContents: React.FC = () => {
         setIsSyncing(false);
     }, []);
 
+    const [workingAPIKey, setWorkingAPIKeyRaw] = useState(key);
+    const setWorkingAPIKey = useMemo(
+        () =>
+            handleTextFieldChange((value) => {
+                setWorkingAPIKeyRaw(value);
+                setKeyValue(value);
+            }),
+        []
+    );
+
     return (
         <SettingsDialogPage title="Currency Exchange Rate Syncs">
             <Typography variant="body2">
@@ -61,7 +72,12 @@ export const DialogCurrencyContents: React.FC = () => {
             <SettingsDialogDivider />
             <SettingsDialogContents>
                 <EditValueContainer label="API Key">
-                    <TextField value={key} onChange={setKeyValue} size="small" sx={{ marginRight: 12 }} />
+                    <TextField
+                        value={workingAPIKey}
+                        onChange={setWorkingAPIKey}
+                        size="small"
+                        sx={{ marginRight: 12 }}
+                    />
                     {syncStatus === "fail" ? (
                         <Cancel htmlColor={Intents.danger.light} />
                     ) : syncStatus === "success" ? (
@@ -92,6 +108,7 @@ export const DialogCurrencyContents: React.FC = () => {
     );
 };
 
-const setKeyValue = handleTextFieldChange((alphavantage) =>
-    TopHatDispatch(DataSlice.actions.updateUserPartial({ alphavantage }))
+const setKeyValue = debounce(
+    (alphavantage) => TopHatDispatch(DataSlice.actions.updateUserPartial({ alphavantage })),
+    1000
 );
