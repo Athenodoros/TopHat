@@ -229,6 +229,7 @@ export interface PatchGroup {
     date: STime;
     action: string | null;
     patches: Operation[];
+    reverted?: boolean; // optional for backcompat
 }
 
 /**

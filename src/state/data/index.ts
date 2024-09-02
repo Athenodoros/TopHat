@@ -556,11 +556,26 @@ export const DataSlice = createSlice({
                     ),
             };
 
+            let reverted = false;
             for (const patchID of state.patches.ids) {
                 const patch = state.patches.entities[patchID]!;
-                applyPatch(state, patch.patches);
 
-                if (patchID === target) break;
+                if (reverted) {
+                    if (patch.reverted) {
+                        patch.reverted = false;
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+
+                applyPatch(state, patch.patches);
+                patch.reverted = true;
+
+                if (patchID === target) {
+                    reverted = true;
+                    continue;
+                }
             }
         },
 

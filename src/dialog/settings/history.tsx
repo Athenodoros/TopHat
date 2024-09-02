@@ -34,9 +34,18 @@ export const DialogHistoryContents: React.FC = () => {
                                     gap: 1,
                                     width: "100%",
                                     "& > *": { flexShrink: 0 },
+
+                                    ...(patch.reverted
+                                        ? {
+                                              opacity: 0.5,
+                                          }
+                                        : undefined),
                                 }}
                             >
-                                <Typography variant="body2" sx={{ width: 70 }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{ width: 70, textDecoration: patch.reverted ? "line-through" : undefined }}
+                                >
                                     {formatDateString(patch.date, DateTime.TIME_WITH_SECONDS)}
                                 </Typography>
                                 <Typography
@@ -49,6 +58,7 @@ export const DialogHistoryContents: React.FC = () => {
                                         textOverflow: "ellipsis",
                                         fontStyle: "italic",
                                         whiteSpace: "nowrap",
+                                        textDecoration: patch.reverted ? "line-through" : undefined,
                                     }}
                                 >
                                     {patch.action ?? "Automated Update"}
