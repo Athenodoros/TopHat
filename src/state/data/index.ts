@@ -246,7 +246,7 @@ export const DataSlice = createSlice({
             adapters.user.updateOne(state.user, { id: StubUserID, changes: { generation } });
         },
         updateTransactionSummaryStartDates: (state) => {
-            rewindDisplaySpec = { message: "Updated transaction summary start dates!" };
+            rewindDisplaySpec = { message: "Automated cache update" };
 
             updateTransactionSummaryStartDates(state);
         },
