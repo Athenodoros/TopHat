@@ -246,7 +246,7 @@ interface TransactionsTableObjectDropdownProps<T extends { id: ID; name: string 
     allowUndefined?: boolean;
     button?: ObjectSelectorCommonProps<T>["children"];
     disabled?: boolean;
-    getMenuContents?: (close: () => void) => React.ReactNode;
+    getMenuContents?: (close: () => void, search: string) => React.ReactNode;
     MenuProps?: Partial<MenuProps>;
 }
 export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string }>({
@@ -279,6 +279,7 @@ export const TransactionsTableObjectDropdown = <T extends { id: ID; name: string
                     </>
                 ) : undefined
             }
+            searchTerms={(allowUndefined ? [["(mixed)"]] : []).concat(options.map(({ name }) => [name]))}
         >
             {button || (
                 <Button

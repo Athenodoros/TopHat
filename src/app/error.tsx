@@ -32,7 +32,7 @@ export class PageErrorBoundary extends React.Component<PropsWithChildren, { hasE
                         subtitle={
                             <Box sx={{ marginTop: 10, maxWidth: 400, textAlign: "center" }}>
                                 TopHat has hit an error, and has ended up in a bad state. You could go back to the{" "}
-                                <Link underline="hover" href={process.env.PUBLIC_URL}>
+                                <Link underline="hover" href={import.meta.env.PUBLIC_URL}>
                                     home page
                                 </Link>
                                 , or check the developer tools for more information.

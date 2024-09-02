@@ -52,9 +52,10 @@ export const TransactionsTableEditEntry: React.FC<TransactionsTableEditEntryProp
     const updaters = useEditUpdaters(setEditPartial);
 
     const getCategoryMenuContents = useCallback(
-        (onClick: () => void) => {
+        (onClick: () => void, search: string) => {
             return (
                 <SingleCategoryMenu
+                    search={search}
                     selected={edit.category}
                     setSelected={(category?: Category) => {
                         onClick();

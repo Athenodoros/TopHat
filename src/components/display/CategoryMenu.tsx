@@ -16,13 +16,14 @@ interface Anchor {
 }
 
 interface SingleCategoryMenuProps {
+    search?: string;
     selected?: ID;
     setSelected: (category?: Category) => void;
     exclude?: ID[];
     anchor?: Anchor;
 }
 const SingleCategoryMenuFunction = (
-    { selected, setSelected, exclude = [], anchor }: SingleCategoryMenuProps,
+    { search, selected, setSelected, exclude = [], anchor }: SingleCategoryMenuProps,
     ref: React.ForwardedRef<HTMLDivElement>
 ) => {
     const ids = useCategoryIDs() as ID[];
@@ -48,20 +49,22 @@ const SingleCategoryMenuFunction = (
 
     return (
         <div ref={ref}>
-            {options.map((id) => (
-                <React.Fragment key={id}>
-                    <MenuItem
-                        style={graph[id].length ? { paddingBottom: 0 } : undefined}
-                        selected={id === selected}
-                        onClick={withSuppressEvent<HTMLLIElement>(() =>
-                            setSelected(id === selected ? undefined : entities[id]!)
-                        )}
-                    >
-                        {renderCategory(entities[id]!)}
-                    </MenuItem>
-                    {generateMenuItems(id)}
-                </React.Fragment>
-            ))}
+            {options
+                .filter((id) => !search || entities[id]!.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+                .map((id) => (
+                    <React.Fragment key={id}>
+                        <MenuItem
+                            style={graph[id].length ? { paddingBottom: 0 } : undefined}
+                            selected={id === selected}
+                            onClick={withSuppressEvent<HTMLLIElement>(() =>
+                                setSelected(id === selected ? undefined : entities[id]!)
+                            )}
+                        >
+                            {renderCategory(entities[id]!)}
+                        </MenuItem>
+                        {generateMenuItems(id)}
+                    </React.Fragment>
+                ))}
         </div>
     );
 };
