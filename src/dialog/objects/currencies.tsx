@@ -215,7 +215,11 @@ const EditCurrencyView: React.FC = () => {
                         isDemoError ? (
                             <>
                                 No Currency Token - See{" "}
-                                <Link onClick={goToTokenSetup} href="#" underline="hover" sx={{ pointerEvents: "all" }}>
+                                <Link
+                                    onClick={goToTokenSetup}
+                                    underline="hover"
+                                    sx={{ pointerEvents: "all", cursor: "pointer" }}
+                                >
                                     Here
                                 </Link>
                             </>
