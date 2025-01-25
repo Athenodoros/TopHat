@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" href="/TopHat/favicon.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="TopHat Finance - an in-browser personal finances app" />
+        <link rel="apple-touch-icon" href="/TopHat/logo_144x144.png" />
+        <link rel="manifest" href="/TopHat/manifest.json" />
+        <title>TopHat Finance</title>
+
+        <!-- c/o https://github.com/rafgraph/spa-github-pages -->
+        <script type="text/javascript">
+            (function (l) {
+                if (l.search[1] === "/") {
+                    var decoded = l.search
+                        .slice(1)
+                        .split("&")
+                        .map(function (s) {
+                            return s.replace(/~and~/g, "&");
+                        })
+                        .join("?");
+                    window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash);
+                }
+            })(window.location);
+        </script>
+      <script type="module" crossorigin src="/TopHat/assets/index-56bb0a8f.js"></script>
+      <link rel="stylesheet" href="/TopHat/assets/index-803602b7.css">
+    <link rel="manifest" href="/TopHat/manifest.webmanifest"></head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+        
+    </body>
+</html>
