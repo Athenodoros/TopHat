@@ -139,6 +139,7 @@ export const TopHatTutorial: React.FC = () => {
                             style={{
                                 // This stub value is so Safari doesn't render the button list weirdly
                                 width: 0.000001,
+                                overflow: "hidden",
                                 height: 0,
                             }}
                             accept=".json"

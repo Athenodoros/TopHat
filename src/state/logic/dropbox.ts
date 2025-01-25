@@ -134,7 +134,7 @@ export const maybeSaveDataToDropbox = async () => {
     const zip = new JSZip();
     zip.file("data.json", JSON.stringify(TopHatStore.getState().data));
     const data = await zip.generateAsync({
-        type: "binarystring",
+        type: "blob",
         compression: "DEFLATE",
     });
 

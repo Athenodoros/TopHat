@@ -5,15 +5,24 @@ import { DefaultDialogs } from "../../app/defaults";
 import { DialogStatementFileState } from "../../app/statementTypes";
 import { addStatementFilesToDialog } from "./actions";
 import { DialogFileDescription } from "./types";
+import { StubUserID } from "../../data/types";
+import { importJSONData } from "../import";
 
 export * from "./actions";
 export * from "./types";
 
 export const handleStatementFileUpload = (rawFiles: File[], rejections: FileRejection[]) => {
-    const { import: state, id } = TopHatStore.getState().app.dialog;
+    const storeState = TopHatStore.getState();
+    const { import: state, id } = storeState.app.dialog;
+    const isTutorial = storeState.data.user.entities[StubUserID]?.tutorial;
     const { account } = state as DialogStatementFileState;
 
     if (rejections.length) {
+        if (rejections.length === 1 && rejections[0].file.name.endsWith(".json") && isTutorial) {
+            getFilesContents([rejections[0].file]).then((files) => importJSONData(files[0].contents));
+            return;
+        }
+
         TopHatDispatch(
             AppSlice.actions.setDialogPartial({
                 id: "import",
