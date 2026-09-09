@@ -78,7 +78,14 @@ export const setupStorageAndLoadData = async (
                 if (debug) console.log("Updating store from saved data (" + origin + ")...");
                 applyValueFromStorage(value);
             },
-            onSyncStatesUpdate: (syncs) => TopHatDispatch(AppSlice.actions.setSyncStates(describeSyncs(syncs))),
+            onSyncStatesUpdate: (syncs) => {
+                // A desynced target is one the library will not write to again until something
+                // clears the flag, so it is a save failure whether or not a write has just failed
+                const local = syncs.find((sync) => sync.target.type === "indexeddb");
+                if (local) setIDBConnectionExists(local.desynced !== true);
+
+                TopHatDispatch(AppSlice.actions.setSyncStates(describeSyncs(syncs)));
+            },
             handleSyncOperationLog: ({ sync, stage }) => {
                 if (sync.target.type === "indexeddb") {
                     if (stage === "ERROR" || stage === "OFFLINE") setIDBConnectionExists(false);

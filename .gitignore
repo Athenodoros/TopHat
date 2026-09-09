@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch files written by the Playwright MCP tools
+.playwright-mcp/

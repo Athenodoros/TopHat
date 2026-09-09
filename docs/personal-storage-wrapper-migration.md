@@ -3,6 +3,10 @@
 Written 2026-09-09 for a coding agent to execute. Read the whole thing before starting; the
 "Gotchas" section lists the ways this migration can silently lose data.
 
+**Done 2026-09-09.** See "What turned out differently" at the end for where the work departed from
+this plan - mainly three more library defects than the four listed in §3, and a different dependency
+mechanism detail.
+
 ## 1. Goal
 
 Replace the hand-rolled IndexedDB layer (`dexie` + `dexie-observable`, `src/state/logic/storage/`)
@@ -519,3 +523,57 @@ persistence paragraphs to describe the new layer. Update memory notes.
     handed to Henry with the exact redirect URIs to register.
 -   `AGENTS.md` persistence section updated; `docs/personal-storage-wrapper-migration.md` (this file)
     updated with anything that turned out differently.
+
+
+## 11. What turned out differently (written after the work)
+
+The shape of the plan held. These are the departures worth knowing about.
+
+### Three more library defects, found by running it
+
+§3 listed four, plus the optional `close()`. Five more turned up, all on the same branch:
+
+5.  **`deepEquals` walked into anything.** A sync holds a target, and a target holds a database
+    connection. Comparing two syncs walked the connection - which under `fake-indexeddb` refers back
+    to itself and overflowed the stack, and in a browser said two different targets were the same
+    because their outsides matched. Two dates also always compared equal, having no own properties.
+    Now anything that is not an array or a plain object is compared by identity, and dates by time.
+6.  **`IndexedDBTarget.create` resolved before the database was usable**, out of `onupgradeneeded` on
+    a `setTimeout`. The first read of a database that did not exist yet threw `InvalidStateError`,
+    and because `Result`'s executor rejects rather than resolving an error, the manager's `create`
+    simply never returned: a blank page on every first boot. `Result` now turns a synchronous throw
+    into `UNKNOWN`, so a failure like this reports itself instead of hanging. The library's own tests
+    had been papering over this with an artificial wait, which is gone.
+7.  **`desynced` was persisted and restored.** A desynced sync is never written to again, and only a
+    poll or a conflict clears it - so with `pollPeriodInSeconds: null` one failed write stopped the
+    app saving at all, permanently, across reloads, and silently, because nothing was attempted so
+    nothing failed. This is the one to keep in mind if polling is revisited. A session now starts
+    willing to write again.
+
+The library also needed a `name` and `version` in its workspace-root `package.json`: yarn refuses a
+git dependency without them. The root is named `personal-storage-wrapper-repo`, which does not clash
+with the workspace of the same name, and yarn installs it under the dependency key regardless.
+
+### Changes to the target design
+
+-   `onSyncStatesUpdate` also reports a desynced IndexedDB target as a save failure. Otherwise a
+    within-session desync drops every save with nothing on screen to say so, because the notification
+    only fires off a logged write failure and a skipped write logs nothing.
+-   `vitest.setup.ts` replaces `BroadcastChannel` with an in-process implementation. §6 assumed Node's
+    global would connect two boots; under jsdom it throws on every message, because Node's
+    `EventTarget` checks its `MessageEvent` against whatever `Event` is global.
+-   `database.test.ts` checks the store helpers against a real manager rather than reaching for
+    library internals to decompress, and the legacy reader against both schema versions.
+-   The unreadable-data message names the generations rather than quoting a Dexie error, which no
+    longer exists.
+
+### Verification
+
+Playwright paths 1-10 all pass, path 10 against the live Dropbox API. Path 11 is Henry's, and needs
+`https://athenodoros.github.io/TopHat/dropbox.html` and `http://localhost:5173/TopHat/dropbox.html`
+registered in the Dropbox App Console (done for the second; confirm the first before release).
+
+Two things to know when running the app locally: the dev server pre-bundles the library out of
+`node_modules`, so after re-pinning the dependency `node_modules/.vite` has to go or the old copy is
+still served; and the first boot on a clean origin takes a few seconds, so a check that samples
+straight after navigation sees a blank page that is not a hang.

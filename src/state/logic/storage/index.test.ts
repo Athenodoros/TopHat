@@ -227,6 +227,28 @@ describe("Loading and saving", () => {
         expectEveryFieldOfOldSavedData(data());
     });
 
+    /**
+     * A sync the library has given up on is never written to again, and with polling off nothing
+     * clears that. If a failure were remembered across reloads, one of them would stop the app
+     * saving for good, without saying so.
+     */
+    test("goes on saving after a boot whose writes failed", async () => {
+        await writeToStore(getSavedData());
+        localStorage.setItem(
+            SYNC_CONFIG_KEY,
+            JSON.stringify([
+                { type: "indexeddb", config: JSON.stringify({ compressed: true, desynced: true, target: { id: "tophat" } }) },
+            ])
+        );
+
+        const { data, dispatch, actions, syncs } = await bootTopHat();
+
+        expect(syncs()).toEqual([{ type: "indexeddb", name: undefined, email: undefined, desynced: false }]);
+
+        dispatch(actions.updateUserPartial({ alphavantage: "a-new-key" }));
+        await waitFor(async () => expect(await readFromStore()).toEqual(asLists(data())));
+    });
+
     test("picks up a change made in another tab", async () => {
         await writeToStore(getSavedData());
 
