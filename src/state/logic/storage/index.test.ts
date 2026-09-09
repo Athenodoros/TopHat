@@ -7,12 +7,13 @@
  * @vitest-environment jsdom
  */
 
-import { omit } from "lodash-es";
+import { omit, sum } from "lodash-es";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { DataState, ListDataState } from "../../data";
 import { getCurrentMonthString, TransactionHistory } from "../../shared/values";
 import {
     Coffee,
+    CurrentSchema,
     DataKeys,
     deleteDatabase,
     getMonthsSince,
@@ -64,7 +65,12 @@ const bootTopHat = async () => {
 
     await initialiseAndGetDBConnection();
 
-    return { dispatch: TopHatDispatch, actions: DataSlice.actions, data: () => TopHatStore.getState().data };
+    return {
+        dispatch: TopHatDispatch,
+        actions: DataSlice.actions,
+        data: () => TopHatStore.getState().data,
+        storage: () => TopHatStore.getState().app.storage,
+    };
 };
 
 /** Redux state as sorted lists, so that it can be compared against the database or the fixtures */
@@ -83,7 +89,9 @@ afterEach(async () => {
 
 describe("Loading and saving", () => {
     test("starts in the tutorial state, and saves nothing, when there is no database", async () => {
-        const { data } = await bootTopHat();
+        const { data, storage } = await bootTopHat();
+
+        expect(storage()).toEqual({ type: "empty" });
 
         expect(data().user.entities[0]!.tutorial).toBe(true);
         expect(data().account.ids).toEqual([]);
@@ -110,8 +118,9 @@ describe("Loading and saving", () => {
     test("loads saved data", async () => {
         await writeToDatabase(getSavedData());
 
-        const { data } = await bootTopHat();
+        const { data, storage } = await bootTopHat();
 
+        expect(storage()).toEqual({ type: "loaded" });
         expect(data().user.entities[0]!.tutorial).toBe(false);
         expect(asLists(data())).toEqual(sortLists(getSavedData()));
     });
@@ -164,6 +173,24 @@ describe("Loading and saving", () => {
         dispatch(actions.updateUserPartial({ alphavantage: "key" }));
         await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(data())));
         expect((await readFromDatabase()).patches.length).toBeGreaterThan(0);
+    });
+
+    test("keeps data that it cannot read, rather than starting over on top of it", async () => {
+        // A database written by a later version of the app, which this version has no schema for
+        await writeToDatabase(getSavedData(), { ...CurrentSchema, version: CurrentSchema.version + 10 });
+
+        const { data, dispatch, actions, storage } = await bootTopHat();
+
+        const rows = sum(Object.values(getSavedData()).map(({ length }) => length));
+        expect(storage()).toEqual({ type: "unreadable", error: expect.any(String), rescuedRows: rows });
+
+        // The app is in the same state it would start a new install in, but nothing is written
+        expect(data().user.entities[0]!.tutorial).toBe(true);
+        expect(data().transaction.ids).toEqual([]);
+
+        dispatch(actions.updateUserPartial({ tutorial: false }));
+        await pause(25);
+        expect(await readFromDatabase()).toEqual(sortLists(getSavedData()));
     });
 
     test("loads every field of data saved months ago", async () => {

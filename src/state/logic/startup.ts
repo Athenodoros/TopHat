@@ -29,10 +29,19 @@ export const initialiseAndGetDBConnection = async () => {
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
     // Set up IDB, if present
-    const { db, loadedStateFromIDB } = await setupIDBConnectionAndLoadData(debug);
+    const { db, storage } = await setupIDBConnectionAndLoadData(debug);
+    TopHatDispatch(AppSlice.actions.setStorageState(storage));
+
+    // Debug variables
+    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
+    if (debug) Object.assign(window, await getDebugVariablesAsync(db)());
+
+    // Saved data that can't be read leaves the app on a recovery screen, so nothing else is started
+    // up: none of it would be saved, and some of it would write over the data that is still there
+    if (storage.type === "unreadable") return;
 
     // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
-    if (!loadedStateFromIDB && maybeDropboxCode) await initialiseDemoData();
+    if (storage.type !== "loaded" && maybeDropboxCode) await initialiseDemoData();
 
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
@@ -49,10 +58,6 @@ export const initialiseAndGetDBConnection = async () => {
 
     // Update caches to latest month
     TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
-
-    // Debug variables
-    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
-    if (debug) Object.assign(window, await getDebugVariablesAsync(db)());
 };
 
 const initialiseMaybeDropboxSyncFromRedux = () =>

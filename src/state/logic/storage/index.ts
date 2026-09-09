@@ -4,41 +4,60 @@ import { uniq } from "lodash-es";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { zipObject } from "../../../shared/data";
 import { DataSlice, ListDataState, subscribeToDataUpdates } from "../../data";
-import { DataKeys, DataState, StubUserID } from "../../data/types";
+import { DataKeys, DataState, StubUserID, User } from "../../data/types";
 import { ID } from "../../shared/values";
 import { setIDBConnectionExists } from "../notifications/variants/idb";
-import { TopHatDexie } from "./database";
+import { DATABASE_NAME, TopHatDexie } from "./database";
 import { handleMigrationsAndUpdates } from "./migrations";
+import { rescueDatabaseContents } from "./rescue";
+import { StorageState } from "./types";
 
 export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
     // Set up IDB, if present
-    let db = new TopHatDexie();
-    let loadedStateFromIDB = false;
-    await db.user
-        .get(StubUserID)
-        .then(async (user) => {
-            if (user) {
-                // IDB contains existing TopHat state
-                if (debug) console.log("Hydrating store from IndexedDB...");
-                await hydrateReduxFromIDB(db);
-                handleMigrationsAndUpdates(user.generation);
-                loadedStateFromIDB = true;
-            }
+    const db = new TopHatDexie();
 
-            const uuid = "" + new Date().getTime() + Math.random();
-            initialiseIDBSyncFromRedux(db, uuid);
-            initialiseIDBListener(db, uuid, debug);
-            setIDBConnectionExists(true);
-        })
-        .catch(async () => {
-            // TODO: tell "there is no data" apart from "the data could not be read". Both end up
-            // here, and both start the app in its tutorial state, so a read that fails against data
-            // that is really there looks to the user like a brand new install. Storage should only
-            // be written when we know the database is empty, rather than when reading it went wrong.
-            if (debug) console.log("IndexedDB connection failed - bypassing initial load...");
-        });
+    let user: User | undefined;
+    try {
+        user = await db.user.get(StubUserID);
 
-    return { db, loadedStateFromIDB };
+        if (user) {
+            // IDB contains existing TopHat state
+            if (debug) console.log("Hydrating store from IndexedDB...");
+            await hydrateReduxFromIDB(db);
+            handleMigrationsAndUpdates(user.generation);
+        }
+    } catch (error) {
+        return { db, storage: await getStorageFailureState(db, error, debug) };
+    }
+
+    const uuid = "" + new Date().getTime() + Math.random();
+    initialiseIDBSyncFromRedux(db, uuid);
+    initialiseIDBListener(db, uuid, debug);
+    setIDBConnectionExists(true);
+
+    const storage: StorageState = user ? { type: "loaded" } : { type: "empty" };
+    return { db, storage };
+};
+
+/**
+ * Tells "there is no data" apart from "the data could not be read", so that a database which is
+ * really there is never written over by the empty state that a failed read would otherwise leave
+ * the app in. `Dexie.exists` opens the database as it stands, without the schema that TopHat has
+ * just failed to open it with, so it answers whether there is anything there to lose.
+ */
+const getStorageFailureState = async (db: TopHatDexie, error: unknown, debug: boolean): Promise<StorageState> => {
+    const description = error instanceof Error ? error.message : "" + error;
+    if (debug) console.log("Could not load data from IndexedDB: " + description);
+
+    // Dexie says the same thing again on a second line, and only the first is worth showing
+    const message = description.split("\n")[0].trim();
+
+    db.close();
+    setIDBConnectionExists(false);
+    const exists = await Dexie.exists(DATABASE_NAME).catch(() => false);
+    if (!exists) return { type: "unavailable", error: message };
+
+    return { type: "unreadable", error: message, rescuedRows: await rescueDatabaseContents() };
 };
 
 type DBDataTables = keyof Omit<DataState, "transaction"> | "transaction_";
