@@ -9,17 +9,46 @@ import { CURRENCY_NOTIFICATION_ID } from "./notifications/types";
 
 const CACHE = new DailyCache<CurrencyExchangeRate[]>("CURRENCY_RATE_CACHE");
 
-const getFromAPI = async (query: string, token: string, key: string): Promise<CurrencyExchangeRate[] | undefined> => {
-    const request = await fetch(`https://www.alphavantage.co/query?function=${query}&apikey=${token}`);
-    const response = await request.json();
+const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+// Free AlphaVantage keys are limited to one request a second, so requests are spaced out rather
+// than fired off in parallel: several synced currencies would otherwise rate limit each other.
+const REQUEST_SPACING_MILLISECONDS = 1000;
+let queue: Promise<unknown> = Promise.resolve();
+// The response is raw JSON from the API, and is checked for the expected shape below
+const queueAPIRequest = (query: string, token: string): Promise<Record<string, any>> => {
+    const response = queue
+        .then(() => fetch(`https://www.alphavantage.co/query?function=${query}&apikey=${token}`))
+        .then((request) => request.json());
+
+    const spacing = () => sleep(REQUEST_SPACING_MILLISECONDS);
+    queue = response.then(spacing, spacing);
+
+    return response;
+};
+
+// A rate limited request still comes back as a 200, with a body holding nothing but an explanation:
+// under "Note" in older versions of the API and under "Information" since. Rather than match on
+// that wording, which has changed before now, anything which is neither the requested data nor an
+// explicit error is taken to be a rate limit and retried after a pause.
+const RATE_LIMIT_RETRY_DELAYS = [1000, 2000, 4000];
+
+const getFromAPI = async (
+    query: string,
+    token: string,
+    key: string,
+    retries: number[] = RATE_LIMIT_RETRY_DELAYS
+): Promise<CurrencyExchangeRate[] | undefined> => {
+    const response = await queueAPIRequest(query, token);
     const data = response[key];
 
     if (data === undefined) {
-        if ((response?.Note as string | undefined)?.endsWith("target a higher API call frequency.")) {
-            // Standard AlphaVantage rate limit is 5 per second - this retries in case of bottlenecks
-            return new Promise((resolve) => setTimeout(() => resolve(getFromAPI(query, token, key)), 60 * 1000));
-        }
-        return undefined;
+        // The daily quota also arrives as a rate limit, so retries are capped and the caller is
+        // eventually told the sync has failed
+        if (response["Error Message"] !== undefined || retries.length === 0) return undefined;
+
+        await sleep(retries[0]);
+        return getFromAPI(query, token, key, retries.slice(1));
     }
 
     const history = toPairs(data).map(([month, values]) => [month, Number((values as any)["4. close"])]) as [
