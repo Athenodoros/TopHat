@@ -4,14 +4,15 @@ import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { formatNumber } from "../../shared/data";
 import { AppSlice, BASE_PATHNAME } from "../app";
-import { DataSlice, subscribeToDataUpdates } from "../data";
+import { DataSlice } from "../data";
 import { updateSyncedCurrencies } from "./currencies";
-import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
-import { setupIDBConnectionAndLoadData } from "./storage";
-import { TopHatDexie } from "./storage/database";
+import { setupStorageAndLoadData } from "./storage";
+import * as DBUtils from "./storage/dropbox";
+import { migrateLegacyDropboxToken } from "./storage/dropbox";
+import { TopHatStorageManager } from "./storage/manager";
 
 const debug = !import.meta.env.PROD;
 
@@ -22,36 +23,26 @@ export const initialiseDemoData = async () => {
 };
 
 export const initialiseAndGetDBConnection = async () => {
-    // AppSlice changes the URL as soon as any action is fired and the reducer runs, so this has to be saved first
-    const maybeDropboxCode = DBUtils.getMaybeDropboxRedirectCode();
-
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
-    // Set up IDB, if present
-    const { db, storage } = await setupIDBConnectionAndLoadData(debug);
+    // Load whatever is already saved in this browser, and keep the store and it in step
+    const { manager, storage } = await setupStorageAndLoadData(debug);
     TopHatDispatch(AppSlice.actions.setStorageState(storage));
 
     // Debug variables
-    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
-    if (debug) Object.assign(window, await getDebugVariablesAsync(db)());
+    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(manager);
+    if (debug) Object.assign(window, await getDebugVariablesAsync(manager)());
 
     // Saved data that can't be read leaves the app on a recovery screen, so nothing else is started
     // up: none of it would be saved, and some of it would write over the data that is still there
     if (storage.type === "unreadable") return;
 
-    // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
-    if (storage.type !== "loaded" && maybeDropboxCode) await initialiseDemoData();
-
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
 
-    // Dropbox setup
-    if (maybeDropboxCode) {
-        if (debug) console.log("Initialising Dropbox state from redirect...");
-        DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
-    }
-    initialiseMaybeDropboxSyncFromRedux();
+    // A Dropbox account linked by an earlier version becomes a sync target of its own
+    migrateLegacyDropboxToken();
 
     // Currency syncs
     updateSyncedCurrencies();
@@ -60,17 +51,14 @@ export const initialiseAndGetDBConnection = async () => {
     TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 };
 
-const initialiseMaybeDropboxSyncFromRedux = () =>
-    subscribeToDataUpdates(() => setTimeout(() => DBUtils.maybeSaveDataToDropbox(), 0));
-
-const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
+const getDebugVariablesAsync = (manager: TopHatStorageManager) => async () => {
     if (!debug)
         console.warn(
             "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
         );
 
     return {
-        db,
+        manager,
         TopHatStore,
         TopHatDispatch,
         AppSlice,

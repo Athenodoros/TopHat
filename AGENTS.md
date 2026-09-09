@@ -4,7 +4,7 @@ This file provides guidance to coding agents when working with code in this repo
 
 ## What this is
 
-TopHat is an offline-first personal finance web app: no backend, all state lives client-side in Redux and is persisted to IndexedDB (via dexie.js). It's a static SPA built with Vite/React/TypeScript, deployed to GitHub Pages at a `/TopHat` base path. Multi-currency support and CSV bank-statement import are core features.
+TopHat is an offline-first personal finance web app: no backend, all state lives client-side in Redux and is persisted to IndexedDB (and optionally Dropbox) through `personal-storage-wrapper`. It's a static SPA built with Vite/React/TypeScript, deployed to GitHub Pages at a `/TopHat` base path. Multi-currency support and CSV bank-statement import are core features.
 
 ## Commands
 
@@ -18,7 +18,9 @@ There is no separate lint script; type errors surface via `tsc` (run as part of 
 
 Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`). Vitest config is in `vitest.config.ts`, separate from `vite.config.ts`.
 
-The persistence tests (`src/state/logic/storage/`) boot the whole app against an in-memory IndexedDB (`fake-indexeddb`). `database.testing.ts` holds their fixtures and their reads and writes of the database, written against the raw IndexedDB API rather than Dexie so that they still describe the stored data once Dexie is replaced; `database.test.ts` covers those utilities and `index.test.ts` the loading and saving itself. Evaluating the app's module graph takes about half a minute the first time in a file, so `index.test.ts` does it once at collection time and each subsequent boot is fast.
+The persistence tests (`src/state/logic/storage/`) boot the whole app against an in-memory IndexedDB (`fake-indexeddb`). `database.testing.ts` holds their fixtures and their reads and writes of both the current store and the legacy Dexie database, written against the raw IndexedDB API rather than through the library that writes them, so that they describe the stored data rather than one library's view of it; `database.test.ts` covers those utilities and `index.test.ts` the loading and saving itself. Evaluating the app's module graph takes about half a minute the first time in a file, so `index.test.ts` does it once at collection time and each subsequent boot is fast.
+
+`vitest.setup.ts` replaces `BroadcastChannel` with an in-process implementation, because jsdom has none and Node's own throws on every message once jsdom has replaced the global `Event`. That is what lets a test boot the app twice and have the two talk to each other the way two tabs would.
 
 ## Architecture
 
@@ -35,11 +37,16 @@ Both slices' reducers are monkey-patched after `createSlice` (reassigning `Slice
 
 ### Persistence and startup (`src/state/logic/`)
 
--   `storage/database.ts` defines the Dexie (IndexedDB) schema (`TopHatDexie`), one table per entity type (note: `transaction` is stored as `transaction_` because of a Dexie name clash).
--   `storage/index.ts` owns the IndexedDB connection: hydrating Redux from it on boot, running data migrations (`storage/migrations.ts`), and the bidirectional sync between Redux and IDB (`subscribeToDataUpdates` from `state/data/index.ts` pushes changes to IDB; Dexie's `dexie-observable` change stream pushes other tabs' changes back).
--   `startup.ts` orchestrates boot: set up storage as above, otherwise fall back to demo data (`state/data/demo/`) or an empty tutorial state, then wire up notifications, Dropbox and currency syncs.
+Data is stored through `personal-storage-wrapper`, a sibling library of Henry's installed as a git dependency pinned to a commit. It ships TypeScript source rather than a build, so the import is resolved by an alias in `vite.config.ts`, `vitest.config.ts` and `tsconfig.json`. It holds one value across a set of "targets", with cross-tab updates over `BroadcastChannel`.
+
+-   `storage/manager.ts` holds the single manager and its configuration: the value is a `ListDataState`, the store id is `tophat`, and the targets are saved in localStorage under `tophat-syncs` (which is where a Dropbox refresh token now lives). The two conflict resolvers are here: the newest copy wins on startup, and the browser's copy wins on an update unless this is a fresh install.
+-   `storage/index.ts` owns the boot sequence and the two-way wiring between Redux and the manager. `subscribeToDataUpdates` pushes changes out; `onValueUpdate` brings changes from other tabs and targets back in, behind a flag that stops each echoing the other.
+-   `storage/legacy.ts` reads the Dexie database (`TopHatDatabase`, `transaction` stored as `transaction_`) that earlier versions wrote. It is read once, when the new store is empty, and then kept until ten boots over at least a fortnight have loaded from the new store, at which point it is deleted. The countdown is in localStorage under `tophat-legacy-migration`.
+-   `storage/migrations.ts` holds the data migrations, keyed off `user.generation`. Data written by a newer generation than `CURRENT_GENERATION` is treated as unreadable and left alone.
+-   `storage/dropbox.ts` links a Dropbox account through a popup, which comes back to the static `public/dropbox.html` (the redirect URI must be registered in the Dropbox App Console). It also turns a refresh token saved by the old version into a sync target on the first boot that can reach the API.
+-   `startup.ts` orchestrates boot: set up storage as above, otherwise fall back to demo data (`state/data/demo/`) or an empty tutorial state, then wire up notifications, the Dropbox token migration and currency syncs.
 -   `import.ts` / `statement/` handle bank statement CSV parsing and account-format detection.
--   `currencies.ts` / `dropbox.ts` handle currency rate syncing and optional Dropbox-based cloud backup.
+-   `currencies.ts` handles currency rate syncing.
 -   `notifications/` is a pluggable system for user-facing alerts (each "variant" in `notifications/variants/` watches for a specific condition, e.g. stale currency rates, IDB unavailable, Dropbox sync issues).
 
 ### UI layers

@@ -1,6 +1,9 @@
 import { TopHatDispatch } from "../..";
 import { DataSlice } from "../../data";
 
+/** The data version this build of the app understands. Data written by a later one is not read. */
+export const CURRENT_GENERATION = 5;
+
 // This handles data changes over time, or required cache refreshes
 export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
     let generation = oldGeneration ?? 0;

@@ -1,6 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd } from "lodash";
-import { StorageState } from "../logic/storage/types";
+import { StorageState, SyncDisplayState } from "../logic/storage/types";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
@@ -19,6 +19,8 @@ interface AppState {
     page: PageStateType;
     // How the attempt to load saved data went, and left alone by everything else in here
     storage: StorageState;
+    // The targets the data is synced to, as reported by the storage layer
+    syncs: SyncDisplayState[];
 }
 
 export const BASE_PATHNAME = "/TopHat";
@@ -35,7 +37,7 @@ const getDefaultPageState = (page: PageStateType | null) => ({
     page: page || DefaultPages["summary"],
 });
 
-export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage"> => {
+export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage" | "syncs"> => {
     const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
 
     if (page === "dropbox")
@@ -51,7 +53,7 @@ export const getAppStateFromPagePath = (location: Location): Omit<AppState, "sto
     return getDefaultPageState(get(DefaultPages, page, DefaultPages.summary));
 };
 
-const initialState: AppState = { ...getAppStateFromPagePath(window.location), storage: { type: "loading" } };
+const initialState: AppState = { ...getAppStateFromPagePath(window.location), storage: { type: "loading" }, syncs: [] };
 
 export const AppSlice = createSlice({
     name: "app",
@@ -63,7 +65,11 @@ export const AppSlice = createSlice({
         setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => {
             state.page = page;
         },
-        setPageStateFromPath: (state) => ({ ...getAppStateFromPagePath(window.location), storage: state.storage }),
+        setPageStateFromPath: (state) => ({
+            ...getAppStateFromPagePath(window.location),
+            storage: state.storage,
+            syncs: state.syncs,
+        }),
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),
@@ -127,9 +133,13 @@ export const AppSlice = createSlice({
             dialog: DefaultDialogs,
             page,
             storage: state.storage,
+            syncs: state.syncs,
         }),
         setStorageState: (state, { payload }: PayloadAction<StorageState>) => {
             state.storage = payload;
+        },
+        setSyncStates: (state, { payload }: PayloadAction<SyncDisplayState[]>) => {
+            state.syncs = payload;
         },
     },
 });

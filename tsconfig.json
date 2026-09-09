@@ -16,8 +16,12 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "personal-storage-wrapper": ["node_modules/personal-storage-wrapper/personal-storage-wrapper/src/main.ts"]
+        },
         "types": ["vite-plugin-pwa/client", "vite-plugin-pwa/vanillajs"]
     },
-    "include": ["src"],
+    "include": ["src", "vitest.setup.ts"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

@@ -1,139 +1,183 @@
-import Dexie from "dexie";
-import { IDatabaseChange } from "dexie-observable/api";
-import { uniq } from "lodash-es";
+/**
+ * Boot: finding whatever data is already in the browser, getting it into the store, and keeping the
+ * two in step from then on.
+ *
+ * The data lives in a personal-storage-wrapper manager, which holds one value - the lists that
+ * `setFromIndexedDB` takes - across a set of targets. There is always an IndexedDB target, and there
+ * may also be a Dropbox one. Anything left in the database the old Dexie layer wrote is read once,
+ * copied into the new store, and then kept untouched until the rule in `legacy.ts` says it can go.
+ */
+
+import { DefaultTarget, DropboxTarget, PersonalStorageManager, Sync } from "personal-storage-wrapper";
 import { TopHatDispatch, TopHatStore } from "../..";
-import { zipObject } from "../../../shared/data";
-import { DataSlice, ListDataState, subscribeToDataUpdates } from "../../data";
-import { DataKeys, DataState, StubUserID, User } from "../../data/types";
-import { ID } from "../../shared/values";
+import { AppSlice } from "../../app";
+import { DataSlice, initialTutorialState, ListDataState, subscribeToDataUpdates } from "../../data";
+import { DROPBOX_NOTIFICATION_ID } from "../notifications/types";
 import { setIDBConnectionExists } from "../notifications/variants/idb";
-import { DATABASE_NAME, TopHatDexie } from "./database";
-import { handleMigrationsAndUpdates } from "./migrations";
-import { rescueDatabaseContents } from "./rescue";
-import { StorageState } from "./types";
+import { readLegacyDatabase, recordBootAndMaybeDeleteLegacyDatabase, setMigrationRecord } from "./legacy";
+import { CURRENT_GENERATION, handleMigrationsAndUpdates } from "./migrations";
+import {
+    getDefaultSyncs,
+    getSyncData,
+    latestTimestampWins,
+    remoteWinsOverFreshInstall,
+    saveSyncData,
+    setStorageManager,
+    STORAGE_ID,
+    toListDataState,
+    TopHatStorageManager,
+} from "./manager";
+import { setRescuedContents } from "./rescue";
+import { StorageState, SyncDisplayState } from "./types";
 
-export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
-    // Set up IDB, if present
-    const db = new TopHatDexie();
+export const setupStorageAndLoadData = async (
+    debug: boolean
+): Promise<{ manager: TopHatStorageManager; storage: StorageState }> => {
+    let usedDefault = false;
+    let loadedFromLegacy = false;
+    let idbError: string | null = null;
 
-    let user: User | undefined;
-    try {
-        user = await db.user.get(StubUserID);
+    const manager = await PersonalStorageManager.create<ListDataState>(
+        // Only reached when every target is empty or unreadable, which is where a database left by
+        // the Dexie version of the app gets picked up
+        async () => {
+            usedDefault = true;
 
-        if (user) {
-            // IDB contains existing TopHat state
-            if (debug) console.log("Hydrating store from IndexedDB...");
-            await hydrateReduxFromIDB(db);
-            handleMigrationsAndUpdates(user.generation);
+            const legacy = await readLegacyDatabase().catch(() => null);
+            if (legacy) {
+                if (debug) console.log("Loading data left by an earlier version of TopHat...");
+                loadedFromLegacy = true;
+                return legacy;
+            }
+
+            return toListDataState(initialTutorialState);
+        },
+        {
+            id: STORAGE_ID,
+            getSyncData,
+            saveSyncData,
+            getDefaultSyncs,
+
+            // Cross-tab updates come over the broadcast channel, and TopHat has never polled Dropbox
+            pollPeriodInSeconds: null,
+
+            handleAllEmptyAndFailedSyncsOnStartup: async (results) => {
+                const failure = results.find(({ sync, value }) => sync.target.type === "indexeddb" && value.error);
+                if (failure) idbError = describeIDBFailure(failure.value.error!);
+
+                return { behaviour: "DEFAULT" };
+            },
+            resolveConflictingSyncValuesOnStartup: latestTimestampWins,
+            resolveConflictingSyncsUpdate: remoteWinsOverFreshInstall,
+
+            // Wired here rather than afterwards, because a conflict between targets is resolved
+            // after `create` has already returned with the first value it found
+            onValueUpdate: (value, origin) => {
+                if (origin === "CREATION" || origin === "LOCAL") return;
+
+                if (debug) console.log("Updating store from saved data (" + origin + ")...");
+                applyValueFromStorage(value);
+            },
+            onSyncStatesUpdate: (syncs) => TopHatDispatch(AppSlice.actions.setSyncStates(describeSyncs(syncs))),
+            handleSyncOperationLog: ({ sync, stage }) => {
+                if (sync.target.type === "indexeddb") {
+                    if (stage === "ERROR" || stage === "OFFLINE") setIDBConnectionExists(false);
+                    if (stage === "SUCCESS") setIDBConnectionExists(true);
+                }
+
+                // Being offline is not a failure - the old app skipped saves to Dropbox entirely
+                if (sync.target.type === "dropbox" && (stage === "ERROR" || stage === "SUCCESS"))
+                    TopHatDispatch(
+                        DataSlice.actions.updateNotificationState({
+                            id: DROPBOX_NOTIFICATION_ID,
+                            contents: stage === "ERROR" ? "" : null,
+                        })
+                    );
+            },
         }
-    } catch (error) {
-        return { db, storage: await getStorageFailureState(db, error, debug) };
+    );
+    setStorageManager(manager);
+
+    const value = manager.getValue();
+    const generation = value.user[0]?.generation ?? 0;
+
+    /**
+     * Data written by a later version of the app, which this one has no migrations for. It is left
+     * exactly as it is: nothing is wired up, so nothing can be written over it.
+     */
+    if (generation > CURRENT_GENERATION) {
+        setRescuedContents(value);
+        setIDBConnectionExists(true);
+
+        return {
+            manager,
+            storage: {
+                type: "unreadable",
+                error: `This data was written by a newer version of TopHat (generation ${generation}, and this version reads ${CURRENT_GENERATION}).`,
+                rescuedRows: countRows(value),
+            },
+        };
     }
 
-    const uuid = "" + new Date().getTime() + Math.random();
-    initialiseIDBSyncFromRedux(db, uuid);
-    initialiseIDBListener(db, uuid, debug);
-    setIDBConnectionExists(true);
+    applyValueFromStorage(value);
 
-    const storage: StorageState = user ? { type: "loaded" } : { type: "empty" };
-    return { db, storage };
+    const beforeMigrations = TopHatStore.getState().data;
+    handleMigrationsAndUpdates(generation);
+    const migrated = TopHatStore.getState().data !== beforeMigrations;
+
+    subscribeToDataUpdates(() => {
+        if (applyingFromStorage) return;
+
+        setTimeout(() => manager.setValue(toListDataState(TopHatStore.getState().data)), 0);
+    });
+
+    // The legacy copy was written into the new store as it was read, and the migrated one is the
+    // one worth keeping. Nothing has been saved yet if migrations ran before the listener was wired.
+    if (migrated || loadedFromLegacy) manager.setValue(toListDataState(TopHatStore.getState().data));
+
+    if (loadedFromLegacy) setMigrationRecord({ migratedAt: new Date().toISOString(), boots: 1 });
+    else if (!usedDefault) await recordBootAndMaybeDeleteLegacyDatabase();
+
+    setIDBConnectionExists(idbError === null);
+    const storage: StorageState = idbError
+        ? { type: "unavailable", error: idbError }
+        : usedDefault && !loadedFromLegacy
+        ? { type: "empty" }
+        : { type: "loaded" };
+
+    return { manager, storage };
 };
 
 /**
- * Tells "there is no data" apart from "the data could not be read", so that a database which is
- * really there is never written over by the empty state that a failed read would otherwise leave
- * the app in. `Dexie.exists` opens the database as it stands, without the schema that TopHat has
- * just failed to open it with, so it answers whether there is anything there to lose.
+ * Applying a value from storage dispatches into the store, which fires the same listeners a user
+ * edit does. Without this flag every value arriving from another tab would be sent straight back
+ * out again as a write. It is read synchronously, because the listener runs inside the reducer.
  */
-const getStorageFailureState = async (db: TopHatDexie, error: unknown, debug: boolean): Promise<StorageState> => {
-    const description = error instanceof Error ? error.message : "" + error;
-    if (debug) console.log("Could not load data from IndexedDB: " + description);
-
-    // Dexie says the same thing again on a second line, and only the first is worth showing
-    const message = description.split("\n")[0].trim();
-
-    db.close();
-    setIDBConnectionExists(false);
-    const exists = await Dexie.exists(DATABASE_NAME).catch(() => false);
-    if (!exists) return { type: "unavailable", error: message };
-
-    return { type: "unreadable", error: message, rescuedRows: await rescueDatabaseContents() };
+let applyingFromStorage = false;
+const applyValueFromStorage = (value: ListDataState) => {
+    applyingFromStorage = true;
+    try {
+        TopHatDispatch(DataSlice.actions.setFromIndexedDB(value));
+    } finally {
+        applyingFromStorage = false;
+    }
 };
 
-type DBDataTables = keyof Omit<DataState, "transaction"> | "transaction_";
-const hydrateReduxFromIDB = async (db: TopHatDexie) => {
-    const values = await Promise.all(
-        DataKeys.map(
-            (name) => db[name === "transaction" ? "transaction_" : (name as DBDataTables)].toArray() as Promise<unknown>
-        )
+const describeSyncs = (syncs: Sync<DefaultTarget>[]): SyncDisplayState[] =>
+    syncs.map((sync) => ({
+        type: sync.target.type,
+        name: sync.target instanceof DropboxTarget ? sync.target.user.name : undefined,
+        email: sync.target instanceof DropboxTarget ? sync.target.user.email : undefined,
+        desynced: sync.desynced === true,
+    }));
+
+const describeIDBFailure = (error: string) =>
+    error === "OFFLINE"
+        ? "TopHat could not open the browser's data store, perhaps because it is running in Private Browsing mode."
+        : "TopHat could not read the browser's data store: " + error;
+
+const countRows = (value: ListDataState) =>
+    Object.values(value as unknown as Record<string, unknown[]>).reduce(
+        (total, rows) => total + (rows?.length ?? 0),
+        0
     );
-
-    TopHatDispatch(DataSlice.actions.setFromIndexedDB(zipObject(DataKeys, values) as unknown as ListDataState));
-};
-
-const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) => {
-    let syncHasRun = false;
-
-    subscribeToDataUpdates((previous) =>
-        setTimeout(() => {
-            db.transaction(
-                "rw!",
-                db.tables.filter(({ name }) => !name.startsWith("_")),
-                (tx) => {
-                    (tx as any).source = uuid;
-
-                    const state = TopHatStore.getState().data;
-                    DataKeys.forEach((key) => {
-                        if (syncHasRun && previous && previous[key] === state[key]) return;
-
-                        if (!syncHasRun) {
-                            (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
-                                state[key].ids.map((id) => state[key].entities[id]!)
-                            );
-                            return;
-                        }
-
-                        const ids = uniq((previous ? previous[key].ids : []).concat(state[key].ids)) as ID[];
-                        const deleted = previous
-                            ? ids.filter(
-                                  (id) =>
-                                      previous[key].entities[id] !== undefined && state[key].entities[id] === undefined
-                              )
-                            : [];
-                        const updated = ids.filter(
-                            (id) =>
-                                state[key].entities[id] &&
-                                (!previous || previous[key].entities[id] !== state[key].entities[id])
-                        );
-
-                        if (deleted.length) db[key === "transaction" ? "transaction_" : key].bulkDelete(deleted);
-                        if (updated.length)
-                            (db[key === "transaction" ? "transaction_" : key] as Dexie.Table).bulkPut(
-                                updated.map((id) => state[key].entities[id]!)
-                            );
-                    });
-
-                    syncHasRun = true;
-                }
-            );
-        }, 0)
-    );
-};
-
-const initialiseIDBListener = (db: TopHatDexie, uuid: string, debug: boolean) => {
-    let running: IDatabaseChange[] = [];
-    db.on("changes", (changes, partial) => {
-        if (partial) {
-            running = running.concat(changes);
-            return;
-        } else {
-            changes = running.concat(changes);
-            running = [];
-        }
-
-        if (changes.some((change) => change.source !== uuid)) {
-            if (debug) console.log("Updating Redux from IDB...");
-            hydrateReduxFromIDB(db);
-        }
-    });
-};

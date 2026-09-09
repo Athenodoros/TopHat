@@ -34,7 +34,7 @@ import { DateTime } from "luxon";
 import { AnyAction } from "redux";
 import { applyPatch, createPatch } from "rfc6902";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
-import { CURRENCY_NOTIFICATION_ID, DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
+import { CURRENCY_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -155,7 +155,7 @@ export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> | undefined ? T[] : never;
 };
 
-const initialTutorialState: DataState = {
+export const initialTutorialState: DataState = {
     ...DataBaseline,
     user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
 };
@@ -533,12 +533,6 @@ export const DataSlice = createSlice({
             });
 
             rewindDisplaySpec = { message: "Notification state toggled", suppressSnack: true };
-        },
-
-        removeDropoxSync: (state) => {
-            state.user.entities[StubUserID]!.dropbox = undefined;
-            adapters.notification.removeOne(state.notification, DROPBOX_NOTIFICATION_ID);
-            rewindDisplaySpec = { message: "Dropbox sync removed!" };
         },
 
         createInitialPatchState: (state) => {

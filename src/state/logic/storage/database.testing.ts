@@ -1,17 +1,21 @@
 /**
- * Test-only access to the IndexedDB database that TopHat persists into, along with a small set of
+ * Test-only access to the two places TopHat's data lives in the browser, along with a small set of
  * saved data to run tests against.
  *
- * These utilities are written against the raw IndexedDB API rather than Dexie, so that they
- * describe what is actually left in the browser rather than what one particular library makes of
- * it. That way they can outlive the current storage layer: when `database.ts` is rewritten, these
- * are the tests that say whether existing users' data still loads.
+ * There are two of them because of the move off Dexie. The store is where data is saved today: one
+ * compressed row, written by personal-storage-wrapper. The database is the one the Dexie version
+ * wrote, one table per entity type, which is still read on the first boot after the upgrade and is
+ * how a legacy install is set up in these tests.
+ *
+ * Both are written against the raw IndexedDB API rather than through the library that writes them,
+ * so that they describe what is actually left in the browser rather than what one particular
+ * library makes of it. That way they outlive the storage layer they were written for.
  */
 
-// Dexie reads `indexedDB` off the global when it is first imported, so the in-memory implementation
-// has to be installed before a test file pulls in any of the app
+// The in-memory implementation has to be installed before a test file pulls in any of the app
 import "fake-indexeddb/auto";
 
+import { gunzipSync, gzipSync } from "node:zlib";
 import { sortBy } from "lodash-es";
 import type { ListDataState } from "../../data";
 import type {
@@ -29,7 +33,7 @@ import type {
 import { getCurrentMonth, getCurrentMonthString, getTodayString, parseDate, SDate, STime } from "../../shared/values";
 
 /**
- * Schema
+ * The legacy Dexie schema
  */
 export const DATABASE_NAME = "TopHatDatabase";
 
@@ -180,13 +184,101 @@ export const writeToDatabase = async (data: Partial<ListDataState>, schema: Data
     db.close();
 };
 
-export const deleteDatabase = () =>
+export const deleteLegacyDatabase = () =>
     new Promise<void>((resolve, reject) => {
         const request = indexedDB.deleteDatabase(DATABASE_NAME);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
         request.onblocked = () => reject(new Error("Blocked deleting " + DATABASE_NAME + " by an open connection"));
     });
+
+/** Whether a database is there at all, without creating one by asking */
+export const legacyDatabaseExists = async () => {
+    const databases = await indexedDB.databases();
+    return databases.some(({ name }) => name === DATABASE_NAME);
+};
+
+/**
+ * The store
+ *
+ * One row of gzipped JSON, under a fixed key so that it is findable whatever else has been lost.
+ */
+export const STORE_DATABASE_NAME = "personal-storage-wrapper";
+export const STORE_TABLE_NAME = "stores";
+export const STORE_KEY = "tophat";
+export const SYNC_CONFIG_KEY = "tophat-syncs";
+export const MIGRATION_RECORD_KEY = "tophat-legacy-migration";
+
+const openStore = () =>
+    new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open(STORE_DATABASE_NAME, 1);
+
+        request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains(STORE_TABLE_NAME))
+                request.result.createObjectStore(STORE_TABLE_NAME, { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("Blocked opening " + STORE_DATABASE_NAME));
+    });
+
+/** What TopHat has saved, or null when it has saved nothing */
+export const readFromStore = async (): Promise<ListDataState | null> => {
+    const db = await openStore();
+
+    const row = await runTransaction(db, [STORE_TABLE_NAME], "readonly", (tx) =>
+        tx.objectStore(STORE_TABLE_NAME).get(STORE_KEY)
+    );
+    db.close();
+
+    const stored = row.result as { buffer: ArrayBuffer } | undefined;
+    if (!stored) return null;
+
+    return sortLists(JSON.parse(gunzipSync(Buffer.from(stored.buffer)).toString()) as Partial<ListDataState>);
+};
+
+/** Data left behind by a previous session, written before any app code has run */
+export const writeToStore = async (data: Partial<ListDataState>, timestamp: Date = new Date()) => {
+    const db = await openStore();
+
+    const buffer = new Uint8Array(gzipSync(Buffer.from(JSON.stringify(sortLists(data))))).buffer;
+    await runTransaction(db, [STORE_TABLE_NAME], "readwrite", (tx) =>
+        tx.objectStore(STORE_TABLE_NAME).put({ id: STORE_KEY, buffer, timestamp })
+    );
+    db.close();
+};
+
+/**
+ * Emptied rather than deleted, because a boot leaves its connection to the store open the way an
+ * open tab would, and a delete would sit blocked behind it.
+ */
+export const clearStore = async () => {
+    const db = await openStore();
+    await runTransaction(db, [STORE_TABLE_NAME], "readwrite", (tx) => tx.objectStore(STORE_TABLE_NAME).clear());
+    db.close();
+
+    localStorage.clear();
+};
+
+/**
+ * The record of when the legacy database was copied across, which decides when it can be deleted
+ */
+export interface MigrationRecord {
+    migratedAt: string;
+    boots: number;
+}
+
+export const getMigrationRecord = (): MigrationRecord | null => {
+    const stored = localStorage.getItem(MIGRATION_RECORD_KEY);
+    return stored ? (JSON.parse(stored) as MigrationRecord) : null;
+};
+
+export const setMigrationRecord = (record: MigrationRecord | null) =>
+    record === null
+        ? localStorage.removeItem(MIGRATION_RECORD_KEY)
+        : localStorage.setItem(MIGRATION_RECORD_KEY, JSON.stringify(record));
+
+export const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
 /**
  * Timing

@@ -1,17 +1,30 @@
 import { CheckCircle } from "@mui/icons-material";
 import { Button, Card, CircularProgress, Typography } from "@mui/material";
 import { Box } from "@mui/system";
-import React from "react";
-import { TopHatDispatch } from "../../state";
-import { DataSlice } from "../../state/data";
-import { useUserData } from "../../state/data/hooks";
-import { redirectToDropboxAuthURI } from "../../state/logic/dropbox";
+import React, { useCallback, useState } from "react";
+import { setPopupAlert } from "../../app/popups";
+import { linkDropboxInPopup, unlinkDropbox } from "../../state/logic/storage/dropbox";
+import { useSelector } from "../../state/shared/hooks";
 import { Greys, Intents } from "../../styles/colours";
 import DropboxLogo from "./dropbox.svg";
 import { SettingsDialogContents, SettingsDialogDivider, SettingsDialogPage } from "./shared";
 
 export const DialogStorageContents: React.FC = () => {
-    const config = useUserData((user) => user.dropbox);
+    const dropbox = useSelector((state) => state.app.syncs.find(({ type }) => type === "dropbox"));
+    const [linking, setLinking] = useState(false);
+
+    const link = useCallback(() => {
+        setLinking(true);
+        linkDropboxInPopup()
+            .then((linked) => {
+                if (!linked)
+                    setPopupAlert({
+                        message: "Dropbox sign-in was cancelled, or the popup was blocked.",
+                        severity: "warning",
+                    });
+            })
+            .finally(() => setLinking(false));
+    }, []);
 
     return (
         <SettingsDialogPage title="Cloud Data Storage">
@@ -40,23 +53,23 @@ export const DialogStorageContents: React.FC = () => {
                     }}
                 >
                     <img src={DropboxLogo} />
-                    {config === "loading" ? (
+                    {linking ? (
                         <CircularProgress />
-                    ) : config ? (
+                    ) : dropbox ? (
                         <>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                                 <Typography variant="subtitle2" marginRight={10}>
-                                    {config.name}
+                                    {dropbox.name}
                                 </Typography>
                                 <CheckCircle htmlColor={Intents.success.light} fontSize="small" />
                             </Box>
                             <Typography variant="caption" color={Greys[700]}>
-                                {config.email}
+                                {dropbox.email}
                             </Typography>
-                            <Button onClick={removeDropboxSync}>Remove</Button>
+                            <Button onClick={unlinkDropbox}>Remove</Button>
                         </>
                     ) : (
-                        <Button size="large" onClick={redirectToDropboxAuthURI} variant="outlined">
+                        <Button size="large" onClick={link} variant="outlined">
                             Link Account
                         </Button>
                     )}
@@ -65,5 +78,3 @@ export const DialogStorageContents: React.FC = () => {
         </SettingsDialogPage>
     );
 };
-
-const removeDropboxSync = () => TopHatDispatch(DataSlice.actions.removeDropoxSync());

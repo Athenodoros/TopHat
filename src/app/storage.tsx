@@ -3,7 +3,7 @@ import { ReportProblem } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
-import { deleteDatabase, downloadRescuedDatabaseContents } from "../state/logic/storage/rescue";
+import { deleteAllStoredData, downloadRescuedDatabaseContents } from "../state/logic/storage/rescue";
 import { StorageState } from "../state/logic/storage/types";
 import { Greys } from "../styles/colours";
 
@@ -19,7 +19,7 @@ export const StorageErrorPage: React.FC<{ state: StorageState & { type: "unreada
     const deleteData = useCallback(() => {
         if (!confirming) return setConfirming(true);
 
-        deleteDatabase()
+        deleteAllStoredData()
             .then(() => window.location.reload())
             .catch((error: Error) => setDeletionError(error.message));
     }, [confirming]);
