@@ -16,7 +16,9 @@ TopHat is an offline-first personal finance web app: no backend, all state lives
 
 There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120) but no format/check script is wired up — format with your editor's Prettier integration or `npx prettier --write`.
 
-Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`).
+Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`). Vitest config is in `vitest.config.ts`, separate from `vite.config.ts`.
+
+The persistence tests (`src/state/logic/storage/`) boot the whole app against an in-memory IndexedDB (`fake-indexeddb`). `database.testing.ts` holds their fixtures and their reads and writes of the database, written against the raw IndexedDB API rather than Dexie so that they still describe the stored data once Dexie is replaced; `database.test.ts` covers those utilities and `index.test.ts` the loading and saving itself. Evaluating the app's module graph takes about half a minute the first time in a file, so `index.test.ts` does it once at collection time and each subsequent boot is fast.
 
 ## Architecture
 
@@ -33,8 +35,9 @@ Both slices' reducers are monkey-patched after `createSlice` (reassigning `Slice
 
 ### Persistence and startup (`src/state/logic/`)
 
--   `database.ts` defines the Dexie (IndexedDB) schema (`TopHatDexie`), one table per entity type (note: `transaction` is stored as `transaction_` because of a Dexie name clash).
--   `startup.ts` orchestrates boot: hydrate Redux from IndexedDB if present, otherwise fall back to demo data (`state/data/demo/`) or an empty tutorial state; wires up bidirectional sync between Redux and IDB (`subscribeToDataUpdates` from `state/data/index.ts` pushes changes to IDB; Dexie's `dexie-observable` change stream can push back).
+-   `storage/database.ts` defines the Dexie (IndexedDB) schema (`TopHatDexie`), one table per entity type (note: `transaction` is stored as `transaction_` because of a Dexie name clash).
+-   `storage/index.ts` owns the IndexedDB connection: hydrating Redux from it on boot, running data migrations (`storage/migrations.ts`), and the bidirectional sync between Redux and IDB (`subscribeToDataUpdates` from `state/data/index.ts` pushes changes to IDB; Dexie's `dexie-observable` change stream pushes other tabs' changes back).
+-   `startup.ts` orchestrates boot: set up storage as above, otherwise fall back to demo data (`state/data/demo/`) or an empty tutorial state, then wire up notifications, Dropbox and currency syncs.
 -   `import.ts` / `statement/` handle bank statement CSV parsing and account-format detection.
 -   `currencies.ts` / `dropbox.ts` handle currency rate syncing and optional Dropbox-based cloud backup.
 -   `notifications/` is a pluggable system for user-facing alerts (each "variant" in `notifications/variants/` watches for a specific condition, e.g. stale currency rates, IDB unavailable, Dropbox sync issues).
