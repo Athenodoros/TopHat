@@ -66,8 +66,8 @@ export const DialogCurrencyContents: React.FC = () => {
                 .
             </Typography>
             <Typography variant="caption" sx={{ marginTop: 8, color: Greys[700], fontStyle: "italic" }}>
-                Note that free AlphaVantage keys are limited to 5 requests per minute, and 500 requests per day: if
-                necessary, TopHat batches requests and waits for capacity.
+                Note that free AlphaVantage keys are limited to one request per second, and 25 requests per day: if
+                necessary, TopHat spaces out requests and waits for capacity.
             </Typography>
             <SettingsDialogDivider />
             <SettingsDialogContents>
