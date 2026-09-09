@@ -14,8 +14,19 @@ import "fake-indexeddb/auto";
 
 import { sortBy } from "lodash-es";
 import type { ListDataState } from "../../data";
-import type { Account, Category, Currency, Institution, Statement, Transaction, User } from "../../data/types";
-import { getCurrentMonthString, getTodayString } from "../../shared/values";
+import type {
+    Account,
+    Category,
+    Currency,
+    Institution,
+    Notification,
+    PatchGroup,
+    Rule,
+    Statement,
+    Transaction,
+    User,
+} from "../../data/types";
+import { getCurrentMonth, getCurrentMonthString, getTodayString, parseDate, SDate, STime } from "../../shared/values";
 
 /**
  * Schema
@@ -178,48 +189,11 @@ export const deleteDatabase = () =>
     });
 
 /**
- * Another tab
- */
-const ANOTHER_TAB = "another-tab";
-const CHANGE_TYPE_UPDATE = 2;
-
-/**
- * Writes rows the way a second tab would: the rows themselves, plus an entry in the change log that
- * other tabs read, plus the localStorage write that wakes them up to read it. The change log entries
- * are whole-object updates - a running tab reloads everything on any change from a source other than
- * itself, so it never looks at the contents.
- */
-export const updateFromAnotherTab = async (data: Partial<ListDataState>) => {
-    const db = await openDatabase();
-    const keys = getStoresWithRows(db, data);
-
-    const changes = await runTransaction(db, keys.map((key) => StoreNames[key]).concat("_changes"), "readwrite", (tx) =>
-        keys.flatMap((key) =>
-            data[key]!.map((row) => {
-                tx.objectStore(StoreNames[key]).put(row);
-                return tx.objectStore("_changes").add({
-                    source: ANOTHER_TAB,
-                    type: CHANGE_TYPE_UPDATE,
-                    table: StoreNames[key],
-                    key: (row as { id: unknown }).id,
-                    mods: row,
-                });
-            })
-        )
-    );
-    db.close();
-
-    const revision = Math.max(...changes.map(({ result }) => Number(result)));
-    const key = "Dexie.Observable/latestRevision/" + DATABASE_NAME;
-    localStorage.setItem(key, "" + revision);
-    window.dispatchEvent(new StorageEvent("storage", { key, newValue: "" + revision }));
-
-    return revision;
-};
-
-/**
  * Timing
  */
+/** Months between a fixture's hard-coded month and this one, which is how far caches roll forward */
+export const getMonthsSince = (month: SDate) => getCurrentMonth().diff(parseDate(month), "months").months;
+
 export const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 /** Saves are fired from a `setTimeout` and never awaited, so tests poll for them */
@@ -320,3 +294,210 @@ export const getSavedData = (user: Partial<User> = {}): ListDataState => ({
     notification: [],
     patches: [],
 });
+
+/**
+ * Saved data from an old session
+ *
+ * Every date here is written out rather than taken from the clock, so this is what a session from
+ * some months ago left behind: caches that have to be rolled forward on load, and everything else,
+ * which has to survive that untouched. It also fills in the fields that a new install never has -
+ * statement formats, budgets, currency syncs, rules, patches, a Dropbox token - because those are
+ * the ones a rewrite of the storage layer can quietly drop without any test noticing.
+ */
+export const OldMonth = "2021-03-01" as SDate;
+const OldDay = "2021-03-17" as SDate;
+const EarlierDay = "2021-02-26" as SDate;
+const OldTime = "2021-03-17T09:12:44.000+11:00" as STime;
+
+export const OldInstitution: Institution = {
+    id: 1,
+    name: "Bank of Elsewhere",
+    colour: "#1976d2",
+    icon: "data:image/png;base64,iVBORw0KGgo=",
+};
+
+export const OldAccount: Account = {
+    id: 1,
+    name: "Everyday Account",
+    website: "https://bank.example",
+    isInactive: false,
+    category: 1,
+    institution: 1,
+    openDate: "2019-11-04" as SDate,
+    firstTransactionDate: EarlierDay,
+    lastTransactionDate: OldDay,
+    lastUpdate: OldDay,
+    balances: { 1: { start: OldMonth, original: [1234.5, 1000], localised: [1234.5, 1000] } },
+    transactions: { start: OldMonth, credits: [0, 4000], debits: [32.5, 0], count: 2 },
+    lastStatementFilePatternReset: OldTime,
+    statementFilePattern: "everyday-(\\d+).csv",
+    statementFilePatternManual: "everyday-2021-03.csv",
+    lastStatementFormat: {
+        parse: { header: true, delimiter: ",", dateFormat: "dd/MM/yyyy" },
+        columns: [
+            { id: "col-1", name: "Date", type: "date", nullable: false },
+            { id: "col-2", name: "Description", type: "string", nullable: false },
+            { id: "col-3", name: "Amount", type: "number", nullable: true },
+        ],
+        mapping: {
+            date: "col-1",
+            reference: "col-2",
+            longReference: "col-2",
+            value: { type: "value", value: "col-3", flip: false },
+            currency: { type: "constant", currency: 1 },
+        },
+        date: OldDay,
+        reverse: true,
+    },
+};
+
+export const OldHousehold: Category = {
+    id: 1,
+    name: "Household",
+    colour: "#00897b",
+    hierarchy: [],
+    firstTransactionDate: OldDay,
+    lastTransactionDate: OldDay,
+    transactions: { start: OldMonth, credits: [], debits: [32.5, 0], count: 1 },
+};
+export const OldGroceries: Category = {
+    id: 2,
+    name: "Groceries",
+    colour: "#26a69a",
+    hierarchy: [1],
+    firstTransactionDate: OldDay,
+    lastTransactionDate: OldDay,
+    transactions: { start: OldMonth, credits: [], debits: [32.5, 0], count: 1 },
+    budgets: { start: OldMonth, strategy: "rollover", base: -400, values: new Array(24).fill(-400) },
+};
+export const OldIncome: Category = {
+    id: 3,
+    name: "Income",
+    colour: "#43a047",
+    hierarchy: [],
+    firstTransactionDate: EarlierDay,
+    lastTransactionDate: EarlierDay,
+    transactions: { start: OldMonth, credits: [0, 4000], debits: [], count: 1 },
+};
+
+export const OldCurrency: Currency = {
+    id: 1,
+    ticker: "AUD",
+    name: "Australian Dollars",
+    symbol: "AU$",
+    colour: "#7157D9",
+    start: "2021-02-01" as SDate,
+    rates: [
+        { month: OldMonth, value: 0.78 },
+        { month: "2021-02-01" as SDate, value: 0.76 },
+    ],
+    sync: { type: "currency", ticker: "AUD" },
+    transactions: {
+        start: OldMonth,
+        credits: [0, 4000],
+        debits: [32.5, 0],
+        count: 2,
+        localCredits: [0, 4000],
+        localDebits: [32.5, 0],
+    },
+};
+
+export const OldRule: Rule = {
+    id: 1,
+    name: "Supermarkets",
+    index: 1,
+    isInactive: false,
+    reference: ["WOOLWORTHS", "COLES"],
+    regex: false,
+    longReference: ["WOOLWORTHS \\d+"],
+    longReferenceRegex: true,
+    min: -500,
+    max: null,
+    accounts: [1],
+    summary: "Supermarket",
+    description: "Matched by the supermarkets rule",
+    category: 2,
+};
+
+export const OldStatement: Statement = {
+    id: 1,
+    name: "everyday-2021-03.csv",
+    account: 1,
+    date: OldDay,
+    contents: "Date,Description,Amount\n17/03/2021,WOOLWORTHS 1234,-32.50\n",
+};
+
+export const OldGroceriesTransaction: Transaction = {
+    id: 1,
+    date: OldDay,
+    reference: "WOOLWORTHS",
+    longReference: "WOOLWORTHS 1234 SYDNEY AU",
+    summary: "Supermarket",
+    description: "Matched by the supermarkets rule",
+    value: -32.5,
+    recordedBalance: 1234.5,
+    balance: 1234.5,
+    account: 1,
+    category: 2,
+    currency: 1,
+    statement: 1,
+};
+export const OldSalaryTransaction: Transaction = {
+    id: 2,
+    date: EarlierDay,
+    reference: "SALARY",
+    longReference: "SALARY PAYMENT EMPLOYER PTY LTD",
+    summary: null,
+    description: null,
+    value: 4000,
+    recordedBalance: null,
+    balance: 1267,
+    account: 1,
+    category: 3,
+    currency: 1,
+    statement: 0,
+};
+
+/**
+ * The milestone matches the balance above, and the account is already marked as out of date, so
+ * that loading this data does not set off any of the notification rules
+ */
+export const OldUser: User = {
+    id: 0,
+    generation: 5,
+    currency: 1,
+    isDemo: false,
+    tutorial: false,
+    start: "2019-11-04" as SDate,
+    alphavantage: "demo",
+    lastSyncTime: OldDay,
+    dropbox: { refreshToken: "old-refresh-token", name: "A User", email: "user@example.com" },
+    disabled: ["debt-level"],
+    milestone: 1200,
+    debt: 0,
+    accountOutOfDate: [1],
+    uncategorisedTransactionsAlerted: false,
+};
+
+export const OldNotification: Notification = { id: "dropbox-sync-broken", contents: "" };
+
+export const OldPatch: PatchGroup = {
+    id: "old-patch",
+    date: OldTime,
+    action: "Transaction updated",
+    patches: [{ op: "replace", path: "/transaction/entities/1/value", value: -32.5 }],
+    reverted: false,
+};
+
+export const OldSavedData: ListDataState = {
+    account: [OldAccount],
+    category: [NoCategory, Transfer, OldHousehold, OldGroceries, OldIncome],
+    currency: [OldCurrency],
+    institution: [NoInstitution, OldInstitution],
+    rule: [OldRule],
+    transaction: [OldGroceriesTransaction, OldSalaryTransaction],
+    statement: [{ ...NoStatement, date: OldDay }, OldStatement],
+    user: [OldUser],
+    notification: [OldNotification],
+    patches: [OldPatch],
+};

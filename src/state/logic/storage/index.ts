@@ -31,6 +31,10 @@ export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
             setIDBConnectionExists(true);
         })
         .catch(async () => {
+            // TODO: tell "there is no data" apart from "the data could not be read". Both end up
+            // here, and both start the app in its tutorial state, so a read that fails against data
+            // that is really there looks to the user like a brand new install. Storage should only
+            // be written when we know the database is empty, rather than when reading it went wrong.
             if (debug) console.log("IndexedDB connection failed - bypassing initial load...");
         });
 

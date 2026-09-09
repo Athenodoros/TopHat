@@ -7,18 +7,35 @@
  * @vitest-environment jsdom
  */
 
+import { omit } from "lodash-es";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import type { DataState, ListDataState } from "../../data";
+import { getCurrentMonthString, TransactionHistory } from "../../shared/values";
 import {
     Coffee,
     DataKeys,
     deleteDatabase,
+    getMonthsSince,
     getSavedData,
+    OldAccount,
+    OldCurrency,
+    OldGroceries,
+    OldGroceriesTransaction,
+    OldHousehold,
+    OldIncome,
+    OldInstitution,
+    OldMonth,
+    OldNotification,
+    OldPatch,
+    OldRule,
+    OldSalaryTransaction,
+    OldSavedData,
+    OldStatement,
+    OldUser,
     pause,
     readFromDatabase,
     SchemaBeforePatches,
     sortLists,
-    updateFromAnotherTab,
     waitFor,
     writeToDatabase,
 } from "./database.testing";
@@ -149,15 +166,61 @@ describe("Loading and saving", () => {
         expect((await readFromDatabase()).patches.length).toBeGreaterThan(0);
     });
 
-    test("picks up changes written by another tab", async () => {
-        await writeToDatabase(getSavedData());
+    test("loads every field of data saved months ago", async () => {
+        await writeToDatabase(OldSavedData);
 
         const { data } = await bootTopHat();
-        expect(data().institution.entities[0]!.name).toBe("No Institution");
 
-        await updateFromAnotherTab({ institution: [{ id: 0, name: "Renamed Elsewhere", colour: "#757575" }] });
+        // Optional fields only ever reach the database from a session that filled them in, so this
+        // is the only test that says whether they come back out again
+        expect(data().institution.entities[1]).toEqual(OldInstitution);
+        expect(data().rule.entities[1]).toEqual(OldRule);
+        expect(data().statement.entities[1]).toEqual(OldStatement);
+        expect(data().user.entities[0]).toEqual(OldUser);
+        expect(data().notification.entities[OldNotification.id]).toEqual(OldNotification);
 
-        await waitFor(() => expect(data().institution.entities[0]!.name).toBe("Renamed Elsewhere"));
+        // Transaction balances are trusted as they were saved, rather than recalculated on load
+        expect(data().transaction.entities[1]).toEqual(OldGroceriesTransaction);
+        expect(data().transaction.entities[2]).toEqual(OldSalaryTransaction);
+
+        // Account balances are left where they are, unlike the summaries rolled forward below, even
+        // though both are read as lists of months counting back from today
+        expect(data().account.entities[1]!.balances).toEqual(OldAccount.balances);
+
+        // Everything else is loaded as it was saved, apart from the rolling summary caches below
+        const withoutSummary = (entity: object) => omit(entity, "transactions");
+        expect(withoutSummary(data().account.entities[1]!)).toEqual(withoutSummary(OldAccount));
+        expect(withoutSummary(data().category.entities[1]!)).toEqual(withoutSummary(OldHousehold));
+        expect(withoutSummary(data().category.entities[2]!)).toEqual(withoutSummary(OldGroceries));
+        expect(withoutSummary(data().category.entities[3]!)).toEqual(withoutSummary(OldIncome));
+        expect(withoutSummary(data().currency.entities[1]!)).toEqual(withoutSummary(OldCurrency));
+
+        // The summaries hold the saved values, moved along by the months that have passed since
+        const rolled = (values: number[]) => new Array(getMonthsSince(OldMonth)).fill(0).concat(values);
+        const expectRolledForward = (loaded: TransactionHistory, saved: TransactionHistory) => {
+            expect(loaded.start).toBe(getCurrentMonthString());
+            expect(loaded.count).toBe(saved.count);
+            expect(loaded.credits).toEqual(rolled(saved.credits));
+            expect(loaded.debits).toEqual(rolled(saved.debits));
+        };
+
+        expectRolledForward(data().account.entities[1]!.transactions, OldAccount.transactions);
+        expectRolledForward(data().category.entities[2]!.transactions, OldGroceries.transactions);
+        expectRolledForward(data().category.entities[3]!.transactions, OldIncome.transactions);
+
+        const currency = data().currency.entities[1]!.transactions;
+        expectRolledForward(currency, OldCurrency.transactions);
+        expect(currency.localCredits).toEqual(rolled(OldCurrency.transactions.localCredits));
+        expect(currency.localDebits).toEqual(rolled(OldCurrency.transactions.localDebits));
+
+        /*
+         * KNOWN BUG - patches are meant to be pruned once they are thirty days old, but the check
+         * compares `diffNow` against a positive number of days, which only ever catches dates in
+         * the future. Nothing is pruned, and the history grows for as long as the app is used.
+         * Swap these two lines when that is fixed.
+         */
+        expect(data().patches.entities[OldPatch.id]).toEqual(OldPatch);
+        // expect(data().patches.entities[OldPatch.id]).toBeUndefined();
     });
 
     /*

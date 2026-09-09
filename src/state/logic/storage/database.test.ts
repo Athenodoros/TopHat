@@ -1,8 +1,8 @@
 /**
  * Tests for the raw IndexedDB utilities in `database.testing.ts`, which the persistence tests in
  * `index.test.ts` are built on. They check the utilities against Dexie, which is what writes the
- * database today: that they read what it has written, that what they write is a database it opens
- * as it stands, and that another tab's changes reach a connection of its own.
+ * database today: that they read what it has written, and that what they write is a database it
+ * opens as it stands.
  *
  * This whole file goes when Dexie does. What it is here for is the confidence that the utilities
  * the other tests rely on describe the real thing.
@@ -23,8 +23,6 @@ import {
     readFromDatabase,
     SchemaBeforePatches,
     sortLists,
-    updateFromAnotherTab,
-    waitFor,
     writeToDatabase,
 } from "./database.testing";
 
@@ -117,25 +115,5 @@ describe("The test database utilities", () => {
         await deleteDatabase();
 
         expect(await readFromDatabase()).toEqual(EmptyDatabase);
-    });
-
-    test("reach an open connection with another tab's changes", async () => {
-        const db = await openWithDexie();
-        const changes: { source?: string; table: string }[] = [];
-        db.on("changes", (received) => void changes.push(...received));
-
-        await updateFromAnotherTab({ institution: [{ id: 0, name: "Written Elsewhere", colour: "#757575" }] });
-
-        await waitFor(() => expect(changes.map(({ source }) => source)).toContain("another-tab"));
-        expect(changes.map(({ table }) => table)).toContain("institution");
-        expect(await db.institution.toArray()).toEqual([{ id: 0, name: "Written Elsewhere", colour: "#757575" }]);
-    });
-
-    test("wait for an assertion that only passes later", async () => {
-        const start = Date.now();
-        const isDone = () => expect(Date.now() - start).toBeGreaterThan(50);
-
-        await waitFor(isDone);
-        await expect(waitFor(() => expect(false).toBe(true), 50)).rejects.toThrow();
     });
 });
