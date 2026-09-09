@@ -14,6 +14,8 @@ import {
 } from "../../data/types";
 import { ID } from "../../shared/values";
 
+export const DATABASE_NAME = "TopHatDatabase";
+
 // This class is so Typescript understands the shape of the DB connection
 export class TopHatDexie extends Dexie {
     user: Dexie.Table<User, ID>;
@@ -28,7 +30,7 @@ export class TopHatDexie extends Dexie {
     patches: Dexie.Table<PatchGroup, ID>;
 
     constructor(options?: DexieOptions) {
-        super("TopHatDatabase", options);
+        super(DATABASE_NAME, options);
         this.version(2).stores({
             user: "id",
             account: "id",

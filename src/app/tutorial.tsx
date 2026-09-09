@@ -7,6 +7,7 @@ import { NonIdealState } from "../components/display/NonIdealState";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
+import { useSelector } from "../state/shared/hooks";
 import { importJSONData } from "../state/logic/import";
 import { initialiseDemoData } from "../state/logic/startup";
 import { AppColours, WHITE } from "../styles/colours";
@@ -15,6 +16,7 @@ export const MIN_WIDTH_FOR_APPLICATION = 1200;
 
 export const TopHatTutorial: React.FC = () => {
     const open = useUserData((user) => user.tutorial);
+    const storage = useSelector((state) => state.app.storage);
     const [loading, setLoading] = useState(false);
     useEffect(() => {
         if (open) setLoading(false);
@@ -33,6 +35,9 @@ export const TopHatTutorial: React.FC = () => {
     }, [setWidth]);
     const [widthDismissed, setWidthDismissed] = useState(false);
     const dismissWidth = useCallback(() => setWidthDismissed(true), []);
+
+    // The tutorial state is a placeholder when saved data couldn't be read, not an invitation
+    if (storage.type === "unreadable") return null;
 
     if (width < MIN_WIDTH_FOR_APPLICATION && !widthDismissed)
         return (

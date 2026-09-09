@@ -1,5 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd } from "lodash";
+import { StorageState } from "../logic/storage/types";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
@@ -16,6 +17,8 @@ export type { DialogState } from "./defaults";
 interface AppState {
     dialog: DialogState;
     page: PageStateType;
+    // How the attempt to load saved data went, and left alone by everything else in here
+    storage: StorageState;
 }
 
 export const BASE_PATHNAME = "/TopHat";
@@ -32,7 +35,7 @@ const getDefaultPageState = (page: PageStateType | null) => ({
     page: page || DefaultPages["summary"],
 });
 
-export const getAppStateFromPagePath = (location: Location): AppState => {
+export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage"> => {
     const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
 
     if (page === "dropbox")
@@ -48,9 +51,11 @@ export const getAppStateFromPagePath = (location: Location): AppState => {
     return getDefaultPageState(get(DefaultPages, page, DefaultPages.summary));
 };
 
+const initialState: AppState = { ...getAppStateFromPagePath(window.location), storage: { type: "loading" } };
+
 export const AppSlice = createSlice({
     name: "app",
-    initialState: getAppStateFromPagePath(window.location),
+    initialState,
     reducers: {
         setPage: (state, { payload }: PayloadAction<PageStateType["id"]>) => {
             state.page = DefaultPages[payload];
@@ -58,7 +63,7 @@ export const AppSlice = createSlice({
         setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => {
             state.page = page;
         },
-        setPageStateFromPath: () => getAppStateFromPagePath(window.location),
+        setPageStateFromPath: (state) => ({ ...getAppStateFromPagePath(window.location), storage: state.storage }),
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),
@@ -118,10 +123,14 @@ export const AppSlice = createSlice({
         setDialogPartial: (state, { payload }: PayloadAction<Partial<DialogState>>) => {
             state.dialog = { ...state.dialog, ...payload };
         },
-        closeDialogAndGoToPage: (_, { payload: page }: PayloadAction<PageStateType>) => ({
+        closeDialogAndGoToPage: (state, { payload: page }: PayloadAction<PageStateType>) => ({
             dialog: DefaultDialogs,
             page,
+            storage: state.storage,
         }),
+        setStorageState: (state, { payload }: PayloadAction<StorageState>) => {
+            state.storage = payload;
+        },
     },
 });
 const oldReducer = AppSlice.reducer; // Separate assignment to prevent infinite recursion
