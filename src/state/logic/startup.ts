@@ -10,7 +10,7 @@ import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
-import { setupIDBConnection } from "./storage";
+import { setupIDBConnectionAndLoadData } from "./storage";
 import { TopHatDexie } from "./storage/database";
 
 const debug = !import.meta.env.PROD;
@@ -29,7 +29,7 @@ export const initialiseAndGetDBConnection = async () => {
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
     // Set up IDB, if present
-    const { db, loadedStateFromIDB } = await setupIDBConnection(debug);
+    const { db, loadedStateFromIDB } = await setupIDBConnectionAndLoadData(debug);
 
     // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
     if (!loadedStateFromIDB && maybeDropboxCode) await initialiseDemoData();

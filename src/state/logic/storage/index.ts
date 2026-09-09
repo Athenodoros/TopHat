@@ -10,7 +10,7 @@ import { setIDBConnectionExists } from "../notifications/variants/idb";
 import { TopHatDexie } from "./database";
 import { handleMigrationsAndUpdates } from "./migrations";
 
-export const setupIDBConnection = async (debug: boolean) => {
+export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
     // Set up IDB, if present
     let db = new TopHatDexie();
     let loadedStateFromIDB = false;
