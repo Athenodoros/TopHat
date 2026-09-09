@@ -11,8 +11,8 @@ import {
     Statement,
     Transaction,
     User,
-} from "../data/types";
-import { ID } from "../shared/values";
+} from "../../data/types";
+import { ID } from "../../shared/values";
 
 // This class is so Typescript understands the shape of the DB connection
 export class TopHatDexie extends Dexie {
