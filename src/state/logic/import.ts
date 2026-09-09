@@ -3,7 +3,7 @@ import { TopHatDispatch } from "../../state";
 import { DataSlice, DataState } from "../../state/data";
 import { updateSyncedCurrencies } from "../../state/logic/currencies";
 import { StubUserID } from "../data/types";
-import { handleMigrationsAndUpdates } from "./startup";
+import { handleMigrationsAndUpdates } from "./storage/migrations";
 
 export const importJSONData = (file: string) =>
     batch(() => {
