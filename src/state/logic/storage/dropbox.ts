@@ -5,35 +5,139 @@
  * The OAuth flow runs in a popup rather than by redirecting the app away and back, so there is
  * nothing to read out of the URL on boot. The popup has to come back to a same-origin page that is
  * served without any redirect of its own, which is what `public/dropbox.html` is for.
+ *
+ * Linking is not simply "add a target". The account may already hold a set of accounts and
+ * transactions, and so may the browser, and there is no sensible way to put two of those together:
+ * the link is refused, and the user is told that one side or the other has to go first.
  */
 
-import { DefaultTarget, DropboxTarget, Sync } from "personal-storage-wrapper";
+import JSZip from "jszip";
+import { DefaultTarget, DropboxTarget, readValueFromTarget, Sync } from "personal-storage-wrapper";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { BASE_PATHNAME } from "../../app";
-import { DataSlice } from "../../data";
-import { DropboxSpec, StubUserID } from "../../data/types";
+import { DataSlice, ListDataState } from "../../data";
+import { DataKeys, DropboxSpec, StubUserID } from "../../data/types";
 import { DROPBOX_NOTIFICATION_ID } from "../notifications/types";
-import { getStorageManager } from "./manager";
+import { adoptValueFromStorage } from "./index";
+import { getStorageManager, holdsRealData, toListDataState } from "./manager";
 
 export const DROPBOX_APP_KEY = "7ru69iyjvo0wz6t";
 export const DROPBOX_REDIRECT_URI = `${window.location.origin}${BASE_PATHNAME}/dropbox.html`;
 
-/** Written by the library as gzipped JSON. The `/data.zip` the old version wrote is left alone. */
+/** Written by the library as gzipped JSON */
 export const DROPBOX_PATH = "/data.json.gz";
+
+/** Where versions of TopHat before the migration put their backup: a zip holding one `data.json` */
+export const LEGACY_DROPBOX_PATH = "/data.zip";
 
 export const isDropboxSync = (sync: Sync<DefaultTarget>) => sync.target.type === "dropbox";
 
-/** False when the popup was blocked, closed, or came back without an authorisation code */
-export const linkDropboxInPopup = async (): Promise<boolean> => {
+export type DropboxLinkOutcome =
+    /** The account is linked, and syncing from here on */
+    | { type: "linked" }
+    /** The popup was blocked, closed, or came back without an authorisation code */
+    | { type: "cancelled" }
+    /** Both the account and this browser hold data the user put in, and only they can choose */
+    | { type: "conflict" }
+    /** Dropbox refused the account, or gave back something TopHat could not make sense of */
+    | { type: "failed"; message: string };
+
+/**
+ * The whole link: sign in, look at what the account already holds, and only then decide whether to
+ * sync to it. Nothing is written to Dropbox, or to the browser, until that decision is made.
+ */
+export const linkDropboxAccount = async (): Promise<DropboxLinkOutcome> => {
     const manager = getStorageManager();
-    if (!manager) return false;
+    if (!manager) return { type: "failed", message: "TopHat is not ready to sync yet." };
 
     const target = await DropboxTarget.setupInPopup(DROPBOX_APP_KEY, DROPBOX_REDIRECT_URI, DROPBOX_PATH);
-    if (!target) return false;
+    if (!target) return { type: "cancelled" };
+
+    const remote = await getDataAlreadyInAccount(target);
+    if (remote.type === "failed") return remote;
+
+    const local = toListDataState(TopHatStore.getState().data);
+
+    if (remote.value && holdsRealData(remote.value) && holdsRealData(local)) return { type: "conflict" };
+
+    // A backup left by an older version of TopHat, which is not at the path being synced to, so it
+    // has to be taken on here rather than left for the library to find
+    if (remote.type === "legacy" && remote.value && !holdsRealData(local)) {
+        const adopted = await adoptValueFromStorage(remote.value);
+        if (!adopted)
+            return {
+                type: "failed",
+                message: "The backup in this Dropbox account was written by a newer version of TopHat.",
+            };
+    }
 
     await manager.addTarget(target);
-    return true;
+    return { type: "linked" };
 };
+
+type RemoteData =
+    | { type: "current" | "legacy"; value: ListDataState | null }
+    | { type: "failed"; message: string };
+
+/**
+ * What the account already holds, looking at the backup written by older versions of TopHat if the
+ * file this one syncs to is not there yet.
+ */
+const getDataAlreadyInAccount = async (target: DropboxTarget): Promise<RemoteData> => {
+    const current = await readValueFromTarget<ListDataState, DropboxTarget>(target, true);
+
+    if (current.type === "error") return { type: "failed", message: describeDropboxError(current.error) };
+    if (current.value) return { type: "current", value: current.value.value };
+
+    return getLegacyDataInAccount(target);
+};
+
+/**
+ * The `data.zip` older versions wrote: a zip holding `data.json`, which is the normalised store
+ * rather than the lists that are synced now, so it is converted on the way through.
+ */
+const getLegacyDataInAccount = async (target: DropboxTarget): Promise<RemoteData> => {
+    const legacy = DropboxTarget.deserialise({ ...target.serialise(), path: LEGACY_DROPBOX_PATH });
+    const contents = await legacy.read();
+
+    if (contents.type === "error") {
+        // An account with no backup at all is the ordinary case, not a failure
+        if (contents.error === "MISSING_FILE") return { type: "current", value: null };
+        return { type: "failed", message: describeDropboxError(contents.error) };
+    }
+    if (contents.value === null) return { type: "current", value: null };
+
+    try {
+        const zip = await JSZip.loadAsync(contents.value.buffer);
+        const file = zip.file("data.json");
+        if (!file) return { type: "current", value: null };
+
+        return { type: "legacy", value: getListsFromStoredState(JSON.parse(await file.async("string"))) };
+    } catch {
+        return { type: "failed", message: "The backup in this Dropbox account could not be read." };
+    }
+};
+
+/**
+ * `data.zip` holds the store as the entity adapters keep it - `{ ids, entities }` per table - and
+ * everything since works in the lists those flatten to.
+ */
+const getListsFromStoredState = (stored: Record<string, { ids?: unknown[]; entities?: Record<string, unknown> }>) =>
+    Object.fromEntries(
+        DataKeys.map((key) => {
+            const table = stored[key];
+            if (!table?.ids || !table?.entities) return [key, []];
+
+            return [key, table.ids.map((id) => table.entities![id as string]).filter((entity) => entity !== undefined)];
+        })
+    ) as unknown as ListDataState;
+
+const describeDropboxError = (error: string) =>
+    error === "INVALID_AUTH"
+        ? "Dropbox refused the account. TopHat may not have permission to read and write its files."
+        : error === "OFFLINE"
+        ? "TopHat could not reach Dropbox."
+        : "TopHat could not read the data in this Dropbox account.";
 
 export const unlinkDropbox = async () => {
     const manager = getStorageManager();

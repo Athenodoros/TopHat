@@ -21,10 +21,14 @@ import {
     daysAgo,
     DataKeys,
     deleteLegacyDatabase,
+    DROPBOX_PATH,
+    getDropboxFileContents,
+    getLegacyDropboxFileContents,
     getMigrationRecord,
     getMonthsSince,
     getSavedData,
     legacyDatabaseExists,
+    LEGACY_DROPBOX_PATH,
     OldAccount,
     OldCurrency,
     OldGroceries,
@@ -367,8 +371,139 @@ describe("A Dropbox account linked by the old version", () => {
 });
 
 /**
+ * Linking an account is not simply adding a target: the account may already hold a set of accounts
+ * and transactions, and so may the browser. These are the cases where the two disagree.
+ */
+describe("Linking a Dropbox account", () => {
+    test("is refused when the account and the browser both hold real data", async () => {
+        await writeToStore(getSavedData());
+        const boot = await bootTopHat();
+
+        const remote = getSavedData();
+        remote.account = [{ ...remote.account[0], name: "Data From Dropbox" }];
+        const link = await linkDropbox(getDropboxFileContents(remote));
+
+        expect(link).toEqual({ type: "conflict" });
+        expect(boot.syncs().some((sync) => sync.type === "dropbox")).toBe(false);
+
+        // Refusing the link leaves both sides exactly as they were
+        expect(boot.data().account.entities[1]!.name).toBe(getSavedData().account[0].name);
+        expect((await readFromStore())!.account[0].name).toBe(getSavedData().account[0].name);
+    });
+
+    /**
+     * The demo is a full set of accounts and transactions, so it looks like real data from the
+     * outside. Linking from a browser showing it used to write it over whatever was in the account.
+     */
+    test("takes on the account's data when the browser is only showing the demo", async () => {
+        await writeToStore(getSavedData({ isDemo: true }));
+        const boot = await bootTopHat();
+
+        const remote = getSavedData();
+        remote.account = [{ ...remote.account[0], name: "Data From Dropbox" }];
+        const link = await linkDropbox(getDropboxFileContents(remote));
+
+        expect(link).toEqual({ type: "linked" });
+        await waitFor(() => expect(boot.data().account.entities[1]!.name).toBe("Data From Dropbox"));
+    });
+
+    test("reads the backup an older version of TopHat wrote, when there is no newer one", async () => {
+        await writeToStore(getSavedData({ isDemo: true }));
+        const boot = await bootTopHat();
+
+        const remote = getSavedData();
+        remote.account = [{ ...remote.account[0], name: "Data From The Old Backup" }];
+        const link = await linkDropbox(null, await getLegacyDropboxFileContents(remote));
+
+        expect(link).toEqual({ type: "linked" });
+        await waitFor(() => expect(boot.data().account.entities[1]!.name).toBe("Data From The Old Backup"));
+
+        // The old backup is left where it is, and the data is written to the file synced from here on
+        await waitFor(async () => expect((await readFromStore())!.account[0].name).toBe("Data From The Old Backup"));
+    });
+
+    test("keeps the browser's data when the account holds nothing", async () => {
+        await writeToStore(getSavedData());
+        const boot = await bootTopHat();
+
+        expect(await linkDropbox(null)).toEqual({ type: "linked" });
+        expect(boot.data().account.entities[1]!.name).toBe(getSavedData().account[0].name);
+    });
+
+    test("reports an account TopHat has not been given permission to read", async () => {
+        await writeToStore(getSavedData());
+        await bootTopHat();
+
+        const link = await linkDropbox(null, null, { unauthorised: true });
+
+        expect(link).toMatchObject({ type: "failed" });
+        expect((link as { message: string }).message).toContain("permission");
+    });
+});
+
+/**
  * Utilities
  */
+
+/**
+ * Runs the link flow against an account holding the given files, with the sign-in popup answered
+ * rather than opened. `current` is `/data.json.gz` and `legacy` the `/data.zip` older versions
+ * wrote; either may be null, meaning the account does not have that file.
+ */
+const linkDropbox = async (
+    current: ArrayBuffer | null,
+    legacy: ArrayBuffer | null = null,
+    { unauthorised = false }: { unauthorised?: boolean } = {}
+) => {
+    setOnline(true);
+
+    const files: Record<string, ArrayBuffer | null> = { [DROPBOX_PATH]: current, [LEGACY_DROPBOX_PATH]: legacy };
+    const pathOf = (init: RequestInit | undefined) => {
+        const body = JSON.parse(String((init?.headers as Record<string, string>)?.["Dropbox-API-Arg"] ?? init?.body));
+        return String(body.path);
+    };
+
+    // Metadata is looked up by path and the file is then downloaded by revision, so revisions are
+    // just the path said twice
+    vi.stubGlobal(
+        "fetch",
+        vi.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<StubbedResponse> => {
+            const url = "" + input;
+
+            if (url.includes("oauth2/token")) return json({ access_token: "an-access-token", expires_in: 14400 });
+            if (unauthorised) return { ...json({}), status: 401 };
+
+            if (url.includes("files/get_metadata")) {
+                const path = pathOf(init);
+                if (!files[path]) return json({ error_summary: "path/not_found/..." });
+                return json({ server_modified: new Date().toISOString(), rev: path });
+            }
+
+            if (url.includes("files/download")) {
+                const contents = files[pathOf(init).replace("rev:", "")];
+                return { ...json({}), arrayBuffer: async () => contents! };
+            }
+
+            if (url.includes("files/upload")) return json({ server_modified: new Date().toISOString() });
+
+            throw new Error("Unexpected request: " + url);
+        })
+    );
+
+    const [{ DropboxTarget }, { linkDropboxAccount }] = await Promise.all([
+        import("personal-storage-wrapper"),
+        import("./dropbox"),
+    ]);
+
+    const target = DropboxTarget.deserialise({
+        connection: { clientId: "a-client-id", refreshToken: "a-refresh-token", accessToken: "", expiry: daysAgo(1) },
+        user: { id: "an-account-id", email: "user@example.com", name: "A User" },
+        path: DROPBOX_PATH,
+    });
+    vi.spyOn(DropboxTarget, "setupInPopup").mockResolvedValue(target);
+
+    return linkDropboxAccount();
+};
 
 /**
  * Optional fields only ever reach storage from a session that filled them in, so the fixture that
@@ -456,4 +591,10 @@ const stubDropbox = () => {
     return requests;
 };
 
-const json = (body: unknown) => ({ json: async () => body, arrayBuffer: async () => new ArrayBuffer(0) });
+/** Enough of a Response for the library, which only ever reads the body one of these two ways */
+type StubbedResponse = { status?: number; json: () => Promise<unknown>; arrayBuffer: () => Promise<ArrayBuffer> };
+
+const json = (body: unknown): StubbedResponse => ({
+    json: async () => body,
+    arrayBuffer: async () => new ArrayBuffer(0),
+});

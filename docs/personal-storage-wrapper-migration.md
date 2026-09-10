@@ -577,3 +577,61 @@ Two things to know when running the app locally: the dev server pre-bundles the 
 `node_modules`, so after re-pinning the dependency `node_modules/.vite` has to go or the old copy is
 still served; and the first boot on a clean origin takes a few seconds, so a check that samples
 straight after navigation sees a blank page that is not a hang.
+
+## 12. Second pass, 2026-09-10
+
+Henry merged the library branch, re-pinned TopHat to it, and tested the whole thing against a real
+Dropbox account. It worked, and turned up three things worth writing down.
+
+### The link flow hung on an account without the right scopes
+
+The Dropbox app had not been given the file scopes, so the download failed - and then every later
+attempt to link hung after the token and account requests, for the rest of the session. Three
+library defects lined up to do that, all fixed on `hstoke/tophat-dropbox-link-fixes`:
+
+8.  **A 401 was retried forever.** `runDropboxQuery` answered every 401 by forcing a token refresh
+    and retrying, which is right for a token that expired early and wrong for a missing scope, where
+    every attempt is a 401 however new the token is. It retries once now, and reports the second as
+    `INVALID_AUTH`.
+9.  **`Result.pmap` did not catch a rejection from its callback.** The rejection went to the derived
+    promise `then` builds, which is itself a `Result` and so resolves rejections into errors nobody
+    is waiting on, while the `Result` being built was never resolved at all. A download that decoded
+    to something other than the expected file left every caller waiting for good.
+10. **The manager's operation queue kept `running` set if an operation threw**, so every write,
+    addition and poll queued behind it and never ran, and the promises they were handed never
+    settled either. It hands the queue back now.
+
+Also there: a malformed buffer made the decompression stream's writer reject with nobody waiting on
+it, and `readValueFromTarget` is new - reading a target without adding it to anything, which is what
+the link flow below needs.
+
+### Linking is a decision, not an addition
+
+§5.6 treated linking as `addTarget` plus a conflict handler. That is not enough, because by the time
+the conflict handler runs the decision to sync is already made, and there are two cases where it
+should not have been.
+
+-   **The demo is not disposable data as far as `addTarget` is concerned.** The old check was
+    `user.tutorial`, which is cleared before the settings page is reachable at all, so the guard
+    never fired: linking from a browser showing the demo wrote the demo over the account. The check
+    is now `holdsRealData` in `manager.ts` - not the demo, not the tutorial, and some accounts or
+    transactions of the user's own.
+-   **Two sets of real data cannot be merged**, so `linkDropboxAccount` reads the account first and
+    returns `{ type: "conflict" }` without writing anything. The settings page explains that one
+    side has to be cleared before the link can be made.
+
+`data.zip`, which is what versions before the migration backed up, is read when `data.json.gz` is
+not there: a zip holding one `data.json` of the normalised store rather than the lists. It is taken
+on through `adoptValueFromStorage`, which runs the migrations against it the way a boot would, and
+is then left where it is rather than deleted.
+
+### Sync failures are visible now
+
+A desynced Dropbox target is a sync that will not be written to again, and nothing else reports it:
+no upload is attempted, so no upload fails. `setDropboxSyncState` is driven from both the operation
+log and the sync states, so the existing "Dropbox Sync Failed" notification covers it, and the
+settings card shows a warning in place of the tick.
+
+`migrateLegacyDropboxToken` is awaited, and its failure caught: a throw escaping the boot would
+leave the page blank rather than merely unlinked. It still delays the first paint by a few Dropbox
+requests on the first boot after upgrading, for anyone who had an account linked.

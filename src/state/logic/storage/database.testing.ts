@@ -261,6 +261,39 @@ export const clearStore = async () => {
 };
 
 /**
+ * Dropbox
+ *
+ * The two files TopHat has backed up to, written the way Dropbox would hand them back. The current
+ * one is gzipped JSON of the lists that are synced; `data.zip` is what versions before the migration
+ * wrote, holding a `data.json` of the normalised store rather than the lists.
+ */
+export const DROPBOX_PATH = "/data.json.gz";
+export const LEGACY_DROPBOX_PATH = "/data.zip";
+
+export const getDropboxFileContents = (data: Partial<ListDataState>): ArrayBuffer =>
+    new Uint8Array(gzipSync(Buffer.from(JSON.stringify(sortLists(data))))).buffer;
+
+export const getLegacyDropboxFileContents = async (data: Partial<ListDataState>): Promise<ArrayBuffer> => {
+    const { default: JSZip } = await import("jszip");
+
+    const zip = new JSZip();
+    zip.file("data.json", JSON.stringify(getNormalisedState(data)));
+    return zip.generateAsync({ type: "arraybuffer", compression: "DEFLATE" });
+};
+
+/** The `{ ids, entities }` shape the entity adapters keep, which is what the old backup held */
+const getNormalisedState = (data: Partial<ListDataState>) =>
+    Object.fromEntries(
+        DataKeys.map((key) => {
+            const rows = (data[key] ?? []) as { id: string | number }[];
+            return [
+                key,
+                { ids: rows.map(({ id }) => id), entities: Object.fromEntries(rows.map((row) => [row.id, row])) },
+            ];
+        })
+    );
+
+/**
  * The record of when the legacy database was copied across, which decides when it can be deleted
  */
 export interface MigrationRecord {

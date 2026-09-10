@@ -41,8 +41,16 @@ export const initialiseAndGetDBConnection = async () => {
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
 
-    // A Dropbox account linked by an earlier version becomes a sync target of its own
-    migrateLegacyDropboxToken();
+    /**
+     * A Dropbox account linked by an earlier version becomes a sync target of its own.
+     *
+     * Awaited, so that a failure is reported rather than surfacing as an unhandled rejection - but
+     * caught, because this is a handful of Dropbox requests and the app has not rendered yet. A
+     * throw escaping here would leave the page blank rather than merely unlinked from Dropbox.
+     */
+    await migrateLegacyDropboxToken().catch((error) =>
+        console.error("Could not take on the Dropbox account linked by an earlier version of TopHat", error)
+    );
 
     // Currency syncs
     updateSyncedCurrencies();

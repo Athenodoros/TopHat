@@ -65,24 +65,40 @@ export const latestTimestampWins = async (
 };
 
 /**
- * Update conflicts: what is in the browser wins, unless nothing has been done with it yet.
+ * Update conflicts: what is in the browser wins, unless there is nothing there worth keeping.
  *
  * Keeping the local value is what TopHat has always done - linking an account backs the browser's
- * data up rather than pulling the account's data down. The exception is a fresh install, where
- * keeping the local value would overwrite a real backup with the tutorial state.
+ * data up rather than pulling the account's data down. The exception is a browser holding nothing
+ * of the user's own, where keeping the local value would write the demo over a real backup.
+ *
+ * Both sides holding real data never reaches here: `linkDropboxAccount` reads the account first and
+ * refuses the link, because merging two sets of accounts is not something this can decide.
  */
-export const remoteWinsOverFreshInstall = async (
+export const remoteWinsOverDisposableData = async (
     localState: ListDataState,
     _syncs: Sync<DefaultTarget>[],
     conflicts: SyncWithValue[]
 ): Promise<ListDataState> => {
-    if (!isFreshInstall(localState)) return localState;
+    if (holdsRealData(localState)) return localState;
 
     const remote = conflicts.find(({ sync, value }) => !isLocalSync(sync) && value && value.value);
     return remote ? remote.value.value : localState;
 };
 
-/** Nothing has been done with this install yet: the tutorial has not been dismissed */
-const isFreshInstall = (value: ListDataState) => value.user.find(({ id }) => id === StubUserID)?.tutorial === true;
+/**
+ * Whether this is data the user would miss.
+ *
+ * The demo is the case that matters: it is a full set of accounts and transactions, so anything
+ * counting rows alone would call it real, and it is the state a browser is most likely to be in
+ * when someone links an account they already have data in. An install still showing the tutorial,
+ * or one that has been opened and not used, has nothing in it either.
+ */
+export const holdsRealData = (value: ListDataState): boolean => {
+    const user = value.user?.find(({ id }) => id === StubUserID);
+    if (user === undefined || user.isDemo || user.tutorial) return false;
+
+    // Everything else in a new install is a placeholder that TopHat puts there itself
+    return (value.account?.length ?? 0) > 0 || (value.transaction?.length ?? 0) > 0;
+};
 
 const isLocalSync = (sync: Sync<DefaultTarget>) => sync.target.type === "indexeddb";

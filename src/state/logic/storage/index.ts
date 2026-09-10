@@ -12,15 +12,16 @@ import { DefaultTarget, DropboxTarget, PersonalStorageManager, Sync } from "pers
 import { TopHatDispatch, TopHatStore } from "../..";
 import { AppSlice } from "../../app";
 import { DataSlice, initialTutorialState, ListDataState, subscribeToDataUpdates } from "../../data";
-import { DROPBOX_NOTIFICATION_ID } from "../notifications/types";
+import { setDropboxSyncState } from "../notifications/variants/dropbox";
 import { setIDBConnectionExists } from "../notifications/variants/idb";
 import { readLegacyDatabase, recordBootAndMaybeDeleteLegacyDatabase, setMigrationRecord } from "./legacy";
 import { CURRENT_GENERATION, handleMigrationsAndUpdates } from "./migrations";
 import {
     getDefaultSyncs,
+    getStorageManager,
     getSyncData,
     latestTimestampWins,
-    remoteWinsOverFreshInstall,
+    remoteWinsOverDisposableData,
     saveSyncData,
     setStorageManager,
     STORAGE_ID,
@@ -68,7 +69,7 @@ export const setupStorageAndLoadData = async (
                 return { behaviour: "DEFAULT" };
             },
             resolveConflictingSyncValuesOnStartup: latestTimestampWins,
-            resolveConflictingSyncsUpdate: remoteWinsOverFreshInstall,
+            resolveConflictingSyncsUpdate: remoteWinsOverDisposableData,
 
             // Wired here rather than afterwards, because a conflict between targets is resolved
             // after `create` has already returned with the first value it found
@@ -84,6 +85,11 @@ export const setupStorageAndLoadData = async (
                 const local = syncs.find((sync) => sync.target.type === "indexeddb");
                 if (local) setIDBConnectionExists(local.desynced !== true);
 
+                // The same is true of Dropbox, where the sync going quiet is the whole symptom:
+                // nothing is uploaded and nothing fails, so nothing else would ever say so
+                const dropbox = syncs.find((sync) => sync.target.type === "dropbox");
+                setDropboxSyncState(dropbox === undefined ? "none" : dropbox.desynced === true ? "failed" : "working");
+
                 TopHatDispatch(AppSlice.actions.setSyncStates(describeSyncs(syncs)));
             },
             handleSyncOperationLog: ({ sync, stage }) => {
@@ -94,12 +100,7 @@ export const setupStorageAndLoadData = async (
 
                 // Being offline is not a failure - the old app skipped saves to Dropbox entirely
                 if (sync.target.type === "dropbox" && (stage === "ERROR" || stage === "SUCCESS"))
-                    TopHatDispatch(
-                        DataSlice.actions.updateNotificationState({
-                            id: DROPBOX_NOTIFICATION_ID,
-                            contents: stage === "ERROR" ? "" : null,
-                        })
-                    );
+                    setDropboxSyncState(stage === "ERROR" ? "failed" : "working");
             },
         }
     );
@@ -168,6 +169,28 @@ const applyValueFromStorage = (value: ListDataState) => {
     } finally {
         applyingFromStorage = false;
     }
+};
+
+/**
+ * Takes on a value found somewhere other than the syncs the manager already knows about - the
+ * `data.zip` an older version of TopHat backed up to Dropbox - as though the user had just made
+ * every change in it.
+ *
+ * It goes through the same migrations a value read on boot does, because it was written by whatever
+ * version of the app last touched it, and is then written back out to every target: the browser's
+ * own store included, since this is now the data the app is working with.
+ */
+export const adoptValueFromStorage = async (value: ListDataState): Promise<boolean> => {
+    const generation = value.user?.[0]?.generation ?? 0;
+    if (generation > CURRENT_GENERATION) return false;
+
+    applyValueFromStorage(value);
+    handleMigrationsAndUpdates(generation);
+
+    const manager = getStorageManager();
+    if (manager) await manager.setValue(toListDataState(TopHatStore.getState().data));
+
+    return true;
 };
 
 const describeSyncs = (syncs: Sync<DefaultTarget>[]): SyncDisplayState[] =>
