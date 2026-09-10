@@ -14,7 +14,7 @@ import { useSelector } from "../state/shared/hooks";
 import { APP_BACKGROUND_COLOUR } from "../styles/theme";
 import { NavBar } from "./navbar";
 import { useSetAlert } from "./popups";
-import { StorageErrorPage } from "./storage";
+import { StorageErrorPage, StorageLoadingPage } from "./storage";
 import { MIN_WIDTH_FOR_APPLICATION } from "./tutorial";
 
 export const View: React.FC = () => {
@@ -36,6 +36,8 @@ export const View: React.FC = () => {
         [setAlert]
     );
 
+    // The store starts in the tutorial state, so the app cannot be shown until the saved data is in
+    if (storage.type === "loading") return <StorageLoadingPage />;
     if (storage.type === "unreadable") return <StorageErrorPage state={storage} />;
 
     return (

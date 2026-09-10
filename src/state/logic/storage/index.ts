@@ -8,7 +8,7 @@
  * copied into the new store, and then kept untouched until the rule in `legacy.ts` says it can go.
  */
 
-import { DefaultTarget, DropboxTarget, PersonalStorageManager, Sync } from "personal-storage-wrapper";
+import { DefaultTarget, DropboxTarget, ErrorResult, PersonalStorageManager, Sync } from "personal-storage-wrapper";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { AppSlice } from "../../app";
 import { DataSlice, initialTutorialState, ListDataState, subscribeToDataUpdates } from "../../data";
@@ -64,7 +64,7 @@ export const setupStorageAndLoadData = async (
 
             handleAllEmptyAndFailedSyncsOnStartup: async (results) => {
                 const failure = results.find(({ sync, value }) => sync.target.type === "indexeddb" && value.error);
-                if (failure) idbError = describeIDBFailure(failure.value.error!);
+                if (failure) idbError = describeIDBFailure(failure.value as ErrorResult);
 
                 return { behaviour: "DEFAULT" };
             },
@@ -201,10 +201,10 @@ const describeSyncs = (syncs: Sync<DefaultTarget>[]): SyncDisplayState[] =>
         desynced: sync.desynced === true,
     }));
 
-const describeIDBFailure = (error: string) =>
+const describeIDBFailure = ({ error, detail }: ErrorResult) =>
     error === "OFFLINE"
         ? "TopHat could not open the browser's data store, perhaps because it is running in Private Browsing mode."
-        : "TopHat could not read the browser's data store: " + error;
+        : "TopHat could not read the browser's data store: " + (detail ?? error);
 
 const countRows = (value: ListDataState) =>
     Object.values(value as unknown as Record<string, unknown[]>).reduce(

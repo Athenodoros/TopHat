@@ -17,10 +17,16 @@ import { initialiseAndGetDBConnection } from "./state/logic/startup";
 if (window.location.pathname.endsWith("/dropbox.html")) {
     document.body.textContent = "Signing in to Dropbox… you can close this window if it does not close itself.";
 } else {
-    initialiseAndGetDBConnection().then(() => {
-        const root = createRoot(document.getElementById("root")!);
-        root.render(<App />);
-    });
+    /**
+     * Rendered before boot rather than after it, so that the wait for saved data is a loading screen
+     * rather than a blank page. What is on screen follows `app.storage`: the loading screen until
+     * the saved data is in, and the app once it is. Boot goes on past that point - the Dropbox
+     * account an older version linked is taken on with the app already up.
+     */
+    const root = createRoot(document.getElementById("root")!);
+    root.render(<App />);
+
+    initialiseAndGetDBConnection();
 }
 
 if ("serviceWorker" in navigator) {

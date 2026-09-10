@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ReportProblem } from "@mui/icons-material";
+import { CloudSync, ReportProblem } from "@mui/icons-material";
 import { Button, Typography } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
@@ -59,6 +59,20 @@ export const StorageErrorPage: React.FC<{ state: StorageState & { type: "unreada
         </ContainerBox>
     );
 };
+
+/**
+ * Shown in place of the app until the saved data has been read.
+ *
+ * Rendering the app before then would show the tutorial, because that is the state the store starts
+ * in, so this stands in its place - which is a good deal better than the blank page the app used to
+ * leave up while it waited. Nothing that talks to the network is waited for here: the Dropbox
+ * account an older version linked is taken on with the app already on screen.
+ */
+export const StorageLoadingPage: React.FC = () => (
+    <ContainerBox>
+        <NonIdealState icon={CloudSync} title="Loading TopHat" />
+    </ContainerBox>
+);
 
 const reload = () => window.location.reload();
 

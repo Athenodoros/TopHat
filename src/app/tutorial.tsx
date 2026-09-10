@@ -36,8 +36,10 @@ export const TopHatTutorial: React.FC = () => {
     const [widthDismissed, setWidthDismissed] = useState(false);
     const dismissWidth = useCallback(() => setWidthDismissed(true), []);
 
-    // The tutorial state is a placeholder when saved data couldn't be read, not an invitation
-    if (storage.type === "unreadable") return null;
+    // The tutorial state is what the store starts in and what it is left in when saved data can't
+    // be read. Neither is an invitation, so it is only offered once boot has decided there is
+    // genuinely nothing saved.
+    if (storage.type === "loading" || storage.type === "unreadable") return null;
 
     if (width < MIN_WIDTH_FOR_APPLICATION && !widthDismissed)
         return (

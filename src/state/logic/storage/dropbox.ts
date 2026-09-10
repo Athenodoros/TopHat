@@ -12,7 +12,7 @@
  */
 
 import JSZip from "jszip";
-import { DefaultTarget, DropboxTarget, readValueFromTarget, Sync } from "personal-storage-wrapper";
+import { DefaultTarget, DropboxTarget, ErrorResult, readValueFromTarget, Sync } from "personal-storage-wrapper";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { BASE_PATHNAME } from "../../app";
 import { DataSlice, ListDataState } from "../../data";
@@ -75,9 +75,7 @@ export const linkDropboxAccount = async (): Promise<DropboxLinkOutcome> => {
     return { type: "linked" };
 };
 
-type RemoteData =
-    | { type: "current" | "legacy"; value: ListDataState | null }
-    | { type: "failed"; message: string };
+type RemoteData = { type: "current" | "legacy"; value: ListDataState | null } | { type: "failed"; message: string };
 
 /**
  * What the account already holds, looking at the backup written by older versions of TopHat if the
@@ -86,7 +84,7 @@ type RemoteData =
 const getDataAlreadyInAccount = async (target: DropboxTarget): Promise<RemoteData> => {
     const current = await readValueFromTarget<ListDataState, DropboxTarget>(target, true);
 
-    if (current.type === "error") return { type: "failed", message: describeDropboxError(current.error) };
+    if (current.type === "error") return { type: "failed", message: describeDropboxError(current) };
     if (current.value) return { type: "current", value: current.value.value };
 
     return getLegacyDataInAccount(target);
@@ -103,7 +101,7 @@ const getLegacyDataInAccount = async (target: DropboxTarget): Promise<RemoteData
     if (contents.type === "error") {
         // An account with no backup at all is the ordinary case, not a failure
         if (contents.error === "MISSING_FILE") return { type: "current", value: null };
-        return { type: "failed", message: describeDropboxError(contents.error) };
+        return { type: "failed", message: describeDropboxError(contents) };
     }
     if (contents.value === null) return { type: "current", value: null };
 
@@ -113,8 +111,11 @@ const getLegacyDataInAccount = async (target: DropboxTarget): Promise<RemoteData
         if (!file) return { type: "current", value: null };
 
         return { type: "legacy", value: getListsFromStoredState(JSON.parse(await file.async("string"))) };
-    } catch {
-        return { type: "failed", message: "The backup in this Dropbox account could not be read." };
+    } catch (thrown) {
+        return {
+            type: "failed",
+            message: withCause("The backup in this Dropbox account could not be read.", getThrownMessage(thrown)),
+        };
     }
 };
 
@@ -132,18 +133,36 @@ const getListsFromStoredState = (stored: Record<string, { ids?: unknown[]; entit
         })
     ) as unknown as ListDataState;
 
-const describeDropboxError = (error: string) =>
-    error === "INVALID_AUTH"
-        ? "Dropbox refused the account. TopHat may not have permission to read and write its files."
-        : error === "OFFLINE"
-        ? "TopHat could not reach Dropbox."
-        : "TopHat could not read the data in this Dropbox account.";
+/**
+ * What to put in front of the user, with whatever the library managed to find out about the failure
+ * after it. The plain sentence on its own is often not enough to act on - "TopHat may not have
+ * permission" and `missing_scope/files.content.read` are a long way apart in usefulness.
+ */
+const describeDropboxError = ({ error, detail }: ErrorResult) =>
+    withCause(
+        error === "INVALID_AUTH"
+            ? "Dropbox refused the account. TopHat may not have permission to read and write its files."
+            : error === "OFFLINE"
+            ? "TopHat could not reach Dropbox."
+            : "TopHat could not read the data in this Dropbox account.",
+        detail
+    );
+
+const withCause = (message: string, cause: string | undefined) => (cause ? `${message} (${cause})` : message);
+
+const getThrownMessage = (thrown: unknown) =>
+    thrown instanceof Error ? thrown.message || String(thrown) : thrown ? String(thrown) : undefined;
 
 export const unlinkDropbox = async () => {
     const manager = getStorageManager();
     if (!manager) return;
 
-    await Promise.all(manager.getSyncsState().filter(isDropboxSync).map((sync) => manager.removeSync(sync)));
+    await Promise.all(
+        manager
+            .getSyncsState()
+            .filter(isDropboxSync)
+            .map((sync) => manager.removeSync(sync))
+    );
     TopHatDispatch(DataSlice.actions.updateNotificationState({ id: DROPBOX_NOTIFICATION_ID, contents: null }));
 };
 
@@ -179,7 +198,11 @@ export const migrateLegacyDropboxToken = async () => {
     }
 
     await manager.addTarget(
-        getTargetForToken(spec, { id: user.value.account_id, email: user.value.email, name: user.value.name.display_name })
+        getTargetForToken(spec, {
+            id: user.value.account_id,
+            email: user.value.email,
+            name: user.value.name.display_name,
+        })
     );
     TopHatDispatch(DataSlice.actions.updateUserPartial({ dropbox: undefined }));
 };

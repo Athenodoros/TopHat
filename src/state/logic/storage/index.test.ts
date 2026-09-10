@@ -241,7 +241,10 @@ describe("Loading and saving", () => {
         localStorage.setItem(
             SYNC_CONFIG_KEY,
             JSON.stringify([
-                { type: "indexeddb", config: JSON.stringify({ compressed: true, desynced: true, target: { id: "tophat" } }) },
+                {
+                    type: "indexeddb",
+                    config: JSON.stringify({ compressed: true, desynced: true, target: { id: "tophat" } }),
+                },
             ])
         );
 
@@ -439,6 +442,17 @@ describe("Linking a Dropbox account", () => {
         expect(link).toMatchObject({ type: "failed" });
         expect((link as { message: string }).message).toContain("permission");
     });
+
+    /** "Something went wrong" is no use to anyone trying to fix their Dropbox app's scopes */
+    test("says what Dropbox refused, rather than only that something failed", async () => {
+        await writeToStore(getSavedData());
+        await bootTopHat();
+
+        const link = await linkDropbox(null, null, { refusal: "missing_scope/files.content.read/..." });
+
+        expect(link).toMatchObject({ type: "failed" });
+        expect((link as { message: string }).message).toContain("missing_scope/files.content.read");
+    });
 });
 
 /**
@@ -453,7 +467,7 @@ describe("Linking a Dropbox account", () => {
 const linkDropbox = async (
     current: ArrayBuffer | null,
     legacy: ArrayBuffer | null = null,
-    { unauthorised = false }: { unauthorised?: boolean } = {}
+    { unauthorised = false, refusal }: { unauthorised?: boolean; refusal?: string } = {}
 ) => {
     setOnline(true);
 
@@ -472,6 +486,8 @@ const linkDropbox = async (
 
             if (url.includes("oauth2/token")) return json({ access_token: "an-access-token", expires_in: 14400 });
             if (unauthorised) return { ...json({}), status: 401 };
+
+            if (refusal && !url.includes("get_current_account")) return json({ error_summary: refusal });
 
             if (url.includes("files/get_metadata")) {
                 const path = pathOf(init);
@@ -573,8 +589,7 @@ const stubDropbox = () => {
             const url = "" + input;
             requests.push(url);
 
-            if (url.includes("oauth2/token"))
-                return json({ access_token: "an-access-token", expires_in: 14400 });
+            if (url.includes("oauth2/token")) return json({ access_token: "an-access-token", expires_in: 14400 });
             if (url.includes("get_current_account"))
                 return json({
                     account_id: "an-account-id",

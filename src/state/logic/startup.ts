@@ -22,7 +22,37 @@ export const initialiseDemoData = async () => {
     await updateSyncedCurrencies();
 };
 
+/**
+ * Boot, which the app is already on screen for: `main.tsx` renders first, and what is shown follows
+ * `app.storage` - the loading screen until the saved data is in, and the app once it is.
+ *
+ * Nothing here is allowed to escape. A failure before the storage state has been reported would
+ * otherwise leave the loading screen up for good, with no way back and nothing said about why.
+ */
 export const initialiseAndGetDBConnection = async () => {
+    try {
+        await startTopHat();
+    } catch (error) {
+        console.error("TopHat could not start up", error);
+
+        // Anything after the storage state is set has the app on screen, and is better logged than
+        // shown: the alternative is hiding data that loaded perfectly well behind an error page
+        if (TopHatStore.getState().app.storage.type !== "loading") return;
+
+        TopHatDispatch(
+            AppSlice.actions.setStorageState({
+                type: "unreadable",
+                error: getErrorMessage(error),
+                rescuedRows: 0,
+            })
+        );
+    }
+};
+
+const getErrorMessage = (error: unknown) =>
+    error instanceof Error && error.message ? error.message : "TopHat could not read the data in this browser.";
+
+const startTopHat = async () => {
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
@@ -41,16 +71,9 @@ export const initialiseAndGetDBConnection = async () => {
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
 
-    /**
-     * A Dropbox account linked by an earlier version becomes a sync target of its own.
-     *
-     * Awaited, so that a failure is reported rather than surfacing as an unhandled rejection - but
-     * caught, because this is a handful of Dropbox requests and the app has not rendered yet. A
-     * throw escaping here would leave the page blank rather than merely unlinked from Dropbox.
-     */
-    await migrateLegacyDropboxToken().catch((error) =>
-        console.error("Could not take on the Dropbox account linked by an earlier version of TopHat", error)
-    );
+    // A Dropbox account linked by an earlier version becomes a sync target of its own. It is a
+    // handful of Dropbox requests, and the app has been on screen since before any of this ran.
+    await migrateLegacyDropboxToken();
 
     // Currency syncs
     updateSyncedCurrencies();

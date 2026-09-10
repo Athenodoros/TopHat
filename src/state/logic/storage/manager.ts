@@ -8,7 +8,13 @@
  * `user.generation` goes on being the schema version.
  */
 
-import { DefaultTarget, IndexedDBTarget, PersonalStorageManager, Sync, TimestampedValue } from "personal-storage-wrapper";
+import {
+    DefaultTarget,
+    IndexedDBTarget,
+    PersonalStorageManager,
+    Sync,
+    TimestampedValue,
+} from "personal-storage-wrapper";
 import type { ListDataState } from "../../data";
 import { DataKeys, DataState, StubUserID } from "../../data/types";
 

@@ -635,3 +635,41 @@ settings card shows a warning in place of the tick.
 `migrateLegacyDropboxToken` is awaited, and its failure caught: a throw escaping the boot would
 leave the page blank rather than merely unlinked. It still delays the first paint by a few Dropbox
 requests on the first boot after upgrading, for anyone who had an account linked.
+
+## 13. Third pass, 2026-09-10
+
+### The app renders before boot rather than after it
+
+`main.tsx` used to wait for `initialiseAndGetDBConnection()` before rendering anything, so every
+wait for saved data was a blank page - and awaiting the Dropbox token migration made that wait a
+network round trip. What is on screen now follows `app.storage`, which already had a `loading` state
+that nothing ever rendered because nothing rendered at all until it was over:
+
+-   `main.tsx` renders immediately and starts boot beside it.
+-   `view.tsx` shows `StorageLoadingPage` while `storage.type === "loading"`.
+-   `tutorial.tsx` stays out of the way while loading, since the store starts in the tutorial state
+    and would otherwise flash it on every load.
+-   `initialiseAndGetDBConnection` catches everything. A failure before the storage state is set
+    would leave the loading screen up for good, so it falls back to the "unreadable" screen; a
+    failure after it is logged, because the app is on screen and its data loaded fine.
+
+The Dropbox token migration is a plain `await` again. Nothing is waiting to paint behind it.
+
+### Failures say what went wrong
+
+`UNKNOWN` on its own was all an application had to work with, because what was thrown was caught and
+dropped at every point that produced it. An error result now carries an optional `detail`: the
+message of what was thrown, the name it stringifies to when it has none (a stream handed a buffer it
+cannot read throws an empty `TypeError`), or Dropbox's own `error_summary`, which is the most useful
+of the three. TopHat puts it in brackets after the sentence it shows.
+
+### An eleventh library defect, found in the browser
+
+A version change transaction that is interrupted leaves the new version number behind without the
+object store it was creating, and `onupgradeneeded` never runs again for a version already seen. The
+store was never created and every read and write failed from then on, with no way back from inside
+the app - the "Data Save Failed" notification and nothing else. `IndexedDBTarget.create` now opens
+at whatever version the browser holds rather than a pinned 1, and reopens one version up when the
+store is missing. Pinning the version was both what made this unrecoverable and what would have made
+the repair unrecoverable, since asking for a version behind the one on disk is an error rather than
+an open.

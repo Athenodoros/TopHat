@@ -3883,9 +3883,9 @@ pathval@^1.1.1:
   resolved "https://registry.npmjs.org/pathval/-/pathval-1.1.1.tgz"
   integrity sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==
 
-personal-storage-wrapper@Athenodoros/personal-storage-wrapper#fe512e318d24fbafb825e9a7b563936223508d5a:
+personal-storage-wrapper@Athenodoros/personal-storage-wrapper#725a0feadf119c857cdf9f28874c699ec5013fc8:
   version "0.0.0"
-  resolved "https://codeload.github.com/Athenodoros/personal-storage-wrapper/tar.gz/fe512e318d24fbafb825e9a7b563936223508d5a"
+  resolved "https://codeload.github.com/Athenodoros/personal-storage-wrapper/tar.gz/725a0feadf119c857cdf9f28874c699ec5013fc8"
 
 picocolors@^1.0.0:
   version "1.0.0"
