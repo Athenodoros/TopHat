@@ -673,3 +673,24 @@ at whatever version the browser holds rather than a pinned 1, and reopens one ve
 store is missing. Pinning the version was both what made this unrecoverable and what would have made
 the repair unrecoverable, since asking for a version behind the one on disk is an error rather than
 an open.
+
+## 14. Correction, 2026-09-10
+
+Henry linked an account from an install holding two institutions he had added, and the account's
+data went straight over the top of them.
+
+`holdsRealData` was checking `account` and `transaction` and nothing else. The reasoning was that
+every other list starts with placeholders in it, so length alone says nothing about them - which is
+true, and the wrong conclusion was drawn from it. Institutions, categories, currencies, rules and
+statements were all invisible to the check, so an install with any of those and nothing else read as
+empty and was overwritten.
+
+It compares against a new install now, by id and per list, taking the baseline from
+`initialTutorialState` rather than naming placeholders again. Anything with an id a new install
+would not have was put there by the user, whichever list it is in. `user` is settings and its two
+flags are checked on their own; `notification` and `patches` are TopHat's own bookkeeping, and
+dismissing the tutorial writes a patch by itself, so counting those would refuse links that should
+be allowed.
+
+Both sides of that boundary are pinned by tests: an install whose only data is two institutions is
+refused, and an install holding only the placeholders takes the account's data on.

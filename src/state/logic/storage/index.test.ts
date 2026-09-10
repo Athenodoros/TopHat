@@ -27,8 +27,10 @@ import {
     getMigrationRecord,
     getMonthsSince,
     getSavedData,
+    getNewInstallData,
     legacyDatabaseExists,
     LEGACY_DROPBOX_PATH,
+    NoInstitution,
     OldAccount,
     OldCurrency,
     OldGroceries,
@@ -49,6 +51,7 @@ import {
     readFromStore,
     SchemaBeforePatches,
     setMigrationRecord,
+    StubInstitutions,
     sortLists,
     SYNC_CONFIG_KEY,
     waitFor,
@@ -423,6 +426,35 @@ describe("Linking a Dropbox account", () => {
 
         // The old backup is left where it is, and the data is written to the file synced from here on
         await waitFor(async () => expect((await readFromStore())!.account[0].name).toBe("Data From The Old Backup"));
+    });
+
+    /**
+     * The lists a new install starts with are not all empty, so counting rows says nothing. Checking
+     * only the two that do start empty read two institutions the user had added as an empty install
+     * and let the account's data straight over the top of them.
+     */
+    test("is refused when the browser's only data is in a list that starts with placeholders", async () => {
+        await writeToStore({ ...getNewInstallData(), institution: [NoInstitution, ...StubInstitutions] });
+        const boot = await bootTopHat();
+
+        const link = await linkDropbox(getDropboxFileContents(getSavedData()));
+
+        expect(link).toEqual({ type: "conflict" });
+        expect(boot.data().institution.entities[1]!.name).toBe(StubInstitutions[0].name);
+        expect(boot.data().institution.entities[2]!.name).toBe(StubInstitutions[1].name);
+    });
+
+    /** The other side of that boundary: an install with only placeholders in it is still disposable */
+    test("takes on the account's data when the browser holds only what a new install starts with", async () => {
+        await writeToStore(getNewInstallData());
+        const boot = await bootTopHat();
+
+        const remote = getSavedData();
+        remote.institution = [NoInstitution, ...StubInstitutions];
+        const link = await linkDropbox(getDropboxFileContents(remote));
+
+        expect(link).toEqual({ type: "linked" });
+        await waitFor(() => expect(boot.data().institution.entities[1]!.name).toBe(StubInstitutions[0].name));
     });
 
     test("keeps the browser's data when the account holds nothing", async () => {

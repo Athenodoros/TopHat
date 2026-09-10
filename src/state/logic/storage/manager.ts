@@ -15,8 +15,9 @@ import {
     Sync,
     TimestampedValue,
 } from "personal-storage-wrapper";
-import type { ListDataState } from "../../data";
+import { initialTutorialState, type ListDataState } from "../../data";
 import { DataKeys, DataState, StubUserID } from "../../data/types";
+import { ID } from "../../shared/values";
 
 /** BroadcastChannel name, and the row the data is stored under in every target */
 export const STORAGE_ID = "tophat";
@@ -92,19 +93,41 @@ export const remoteWinsOverDisposableData = async (
 };
 
 /**
+ * The lists that hold what the user put in. `user` is settings rather than data, and its two flags
+ * are checked on their own below; `notification` and `patches` are TopHat's own bookkeeping, and
+ * dismissing the tutorial is itself enough to write a patch.
+ */
+const CONTENT_KEYS = ["account", "category", "currency", "institution", "rule", "transaction", "statement"] as const;
+
+/**
  * Whether this is data the user would miss.
  *
- * The demo is the case that matters: it is a full set of accounts and transactions, so anything
- * counting rows alone would call it real, and it is the state a browser is most likely to be in
- * when someone links an account they already have data in. An install still showing the tutorial,
- * or one that has been opened and not used, has nothing in it either.
+ * Not every list starts empty: a new install is given two categories, a currency, an institution and
+ * a statement, all placeholders, so length alone says nothing. What does say something is an id that
+ * a new install would not have - which is why this compares against one rather than naming the lists
+ * that happen to start empty. Naming them missed institutions, and so lost two of them.
+ *
+ * The demo is the other case that matters. It is a full set of accounts and transactions, so nothing
+ * counting rows could tell it apart from the real thing, and it is the state a browser is most
+ * likely to be in when someone links an account that already has data in it.
  */
 export const holdsRealData = (value: ListDataState): boolean => {
     const user = value.user?.find(({ id }) => id === StubUserID);
     if (user === undefined || user.isDemo || user.tutorial) return false;
 
-    // Everything else in a new install is a placeholder that TopHat puts there itself
-    return (value.account?.length ?? 0) > 0 || (value.transaction?.length ?? 0) > 0;
+    const placeholders = getNewInstallIds();
+    return CONTENT_KEYS.some((key) =>
+        ((value[key] ?? []) as { id: ID }[]).some(({ id }) => !placeholders[key].has(id))
+    );
+};
+
+/** What a brand new install holds, taken from the app rather than listed again here */
+const getNewInstallIds = (): Record<(typeof CONTENT_KEYS)[number], Set<ID>> => {
+    const fresh = toListDataState(initialTutorialState);
+
+    return Object.fromEntries(
+        CONTENT_KEYS.map((key) => [key, new Set(((fresh[key] ?? []) as { id: ID }[]).map(({ id }) => id))])
+    ) as Record<(typeof CONTENT_KEYS)[number], Set<ID>>;
 };
 
 const isLocalSync = (sync: Sync<DefaultTarget>) => sync.target.type === "indexeddb";

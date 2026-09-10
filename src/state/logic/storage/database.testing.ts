@@ -356,7 +356,13 @@ const AUD: Currency = {
     rates: [{ month: MONTH, value: 1 }],
     transactions: { ...EmptyHistory, localCredits: [], localDebits: [] },
 };
-const NoInstitution: Institution = { id: 0, name: "No Institution", colour: "#757575" };
+export const NoInstitution: Institution = { id: 0, name: "No Institution", colour: "#757575" };
+
+/** Institutions the user added, on top of the placeholder every install has */
+export const StubInstitutions: Institution[] = [
+    { id: 1, name: "First Stub Bank", colour: "#1976d2" },
+    { id: 2, name: "Second Stub Bank", colour: "#388e3c" },
+];
 const NoCategory: Category = {
     id: 0,
     name: "No Category",
@@ -414,6 +420,24 @@ export const getSavedData = (user: Partial<User> = {}): ListDataState => ({
     institution: [NoInstitution],
     rule: [],
     transaction: [Coffee],
+    statement: [NoStatement],
+    user: [{ ...SavedUser, ...user }],
+    notification: [],
+    patches: [],
+});
+
+/**
+ * An install that has been opened, had the tutorial dismissed, and had nothing put in it. Not every
+ * list is empty: a new install is given placeholders in four of them, which is what makes counting
+ * rows useless as a test of whether there is anything here worth keeping.
+ */
+export const getNewInstallData = (user: Partial<User> = {}): ListDataState => ({
+    account: [],
+    category: [NoCategory, Transfer],
+    currency: [AUD],
+    institution: [NoInstitution],
+    rule: [],
+    transaction: [],
     statement: [NoStatement],
     user: [{ ...SavedUser, ...user }],
     notification: [],
