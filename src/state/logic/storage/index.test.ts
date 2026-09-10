@@ -457,6 +457,23 @@ describe("Linking a Dropbox account", () => {
         await waitFor(() => expect(boot.data().institution.entities[1]!.name).toBe(StubInstitutions[0].name));
     });
 
+    /** Once TopHat has written the file it syncs to, the older backup beside it is stale */
+    test("ignores the older backup when the account has the file TopHat syncs to", async () => {
+        await writeToStore(getNewInstallData());
+        const boot = await bootTopHat();
+
+        const current = getSavedData();
+        current.institution = [NoInstitution, ...StubInstitutions];
+        const stale = getSavedData();
+        stale.institution = [{ ...NoInstitution, name: "From The Stale Backup" }];
+
+        const link = await linkDropbox(getDropboxFileContents(current), await getLegacyDropboxFileContents(stale));
+
+        expect(link).toEqual({ type: "linked" });
+        await waitFor(() => expect(boot.data().institution.entities[1]!.name).toBe(StubInstitutions[0].name));
+        expect(boot.data().institution.entities[0]!.name).toBe(NoInstitution.name);
+    });
+
     test("keeps the browser's data when the account holds nothing", async () => {
         await writeToStore(getSavedData());
         const boot = await bootTopHat();
