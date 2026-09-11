@@ -694,3 +694,23 @@ be allowed.
 
 Both sides of that boundary are pinned by tests: an install whose only data is two institutions is
 refused, and an install holding only the placeholders takes the account's data on.
+
+## 15. Installing the library, 2026-09-11
+
+Two separate staleness problems, both of which showed up as the app failing to load with an export
+the library plainly has. Neither is a mistake in the library.
+
+**Yarn can install a different commit than the one pinned.** The library's `package.json` says
+`"version": "0.0.0"` at every commit, so yarn keeps a cache entry for it that is not specific to a
+commit alongside the per-commit ones, and populates `node_modules` from that. A plain `yarn install`
+afterwards will not notice: it trusts `node_modules/.yarn-integrity`, says "Already up-to-date" and
+changes nothing. `yarn install --check-files` compares what is on disk and repairs it, and is what
+to run after moving the pin. A clean CI runner has no cache to reuse and is unaffected. Bumping the
+library's version when it changes would remove the cause rather than the symptom.
+
+**Vite was pre-bundling the library.** The alias points into `node_modules`, so the dependency
+optimiser treated it as a dependency and bundled it from the package entry rather than through the
+alias - and the package root has no entry to speak of. `optimizeDeps.exclude` leaves the aliased
+TypeScript source to be transformed like the rest of the app, which is what the alias was for, and
+takes with it the instruction in §12 to clear `node_modules/.vite` after re-pinning: there is no
+longer a cached copy of the library to go stale.

@@ -22,5 +22,17 @@ export default defineConfig({
         }),
     ],
     resolve: { alias: { "personal-storage-wrapper": PERSONAL_STORAGE_WRAPPER_ENTRY } },
+
+    /**
+     * The alias above points into `node_modules`, so the dependency pre-bundler treats the library
+     * as a dependency and bundles it - from the package entry rather than through the alias, and the
+     * package root has no entry to speak of. What it produced was missing exports the source has, so
+     * the app failed to load against a cache that had been rebuilt only moments before.
+     *
+     * Excluding it leaves the aliased TypeScript source to be transformed like the rest of the app,
+     * which is what the alias was for, and takes the stale-cache problem with it: there is no cached
+     * copy of the library to go stale after the pinned commit moves.
+     */
+    optimizeDeps: { exclude: ["personal-storage-wrapper"] },
     base: "/TopHat",
 });
