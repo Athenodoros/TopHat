@@ -5,7 +5,7 @@
 import produce from "immer";
 import { cloneDeep, keys, mapValues, sortBy } from "lodash";
 import { expect, test } from "vitest";
-import { DataSlice, DataState, refreshCaches } from ".";
+import { DataSlice, DataState, refreshCaches, toListDataState } from ".";
 import { TopHatDispatch, TopHatStore } from "..";
 import { ID } from "../shared/values";
 import { DemoData } from "./demo/data";
@@ -32,6 +32,17 @@ test("State remains valid during transformations", () => {
     currency.rates[0].value = 10;
     TopHatDispatch(DataSlice.actions.updateCurrencyRates([currency]));
     validateStateIntegrity(TopHatStore.getState().data);
+});
+
+test("State survives being saved as lists and loaded back from storage", () => {
+    TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));
+    const saved = TopHatStore.getState().data;
+
+    const lists = toListDataState(saved);
+    expect(sortBy(keys(lists))).toEqual(sortBy(DataKeys));
+
+    TopHatDispatch(DataSlice.actions.setFromStorage(lists));
+    expect(TopHatStore.getState().data).toEqual(saved);
 });
 
 const validateStateIntegrity = (state: DataState) => {

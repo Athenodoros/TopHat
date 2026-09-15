@@ -43,5 +43,5 @@ export const initialiseNotificationUpdateHook = () => {
     // is loaded the way saved data is, so that it doesn't show up in the undo history.
     const current = TopHatStore.getState().data;
     const updated = createNextState(current, (draft) => runNotificationRules(undefined, draft));
-    if (!isEqual(current, updated)) TopHatDispatch(DataSlice.actions.setFromIndexedDB(toListDataState(updated)));
+    if (!isEqual(current, updated)) TopHatDispatch(DataSlice.actions.setFromStorage(toListDataState(updated)));
 };
