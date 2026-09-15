@@ -73,6 +73,7 @@ import {
     Category,
     Currency,
     CurrencyExchangeRate,
+    DataKeys,
     DataState,
     PatchGroup,
     Rule,
@@ -154,6 +155,11 @@ const DataBaseline: DataState = mapValuesWithKeys(adapters, (name, adapter) =>
 export type ListDataState = {
     [Key in keyof DataState]: DataState[Key] extends EntityState<infer T> | undefined ? T[] : never;
 };
+
+export const toListDataState = (data: DataState) =>
+    Object.fromEntries(
+        DataKeys.map((key) => [key, data[key].ids.map((id) => data[key].entities[id])])
+    ) as unknown as ListDataState;
 
 const initialTutorialState: DataState = {
     ...DataBaseline,

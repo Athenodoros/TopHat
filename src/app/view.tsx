@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { noop } from "lodash-es";
 import React, { useEffect } from "react";
 import { AccountPage } from "../pages/account";
 import { AccountsPage } from "../pages/accounts";
@@ -7,6 +8,7 @@ import { CategoryPage } from "../pages/category";
 import { ForecastPage } from "../pages/forecasts";
 import { SummaryPage } from "../pages/summary";
 import { TransactionsPage } from "../pages/transactions";
+import { assertNever } from "../shared/data";
 import { TopHatDispatch } from "../state";
 import { PageStateType } from "../state/app/pageTypes";
 import { DataSlice, setSubmitNotification } from "../state/data";
@@ -14,36 +16,43 @@ import { useSelector } from "../state/shared/hooks";
 import { APP_BACKGROUND_COLOUR } from "../styles/theme";
 import { NavBar } from "./navbar";
 import { useSetAlert } from "./popups";
-import { StorageErrorPage } from "./storage";
+import { StorageErrorPage, StorageLoadingPage } from "./storage";
 import { MIN_WIDTH_FOR_APPLICATION } from "./tutorial";
 
 export const View: React.FC = () => {
     const page = useSelector((state) => state.app.page.id);
     const storage = useSelector((state) => state.app.storage);
     const setAlert = useSetAlert();
-    useEffect(
-        () =>
-            setSubmitNotification((id, message, intent) =>
-                setAlert({
-                    message,
-                    severity: intent || "success",
-                    action: {
-                        name: "UNDO",
-                        callback: () => TopHatDispatch(DataSlice.actions.rewindToPatch(id)),
-                    },
-                })
-            ),
-        [setAlert]
-    );
+    useEffect(() => {
+        // Boot makes its own data changes before it leaves the loading state, so none of them show a snack
+        if (storage.type === "loading") return;
 
-    if (storage.type === "unreadable") return <StorageErrorPage state={storage} />;
+        setSubmitNotification((id, message, intent) => {
+            const callback = () => TopHatDispatch(DataSlice.actions.rewindToPatch(id));
+            setAlert({ message, severity: intent || "success", action: { name: "UNDO", callback } });
+        });
 
-    return (
-        <AppContainerBox>
-            <NavBar />
-            {Pages[page]}
-        </AppContainerBox>
-    );
+        return () => setSubmitNotification(noop);
+    }, [storage.type, setAlert]);
+
+    switch (storage.type) {
+        case "loading":
+            return <StorageLoadingPage />;
+        case "unreadable":
+            return <StorageErrorPage state={storage} />;
+        case "loaded":
+        case "empty":
+        // Nothing can be saved, but the app still works - the user is warned rather than blocked
+        case "unavailable":
+            return (
+                <AppContainerBox>
+                    <NavBar />
+                    {Pages[page]}
+                </AppContainerBox>
+            );
+        default:
+            return assertNever(storage);
+    }
 };
 
 const Pages: Record<PageStateType["id"], JSX.Element> = {

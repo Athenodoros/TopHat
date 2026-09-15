@@ -21,16 +21,38 @@ export const initialiseDemoData = async () => {
     await updateSyncedCurrencies();
 };
 
-export const initialiseAndGetDBConnection = async () => {
-    // AppSlice changes the URL as soon as any action is fired and the reducer runs, so this has to be saved first
-    const maybeDropboxCode = DBUtils.getMaybeDropboxRedirectCode();
+/**
+ * Boots TopHat, with the app already on screen and following `app.storage`.
+ *
+ * `maybeDropboxCode` is read by the caller before anything is rendered, because AppSlice rewrites
+ * the URL the first time an action runs.
+ *
+ * Nothing is allowed to escape: a failure before the storage state is set would otherwise leave
+ * the loading page up for good, with nothing said about why.
+ */
+export const initialiseAndGetDBConnection = async (maybeDropboxCode: string | undefined) => {
+    try {
+        await startTopHat(maybeDropboxCode);
+    } catch (exception) {
+        console.error("TopHat could not start up", exception);
 
+        // Once the storage state is set the app is on screen, and a later failure (say, in a sync) is
+        // better logged than shown: the alternative is hiding data that loaded perfectly well
+        if (TopHatStore.getState().app.storage.type !== "loading") return;
+
+        // Otherwise it isn't known what state the saved data is in, so show the recovery page, which
+        // writes nothing
+        const error = (exception instanceof Error && exception.message) || "TopHat could not start up.";
+        TopHatDispatch(AppSlice.actions.setStorageState({ type: "unreadable", error, rescuedRows: 0 }));
+    }
+};
+
+const startTopHat = async (maybeDropboxCode: string | undefined) => {
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
     // Set up IDB, if present
     const { db, storage } = await setupIDBConnectionAndLoadData(debug);
-    TopHatDispatch(AppSlice.actions.setStorageState(storage));
 
     // Debug variables
     (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
@@ -38,10 +60,21 @@ export const initialiseAndGetDBConnection = async () => {
 
     // Saved data that can't be read leaves the app on a recovery screen, so nothing else is started
     // up: none of it would be saved, and some of it would write over the data that is still there
-    if (storage.type === "unreadable") return;
+    if (storage.type === "unreadable") {
+        TopHatDispatch(AppSlice.actions.setStorageState(storage));
+        return;
+    }
+
+    // The app shows "undo" snacks once the storage state is set, so boot's own data changes are made
+    // before it: they never showed a snack when the app only rendered after boot
 
     // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
     if (storage.type !== "loaded" && maybeDropboxCode) await initialiseDemoData();
+
+    // Update caches to latest month
+    TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
+
+    TopHatDispatch(AppSlice.actions.setStorageState(storage));
 
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
@@ -55,9 +88,6 @@ export const initialiseAndGetDBConnection = async () => {
 
     // Currency syncs
     updateSyncedCurrencies();
-
-    // Update caches to latest month
-    TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 };
 
 const initialiseMaybeDropboxSyncFromRedux = () =>

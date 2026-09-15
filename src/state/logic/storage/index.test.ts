@@ -44,7 +44,6 @@ import {
 // A boot also kicks off currency and Dropbox syncs, neither of which is part of what is tested here
 vi.mock("../currencies", () => ({ updateSyncedCurrencies: vi.fn(async () => undefined) }));
 vi.mock("../dropbox", () => ({
-    getMaybeDropboxRedirectCode: vi.fn(() => undefined),
     dealWithDropboxRedirect: vi.fn(),
     maybeSaveDataToDropbox: vi.fn(async () => undefined),
 }));
@@ -63,7 +62,7 @@ const bootTopHat = async () => {
         import("../startup"),
     ]);
 
-    await initialiseAndGetDBConnection();
+    await initialiseAndGetDBConnection(undefined);
 
     return {
         dispatch: TopHatDispatch,
@@ -191,6 +190,51 @@ describe("Loading and saving", () => {
         dispatch(actions.updateUserPartial({ tutorial: false }));
         await pause(25);
         expect(await readFromDatabase()).toEqual(sortLists(getSavedData()));
+    });
+
+    test("warns that nothing can be saved as soon as it boots, when IndexedDB can't be used", async () => {
+        // As in some private browsing modes
+        const open = vi.spyOn(indexedDB, "open").mockImplementation(() => {
+            throw new DOMException("The operation is insecure.", "SecurityError");
+        });
+
+        try {
+            const { data, dispatch, actions, storage } = await bootTopHat();
+            const { IDB_NOTIFICATION_ID } = await import("../notifications/types");
+            const { getNotificationDisplayMetadata } = await import("../notifications");
+
+            expect(storage()).toEqual({ type: "unavailable", error: expect.any(String) });
+
+            // Without the user having changed anything
+            const notification = data().notification.entities[IDB_NOTIFICATION_ID]!;
+            expect(notification).toBeDefined();
+
+            // It has no dismiss button, and deleting it some other way only brings it back
+            expect(getNotificationDisplayMetadata(notification).dismiss).toBeUndefined();
+            dispatch(actions.deleteNotification(IDB_NOTIFICATION_ID));
+            expect(data().notification.entities[IDB_NOTIFICATION_ID]).toBeDefined();
+        } finally {
+            open.mockRestore();
+        }
+    });
+
+    test("shows an error page, rather than loading forever, when boot fails before storage is set up", async () => {
+        vi.doMock("./index", () => ({
+            setupIDBConnectionAndLoadData: vi.fn(async () => {
+                throw new Error("Something broke");
+            }),
+        }));
+        const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+        try {
+            const { storage } = await bootTopHat();
+
+            expect(storage()).toEqual({ type: "unreadable", error: "Something broke", rescuedRows: 0 });
+            expect(log).toHaveBeenCalled();
+        } finally {
+            vi.doUnmock("./index");
+            log.mockRestore();
+        }
     });
 
     test("loads every field of data saved months ago", async () => {
