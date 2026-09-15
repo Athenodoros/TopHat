@@ -202,8 +202,8 @@ export const DataSlice = createSlice({
             rewindDisplaySpec = { message: "Loaded from JSON", suppressPatch: true, suppressSnack: true };
             return payload;
         },
-        setFromIndexedDB: (_, { payload }: PayloadAction<ListDataState>) => {
-            rewindDisplaySpec = { message: "Loaded from IndexedDB", suppressPatch: true, suppressSnack: true };
+        setFromStorage: (_, { payload }: PayloadAction<ListDataState>) => {
+            rewindDisplaySpec = { message: "Loaded from storage", suppressPatch: true, suppressSnack: true };
             return mapValuesWithKeys(adapters, (name, adapter) =>
                 adapter.addMany(adapter.getInitialState(), payload[name])
             );

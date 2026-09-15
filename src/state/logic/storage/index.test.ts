@@ -9,12 +9,11 @@
 
 import { omit, sum } from "lodash-es";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import type { DataState, ListDataState } from "../../data";
+import { toListDataState, type DataState } from "../../data";
 import { getCurrentMonthString, TransactionHistory } from "../../shared/values";
 import {
     Coffee,
     CurrentSchema,
-    DataKeys,
     deleteDatabase,
     getMonthsSince,
     getSavedData,
@@ -73,10 +72,7 @@ const bootTopHat = async () => {
 };
 
 /** Redux state as sorted lists, so that it can be compared against the database or the fixtures */
-const asLists = (data: DataState) =>
-    sortLists(
-        Object.fromEntries(DataKeys.map((key) => [key, Object.values(data[key].entities)])) as unknown as ListDataState
-    );
+const asLists = (data: DataState) => sortLists(toListDataState(data));
 
 // A boot leaves its connection to the database open, the way an open tab would. Wiping the database
 // closes them, which logs one DatabaseClosedError per boot from the change subscription being torn
@@ -220,7 +216,7 @@ describe("Loading and saving", () => {
 
     test("shows an error page, rather than loading forever, when boot fails before storage is set up", async () => {
         vi.doMock("./index", () => ({
-            setupIDBConnectionAndLoadData: vi.fn(async () => {
+            setupStorageAndLoadData: vi.fn(async () => {
                 throw new Error("Something broke");
             }),
         }));

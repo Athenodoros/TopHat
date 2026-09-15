@@ -10,11 +10,14 @@ import { setIDBConnectionExists } from "../notifications/variants/idb";
 import { DATABASE_NAME, TopHatDexie } from "./database";
 import { handleMigrationsAndUpdates } from "./migrations";
 import { rescueDatabaseContents } from "./rescue";
-import { StorageState } from "./types";
+import { StorageConnection, StorageState } from "./types";
 
-export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
+export const setupStorageAndLoadData = async (
+    debug: boolean
+): Promise<{ connection: StorageConnection; storage: StorageState }> => {
     // Set up IDB, if present
     const db = new TopHatDexie();
+    const connection: StorageConnection = { debugVariables: { db } };
 
     let user: User | undefined;
     try {
@@ -27,7 +30,7 @@ export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
             handleMigrationsAndUpdates(user.generation);
         }
     } catch (error) {
-        return { db, storage: await getStorageFailureState(db, error, debug) };
+        return { connection, storage: await getStorageFailureState(db, error, debug) };
     }
 
     const uuid = "" + new Date().getTime() + Math.random();
@@ -36,7 +39,7 @@ export const setupIDBConnectionAndLoadData = async (debug: boolean) => {
     setIDBConnectionExists(true);
 
     const storage: StorageState = user ? { type: "loaded" } : { type: "empty" };
-    return { db, storage };
+    return { connection, storage };
 };
 
 /**
@@ -68,7 +71,7 @@ const hydrateReduxFromIDB = async (db: TopHatDexie) => {
         )
     );
 
-    TopHatDispatch(DataSlice.actions.setFromIndexedDB(zipObject(DataKeys, values) as unknown as ListDataState));
+    TopHatDispatch(DataSlice.actions.setFromStorage(zipObject(DataKeys, values) as unknown as ListDataState));
 };
 
 const initialiseIDBSyncFromRedux = (db: TopHatDexie, uuid: string) => {

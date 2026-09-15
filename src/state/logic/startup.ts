@@ -10,8 +10,8 @@ import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
-import { setupIDBConnectionAndLoadData } from "./storage";
-import { TopHatDexie } from "./storage/database";
+import { setupStorageAndLoadData } from "./storage";
+import { StorageConnection } from "./storage/types";
 
 const debug = !import.meta.env.PROD;
 
@@ -52,11 +52,11 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
     // Set up IDB, if present
-    const { db, storage } = await setupIDBConnectionAndLoadData(debug);
+    const { connection, storage } = await setupStorageAndLoadData(debug);
 
     // Debug variables
-    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(db);
-    if (debug) Object.assign(window, await getDebugVariablesAsync(db)());
+    (window as any).getDebugVariablesAsync = getDebugVariablesAsync(connection);
+    if (debug) Object.assign(window, await getDebugVariablesAsync(connection)());
 
     // Saved data that can't be read leaves the app on a recovery screen, so nothing else is started
     // up: none of it would be saved, and some of it would write over the data that is still there
@@ -93,14 +93,14 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
 const initialiseMaybeDropboxSyncFromRedux = () =>
     subscribeToDataUpdates(() => setTimeout(() => DBUtils.maybeSaveDataToDropbox(), 0));
 
-const getDebugVariablesAsync = (db: TopHatDexie) => async () => {
+const getDebugVariablesAsync = (connection: StorageConnection) => async () => {
     if (!debug)
         console.warn(
             "Warning! Using the variables in the debug tools can corrupt your data and have unpredictable results!"
         );
 
     return {
-        db,
+        connection: connection.debugVariables,
         TopHatStore,
         TopHatDispatch,
         AppSlice,

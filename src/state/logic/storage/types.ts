@@ -13,6 +13,12 @@ export type StorageState =
     /** Boot threw before the app could be shown - nothing suggests saved data is at fault, so it's left alone */
     | { type: "failed"; error: string };
 
+/** What startup keeps of the storage it booted from, so that it doesn't depend on how that storage works */
+export interface StorageConnection {
+    /** Handles on the underlying store, exposed alongside the other debug variables */
+    debugVariables: Record<string, unknown>;
+}
+
 /** Whether boot has got far enough for the app, and anything laid over it, to be shown */
 export const isAppRunning = (state: StorageState): boolean => {
     switch (state.type) {
