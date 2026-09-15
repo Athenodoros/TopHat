@@ -61,6 +61,36 @@ export const StorageErrorPage: React.FC<{ state: StorageState & { type: "unreada
 };
 
 /**
+ * Shown in place of the app when boot fails for some reason other than unreadable saved data. The data
+ * may well be fine, so unlike the page above this offers nothing that would delete it.
+ */
+export const StartupErrorPage: React.FC<{ state: StorageState & { type: "failed" } }> = ({ state }) => (
+    <ContainerBox>
+        <NonIdealState
+            intent="danger"
+            icon={ReportProblem}
+            title="TopHat Could Not Start"
+            subtitle={
+                <ContentsBox>
+                    <Typography variant="body2">
+                        Something went wrong while TopHat was starting up. Any data saved in this browser has not been
+                        changed or deleted.
+                    </Typography>
+                    <Typography variant="body2" sx={ErrorSx}>
+                        {state.error}
+                    </Typography>
+                    <ActionsBox>
+                        <Button variant="outlined" onClick={reload}>
+                            Try Again
+                        </Button>
+                    </ActionsBox>
+                </ContentsBox>
+            }
+        />
+    </ContainerBox>
+);
+
+/**
  * Shown in place of the app until boot has finished looking for saved data. The store starts in the
  * tutorial state, so showing the app any earlier would flash the tutorial at users who have data.
  */

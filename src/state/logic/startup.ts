@@ -40,10 +40,10 @@ export const initialiseAndGetDBConnection = async (maybeDropboxCode: string | un
         // better logged than shown: the alternative is hiding data that loaded perfectly well
         if (TopHatStore.getState().app.storage.type !== "loading") return;
 
-        // Otherwise it isn't known what state the saved data is in, so show the recovery page, which
-        // writes nothing
+        // Otherwise the app never appeared. Unreadable data is reported by storage itself rather than
+        // thrown, so this isn't a reason to offer to delete anything - just to say what went wrong
         const error = (exception instanceof Error && exception.message) || "TopHat could not start up.";
-        TopHatDispatch(AppSlice.actions.setStorageState({ type: "unreadable", error, rescuedRows: 0 }));
+        TopHatDispatch(AppSlice.actions.setStorageState({ type: "failed", error }));
     }
 };
 

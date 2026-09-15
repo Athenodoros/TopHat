@@ -229,7 +229,7 @@ describe("Loading and saving", () => {
         try {
             const { storage } = await bootTopHat();
 
-            expect(storage()).toEqual({ type: "unreadable", error: "Something broke", rescuedRows: 0 });
+            expect(storage()).toEqual({ type: "failed", error: "Something broke" });
             expect(log).toHaveBeenCalled();
         } finally {
             vi.doUnmock("./index");

@@ -4,12 +4,12 @@ import { Button, CircularProgress, Dialog, Link, Typography } from "@mui/materia
 import { Box } from "@mui/system";
 import { useCallback, useEffect, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
-import { assertNever } from "../shared/data";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
 import { importJSONData } from "../state/logic/import";
 import { initialiseDemoData } from "../state/logic/startup";
+import { isAppRunning } from "../state/logic/storage/types";
 import { useSelector } from "../state/shared/hooks";
 import { AppColours, WHITE } from "../styles/colours";
 
@@ -37,19 +37,9 @@ export const TopHatTutorial: React.FC = () => {
     const [widthDismissed, setWidthDismissed] = useState(false);
     const dismissWidth = useCallback(() => setWidthDismissed(true), []);
 
-    // The store starts in the tutorial state, and is left in it when saved data can't be read. Neither
-    // is an invitation, so the tutorial is only offered once the app itself can be shown.
-    switch (storage.type) {
-        case "loading":
-        case "unreadable":
-            return null;
-        case "empty":
-        case "loaded":
-        case "unavailable":
-            break;
-        default:
-            assertNever(storage);
-    }
+    // The store starts in the tutorial state, and is left in it when boot or saved data fails. None of
+    // that is an invitation, so the tutorial is only offered once the app itself can be shown.
+    if (!isAppRunning(storage)) return null;
 
     if (width < MIN_WIDTH_FOR_APPLICATION && !widthDismissed)
         return (

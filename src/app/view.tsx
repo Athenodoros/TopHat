@@ -16,7 +16,7 @@ import { useSelector } from "../state/shared/hooks";
 import { APP_BACKGROUND_COLOUR } from "../styles/theme";
 import { NavBar } from "./navbar";
 import { useSetAlert } from "./popups";
-import { StorageErrorPage, StorageLoadingPage } from "./storage";
+import { StartupErrorPage, StorageErrorPage, StorageLoadingPage } from "./storage";
 import { MIN_WIDTH_FOR_APPLICATION } from "./tutorial";
 
 export const View: React.FC = () => {
@@ -40,6 +40,8 @@ export const View: React.FC = () => {
             return <StorageLoadingPage />;
         case "unreadable":
             return <StorageErrorPage state={storage} />;
+        case "failed":
+            return <StartupErrorPage state={storage} />;
         case "loaded":
         case "empty":
         // Nothing can be saved, but the app still works - the user is warned rather than blocked
