@@ -14,7 +14,8 @@ import { DialogContents, DialogMain, DialogOptions } from "../shared";
 import { DialogImportAccountSelector } from "./account";
 
 export const DialogImportFileScreen: React.FC = () => {
-    const { openFileDialog, isDragActive } = useContext(FileHandlerContext);
+    const { openFileDialog, isDragActive: isAnyDragActive, fileImportHandler } = useContext(FileHandlerContext);
+    const isDragActive = isAnyDragActive && fileImportHandler === "GENERAL-IMPORT";
     const rejections = useDialogState("import", (state) => (state as DialogStatementFileState).rejections);
 
     return (
