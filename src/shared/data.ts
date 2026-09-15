@@ -7,6 +7,10 @@ export const flipListIncludes = <T>(id: T, list: T[]) =>
 
 export const formatEmpty = () => "";
 
+export const assertNever = (value: never): never => {
+    throw new Error(`Unexpected value: ${JSON.stringify(value)}`);
+};
+
 export const updateListSelection = <T>(t: T, ts: T[]) => (ts.includes(t) ? ts.filter((x) => x !== t) : ts.concat([t]));
 
 export const takeWithDefault = <T>(array: T[], length: number, fallback: T) =>

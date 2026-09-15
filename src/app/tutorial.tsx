@@ -7,9 +7,10 @@ import { NonIdealState } from "../components/display/NonIdealState";
 import { TopHatDispatch } from "../state";
 import { DataSlice } from "../state/data";
 import { useUserData } from "../state/data/hooks";
-import { useSelector } from "../state/shared/hooks";
 import { importJSONData } from "../state/logic/import";
 import { initialiseDemoData } from "../state/logic/startup";
+import { isAppRunning } from "../state/logic/storage/types";
+import { useSelector } from "../state/shared/hooks";
 import { AppColours, WHITE } from "../styles/colours";
 
 export const MIN_WIDTH_FOR_APPLICATION = 1200;
@@ -36,8 +37,9 @@ export const TopHatTutorial: React.FC = () => {
     const [widthDismissed, setWidthDismissed] = useState(false);
     const dismissWidth = useCallback(() => setWidthDismissed(true), []);
 
-    // The tutorial state is a placeholder when saved data couldn't be read, not an invitation
-    if (storage.type === "unreadable") return null;
+    // The store starts in the tutorial state, and is left in it when boot or saved data fails. None of
+    // that is an invitation, so the tutorial is only offered once the app itself can be shown.
+    if (!isAppRunning(storage)) return null;
 
     if (width < MIN_WIDTH_FOR_APPLICATION && !widthDismissed)
         return (
@@ -114,6 +116,12 @@ export const TopHatTutorial: React.FC = () => {
                         </Link>
                         .
                     </Typography>
+                    {storage.type === "unavailable" ? (
+                        <Typography variant="body2" color="error" sx={{ marginTop: 16 }}>
+                            TopHat cannot save data in this browser, so anything entered will be lost when this page is
+                            closed.
+                        </Typography>
+                    ) : undefined}
                 </Box>
                 <Box sx={{ flex: "1 1 70px" }} />
                 <Box sx={{ display: "flex", alignItems: "center" }}>

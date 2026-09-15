@@ -3,6 +3,8 @@ import { get } from "lodash";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { FileHandlerContext } from "../app/context";
 import { useDialogPage } from "../state/app/hooks";
+import { isAppRunning } from "../state/logic/storage/types";
+import { useSelector } from "../state/shared/hooks";
 import { closeDialogBox, DialogHeader } from "./header";
 import { DialogImportView } from "./import";
 import { DialogAccountsView } from "./objects/accounts";
@@ -24,7 +26,11 @@ export const TopHatDialog: React.FC = () => {
     const reRender = useState(false)[1];
     useEffect(() => void setTimeout(() => reRender(true), 0.1), [reRender]);
 
-    if (!dropzoneRef?.current) return null;
+    // A dialog can be open from the start (the Dropbox redirect opens storage settings), but until boot
+    // has finished it would show the tutorial placeholder data, over a loading or error page
+    const running = useSelector((state) => isAppRunning(state.app.storage));
+
+    if (!dropzoneRef?.current || !running) return null;
 
     return (
         <Dialog
