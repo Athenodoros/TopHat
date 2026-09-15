@@ -18,7 +18,9 @@ import { DialogMain } from "./shared";
 
 export const TopHatDialog: React.FC = () => {
     const state = useDialogPage();
-    const { dropzoneRef, isDragActive } = useContext(FileHandlerContext);
+    const { dropzoneRef, isDragActive: isAnyDragActive, fileImportHandler } = useContext(FileHandlerContext);
+    // The tutorial takes over dropped files while it is showing, so they aren't statements
+    const isDragActive = isAnyDragActive && fileImportHandler === "GENERAL-IMPORT";
 
     const onClose = useCallback(() => !isDragActive && closeDialogBox(), [isDragActive]);
 

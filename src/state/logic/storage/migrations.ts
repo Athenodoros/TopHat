@@ -1,6 +1,9 @@
 import { TopHatDispatch } from "../..";
 import { DataSlice } from "../../data";
 
+// The generation data is left at by handleMigrationsAndUpdates: data from a later generation was saved by a newer TopHat
+export const CURRENT_GENERATION = 5;
+
 // This handles data changes over time, or required cache refreshes
 export const handleMigrationsAndUpdates = (oldGeneration: number | undefined) => {
     let generation = oldGeneration ?? 0;

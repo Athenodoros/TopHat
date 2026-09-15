@@ -1,5 +1,6 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd } from "lodash";
+import type { DataState } from "../data/types";
 import { StorageState } from "../logic/storage/types";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
@@ -14,11 +15,20 @@ import {
 export { DefaultPages } from "./defaults";
 export type { DialogState } from "./defaults";
 
+// Progress of a TopHat export or backup dropped onto (or chosen from) the tutorial, which the tutorial imports once
+// the user confirms it
+export type JSONImportStatus =
+    | { type: "idle" }
+    | { type: "loading" }
+    | { type: "loaded"; name: string; data: DataState }
+    | { type: "error"; message: string };
+
 interface AppState {
     dialog: DialogState;
     page: PageStateType;
     // How the attempt to load saved data went, and left alone by everything else in here
     storage: StorageState;
+    jsonImport: JSONImportStatus;
 }
 
 export const BASE_PATHNAME = "/TopHat";
@@ -35,7 +45,7 @@ const getDefaultPageState = (page: PageStateType | null) => ({
     page: page || DefaultPages["summary"],
 });
 
-export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage"> => {
+export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage" | "jsonImport"> => {
     const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
 
     if (page === "dropbox")
@@ -51,7 +61,11 @@ export const getAppStateFromPagePath = (location: Location): Omit<AppState, "sto
     return getDefaultPageState(get(DefaultPages, page, DefaultPages.summary));
 };
 
-const initialState: AppState = { ...getAppStateFromPagePath(window.location), storage: { type: "loading" } };
+const initialState: AppState = {
+    ...getAppStateFromPagePath(window.location),
+    storage: { type: "loading" },
+    jsonImport: { type: "idle" },
+};
 
 export const AppSlice = createSlice({
     name: "app",
@@ -63,7 +77,11 @@ export const AppSlice = createSlice({
         setPageState: (state, { payload: page }: PayloadAction<PageStateType>) => {
             state.page = page;
         },
-        setPageStateFromPath: (state) => ({ ...getAppStateFromPagePath(window.location), storage: state.storage }),
+        setPageStateFromPath: (state) => ({
+            ...getAppStateFromPagePath(window.location),
+            storage: state.storage,
+            jsonImport: state.jsonImport,
+        }),
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
                 ...(state.page.id === "accounts" ? state.page : DefaultPages["accounts"]),
@@ -127,9 +145,13 @@ export const AppSlice = createSlice({
             dialog: DefaultDialogs,
             page,
             storage: state.storage,
+            jsonImport: state.jsonImport,
         }),
         setStorageState: (state, { payload }: PayloadAction<StorageState>) => {
             state.storage = payload;
+        },
+        setJSONImportStatus: (state, { payload }: PayloadAction<JSONImportStatus>) => {
+            state.jsonImport = payload;
         },
     },
 });
