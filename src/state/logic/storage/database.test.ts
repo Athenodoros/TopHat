@@ -1,11 +1,15 @@
 /**
- * Tests for the raw IndexedDB utilities in `database.testing.ts`, which the persistence tests in
- * `index.test.ts` are built on. They check the utilities against Dexie, which is what writes the
- * database today: that they read what it has written, and that what they write is a database it
- * opens as it stands.
+ * Checks against Dexie itself, which is what writes the database today, of the three things that
+ * rely on how it behaves once it is gone:
  *
- * This whole file goes when Dexie does. What it is here for is the confidence that the utilities
- * the other tests rely on describe the real thing.
+ * - The app's legacy reader in `legacy/index.ts`, which the migration will copy users' data with:
+ *   that it reads what Dexie has written, and relies only on things Dexie really does.
+ * - The raw fixture writes in `legacy/fixtures.testing.ts`, which every other persistence test sets
+ *   up its data with: that they leave the database Dexie would have left.
+ * - The lock on the old database: that Dexie versions of the app can neither open nor write to it.
+ *
+ * This whole file goes when Dexie does. After that, these are the only evidence that the reader
+ * and the fixtures describe the real thing.
  *
  * @vitest-environment jsdom
  */
@@ -16,15 +20,15 @@ import "fake-indexeddb/auto";
 import { afterEach, describe, expect, test } from "vitest";
 import type { ListDataState } from "../../data";
 import { TopHatDexie } from "./database";
+import { deleteLegacyDatabase, lockLegacyDatabase, readLegacyDatabase, readLegacyTables } from "./legacy";
 import {
-    CurrentSchema,
-    deleteDatabase,
     getSavedData,
-    readFromDatabase,
-    SchemaBeforePatches,
+    LegacySchema,
+    LegacySchemaBeforePatches,
+    readFromLegacyDatabase,
     sortLists,
-    writeToDatabase,
-} from "./database.testing";
+    writeToLegacyDatabase,
+} from "./legacy/fixtures.testing";
 
 // Connections are held open for the length of a test, the way a tab would hold one
 const connections: TopHatDexie[] = [];
@@ -64,56 +68,102 @@ const readWithDexie = async (db: TopHatDexie) =>
         patches: await db.patches.toArray(),
     });
 
-const EmptyDatabase = sortLists({});
+// The data tables under the names Dexie gives them, without the ones dexie-observable adds
+const DataTables = [
+    "account",
+    "category",
+    "currency",
+    "institution",
+    "rule",
+    "transaction_",
+    "statement",
+    "user",
+    "notification",
+    "patches",
+];
 
 afterEach(async () => {
     connections.splice(0).forEach((db) => db.close());
-    await deleteDatabase();
+    await deleteLegacyDatabase();
 });
 
-describe("The test database utilities", () => {
-    test("read what Dexie has written", async () => {
+describe("The legacy reader, against Dexie", () => {
+    test("reads what Dexie has written", async () => {
         const db = await openWithDexie();
         await writeWithDexie(db, getSavedData());
 
-        expect(await readFromDatabase()).toEqual(sortLists(getSavedData()));
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
     });
 
+    test("reads the data tables Dexie creates, and leaves out Dexie's own", async () => {
+        const db = await openWithDexie();
+        await writeWithDexie(db, getSavedData());
+
+        // dexie-observable's bookkeeping tables are in the database, and hold rows
+        expect(db.tables.filter(({ name }) => name.startsWith("_")).length).toBeGreaterThan(0);
+        expect(await db.table("_changes").count()).toBeGreaterThan(0);
+
+        expect(Object.keys((await readLegacyTables())!).sort()).toEqual([...DataTables].sort());
+    });
+
+    test("reads a database Dexie has opened but never written to as nothing", async () => {
+        await openWithDexie();
+
+        // Dexie creates every table on its first open, which is why empty tables mean a fresh install
+        expect(await readLegacyTables()).toEqual(Object.fromEntries(DataTables.map((name) => [name, []])));
+        expect(await readLegacyDatabase()).toBeNull();
+    });
+
+    test("deletes a database Dexie has written", async () => {
+        const db = await openWithDexie();
+        await writeWithDexie(db, getSavedData());
+        db.close();
+
+        await deleteLegacyDatabase();
+
+        expect(await readLegacyTables()).toBeNull();
+    });
+});
+
+describe("The lock, against Dexie", () => {
+    test("stops Dexie opening the database", async () => {
+        await writeToLegacyDatabase(getSavedData());
+
+        await lockLegacyDatabase();
+
+        await expect(openWithDexie()).rejects.toMatchObject({ name: "VersionError" });
+    });
+
+    test("stops a tab that already has it open from writing to it", async () => {
+        const db = await openWithDexie();
+        await writeWithDexie(db, getSavedData());
+
+        await lockLegacyDatabase();
+
+        await expect(db.user.put({ ...getSavedData().user[0], tutorial: true })).rejects.toThrow();
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
+    });
+});
+
+describe("The fixtures, against Dexie", () => {
     test("write a database that Dexie opens as it stands", async () => {
-        await writeToDatabase(getSavedData());
+        await writeToLegacyDatabase(getSavedData());
 
         const db = await openWithDexie();
 
         // Dexie found the schema it expects, rather than upgrading the database to get it
         expect(db.verno).toBe(2);
-        expect(db.backendDB().version).toBe(CurrentSchema.version);
+        expect(db.backendDB().version).toBe(LegacySchema.version);
         expect(await readWithDexie(db)).toEqual(sortLists(getSavedData()));
     });
 
     test("write the older schema, which Dexie upgrades", async () => {
-        await writeToDatabase(getSavedData(), SchemaBeforePatches);
+        await writeToLegacyDatabase(getSavedData(), LegacySchemaBeforePatches);
 
         const db = await openWithDexie();
 
-        expect(db.backendDB().version).toBe(CurrentSchema.version);
+        expect(db.backendDB().version).toBe(LegacySchema.version);
         expect(await db.patches.toArray()).toEqual([]);
         expect(await readWithDexie(db)).toEqual(sortLists(getSavedData()));
-    });
-
-    test("read an empty database as empty tables", async () => {
-        expect(await readFromDatabase()).toEqual(EmptyDatabase);
-
-        await openWithDexie();
-        expect(await readFromDatabase()).toEqual(EmptyDatabase);
-    });
-
-    test("delete the database", async () => {
-        const db = await openWithDexie();
-        await writeWithDexie(db, getSavedData());
-        db.close();
-
-        await deleteDatabase();
-
-        expect(await readFromDatabase()).toEqual(EmptyDatabase);
     });
 });
