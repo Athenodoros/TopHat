@@ -6,14 +6,19 @@
  * describe what is actually left in the browser rather than what one particular library makes of
  * it. That way they can outlive the current storage layer: when `database.ts` is rewritten, these
  * are the tests that say whether existing users' data still loads.
+ *
+ * Everything that touches `TopHatDatabase` is named as legacy, because once the new store replaces
+ * Dexie that database is only ever read once, to copy it, and kept for a while before it is deleted.
+ *
+ * Reads go through the app's own reader in `legacy/index.ts`, which `database.test.ts` checks against
+ * Dexie, so that the reader the migration relies on is the one proven to match. Writes stay here, set
+ * up independently of the app, because they stand in for the data already in people's browsers.
+ *
+ * Test files install `fake-indexeddb/auto` themselves, before importing this or any of the app.
  */
 
-// Dexie reads `indexedDB` off the global when it is first imported, so the in-memory implementation
-// has to be installed before a test file pulls in any of the app
-import "fake-indexeddb/auto";
-
 import { sortBy } from "lodash-es";
-import type { ListDataState } from "../../data";
+import type { ListDataState } from "../../../data";
 import type {
     Account,
     Category,
@@ -25,13 +30,14 @@ import type {
     Statement,
     Transaction,
     User,
-} from "../../data/types";
-import { getCurrentMonth, getCurrentMonthString, getTodayString, parseDate, SDate, STime } from "../../shared/values";
+} from "../../../data/types";
+import { getCurrentMonthString, getTodayString, SDate, STime } from "../../../shared/values";
+import { getLegacyLists, readLegacyTables } from ".";
 
 /**
  * Schema
  */
-export const DATABASE_NAME = "TopHatDatabase";
+const LEGACY_DATABASE_NAME = "TopHatDatabase";
 
 type DataKey = keyof ListDataState;
 
@@ -48,7 +54,7 @@ const StoreNames: Record<DataKey, string> = {
     notification: "notification",
     patches: "patches",
 };
-export const DataKeys = Object.keys(StoreNames) as DataKey[];
+const DataKeys = Object.keys(StoreNames) as DataKey[];
 
 interface StoreSchema {
     name: string;
@@ -56,7 +62,7 @@ interface StoreSchema {
     autoIncrement?: boolean;
     indexes?: { name: string; unique?: boolean }[];
 }
-export interface DatabaseSchema {
+interface LegacyDatabaseSchema {
     version: number;
     stores: StoreSchema[];
 }
@@ -90,13 +96,13 @@ const ObservableStores: StoreSchema[] = [
 ];
 
 /** The schema as it stands today. Dexie multiplies its own version number by ten for IndexedDB. */
-export const CurrentSchema: DatabaseSchema = {
+export const LegacySchema: LegacyDatabaseSchema = {
     version: 20,
     stores: getDataStores(DataKeys).concat(ObservableStores),
 };
 
 /** Dexie schema version one, which predates the `patches` table added for the rewind feature */
-export const SchemaBeforePatches: DatabaseSchema = {
+export const LegacySchemaBeforePatches: LegacyDatabaseSchema = {
     version: 10,
     stores: getDataStores(DataKeys.filter((key) => key !== "patches")).concat(ObservableStores),
 };
@@ -118,12 +124,12 @@ const runTransaction = <T>(
         tx.onabort = () => reject(tx.error);
     });
 
-const openDatabase = (schema?: DatabaseSchema) =>
+const openDatabase = (schema: LegacyDatabaseSchema) =>
     new Promise<IDBDatabase>((resolve, reject) => {
-        const request = schema ? indexedDB.open(DATABASE_NAME, schema.version) : indexedDB.open(DATABASE_NAME);
+        const request = indexedDB.open(LEGACY_DATABASE_NAME, schema.version);
 
         request.onupgradeneeded = () =>
-            (schema?.stores ?? []).forEach(({ name, keyPath, autoIncrement, indexes }) => {
+            schema.stores.forEach(({ name, keyPath, autoIncrement, indexes }) => {
                 if (request.result.objectStoreNames.contains(name)) return;
 
                 const store = request.result.createObjectStore(name, { keyPath, autoIncrement });
@@ -131,7 +137,8 @@ const openDatabase = (schema?: DatabaseSchema) =>
             });
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
-        request.onblocked = () => reject(new Error("Blocked opening " + DATABASE_NAME + " by an older connection"));
+        request.onblocked = () =>
+            reject(new Error("Blocked opening " + LEGACY_DATABASE_NAME + " by an older connection"));
     });
 
 const sortByID = <T extends { id: unknown }>(rows: T[]) => sortBy(rows, ({ id }) => "" + id);
@@ -145,28 +152,18 @@ export const sortLists = (data: Partial<ListDataState>) =>
 const getStoresWithRows = (db: IDBDatabase, data: Partial<ListDataState>) =>
     DataKeys.filter((key) => data[key]?.length && db.objectStoreNames.contains(StoreNames[key]));
 
-/** Everything saved in the database, as sorted lists. Missing tables and databases read as empty. */
-export const readFromDatabase = async (): Promise<ListDataState> => {
-    const db = await openDatabase();
-    const keys = DataKeys.filter((key) => db.objectStoreNames.contains(StoreNames[key]));
-
-    const results = keys.length
-        ? await runTransaction(
-              db,
-              keys.map((key) => StoreNames[key]),
-              "readonly",
-              (tx) => keys.map((key) => tx.objectStore(StoreNames[key]).getAll())
-          )
-        : [];
-    db.close();
-
-    const values: Record<string, unknown[]> = {};
-    keys.forEach((key, index) => (values[key] = results[index].result));
-    return sortLists(values as Partial<ListDataState>);
-};
+/**
+ * Everything saved in the database, as sorted lists, read by the app's own legacy reader. Missing
+ * tables and databases read as empty, and unlike the app's migration this never refuses what it finds.
+ */
+export const readFromLegacyDatabase = async (): Promise<ListDataState> =>
+    sortLists(getLegacyLists((await readLegacyTables()) ?? {}));
 
 /** Data left behind by a previous session, written before any app code has run */
-export const writeToDatabase = async (data: Partial<ListDataState>, schema: DatabaseSchema = CurrentSchema) => {
+export const writeToLegacyDatabase = async (
+    data: Partial<ListDataState>,
+    schema: LegacyDatabaseSchema = LegacySchema
+) => {
     const db = await openDatabase(schema);
     const keys = getStoresWithRows(db, data);
 
@@ -178,35 +175,6 @@ export const writeToDatabase = async (data: Partial<ListDataState>, schema: Data
             (tx) => keys.forEach((key) => data[key]!.forEach((row) => tx.objectStore(StoreNames[key]).put(row)))
         );
     db.close();
-};
-
-export const deleteDatabase = () =>
-    new Promise<void>((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(DATABASE_NAME);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-        request.onblocked = () => reject(new Error("Blocked deleting " + DATABASE_NAME + " by an open connection"));
-    });
-
-/**
- * Timing
- */
-/** Months between a fixture's hard-coded month and this one, which is how far caches roll forward */
-export const getMonthsSince = (month: SDate) => getCurrentMonth().diff(parseDate(month), "months").months;
-
-export const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-/** Saves are fired from a `setTimeout` and never awaited, so tests poll for them */
-export const waitFor = async <T>(assertion: () => T | Promise<T>, timeout: number = 2000): Promise<T> => {
-    const deadline = Date.now() + timeout;
-    for (;;) {
-        try {
-            return await assertion();
-        } catch (error) {
-            if (Date.now() > deadline) throw error;
-            await pause(10);
-        }
-    }
 };
 
 /**

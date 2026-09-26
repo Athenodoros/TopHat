@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { HourglassEmpty, ReportProblem } from "@mui/icons-material";
-import { Button, Typography } from "@mui/material";
+import { Button, CircularProgress, Typography } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
 import { deleteDatabase, downloadRescuedDatabaseContents } from "../state/logic/storage/rescue";
@@ -13,16 +13,21 @@ import { Greys } from "../styles/colours";
  * start typing over data that is still there.
  */
 export const StorageErrorPage: React.FC<{ state: StorageState & { type: "unreadable" } }> = ({ state }) => {
-    const [confirming, setConfirming] = useState(false);
+    const [deletion, setDeletion] = useState<"none" | "confirming" | "deleting">("none");
     const [deletionError, setDeletionError] = useState<string | null>(null);
 
+    // A deletion another tab is blocking can't be taken back, so it waits for that tab to close
     const deleteData = useCallback(() => {
-        if (!confirming) return setConfirming(true);
+        if (deletion === "none") return setDeletion("confirming");
 
-        deleteDatabase()
+        setDeletion("deleting");
+        deleteDatabase(() => setDeletionError(DELETION_BLOCKED_MESSAGE))
             .then(() => window.location.reload())
-            .catch((error: Error) => setDeletionError(error.message));
-    }, [confirming]);
+            .catch((error: Error) => {
+                setDeletion("none");
+                setDeletionError(error.message);
+            });
+    }, [deletion]);
 
     return (
         <ContainerBox>
@@ -49,8 +54,19 @@ export const StorageErrorPage: React.FC<{ state: StorageState & { type: "unreada
                                     Download Debug File
                                 </Button>
                             ) : undefined}
-                            <Button variant="outlined" color="error" onClick={deleteData}>
-                                {confirming ? "Click Again to Confirm" : "Delete Data and Restart"}
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={deleteData}
+                                disabled={deletion === "deleting"}
+                            >
+                                {deletion === "deleting" ? (
+                                    <CircularProgress size={20} color="inherit" />
+                                ) : deletion === "confirming" ? (
+                                    "Click Again to Confirm"
+                                ) : (
+                                    "Delete Data and Restart"
+                                )}
                             </Button>
                         </ActionsBox>
                     </ContentsBox>
@@ -101,6 +117,9 @@ export const StorageLoadingPage: React.FC = () => (
 );
 
 const reload = () => window.location.reload();
+
+const DELETION_BLOCKED_MESSAGE =
+    "TopHat is open in another tab, which is still holding on to the data. It will be deleted as soon as that tab is closed, and this page will then restart.";
 
 const ContainerBox = styled("div")({
     display: "flex",

@@ -7,16 +7,19 @@
  * @vitest-environment jsdom
  */
 
+// Dexie reads `indexedDB` off the global when it is first imported, so this has to come first here
+import "fake-indexeddb/auto";
+
 import { omit, sum } from "lodash-es";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { toListDataState, type DataState } from "../../data";
-import { getCurrentMonthString, TransactionHistory } from "../../shared/values";
+import { getCurrentMonth, getCurrentMonthString, parseDate, SDate, TransactionHistory } from "../../shared/values";
+import { deleteLegacyDatabase } from "./legacy";
 import {
     Coffee,
-    CurrentSchema,
-    deleteDatabase,
-    getMonthsSince,
     getSavedData,
+    LegacySchema,
+    LegacySchemaBeforePatches,
     OldAccount,
     OldCurrency,
     OldGroceries,
@@ -32,13 +35,10 @@ import {
     OldSavedData,
     OldStatement,
     OldUser,
-    pause,
-    readFromDatabase,
-    SchemaBeforePatches,
+    readFromLegacyDatabase,
     sortLists,
-    waitFor,
-    writeToDatabase,
-} from "./database.testing";
+    writeToLegacyDatabase,
+} from "./legacy/fixtures.testing";
 
 // A boot also kicks off currency and Dropbox syncs, neither of which is part of what is tested here
 vi.mock("../currencies", () => ({ updateSyncedCurrencies: vi.fn(async () => undefined) }));
@@ -74,12 +74,30 @@ const bootTopHat = async () => {
 /** Redux state as sorted lists, so that it can be compared against the database or the fixtures */
 const asLists = (data: DataState) => sortLists(toListDataState(data));
 
+/** Months between a fixture's hard-coded month and this one, which is how far caches roll forward */
+const getMonthsSince = (month: SDate) => getCurrentMonth().diff(parseDate(month), "months").months;
+
+const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+/** Saves are fired from a `setTimeout` and never awaited, so tests poll for them */
+const waitFor = async <T>(assertion: () => T | Promise<T>, timeout: number = 2000): Promise<T> => {
+    const deadline = Date.now() + timeout;
+    for (;;) {
+        try {
+            return await assertion();
+        } catch (error) {
+            if (Date.now() > deadline) throw error;
+            await pause(10);
+        }
+    }
+};
+
 // A boot leaves its connection to the database open, the way an open tab would. Wiping the database
 // closes them, which logs one DatabaseClosedError per boot from the change subscription being torn
 // down - that is teardown noise from dexie-observable, not a failed write.
 afterEach(async () => {
     await pause(25); // Saves are fired from a timeout, so let any last one land before wiping
-    await deleteDatabase();
+    await deleteLegacyDatabase();
 });
 
 describe("Loading and saving", () => {
@@ -99,7 +117,7 @@ describe("Loading and saving", () => {
 
         // Nothing is written until the user actually changes something
         await pause(25);
-        expect(await readFromDatabase()).toEqual(sortLists({}));
+        expect(await readFromLegacyDatabase()).toEqual(sortLists({}));
     });
 
     test("saves the whole state the first time anything changes", async () => {
@@ -107,11 +125,11 @@ describe("Loading and saving", () => {
 
         dispatch(actions.updateUserPartial({ tutorial: false }));
 
-        await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(data())));
+        await waitFor(async () => expect(await readFromLegacyDatabase()).toEqual(asLists(data())));
     });
 
     test("loads saved data", async () => {
-        await writeToDatabase(getSavedData());
+        await writeToLegacyDatabase(getSavedData());
 
         const { data, storage } = await bootTopHat();
 
@@ -121,12 +139,12 @@ describe("Loading and saving", () => {
     });
 
     test("saves changes, and loads them again on the next boot", async () => {
-        await writeToDatabase(getSavedData());
+        await writeToLegacyDatabase(getSavedData());
 
         const first = await bootTopHat();
         first.dispatch(first.actions.updateTransactions([{ id: 1, changes: { reference: "TEA", value: -4 } }]));
         first.dispatch(first.actions.addNewTransaction({ ...Coffee, id: 2, reference: "BOOKS" }));
-        await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(first.data())));
+        await waitFor(async () => expect(await readFromLegacyDatabase()).toEqual(asLists(first.data())));
 
         const second = await bootTopHat();
 
@@ -137,7 +155,7 @@ describe("Loading and saving", () => {
 
     test("migrates data saved by an older version of the app", async () => {
         // Generation three predates both the cache fixes and the patches added for the rewind feature
-        await writeToDatabase(getSavedData({ generation: 3 }));
+        await writeToLegacyDatabase(getSavedData({ generation: 3 }));
 
         const { data } = await bootTopHat();
 
@@ -152,12 +170,12 @@ describe("Loading and saving", () => {
 
         // KNOWN BUG - the migrated state is only saved if the user goes on to change something, so a
         // session where they change nothing runs the migration again on every boot. Uncomment to fix.
-        // await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(data())));
+        // await waitFor(async () => expect(await readFromLegacyDatabase()).toEqual(asLists(data())));
     });
 
     test("upgrades a database written against the older schema", async () => {
         // Schema version one shipped alongside data generation four, and had no patches table
-        await writeToDatabase(getSavedData({ generation: 4 }), SchemaBeforePatches);
+        await writeToLegacyDatabase(getSavedData({ generation: 4 }), LegacySchemaBeforePatches);
 
         const { data, dispatch, actions } = await bootTopHat();
 
@@ -166,13 +184,13 @@ describe("Loading and saving", () => {
 
         // The upgraded database holds everything, including the patches that generation five adds
         dispatch(actions.updateUserPartial({ alphavantage: "key" }));
-        await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(data())));
-        expect((await readFromDatabase()).patches.length).toBeGreaterThan(0);
+        await waitFor(async () => expect(await readFromLegacyDatabase()).toEqual(asLists(data())));
+        expect((await readFromLegacyDatabase()).patches.length).toBeGreaterThan(0);
     });
 
     test("keeps data that it cannot read, rather than starting over on top of it", async () => {
         // A database written by a later version of the app, which this version has no schema for
-        await writeToDatabase(getSavedData(), { ...CurrentSchema, version: CurrentSchema.version + 10 });
+        await writeToLegacyDatabase(getSavedData(), { ...LegacySchema, version: LegacySchema.version + 10 });
 
         const { data, dispatch, actions, storage } = await bootTopHat();
 
@@ -185,7 +203,7 @@ describe("Loading and saving", () => {
 
         dispatch(actions.updateUserPartial({ tutorial: false }));
         await pause(25);
-        expect(await readFromDatabase()).toEqual(sortLists(getSavedData()));
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
     });
 
     test("warns that nothing can be saved as soon as it boots, when IndexedDB can't be used", async () => {
@@ -234,7 +252,7 @@ describe("Loading and saving", () => {
     });
 
     test("loads every field of data saved months ago", async () => {
-        await writeToDatabase(OldSavedData);
+        await writeToLegacyDatabase(OldSavedData);
 
         const { data } = await bootTopHat();
 
@@ -296,12 +314,12 @@ describe("Loading and saving", () => {
      * back on the next boot. Uncomment when that is fixed.
      */
     // test("saves a deletion that is the first change of a session", async () => {
-    //     await writeToDatabase(getSavedData());
+    //     await writeToLegacyDatabase(getSavedData());
     //
     //     const { data, dispatch, actions } = await bootTopHat();
     //     dispatch(actions.deleteTransactions([1]));
     //
-    //     await waitFor(async () => expect(await readFromDatabase()).toEqual(asLists(data())));
+    //     await waitFor(async () => expect(await readFromLegacyDatabase()).toEqual(asLists(data())));
     //
     //     const second = await bootTopHat();
     //     expect(second.data().transaction.ids).toEqual([]);
