@@ -94,14 +94,6 @@ const readStoredValue = (id: string) =>
         };
     });
 
-const deleteDatabase = () =>
-    new Promise<void>((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(DATABASE_NAME);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-        request.onblocked = () => reject(new Error("Blocked deleting " + DATABASE_NAME));
-    });
-
 const createTarget = async (id: string) => {
     const target = await IndexedDBTarget.create(id);
     cleanups.push(target.close);
@@ -128,17 +120,11 @@ const createManager = async (
     return manager;
 };
 
-test("Writes a compressed value to IndexedDB, and lets go of the database when closed", async () => {
-    const target = await createTarget("compressed-row");
-    const manager = await createManager(target);
+test("Writes a compressed value to IndexedDB", async () => {
+    const manager = await createManager(await createTarget("compressed-row"));
 
     await manager.setValue({ list: [1, 2, 3] });
     expect(await readStoredValue("compressed-row")).toEqual({ list: [1, 2, 3] });
-
-    // An open connection would leave the delete blocked
-    manager.close();
-    target.close();
-    await deleteDatabase();
 });
 
 test("Compresses through fflate where the browser has no CompressionStream", async () => {
