@@ -14,6 +14,8 @@ TopHat is an offline-first personal finance web app: no backend, all state lives
 -   `yarn test` — run tests (Vitest)
 -   `yarn test <path or -t pattern>` — run a single test file or match by name, e.g. `yarn test src/state/data/index.test.ts` or `yarn test -t "State remains valid"`
 
+CI (`.github/workflows/main.yml`) runs `yarn test --run` and then `yarn build` on every pull request and push to `main`, and a push to `main` deploys only if both pass.
+
 There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120) but no format/check script is wired up — format with your editor's Prettier integration or `npx prettier --write`.
 
 Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`). Vitest config is in `vitest.config.ts`, separate from `vite.config.ts`.
