@@ -14,11 +14,19 @@ TopHat is an offline-first personal finance web app: no backend, all state lives
 -   `yarn test` — run tests (Vitest)
 -   `yarn test <path or -t pattern>` — run a single test file or match by name, e.g. `yarn test src/state/data/index.test.ts` or `yarn test -t "State remains valid"`
 
+CI (`.github/workflows/main.yml`) runs `yarn test --run` and then `yarn build` on every pull request and push to `main`, and a push to `main` deploys only if both pass.
+
 There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120) but no format/check script is wired up — format with your editor's Prettier integration or `npx prettier --write`.
 
 Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`). Vitest config is in `vitest.config.ts`, separate from `vite.config.ts`.
 
 The persistence tests (`src/state/logic/storage/`) boot the whole app against an in-memory IndexedDB (`fake-indexeddb`). `legacy/fixtures.testing.ts` holds their fixtures and their writes of the database, written against the raw IndexedDB API rather than Dexie so that they still describe the stored data once Dexie is replaced. Reads of the old database go through the app's raw reader in `storage/legacy/`, which the migration off Dexie will use too; `database.test.ts` checks the fixture writes, that reader and the legacy lock against Dexie (and goes when Dexie does), `legacy/index.test.ts` covers the reader's rules, locking and legacy retention, and `index.test.ts` the loading and saving itself. Test files import `fake-indexeddb/auto` themselves, before anything else. Evaluating the app's module graph takes about half a minute the first time in a file, so `index.test.ts` does it once at collection time and each subsequent boot is fast.
+
+### personal-storage-wrapper
+
+`personal-storage-wrapper` (PSW), a sibling library of Henry's, is installed as a git dependency pinned to a commit, ahead of replacing Dexie with it. Nothing in the app imports it yet; `storage/personal-storage-wrapper.test.ts` checks that it installs, resolves and runs, with its own in-process `BroadcastChannel` so that two managers talk to each other the way two tabs would. It ships TypeScript source rather than a build, so the import is resolved by an alias in `vite.config.ts`, `vitest.config.ts` and `tsconfig.json`. `vite.config.ts` also excludes it from dependency pre-bundling so that the aliased source is what gets served, and `vitest.config.ts` inlines it so that `vi.resetModules()` gives each boot its own copy. Its compression falls back to `fflate` where the browser has no `CompressionStream`, and the git install does not bring the library's own dependencies with it, so `fflate` is a direct dependency here.
+
+**After moving the pinned commit, run `yarn install --check-files`.** The library's `package.json` says `"version": "0.0.0"` at every commit, so yarn keeps a cache entry for it that is not specific to a commit, and can populate `node_modules` from a copy built at a different one. A plain `yarn install` will not notice: it trusts `node_modules/.yarn-integrity`, reports "Already up-to-date" and changes nothing. What you get instead is a missing export, which is a stale `node_modules`, not a mistake in the library. `--check-files` compares what is on disk and repairs it. CI is unaffected, since a clean runner has no cache to reuse.
 
 ## Architecture
 
