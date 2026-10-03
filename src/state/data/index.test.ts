@@ -45,6 +45,42 @@ test("State survives being saved as lists and loaded back from storage", () => {
     expect(TopHatStore.getState().data).toEqual(saved);
 });
 
+test("Imports, edits and undoes data with lists too long for a recursive diff", () => {
+    // The undo history diffs every list on every change. rfc6902's array diff recursed once per
+    // element, so an import this size overflowed the stack - and Chrome's at a smaller size still.
+    const count = 30000;
+    const data = getDemoWithTransactions(count);
+
+    TopHatDispatch(DataSlice.actions.reset());
+    TopHatDispatch(DataSlice.actions.setFromJSON(data));
+    expect(TopHatStore.getState().data.transaction.ids).toEqual(data.transaction.ids);
+
+    const id = data.transaction.ids[count / 2] as ID;
+    TopHatDispatch(DataSlice.actions.deleteTransactions([id]));
+    expect(TopHatStore.getState().data.transaction.entities[id]).toBeUndefined();
+
+    const { patches } = TopHatStore.getState().data;
+    expect(patches.entities[patches.ids[0]]!.action).toBe("Transactions deleted");
+    TopHatDispatch(DataSlice.actions.rewindToPatch(patches.ids[0] as string));
+    expect(TopHatStore.getState().data.transaction.ids).toEqual(data.transaction.ids);
+    expect(TopHatStore.getState().data.transaction.entities[id]).toEqual(data.transaction.entities[id]);
+});
+
+/** The demo data, with its transactions replaced by `count` copies of its first one */
+const getDemoWithTransactions = (count: number): DataState => {
+    TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));
+    const state = cloneDeep(TopHatStore.getState().data);
+
+    const template = state.transaction.entities[state.transaction.ids[0]]!;
+    state.transaction = { ids: [], entities: {} };
+    for (let id = 1; id <= count; id++) {
+        state.transaction.ids.push(id);
+        state.transaction.entities[id] = { ...template, id };
+    }
+
+    return state;
+};
+
 const validateStateIntegrity = (state: DataState) => {
     // Check valid entity states
     expect(
