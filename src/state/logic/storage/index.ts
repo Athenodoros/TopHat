@@ -61,9 +61,11 @@ export const setupStorageAndLoadData = async (
                 return legacy;
             },
             validate: getProblemWithValue,
+            // Another tab may run an older version of the app, so its value is migrated as a stored one
+            // is, and the migrated value saved: the migrations run outside the echo guard
             onExternalValue: (value) => {
                 if (debug) console.log("Updating store from another tab...");
-                applyValueFromStorage(value);
+                loadValueFromStorage(value);
             },
             // Data saved by a newer version of the app open alongside this one, say: this tab stops
             // saving and goes to the recovery screen, rather than load data it doesn't understand.
@@ -90,12 +92,7 @@ export const setupStorageAndLoadData = async (
     };
 
     if (debug) console.log("Loading data from storage...");
-    const value = store.getValue();
-    applyValueFromStorage(value);
-
-    const beforeMigrations = TopHatStore.getState().data;
-    handleMigrationsAndUpdates((value.user as User[]).find(({ id }) => id === StubUserID)!.generation);
-    const migrated = TopHatStore.getState().data !== beforeMigrations;
+    const migrated = loadValueFromStorage(store.getValue());
 
     subscribeToDataUpdates(() => {
         if (applyingFromStorage) return;
@@ -131,6 +128,15 @@ const applyValueFromStorage = (value: ListDataState) => {
     } finally {
         applyingFromStorage = false;
     }
+};
+
+/** Puts a value from storage into Redux and migrates it, returning whether the migrations changed anything */
+const loadValueFromStorage = (value: ListDataState) => {
+    applyValueFromStorage(value);
+
+    const beforeMigrations = TopHatStore.getState().data;
+    handleMigrationsAndUpdates((value.user as User[]).find(({ id }) => id === StubUserID)!.generation);
+    return TopHatStore.getState().data !== beforeMigrations;
 };
 
 /**

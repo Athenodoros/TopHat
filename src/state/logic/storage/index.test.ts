@@ -469,6 +469,22 @@ describe("Other tabs", () => {
         expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
     });
 
+    test("migrates data saved by an older version of the app in another tab, and saves it", async () => {
+        await writeToStore(getSavedData());
+
+        const current = await bootTopHat();
+        const older = await bootTopHat();
+
+        moveClockForward();
+        older.dispatch(older.actions.setUserGeneration(CURRENT_GENERATION - 1));
+        older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
+
+        // This tab starts at the current generation, so wait for the older tab's value to arrive first
+        await waitFor(() => expect(current.data().transaction.entities[1]!.reference).toBe("TEA"));
+        expect(current.data().user.entities[0]!.generation).toBe(CURRENT_GENERATION);
+        await waitFor(async () => expect((await readFromStore())!.user[0].generation).toBe(CURRENT_GENERATION));
+    });
+
     test("stays on the recovery screen when a newer version's data arrives before it has finished booting", async () => {
         // A Dropbox redirect on a new install loads the demo data, and syncs currencies, before boot
         // finishes, which leaves time for another tab to save in between
