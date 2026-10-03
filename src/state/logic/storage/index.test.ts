@@ -203,6 +203,16 @@ describe("Loading and saving", () => {
         expect(asLists(data())).toEqual(sortLists(getSavedData()));
     });
 
+    test("loads data saved before a list was added, with that list empty", async () => {
+        // As data saved by this version will look to one that adds a list of its own
+        await writeToStore(omit(getSavedData(), "statement"));
+
+        const { data, storage } = await bootTopHat();
+
+        expect(storage()).toEqual({ type: "loaded" });
+        expect(asLists(data())).toEqual(sortLists({ ...getSavedData(), statement: [] }));
+    });
+
     test("saves changes, and loads them again on the next boot", async () => {
         await writeToStore(getSavedData());
 
@@ -326,6 +336,12 @@ describe("Data that can't be used", () => {
         expect(await expectRecoveryWithoutWrites(1)).toMatch(/damaged/);
     });
 
+    test("keeps a saved value with something other than a list where a list should be", async () => {
+        await writeToStore({ ...getSavedData(), statement: "not a list" });
+
+        expect(await expectRecoveryWithoutWrites(countRows(omit(getSavedData(), "statement")))).toMatch(/damaged/);
+    });
+
     test("keeps a saved value with no user in it", async () => {
         await writeToStore({ ...getSavedData(), user: [] });
 
@@ -350,6 +366,25 @@ describe("Data that can't be used", () => {
 
         await expectRecoveryWithoutWrites(countRows(getSavedData()));
         expect(await readFromStore()).toBeNull();
+    });
+
+    test("doesn't mistake a store it has saved into, but can't open now, for a new install", async () => {
+        await writeToStore(getSavedData());
+        await bootTopHat();
+        const saved = await readRawFromStore();
+
+        const open = vi.spyOn(indexedDB, "open").mockImplementation(() => {
+            throw new DOMException("The operation failed for reasons unrelated to the database itself.", "UnknownError");
+        });
+        try {
+            const { storage } = await bootTopHat();
+
+            // Nothing could be read to rescue, but the data is still there
+            expect(storage()).toEqual({ type: "unreadable", error: expect.any(String), rescuedRows: 0 });
+        } finally {
+            open.mockRestore();
+        }
+        expect(await readRawFromStore()).toEqual(saved);
     });
 
     test("deletes both stores from the recovery screen, and then starts afresh", async () => {
@@ -439,6 +474,63 @@ describe("Other tabs", () => {
     });
 });
 
+describe("Other tabs, while a boot is migrating", () => {
+    // Holds every boot's saves until released, which leaves a boot that migrates waiting on its own
+    const saves = { hold: null as Promise<void> | null, held: 0 };
+
+    test("doesn't count towards deleting the old database a boot that ends on the recovery screen", async () => {
+        await writeToStore(getSavedData());
+        const newer = await bootTopHat();
+
+        // Behind the open tab's back: older data in the store, and an old database one boot from deletion
+        await writeToStore(getSavedData({ generation: 3 }));
+        await writeToLegacyDatabase(getSavedData());
+        const record = { migratedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), boots: 9 };
+        localStorage.setItem(MIGRATION_RECORD_KEY, JSON.stringify(record));
+
+        let release = () => undefined as void;
+        saves.hold = new Promise((resolve) => (release = resolve));
+        vi.doMock("./store", async (importOriginal) => {
+            const original = await importOriginal<typeof import("./store")>();
+            return {
+                ...original,
+                openStore: async (callbacks: Parameters<typeof original.openStore>[0]) => {
+                    const store = await original.openStore(callbacks);
+                    return {
+                        ...store,
+                        save: async (value: Parameters<typeof store.save>[0]) => {
+                            saves.held++;
+                            await saves.hold;
+                            return store.save(value);
+                        },
+                    };
+                },
+            };
+        });
+
+        try {
+            const older = await startBootingTopHat();
+            await waitFor(() => expect(saves.held).toBe(1));
+
+            // The open tab saves data from a newer version while the booting one waits on its migration
+            moveClockForward();
+            newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
+            await waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
+
+            release();
+            await older.booted;
+
+            expect(readMigrationRecord()).toEqual(record);
+            expect(await getLegacyDatabaseVersion()).not.toBeNull();
+        } finally {
+            vi.doUnmock("./store");
+            saves.hold = null;
+            saves.held = 0;
+            release();
+        }
+    });
+});
+
 describe("Copying the database the Dexie version of the app saved into", () => {
     test("copies it into the store, and leaves it as it was, but locked", async () => {
         await writeToLegacyDatabase(getSavedData());
@@ -462,6 +554,24 @@ describe("Copying the database the Dexie version of the app saved into", () => {
 
         expect(data().transaction.entities[1]!.reference).toBe("TEA");
         expect(await getLegacyDatabaseVersion()).not.toBe(LEGACY_LOCKED_VERSION);
+
+        // Nothing says this store holds a copy of it, so nothing starts towards its deletion
+        expect(readMigrationRecord()).toBeNull();
+    });
+
+    test("starts counting boots on a later boot, when the copy was saved too late to be recorded", async () => {
+        // The boot that copies the database only records the copy if its own save works. A later save
+        // that works leaves the copy in the store, with the database locked but no record of either.
+        await writeToLegacyDatabase(getSavedData());
+        await bootTopHat();
+        localStorage.removeItem(MIGRATION_RECORD_KEY);
+
+        await bootTopHat();
+        expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: 0 });
+
+        await bootTopHat();
+        expect(readMigrationRecord()!.boots).toBe(1);
+        expect(await getLegacyDatabaseVersion()).toBe(LEGACY_LOCKED_VERSION);
     });
 
     test("migrates what it copies, and saves the migrated copy", async () => {

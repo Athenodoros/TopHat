@@ -6,7 +6,14 @@
  * should be and what counts as usable, and keeps the store and Redux in step.
  */
 
-import { DefaultTarget, ErrorResult, IndexedDBTarget, PersonalStorageManager, Sync } from "personal-storage-wrapper";
+import {
+    DefaultTarget,
+    ErrorResult,
+    getSyncDataFromLocalStorage,
+    IndexedDBTarget,
+    PersonalStorageManager,
+    Sync,
+} from "personal-storage-wrapper";
 import type { ListDataState } from "../../data";
 
 /** The manager's id, which names its broadcast channel and its list of targets, and the key of the row the data is saved under */
@@ -15,7 +22,10 @@ export const STORE_ID = "tophat";
 /** What there was of a value that couldn't be used: what it decoded to, or its bytes where it didn't decode */
 export type UnusableContents = { type: "value"; value: unknown } | { type: "raw"; raw: ArrayBuffer | null };
 
-/** The store couldn't be read when it was opened. Nothing has been written to it. */
+/**
+ * The store couldn't be read when it was opened. Nothing has been written to it. It is `unavailable`
+ * where it couldn't be opened at all and never has been, so that there is nothing in it to lose.
+ */
 export class StoreReadError extends Error {
     constructor(message: string, readonly unavailable: boolean, readonly contents: UnusableContents) {
         super(message);
@@ -122,9 +132,20 @@ const isLocalSync = (sync: Sync<DefaultTarget>) => sync.target.type === "indexed
 
 const UNAVAILABLE_MESSAGE =
     "TopHat could not open the browser's data store, perhaps because it is running in Private Browsing mode.";
+const USED_BUT_UNAVAILABLE_MESSAGE =
+    "TopHat could not open the browser's data store, although it has saved data there before.";
+
+/**
+ * Whether a manager has opened the store in this browser before: every one that does saves its list of
+ * targets. A store that can't be opened then may well hold data, and must not look like a new install.
+ */
+const hasBeenOpenedBefore = () => getSyncDataFromLocalStorage(STORE_ID) !== null;
 
 const getReadError = (error: ErrorResult) => {
-    if (error.error === "OFFLINE") return new StoreReadError(UNAVAILABLE_MESSAGE, true, { type: "raw", raw: null });
+    if (error.error === "OFFLINE")
+        return hasBeenOpenedBefore()
+            ? new StoreReadError(USED_BUT_UNAVAILABLE_MESSAGE, false, { type: "raw", raw: null })
+            : new StoreReadError(UNAVAILABLE_MESSAGE, true, { type: "raw", raw: null });
 
     // A value that decoded but failed validation is described by the validation itself
     const message =

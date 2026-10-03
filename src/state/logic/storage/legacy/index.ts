@@ -244,12 +244,36 @@ export const countBootFromStore = (record: MigrationRecord, now: Date) => {
 };
 
 /**
+ * Whether the database is there and locked. Only a boot copying it into the new store locks it, so a
+ * locked database alongside a store that holds data has been copied.
+ */
+export const isLegacyDatabaseLocked = async () => {
+    if (!(await legacyDatabaseExists())) return false;
+
+    const { db, created } = await openWithoutUpgrade();
+    db.close();
+    if (created) {
+        await deleteLegacyDatabase();
+        return false;
+    }
+
+    return db.version >= LEGACY_LOCKED_VERSION;
+};
+
+/**
  * For a boot that loaded from the new store, and only such a boot, so that one which fell back to
- * a default can never count towards a deletion. Does nothing where no migration was recorded.
+ * a default can never count towards a deletion.
+ *
+ * Where no migration was recorded, the database is left alone - unless it is locked. The boot that
+ * copied it only records the copy if its own save works, and a later save in the same session can
+ * still put the copy in the store. This boot then records the copy, as if it had just been made.
  */
 export const recordBootAndMaybeDeleteLegacyDatabase = async (now: Date = new Date()) => {
     const record = getMigrationRecord();
-    if (record === null) return;
+    if (record === null) {
+        if (await isLegacyDatabaseLocked()) recordLegacyMigration(now);
+        return;
+    }
 
     const counted = countBootFromStore(record, now);
     if (!counted.canDelete) return setMigrationRecord(counted.record);

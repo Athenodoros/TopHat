@@ -106,6 +106,11 @@ export const setupStorageAndLoadData = async (
     // without waiting. A copy is only recorded once it is known to be saved: otherwise the next boot
     // finds the store empty and copies again.
     const saved = migrated || copyingLegacy ? await store.save(toListDataState(TopHatStore.getState().data)) : true;
+
+    // Another tab may have saved data this one can't use while it waited, and a boot that ends on the
+    // recovery screen must neither record a copy nor count towards deleting the old database
+    if (frozenForRecovery) return { connection, storage: { type: "loaded" } };
+
     if (copyingLegacy) {
         if (saved) recordLegacyMigration();
     } else if (store.loadedFromStore) await recordBootAndMaybeDeleteLegacyDatabase();
@@ -122,19 +127,30 @@ let applyingFromStorage = false;
 const applyValueFromStorage = (value: ListDataState) => {
     applyingFromStorage = true;
     try {
-        TopHatDispatch(DataSlice.actions.setFromStorage(value));
+        TopHatDispatch(DataSlice.actions.setFromStorage(withEveryList(value)));
     } finally {
         applyingFromStorage = false;
     }
 };
 
-/** Why a stored value can't be loaded, or null if it can */
-const getProblemWithValue = (value: unknown): string | null => {
-    const lists = value as ListDataState;
-    if (typeof value !== "object" || value === null || DataKeys.some((key) => !Array.isArray(lists[key])))
-        return "The saved data is damaged: some of what TopHat saves is missing from it.";
+/**
+ * A list added to the app since a value was saved is missing from it, and starts empty, as it does
+ * when the old database has no table for it
+ */
+const withEveryList = (value: ListDataState) =>
+    Object.fromEntries(DataKeys.map((key) => [key, value[key] ?? []])) as unknown as ListDataState;
 
-    const user = (lists.user as User[]).find((user) => user?.id === StubUserID);
+/** Why a stored value can't be loaded, or null if it can. A missing list is not a problem: see above. */
+const getProblemWithValue = (value: unknown): string | null => {
+    const lists = value as Partial<ListDataState>;
+    if (
+        typeof value !== "object" ||
+        value === null ||
+        DataKeys.some((key) => lists[key] !== undefined && !Array.isArray(lists[key]))
+    )
+        return "The saved data is damaged: some of it isn't in the form TopHat saves it in.";
+
+    const user = ((lists.user ?? []) as User[]).find((user) => user?.id === StubUserID);
     if (user === undefined) return "The saved data has no user settings in it, so TopHat can't tell what it holds.";
 
     const generation = user.generation ?? 0;
@@ -159,8 +175,9 @@ const getUnreadableState = async (
 };
 
 /**
- * The store can't be opened at all. That is only harmless if there is nothing in the old database
- * either: if there is, it is data that can't be loaded, and must not look like a new install.
+ * The store can't be opened at all, and has never been opened in this browser. That is only harmless
+ * if there is nothing in the old database either: if there is, it is data that can't be loaded, and
+ * must not look like a new install.
  */
 const getUnavailableState = async (
     error: string
