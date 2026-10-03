@@ -89,14 +89,18 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
         if (debug) console.log("Initialising Dropbox state from redirect...");
         DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
     }
-    initialiseMaybeDropboxSyncFromRedux();
+    initialiseMaybeDropboxSyncFromRedux(connection);
 
     // Currency syncs
     updateSyncedCurrencies();
 };
 
-const initialiseMaybeDropboxSyncFromRedux = () =>
-    subscribeToDataUpdates(() => setTimeout(() => DBUtils.maybeSaveDataToDropbox(), 0));
+// A tab that has stopped saving for recovery holds data older than another tab's, and must not upload
+// it over that tab's backup - even if a change lands later, from a currency sync started at boot, say
+const initialiseMaybeDropboxSyncFromRedux = (connection: StorageConnection) =>
+    subscribeToDataUpdates(() =>
+        setTimeout(() => connection.hasFrozenForRecovery() || DBUtils.maybeSaveDataToDropbox(), 0)
+    );
 
 const getDebugVariablesAsync = (connection: StorageConnection) => async () => {
     if (!debug)

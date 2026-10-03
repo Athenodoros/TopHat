@@ -57,6 +57,7 @@ import {
     sortLists,
     writeToLegacyDatabase,
 } from "./legacy/fixtures.testing";
+import { maybeSaveDataToDropbox } from "../dropbox";
 import { CURRENT_GENERATION } from "./migrations";
 
 // A boot also kicks off currency and Dropbox syncs, neither of which is part of what is tested here.
@@ -447,6 +448,25 @@ describe("Other tabs", () => {
         older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
         await pause(25);
         expect(await readRawFromStore()).toEqual(saved);
+    });
+
+    test("stops backing up to Dropbox when another tab saves data from a newer version of the app", async () => {
+        await writeToStore(getSavedData());
+
+        const older = await bootTopHat();
+        const newer = await bootTopHat();
+
+        moveClockForward();
+        newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
+        await waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
+        await pause(25);
+
+        // A change can still land after the freeze - a currency sync started at boot, say - and must
+        // not upload this tab's older data over the newer tab's backup
+        vi.mocked(maybeSaveDataToDropbox).mockClear();
+        older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
+        await pause(25);
+        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
     });
 
     test("stays on the recovery screen when a newer version's data arrives before it has finished booting", async () => {
