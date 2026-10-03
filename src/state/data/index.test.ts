@@ -4,9 +4,10 @@
 
 import produce from "immer";
 import { cloneDeep, keys, mapValues, sortBy } from "lodash";
-import { expect, test } from "vitest";
-import { DataSlice, DataState, refreshCaches, toListDataState } from ".";
+import { expect, test, vi } from "vitest";
+import { DataSlice, DataState, refreshCaches, subscribeToDataUpdates, toListDataState } from ".";
 import { TopHatDispatch, TopHatStore } from "..";
+import { AppSlice } from "../app";
 import { ID } from "../shared/values";
 import { DemoData } from "./demo/data";
 import { DataKeys, StubUserID } from "./types";
@@ -64,6 +65,28 @@ test("Imports, edits and undoes data with lists too long for a recursive diff", 
     TopHatDispatch(DataSlice.actions.rewindToPatch(patches.ids[0] as string));
     expect(TopHatStore.getState().data.transaction.ids).toEqual(data.transaction.ids);
     expect(TopHatStore.getState().data.transaction.entities[id]).toEqual(data.transaction.entities[id]);
+});
+
+test("Leaves the data alone for an action that doesn't change it", () => {
+    // Typing in a dialog dispatches an app action on every keystroke, and the data slice's reducer
+    // runs for each. Anything it does over the whole of the data makes typing slow.
+    TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));
+    const before = TopHatStore.getState().data;
+    const listener = vi.fn();
+    subscribeToDataUpdates(listener);
+
+    const account = before.account.entities[before.account.ids[0]]!;
+    TopHatDispatch(AppSlice.actions.setDialogPartial({ id: "account", account: { ...account, name: "Typing" } }));
+    expect(TopHatStore.getState().data).toBe(before);
+
+    // A change to the data still goes into the undo history, and to the listeners
+    TopHatDispatch(
+        DataSlice.actions.updateTransactions([{ id: before.transaction.ids[0], changes: { summary: "Edited" } }])
+    );
+    const { patches } = TopHatStore.getState().data;
+    expect(patches.ids.length).toBe(before.patches.ids.length + 1);
+    expect(patches.entities[patches.ids[0]]!.action).toBe("Transaction updated");
+    expect(listener).toHaveBeenCalledOnce();
 });
 
 /** The demo data, with its transactions replaced by `count` copies of its first one */
