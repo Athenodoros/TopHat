@@ -7,8 +7,8 @@
  * it stands without an upgrade being attempted. Nothing here changes its rows: it is only ever
  * locked against old versions of the app, and eventually deleted.
  *
- * The test fixtures read the database through this module too, and `database.test.ts` checks that
- * reading against Dexie itself, so the reader the migration relies on is the one proven to match.
+ * The test fixtures read the database through this module too. Until Dexie was removed, that reading
+ * was checked against Dexie itself, so the reader the migration relies on is one proven to match.
  */
 
 import type { ListDataState } from "../../../data";
@@ -188,7 +188,8 @@ export const lockLegacyDatabase = async () => {
  *
  * The old database is not removed as soon as its contents have been copied. It is kept until the
  * new store has been loaded from on ten later boots, and at least a fortnight has passed since the
- * copy, so that anything that goes wrong in between still has the original to fall back on.
+ * copy, so that anything that goes wrong in between still has the original to fall back on. Only
+ * the locked database that was copied is ever deleted: see `getLegacyDatabaseState`.
  */
 export const MIGRATION_RECORD_KEY = "tophat-legacy-migration";
 export const RETENTION_BOOTS = 10;
@@ -244,15 +245,47 @@ export const countBootFromStore = (record: MigrationRecord, now: Date) => {
 };
 
 /**
+ * Whether the database is there, and whether it is locked. Only a boot copying it into the new store
+ * locks it, so a locked database alongside a store that holds data has been copied. One that isn't
+ * locked was made by a Dexie version of the app after that - once it had deleted the locked one from
+ * its recovery screen, say - and may hold data that the store doesn't.
+ */
+const getLegacyDatabaseState = async (): Promise<"absent" | "locked" | "unlocked"> => {
+    if (!(await legacyDatabaseExists())) return "absent";
+
+    const { db, created } = await openWithoutUpgrade();
+    db.close();
+    if (created) {
+        await deleteLegacyDatabase();
+        return "absent";
+    }
+
+    return db.version >= LEGACY_LOCKED_VERSION ? "locked" : "unlocked";
+};
+
+/**
  * For a boot that loaded from the new store, and only such a boot, so that one which fell back to
- * a default can never count towards a deletion. Does nothing where no migration was recorded.
+ * a default can never count towards a deletion.
+ *
+ * Where no migration was recorded, the database is left alone - unless it is locked. The boot that
+ * copied it only records the copy if its own save works, and a later save in the same session can
+ * still put the copy in the store. This boot then records the copy, as if it had just been made.
  */
 export const recordBootAndMaybeDeleteLegacyDatabase = async (now: Date = new Date()) => {
     const record = getMigrationRecord();
-    if (record === null) return;
+    if (record === null) {
+        if ((await getLegacyDatabaseState()) === "locked") recordLegacyMigration(now);
+        return;
+    }
 
     const counted = countBootFromStore(record, now);
     if (!counted.canDelete) return setMigrationRecord(counted.record);
+
+    // Only the database that was copied is ever deleted. One that has gone takes the record with it.
+    // One that isn't locked is not the one that was copied, and is kept, with the count, for good.
+    const state = await getLegacyDatabaseState();
+    if (state === "absent") return setMigrationRecord(null);
+    if (state === "unlocked") return setMigrationRecord(counted.record);
 
     // A deletion blocked by another tab still goes through once it lets go. Until then the count is
     // kept, so a later boot tries again, and finds the database gone if it went through in between.

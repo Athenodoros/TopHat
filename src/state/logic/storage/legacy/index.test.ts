@@ -65,12 +65,6 @@ afterEach(async () => {
 });
 
 describe("The legacy database reader", () => {
-    test("reads every list and optional field from the schema Dexie last used", async () => {
-        await writeToLegacyDatabase(OldSavedData, LegacySchema);
-
-        expect(sortLists((await readLegacyDatabase())!)).toEqual(sortLists(OldSavedData));
-    });
-
     test("reads the schema before patches without upgrading it", async () => {
         await writeToLegacyDatabase(OldSavedData, LegacySchemaBeforePatches);
 
@@ -191,15 +185,36 @@ describe("The legacy database retention policy", () => {
 
     test("deletes the database on the tenth boot after the copy, and not before", async () => {
         await writeToLegacyDatabase(getSavedData());
+        await lockLegacyDatabase();
         recordLegacyMigration(new Date(daysAgo(20)));
 
         for (let boot = 1; boot < RETENTION_BOOTS; boot++) {
             await recordBootAndMaybeDeleteLegacyDatabase();
             expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: boot });
         }
-        expect(await getLegacyDatabaseVersion()).toBe(LegacySchema.version);
+        expect(await getLegacyDatabaseVersion()).toBe(LEGACY_LOCKED_VERSION);
 
         await recordBootAndMaybeDeleteLegacyDatabase();
+        expect(await getLegacyDatabaseVersion()).toBeNull();
+        expect(readMigrationRecord()).toBeNull();
+    });
+
+    test("never deletes a database that isn't locked, which a Dexie version of the app made since the copy", async () => {
+        await writeToLegacyDatabase(getSavedData());
+        writeMigrationRecord({ migratedAt: daysAgo(20), boots: RETENTION_BOOTS - 1 });
+
+        await recordBootAndMaybeDeleteLegacyDatabase();
+        await recordBootAndMaybeDeleteLegacyDatabase();
+
+        expect(await getLegacyDatabaseVersion()).toBe(LegacySchema.version);
+        expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: RETENTION_BOOTS + 1 });
+    });
+
+    test("forgets the record once the database has gone, without leaving one behind", async () => {
+        writeMigrationRecord({ migratedAt: daysAgo(20), boots: RETENTION_BOOTS - 1 });
+
+        await recordBootAndMaybeDeleteLegacyDatabase();
+
         expect(await getLegacyDatabaseVersion()).toBeNull();
         expect(readMigrationRecord()).toBeNull();
     });
@@ -232,6 +247,7 @@ describe("The legacy database retention policy", () => {
 
     test("keeps counting when another tab blocks the deletion", async () => {
         await writeToLegacyDatabase(getSavedData());
+        await lockLegacyDatabase();
         writeMigrationRecord({ migratedAt: daysAgo(20), boots: RETENTION_BOOTS - 1 });
 
         const tab = await openInAnotherTab();

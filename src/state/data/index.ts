@@ -166,6 +166,9 @@ const initialTutorialState: DataState = {
     user: adapters.user.addOne(adapters.user.getInitialState(), { ...DEFAULT_USER_VALUE, tutorial: true }),
 };
 
+/** What a new install starts with, as the lists storage saves. A fresh copy each time, so nothing shared escapes. */
+export const getInitialTutorialLists = (): ListDataState => cloneDeep(toListDataState(initialTutorialState));
+
 // Undo notification submitter
 type SubmitType = (patch: string, message: string, intent?: AlertColor) => void;
 let submitNotification: SubmitType = noop;

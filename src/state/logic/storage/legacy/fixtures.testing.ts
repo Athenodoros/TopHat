@@ -4,15 +4,16 @@
  *
  * These utilities are written against the raw IndexedDB API rather than Dexie, so that they
  * describe what is actually left in the browser rather than what one particular library makes of
- * it. That way they can outlive the current storage layer: when `database.ts` is rewritten, these
- * are the tests that say whether existing users' data still loads.
+ * it. Dexie is gone from the app, and these are the tests that say whether existing users' data
+ * still loads.
  *
- * Everything that touches `TopHatDatabase` is named as legacy, because once the new store replaces
- * Dexie that database is only ever read once, to copy it, and kept for a while before it is deleted.
+ * Everything that touches `TopHatDatabase` is named as legacy, because that database is now only
+ * ever read once, to copy it into the new store, and kept for a while before it is deleted.
  *
- * Reads go through the app's own reader in `legacy/index.ts`, which `database.test.ts` checks against
- * Dexie, so that the reader the migration relies on is the one proven to match. Writes stay here, set
- * up independently of the app, because they stand in for the data already in people's browsers.
+ * Reads go through the app's own reader in `legacy/index.ts`, so that the reader the migration relies
+ * on is the one under test; until Dexie was removed, both it and these writes were checked against
+ * Dexie. Writes stay here, set up independently of the app, because they stand in for the data
+ * already in people's browsers.
  *
  * Test files install `fake-indexeddb/auto` themselves, before importing this or any of the app.
  */

@@ -17,6 +17,14 @@ export type StorageState =
 export interface StorageConnection {
     /** Handles on the underlying store, exposed alongside the other debug variables */
     debugVariables: Record<string, unknown>;
+    /**
+     * Whether storage has stopped saving for good, until the page is reloaded. That happens when, at any
+     * point after the store opens, another tab saves data this one can't use: data from a newer version
+     * of the app, or with no user in it. An ordinary change from another tab doesn't count. Storage then
+     * puts the app on the recovery screen itself, but only after an async rescue, so boot checks this to
+     * avoid replacing that screen with its own result.
+     */
+    hasFrozenForRecovery: () => boolean;
 }
 
 /** Whether boot has got far enough for the app, and anything laid over it, to be shown */
