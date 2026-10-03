@@ -624,6 +624,12 @@ const oldReducer = DataSlice.reducer; // Separate assignment to prevent infinite
 DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
     const rawNewState = oldReducer(state, action);
 
+    // Most actions leave the data as it was: every app action does, including each keystroke in a
+    // dialog. Everything below works over the whole of the data, so it is skipped for them, unless a
+    // reducer asked for a notification - which would otherwise have shown, as it always has.
+    if (state !== undefined && rawNewState === state && (!rewindDisplaySpec || rewindDisplaySpec.suppressSnack))
+        return state;
+
     // Apply patch
     const patch: PatchGroup = {
         id: getNowString() + Math.random(),
