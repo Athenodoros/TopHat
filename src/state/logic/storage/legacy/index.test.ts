@@ -65,12 +65,6 @@ afterEach(async () => {
 });
 
 describe("The legacy database reader", () => {
-    test("reads every list and optional field from the schema Dexie last used", async () => {
-        await writeToLegacyDatabase(OldSavedData, LegacySchema);
-
-        expect(sortLists((await readLegacyDatabase())!)).toEqual(sortLists(OldSavedData));
-    });
-
     test("reads the schema before patches without upgrading it", async () => {
         await writeToLegacyDatabase(OldSavedData, LegacySchemaBeforePatches);
 

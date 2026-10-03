@@ -7,8 +7,8 @@
  * it stands without an upgrade being attempted. Nothing here changes its rows: it is only ever
  * locked against old versions of the app, and eventually deleted.
  *
- * The test fixtures read the database through this module too, and `database.test.ts` checks that
- * reading against Dexie itself, so the reader the migration relies on is the one proven to match.
+ * The test fixtures read the database through this module too. Until Dexie was removed, that reading
+ * was checked against Dexie itself, so the reader the migration relies on is one proven to match.
  */
 
 import type { ListDataState } from "../../../data";

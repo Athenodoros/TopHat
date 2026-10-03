@@ -71,6 +71,11 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
     // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
     if (storage.type !== "loaded" && maybeDropboxCode) await initialiseDemoData();
 
+    // Another tab may have saved data this one can't use while boot was waiting. From here on boot
+    // doesn't wait again, so this is the last chance not to replace the recovery screen storage is
+    // about to show, or start the syncs that would upload what this tab holds.
+    if (connection.hasFrozenForRecovery()) return;
+
     // Update caches to latest month
     TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 
