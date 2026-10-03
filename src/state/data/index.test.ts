@@ -89,6 +89,20 @@ test("Leaves the data alone for an action that doesn't change it", () => {
     expect(listener).toHaveBeenCalledOnce();
 });
 
+test("Only copies the transactions an edit changes", () => {
+    // Balances are recalculated for the whole account on every edit. A transaction whose balance
+    // doesn't change must keep its object, or every edit copies, diffs and saves all of them.
+    TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));
+    const before = TopHatStore.getState().data.transaction;
+    const id = before.ids[0];
+
+    TopHatDispatch(DataSlice.actions.updateTransactions([{ id, changes: { summary: "Edited" } }]));
+    const after = TopHatStore.getState().data.transaction;
+
+    expect(after.entities[id]!.summary).toBe("Edited");
+    expect(before.ids.filter((other) => other !== id && after.entities[other] !== before.entities[other])).toEqual([]);
+});
+
 /** The demo data, with its transactions replaced by `count` copies of its first one */
 const getDemoWithTransactions = (count: number): DataState => {
     TopHatDispatch(DataSlice.actions.setUpDemo(DemoData));

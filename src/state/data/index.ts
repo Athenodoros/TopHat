@@ -642,7 +642,8 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
         // A patch that won't be kept isn't worth diffing the whole state for: loading data does that
         patches: rewindDisplaySpec?.suppressPatch ? [] : createHistoryPatch(rawNewState, state ?? initialTutorialState),
     };
-    let patches = rawNewState.patches ? cloneDeep(rawNewState.patches) : PatchAdapter.getInitialState();
+    // The adapter makes new copies of what it changes, so the history itself is never copied whole
+    let patches = rawNewState.patches ?? PatchAdapter.getInitialState();
     patches = PatchAdapter.removeMany(
         patches,
         patches.ids.filter((id) => DateTime.fromISO(patches.entities[id]!.date).diffNow("days").days > 30)
@@ -728,8 +729,21 @@ const deleteObjectError = <Type extends BasicObjectName>(state: DataState, type:
     }
 };
 
-export const getDateBucket = (date: SDate, start: SDate) =>
-    parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
+/**
+ * How many months a date is before the start of a history. Every transaction's date goes through this
+ * on every edit, and parsing dates is slow, so the answers for the latest start are kept.
+ */
+export const getDateBucket = (date: SDate, start: SDate) => {
+    if (start !== dateBuckets.start) dateBuckets = { start, buckets: new Map() };
+
+    let bucket = dateBuckets.buckets.get(date);
+    if (bucket === undefined) {
+        bucket = parseDate(start).diff(parseDate(date).startOf("month"), "months")["months"];
+        dateBuckets.buckets.set(date, bucket);
+    }
+    return bucket;
+};
+let dateBuckets: { start: SDate | undefined; buckets: Map<SDate, number> } = { start: undefined, buckets: new Map() };
 
 type BalanceSubset = { account: ID; currency: ID }[];
 const getBalanceSubset = (ids: EntityId[], entities: Dictionary<Transaction>) =>
@@ -843,11 +857,10 @@ const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, su
                 ({ currency, account }) => entities[id]!.currency === currency && entities[id]!.account === account
             )
         );
-    // entities = cloneDeep(entities);
-
-    ids.forEach((id) => {
-        entities[id]!.balance = null;
-    });
+    // The balances are worked out here and only those that changed are written back: clearing them on
+    // the transactions first would make a new copy of every one, and so the undo history, the save and
+    // everything else that compares them would go through all of them on every edit
+    const balances = new Map<EntityId, number | null>(ids.map((id) => [id, null]));
 
     type Accumulator = { balance: number | null; previous: number };
     const statefullyUpdateBalances = (
@@ -860,14 +873,12 @@ const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, su
                 const tx = entities[id]!;
                 if (accumulator[tx.account] === undefined) accumulator[tx.account] = {};
 
-                let balance: number | null;
-                if (tx.balance !== null) {
-                    balance = tx.balance;
-                } else {
+                let balance = balances.get(id) as number | null;
+                if (balance === null) {
                     const old = accumulator[tx.account][tx.currency] || { balance: defaultBalance, previous: 0 };
                     balance = getNewBalance(tx, old);
                     balance = balance !== null ? round(balance, 2) : null;
-                    if (tx.balance !== balance) tx.balance = balance;
+                    balances.set(id, balance);
                 }
 
                 accumulator[tx.account][tx.currency] = { balance, previous: tx.value || 0 };
@@ -882,10 +893,15 @@ const fillTransactionBalances = ({ ids, entities }: EntityState<Transaction>, su
         tx?.recordedBalance !== null ? tx.recordedBalance : acc.balance === null ? null : acc.balance - acc.previous
     );
 
-    // Iterate forwards in time, filling balances
+    // Iterate forwards in time, filling the balances still missing
     statefullyUpdateBalances(reverse(clone(ids)), 0, (tx, acc) =>
-        tx?.balance !== null ? tx.balance : acc.balance === null ? null : acc.balance + (tx.value || 0)
+        acc.balance === null ? null : acc.balance + (tx.value || 0)
     );
+
+    ids.forEach((id) => {
+        const balance = balances.get(id) as number | null;
+        if (entities[id]!.balance !== balance) entities[id]!.balance = balance;
+    });
 };
 
 const updateCurrencyStartDates = (data: DataState, subset?: EntityId[]) => {
