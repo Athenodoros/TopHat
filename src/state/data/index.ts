@@ -32,7 +32,7 @@ import {
 } from "lodash";
 import { DateTime } from "luxon";
 import { AnyAction } from "redux";
-import { applyPatch, createPatch } from "rfc6902";
+import { applyPatch } from "rfc6902";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
 import { CURRENCY_NOTIFICATION_ID, DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
@@ -53,6 +53,7 @@ import {
     TransactionHistoryWithLocalisation,
 } from "../shared/values";
 import { finishDemoInitialisation } from "./demo/post";
+import { createHistoryPatch } from "./history";
 import {
     changeCurrencyValue,
     compareTransactionsDescendingDates,
@@ -632,7 +633,8 @@ DataSlice.reducer = (state: DataState | undefined, action: AnyAction) => {
             : state
             ? null
             : "Initial state",
-        patches: createPatch(rawNewState, state ?? initialTutorialState),
+        // A patch that won't be kept isn't worth diffing the whole state for: loading data does that
+        patches: rewindDisplaySpec?.suppressPatch ? [] : createHistoryPatch(rawNewState, state ?? initialTutorialState),
     };
     let patches = rawNewState.patches ? cloneDeep(rawNewState.patches) : PatchAdapter.getInitialState();
     patches = PatchAdapter.removeMany(
