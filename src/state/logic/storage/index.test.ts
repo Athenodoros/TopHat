@@ -667,6 +667,27 @@ describe("Copying the database the Dexie version of the app saved into", () => {
         expect(asLists(data())).toEqual(sortLists(getSavedData()));
     });
 
+    test("loads from the store even when it can't look at the old database", async () => {
+        await writeToStore(getSavedData());
+
+        // Retention looks for the old database on every boot from the store
+        const databases = vi.spyOn(indexedDB, "databases").mockRejectedValue(new Error("Something broke"));
+        const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        try {
+            const { data, dispatch, actions, storage } = await bootTopHat();
+
+            expect(storage()).toEqual({ type: "loaded" });
+            expect(asLists(data())).toEqual(sortLists(getSavedData()));
+            expect(log).toHaveBeenCalled();
+
+            dispatch(actions.updateUserPartial({ tutorial: true }));
+            await waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(true));
+        } finally {
+            databases.mockRestore();
+            log.mockRestore();
+        }
+    });
+
     test("loads every field of data saved months ago", async () => {
         await writeToLegacyDatabase(OldSavedData);
 

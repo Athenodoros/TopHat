@@ -108,9 +108,13 @@ export const setupStorageAndLoadData = async (
     // recovery screen must neither record a copy nor count towards deleting the old database
     if (frozenForRecovery) return { connection, storage: { type: "loaded" } };
 
+    // Retention only ever delays the deletion, so the data is saving and loaded whatever happens there
     if (copyingLegacy) {
         if (saved) recordLegacyMigration();
-    } else if (store.loadedFromStore) await recordBootAndMaybeDeleteLegacyDatabase();
+    } else if (store.loadedFromStore)
+        await recordBootAndMaybeDeleteLegacyDatabase().catch((error) =>
+            console.error("TopHat could not check on the database left by an earlier version", error)
+        );
 
     return { connection, storage: { type: store.loadedFromStore || copyingLegacy ? "loaded" : "empty" } };
 };
