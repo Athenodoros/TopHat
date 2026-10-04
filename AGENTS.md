@@ -15,7 +15,7 @@ TopHat is an offline-first personal finance web app: no backend, all state lives
 -   `yarn test <path or -t pattern>` — run a single test file or match by name, e.g. `yarn test src/state/data/index.test.ts` or `yarn test -t "State remains valid"`
 -   `yarn format` — format everything with Prettier; `yarn format:check` reports anything unformatted without changing it
 
-CI (`.github/workflows/main.yml`) runs `yarn format:check`, `yarn test --run` and then `yarn build` on every pull request and push to `main`, and a push to `main` deploys only if all three pass.
+CI (`.github/workflows/main.yml`) runs `yarn format:check`, `yarn test --run` and then `yarn build` on every pull request and push to `main`. Only `main` deploys - on a push, or when the workflow is run by hand - and only if all three pass. A pull request is checked but never deployed.
 
 There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120), and `.prettierignore` leaves out build output. CI fails on any file Prettier would change, so run `yarn format` (or your editor's Prettier integration) before pushing.
 

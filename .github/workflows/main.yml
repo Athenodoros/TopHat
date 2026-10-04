@@ -50,7 +50,9 @@ jobs:
               run: |
                   yarn build
 
+            # Pull requests are checked but never deployed: only main, pushed or run by hand, goes live
             - name: Deploy to gh-pages branch
+              if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
               run: |
                   cd dist
                   git init -b main
