@@ -29,6 +29,9 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: "21"
+                  # Yarn's download cache, keyed on yarn.lock: a changed lockfile, such as a new
+                  # personal-storage-wrapper commit, misses it and installs afresh
+                  cache: yarn
 
             - name: Move into the project directory
               run: |
