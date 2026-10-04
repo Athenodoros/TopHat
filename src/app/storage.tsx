@@ -1,10 +1,13 @@
 import styled from "@emotion/styled";
-import { HourglassEmpty, ReportProblem } from "@mui/icons-material";
-import { Button, CircularProgress, Typography } from "@mui/material";
+import { CallSplit, HourglassEmpty, ReportProblem } from "@mui/icons-material";
+import { Button, Card, CircularProgress, Typography } from "@mui/material";
+import { DateTime } from "luxon";
 import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
+import { assertNever } from "../shared/data";
+import { chooseStorageCopy } from "../state/logic/storage";
 import { deleteDatabase, downloadRescuedDatabaseContents } from "../state/logic/storage/rescue";
-import { StorageState } from "../state/logic/storage/types";
+import { StorageCopy, StorageCopySource, StorageState } from "../state/logic/storage/types";
 import { Greys } from "../styles/colours";
 
 /**
@@ -107,6 +110,108 @@ export const StartupErrorPage: React.FC<{ state: StorageState & { type: "failed"
 );
 
 /**
+ * Shown in place of the app when saved copies of the data disagree, and nothing says which to keep.
+ * Nothing is saved anywhere until the user picks one: the choice can't be taken back, so each pick
+ * is confirmed with a second click.
+ */
+export const StorageConflictPage: React.FC<{ state: StorageState & { type: "conflict" } }> = ({ state }) => {
+    const [selected, setSelected] = useState<string | null>(null);
+    const [choosing, setChoosing] = useState(false);
+
+    const choose = (id: string) => {
+        if (selected !== id) return setSelected(id);
+
+        setChoosing(true);
+        chooseStorageCopy(id);
+    };
+
+    return (
+        <ContainerBox>
+            <NonIdealState
+                intent="warning"
+                icon={CallSplit}
+                title="Choose Which Data to Keep"
+                subtitle={
+                    <ConflictContentsBox>
+                        <Typography variant="body2">
+                            TopHat has found copies of your data that have changed separately, and can't tell which one
+                            to keep. Nothing will be saved until you choose. The copy you don't keep is replaced, except
+                            one saved by an earlier version of TopHat, which is kept in this browser for at least a
+                            fortnight.
+                        </Typography>
+                        <CopiesBox>
+                            {state.copies.map((copy) => (
+                                <CopyCard key={copy.id} variant="outlined">
+                                    <Typography variant="subtitle1">{getCopyTitle(copy.source)}</Typography>
+                                    <CopyDetails copy={copy} />
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => choose(copy.id)}
+                                        disabled={choosing}
+                                        color={selected === copy.id ? "warning" : "primary"}
+                                    >
+                                        {choosing && selected === copy.id ? (
+                                            <CircularProgress size={20} color="inherit" />
+                                        ) : selected === copy.id ? (
+                                            "Click Again to Confirm"
+                                        ) : (
+                                            "Keep This Copy"
+                                        )}
+                                    </Button>
+                                </CopyCard>
+                            ))}
+                        </CopiesBox>
+                    </ConflictContentsBox>
+                }
+            />
+        </ContainerBox>
+    );
+};
+
+const getCopyTitle = (source: StorageCopySource) => {
+    switch (source.type) {
+        case "browser":
+            return "This Browser";
+        case "remote":
+            return REMOTE_NAMES[source.target] ?? "Copy in " + source.target;
+        case "legacy":
+            return "Earlier Version of TopHat";
+        default:
+            return assertNever(source);
+    }
+};
+const REMOTE_NAMES: Record<string, string> = { dropbox: "Dropbox", gdrive: "Google Drive" };
+
+const CopyDetails: React.FC<{ copy: StorageCopy }> = ({ copy: { savedAt, summary } }) => (
+    <DetailsBox>
+        {summary.isDemo ? (
+            <Typography variant="body2">Demo data</Typography>
+        ) : !summary.holdsRealData ? (
+            <Typography variant="body2">Nothing but the tutorial</Typography>
+        ) : undefined}
+        <Typography variant="body2">
+            {summary.accounts} {summary.accounts === 1 ? "account" : "accounts"}, {summary.transactions}{" "}
+            {summary.transactions === 1 ? "transaction" : "transactions"}
+        </Typography>
+        {summary.latestTransaction ? (
+            <Typography variant="body2" sx={DetailSx}>
+                Latest transaction {DateTime.fromISO(summary.latestTransaction).toLocaleString(DateTime.DATE_MED)}
+            </Typography>
+        ) : undefined}
+        {summary.lastChanged ? (
+            <Typography variant="body2" sx={DetailSx}>
+                Last changed {DateTime.fromISO(summary.lastChanged).toLocaleString(DateTime.DATETIME_MED)}
+            </Typography>
+        ) : undefined}
+        {savedAt ? (
+            <Typography variant="body2" sx={DetailSx}>
+                Saved {DateTime.fromISO(savedAt).toLocaleString(DateTime.DATETIME_MED)}
+            </Typography>
+        ) : undefined}
+    </DetailsBox>
+);
+
+/**
  * Shown in place of the app until boot has finished looking for saved data. The store starts in the
  * tutorial state, so showing the app any earlier would flash the tutorial at users who have data.
  */
@@ -129,6 +234,7 @@ const ContainerBox = styled("div")({
     width: "100vw",
 });
 const ContentsBox = styled("div")({ maxWidth: 520, marginTop: 20, textAlign: "center" });
+const ConflictContentsBox = styled(ContentsBox)({ maxWidth: 760 });
 const ActionsBox = styled("div")({
     display: "flex",
     justifyContent: "center",
@@ -137,3 +243,21 @@ const ActionsBox = styled("div")({
     "& > button": { whiteSpace: "nowrap" },
 });
 const ErrorSx = { fontStyle: "italic", color: Greys[700], margin: "15px 0 0 0" } as const;
+const CopiesBox = styled("div")({
+    display: "flex",
+    justifyContent: "center",
+    flexWrap: "wrap",
+    gap: 20,
+    marginTop: 25,
+});
+const CopyCard = styled(Card)({
+    width: 300,
+    padding: 20,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 15,
+    "& > button": { whiteSpace: "nowrap" },
+});
+const DetailsBox = styled("div")({ flexGrow: 1 });
+const DetailSx = { color: Greys[700] } as const;

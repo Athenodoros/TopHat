@@ -13,7 +13,7 @@ import "fake-indexeddb/auto";
 
 import { omit, sum } from "lodash-es";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
-import { toListDataState, type DataState } from "../../data";
+import { getInitialTutorialLists, toListDataState, type DataState, type ListDataState } from "../../data";
 import { getCurrentMonth, getCurrentMonthString, parseDate, SDate, TransactionHistory } from "../../shared/values";
 import {
     closeTestBroadcastChannels,
@@ -29,6 +29,7 @@ import {
     deleteLegacyDatabase,
     LEGACY_DATABASE_NAME,
     LEGACY_LOCKED_VERSION,
+    lockLegacyDatabase,
     MIGRATION_RECORD_KEY,
     MigrationRecord,
     RETENTION_BOOTS,
@@ -59,6 +60,7 @@ import {
 } from "./legacy/fixtures.testing";
 import { maybeSaveDataToDropbox } from "../dropbox";
 import { CURRENT_GENERATION } from "./migrations";
+import type { StorageState } from "./types";
 
 // A boot also kicks off currency and Dropbox syncs, neither of which is part of what is tested here.
 // A test can hold the currency sync up, to keep a boot that loads demo data from finishing.
@@ -532,9 +534,10 @@ describe("Other tabs, while a boot is migrating", () => {
         await writeToStore(getSavedData());
         const newer = await bootTopHat();
 
-        // Behind the open tab's back: older data in the store, and an old database one boot from deletion
+        // Behind the open tab's back: older data in the store, and a copied old database one boot from deletion
         await writeToStore(getSavedData({ generation: 3 }));
         await writeToLegacyDatabase(getSavedData());
+        await lockLegacyDatabase();
         const record = { migratedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), boots: 9 };
         localStorage.setItem(MIGRATION_RECORD_KEY, JSON.stringify(record));
 
@@ -596,17 +599,16 @@ describe("Copying the database the Dexie version of the app saved into", () => {
         expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: 0 });
     });
 
-    test("loads from the store once there is something in it, and leaves the old database alone", async () => {
+    test("loads from the store once there is something in it, rather than the database it was copied from", async () => {
         await writeToLegacyDatabase(getSavedData());
+        await lockLegacyDatabase();
         await writeToStore({ ...getSavedData(), transaction: [{ ...Coffee, reference: "TEA" }] });
 
-        const { data } = await bootTopHat();
+        const { data, storage } = await bootTopHat();
 
+        expect(storage()).toEqual({ type: "loaded" });
         expect(data().transaction.entities[1]!.reference).toBe("TEA");
-        expect(await getLegacyDatabaseVersion()).not.toBe(LEGACY_LOCKED_VERSION);
-
-        // Nothing says this store holds a copy of it, so nothing starts towards its deletion
-        expect(readMigrationRecord()).toBeNull();
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
     });
 
     test("starts counting boots on a later boot, when the copy was saved too late to be recorded", async () => {
@@ -757,5 +759,281 @@ describe("Copying the database the Dexie version of the app saved into", () => {
          */
         expect(data().patches.entities[OldPatch.id]).toEqual(OldPatch);
         // expect(data().patches.entities[OldPatch.id]).toBeUndefined();
+    });
+});
+
+/** The copies a boot waiting on the user is offering, and the function that keeps one of them */
+const getConflict = async (storage: () => StorageState) => {
+    await waitFor(() => expect(storage()).toMatchObject({ type: "conflict" }));
+    const { chooseStorageCopy } = await import("./index");
+    return { copies: (storage() as StorageState & { type: "conflict" }).copies, chooseStorageCopy };
+};
+
+/** The same saved data, told apart by the reference of its one transaction */
+const withReference = (reference: string): ListDataState => ({
+    ...getSavedData(),
+    transaction: [{ ...Coffee, reference }],
+});
+
+describe("Copies in two targets that disagree", () => {
+    /**
+     * A second row in the store's database, listed alongside the store in the saved list of targets,
+     * stands in for a remote target: the library reads, writes and timestamps it in the same way, with
+     * no network involved, and TopHat treats any target but its own row as somewhere else.
+     */
+    const REMOTE_ID = "remote";
+
+    /**
+     * The saved list of targets, with the history the library keeps for each: the target's own
+     * timestamp for the last value written there or read from there, and whether a save missed it
+     */
+    const listBothTargets = (
+        ids = [STORE_ID, REMOTE_ID],
+        history: Record<string, { lastSeenWriteTime?: Date; missedWrite?: boolean }> = {}
+    ) =>
+        localStorage.setItem(
+            SYNC_CONFIG_KEY,
+            JSON.stringify(
+                ids.map((id) => ({
+                    type: "indexeddb",
+                    config: JSON.stringify({ target: { id }, compressed: true, ...history[id] }),
+                }))
+            )
+        );
+
+    const readReference = async (id: string = STORE_ID) => (await readFromStore(id))!.transaction[0].reference;
+
+    // When the two copies last agreed, by their own clocks. A copy saved at any other time has moved on.
+    const AGREED_LOCAL = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const AGREED_REMOTE = new Date(AGREED_LOCAL.valueOf() + 5000);
+    const MOVED = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const saveCopies = async (
+        local: { reference: string; moved: boolean },
+        remote: { reference: string; moved: boolean }
+    ) => {
+        listBothTargets(undefined, {
+            [STORE_ID]: { lastSeenWriteTime: AGREED_LOCAL },
+            [REMOTE_ID]: { lastSeenWriteTime: AGREED_REMOTE },
+        });
+        await writeToStore(withReference(local.reference), STORE_ID, local.moved ? MOVED : AGREED_LOCAL);
+        await writeToStore(withReference(remote.reference), REMOTE_ID, remote.moved ? MOVED : AGREED_REMOTE);
+    };
+
+    test("takes the other copy, without asking, when only it has moved on", async () => {
+        await saveCopies({ reference: "AGREED", moved: false }, { reference: "REMOTE", moved: true });
+
+        const { data, storage } = await bootTopHat();
+
+        await waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
+        await waitFor(async () => expect(await readReference()).toBe("REMOTE"));
+        expect(storage()).toEqual({ type: "loaded" });
+    });
+
+    test("asks which to keep when both have moved on, and writes nothing anywhere until the user chooses", async () => {
+        await saveCopies({ reference: "LOCAL", moved: true }, { reference: "REMOTE", moved: true });
+        const before = { local: await readRawFromStore(), remote: await readRawFromStore(REMOTE_ID) };
+
+        const { data, dispatch, actions, storage } = await bootTopHat();
+        const { copies, chooseStorageCopy } = await getConflict(storage);
+
+        expect(copies.map(({ source }) => source)).toEqual([
+            { type: "browser" },
+            { type: "remote", target: "indexeddb" },
+        ]);
+        expect(copies.map(({ savedAt }) => savedAt)).toEqual([MOVED.toISOString(), MOVED.toISOString()]);
+
+        // Not even a change in the meantime is saved, sent to other tabs, or backed up
+        vi.mocked(maybeSaveDataToDropbox).mockClear();
+        const announce = vi.spyOn(BroadcastChannel.prototype, "postMessage");
+        try {
+            dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
+            await pause(25);
+
+            expect(announce).not.toHaveBeenCalled();
+        } finally {
+            announce.mockRestore();
+        }
+        expect(await readRawFromStore()).toEqual(before.local);
+        expect(await readRawFromStore(REMOTE_ID)).toEqual(before.remote);
+        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
+
+        await chooseStorageCopy(copies[1].id);
+
+        expect(storage()).toEqual({ type: "loaded" });
+        await waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
+        await waitFor(async () => expect(await readReference()).toBe("REMOTE"));
+        expect(await readReference(REMOTE_ID)).toBe("REMOTE");
+    });
+
+    test("saves the browser's copy to the other when the user keeps it, with changes made while choosing", async () => {
+        await saveCopies({ reference: "LOCAL", moved: true }, { reference: "REMOTE", moved: true });
+
+        const { data, dispatch, actions, storage } = await bootTopHat();
+        const { copies, chooseStorageCopy } = await getConflict(storage);
+
+        // A currency sync started at boot, say, lands while the user is choosing
+        dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
+        await chooseStorageCopy(copies[0].id);
+
+        expect(storage()).toEqual({ type: "loaded" });
+        expect(data().transaction.entities[1]!.reference).toBe("LOCAL");
+        expect(data().user.entities[0]!.alphavantage).toBe("CHANGED");
+        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("CHANGED"));
+        expect(await readReference(REMOTE_ID)).toBe("LOCAL");
+        expect((await readFromStore())!.user[0].alphavantage).toBe("CHANGED");
+    });
+
+    // Targets are read in the order they are listed. Read first, the newer copy is refused before the
+    // store has opened; read second, it is refused after the app has loaded the browser's.
+    test.each([
+        ["read after", [STORE_ID, REMOTE_ID]],
+        ["read before", [REMOTE_ID, STORE_ID]],
+    ])(
+        "leaves both copies exactly as they were when the other holds data from a newer version, %s the browser's",
+        async (_, ids) => {
+            listBothTargets(ids);
+            await writeToStore(getSavedData());
+            await writeToStore(getSavedData({ generation: CURRENT_GENERATION + 1 }), REMOTE_ID);
+            const before = { local: await readRawFromStore(), remote: await readRawFromStore(REMOTE_ID) };
+
+            const { dispatch, actions, storage } = await bootTopHat();
+            await waitFor(() =>
+                expect(storage()).toMatchObject({ type: "unreadable", error: expect.stringMatching(/newer/) })
+            );
+
+            dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
+            await pause(25);
+
+            expect(await readRawFromStore()).toEqual(before.local);
+            expect(await readRawFromStore(REMOTE_ID)).toEqual(before.remote);
+        }
+    );
+
+    test("keeps the browser's copy, without asking, when a save reached it but not the other", async () => {
+        listBothTargets();
+        await writeToStore(getSavedData());
+        await writeToStore(getSavedData(), REMOTE_ID);
+
+        const { dispatch, actions } = await bootTopHat();
+
+        dispatch(actions.updateUserPartial({ alphavantage: "KEY-1" }));
+        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-1"));
+
+        // A write to the other copy that fails, as a remote one does offline: `add` refuses a key that is already there
+        const put = IDBObjectStore.prototype.put;
+        const failing = vi
+            .spyOn(IDBObjectStore.prototype, "put")
+            .mockImplementation(function (this: IDBObjectStore, value: any, key?: IDBValidKey) {
+                return value?.id === REMOTE_ID ? this.add(value, key) : put.call(this, value, key);
+            });
+        try {
+            dispatch(actions.updateUserPartial({ alphavantage: "KEY-2" }));
+            await waitFor(async () => expect((await readFromStore())!.user[0].alphavantage).toBe("KEY-2"));
+            await pause(25);
+            expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-1");
+        } finally {
+            failing.mockRestore();
+        }
+
+        // Neither copy has been written by anything else since, so they would look equally untouched,
+        // but the other copy is behind
+        const next = await bootTopHat();
+
+        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-2"));
+        expect(next.storage()).toEqual({ type: "loaded" });
+        expect(next.data().user.entities[0]!.alphavantage).toBe("KEY-2");
+    });
+});
+
+describe("A database the Dexie version of the app saved into after the copy", () => {
+    // Only a copying boot locks the old database, so an unlocked one next to a store that holds data
+    // was made since: a Dexie version of the app deleted the locked one, and started saving again
+    const saveBoth = async (legacy: Partial<ListDataState> = getSavedData()) => {
+        await writeToStore(withReference("TEA"));
+        await writeToLegacyDatabase(legacy);
+    };
+
+    test("asks which to keep, and changes neither until the user chooses", async () => {
+        await saveBoth();
+        const before = await readRawFromStore();
+        vi.mocked(maybeSaveDataToDropbox).mockClear();
+
+        const { tab, booted } = await startBootingTopHat();
+        const { copies, chooseStorageCopy } = await getConflict(tab.storage);
+
+        expect(copies.map(({ source }) => source)).toEqual([{ type: "browser" }, { type: "legacy" }]);
+
+        await pause(25);
+        expect(await readRawFromStore()).toEqual(before);
+        expect(await getLegacyDatabaseVersion()).not.toBe(LEGACY_LOCKED_VERSION);
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
+        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
+
+        // Kept, it is copied the way the first copy was: locked, read, saved and recorded
+        await chooseStorageCopy(copies[1].id);
+        await booted;
+
+        expect(tab.storage()).toEqual({ type: "loaded" });
+        expect(tab.data().transaction.entities[1]!.reference).toBe("COFFEE");
+        expect((await readFromStore())!.transaction[0].reference).toBe("COFFEE");
+        expect(await getLegacyDatabaseVersion()).toBe(LEGACY_LOCKED_VERSION);
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
+        expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: 0 });
+    });
+
+    test("locks it when the user keeps the store, and keeps it as long as one that has just been copied", async () => {
+        await saveBoth();
+        // An earlier copy, long enough ago that the database it recorded could be deleted now
+        const long = {
+            migratedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+            boots: RETENTION_BOOTS,
+        };
+        localStorage.setItem(MIGRATION_RECORD_KEY, JSON.stringify(long));
+
+        const { tab, booted } = await startBootingTopHat();
+        const { copies, chooseStorageCopy } = await getConflict(tab.storage);
+        await chooseStorageCopy(copies[0].id);
+        await booted;
+
+        expect(tab.data().transaction.entities[1]!.reference).toBe("TEA");
+        expect((await readFromStore())!.transaction[0].reference).toBe("TEA");
+        expect(await getLegacyDatabaseVersion()).toBe(LEGACY_LOCKED_VERSION);
+        expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: 0 });
+        expect(readMigrationRecord()).not.toEqual(long);
+
+        // The next boot doesn't ask again, and counts from the lock
+        const next = await bootTopHat();
+        expect(next.storage()).toEqual({ type: "loaded" });
+        expect(readMigrationRecord()!.boots).toBe(1);
+        expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
+    });
+
+    test("locks it without asking when it holds nothing of the user's", async () => {
+        await saveBoth(getInitialTutorialLists());
+
+        const { data, storage } = await bootTopHat();
+
+        expect(storage()).toEqual({ type: "loaded" });
+        expect(data().transaction.entities[1]!.reference).toBe("TEA");
+        expect(await getLegacyDatabaseVersion()).toBe(LEGACY_LOCKED_VERSION);
+    });
+
+    test("goes to the recovery screen, and copies nothing, when the copy chosen can no longer be used", async () => {
+        await saveBoth();
+        const before = await readRawFromStore();
+
+        const { tab } = await startBootingTopHat();
+        const { copies, chooseStorageCopy } = await getConflict(tab.storage);
+
+        // An old tab can still save into it until it is locked, which happens once it is chosen
+        await writeToLegacyDatabase({ user: [{ ...getSavedData().user[0], generation: CURRENT_GENERATION + 1 }] });
+        await chooseStorageCopy(copies[1].id);
+
+        await waitFor(() =>
+            expect(tab.storage()).toMatchObject({ type: "unreadable", error: expect.stringMatching(/newer/) })
+        );
+        expect(await readRawFromStore()).toEqual(before);
+        expect(readMigrationRecord()).toBeNull();
     });
 });

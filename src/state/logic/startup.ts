@@ -10,7 +10,7 @@ import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
-import { setupStorageAndLoadData } from "./storage";
+import { setupStorageAndLoadData, showStorageStateAfterBoot } from "./storage";
 import { StorageConnection } from "./storage/types";
 
 const debug = !import.meta.env.PROD;
@@ -79,7 +79,8 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
     // Update caches to latest month
     TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 
-    TopHatDispatch(AppSlice.actions.setStorageState(storage));
+    // Storage may be waiting for the user to choose between copies that disagree, which stays on screen
+    showStorageStateAfterBoot(storage);
 
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
@@ -96,11 +97,10 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
 };
 
 // A tab that has stopped saving for recovery holds data older than another tab's, and must not upload
-// it over that tab's backup - even if a change lands later, from a currency sync started at boot, say
+// it over that tab's backup - even if a change lands later, from a currency sync started at boot, say.
+// Nor may anything be uploaded while the user is choosing which copy of the data to keep.
 const initialiseMaybeDropboxSyncFromRedux = (connection: StorageConnection) =>
-    subscribeToDataUpdates(() =>
-        setTimeout(() => connection.hasFrozenForRecovery() || DBUtils.maybeSaveDataToDropbox(), 0)
-    );
+    subscribeToDataUpdates(() => setTimeout(() => connection.isHoldingWrites() || DBUtils.maybeSaveDataToDropbox(), 0));
 
 const getDebugVariablesAsync = (connection: StorageConnection) => async () => {
     if (!debug)
