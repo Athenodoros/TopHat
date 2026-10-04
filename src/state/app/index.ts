@@ -1,7 +1,7 @@
 import { AnyAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { get, trimEnd } from "lodash";
 import type { DataState } from "../data/types";
-import { StorageState } from "../logic/storage/types";
+import { RemoteSyncState, StorageState } from "../logic/storage/types";
 import { ID } from "../shared/values";
 import { DefaultDialogs, DefaultPages, DialogState } from "./defaults";
 import {
@@ -29,6 +29,8 @@ interface AppState {
     // How the attempt to load saved data went, and left alone by everything else in here
     storage: StorageState;
     jsonImport: JSONImportStatus;
+    // The targets other than the browser's store that the data is synced to, as storage reports them
+    remotes: RemoteSyncState[];
 }
 
 export const BASE_PATHNAME = "/TopHat";
@@ -45,7 +47,7 @@ const getDefaultPageState = (page: PageStateType | null) => ({
     page: page || DefaultPages["summary"],
 });
 
-export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage" | "jsonImport"> => {
+export const getAppStateFromPagePath = (location: Location): Omit<AppState, "storage" | "jsonImport" | "remotes"> => {
     const [_, page, id] = trimEnd(location.pathname, "#").substring(BASE_PATHNAME.length).split("/");
 
     if (page === "dropbox")
@@ -65,6 +67,7 @@ const initialState: AppState = {
     ...getAppStateFromPagePath(window.location),
     storage: { type: "loading" },
     jsonImport: { type: "idle" },
+    remotes: [],
 };
 
 export const AppSlice = createSlice({
@@ -81,6 +84,7 @@ export const AppSlice = createSlice({
             ...getAppStateFromPagePath(window.location),
             storage: state.storage,
             jsonImport: state.jsonImport,
+            remotes: state.remotes,
         }),
         setAccountsPagePartial: (state, { payload }: PayloadAction<Partial<AccountsPageState>>) => {
             state.page = {
@@ -146,12 +150,16 @@ export const AppSlice = createSlice({
             page,
             storage: state.storage,
             jsonImport: state.jsonImport,
+            remotes: state.remotes,
         }),
         setStorageState: (state, { payload }: PayloadAction<StorageState>) => {
             state.storage = payload;
         },
         setJSONImportStatus: (state, { payload }: PayloadAction<JSONImportStatus>) => {
             state.jsonImport = payload;
+        },
+        setRemoteSyncs: (state, { payload }: PayloadAction<RemoteSyncState[]>) => {
+            state.remotes = payload;
         },
     },
 });

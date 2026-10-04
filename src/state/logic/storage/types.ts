@@ -46,6 +46,21 @@ export interface CopySummary {
     holdsRealData: boolean;
 }
 
+/** A target other than the browser's store that the data is synced to, as the app shows it */
+export interface RemoteSyncState {
+    /** The target's type in the storage library: only "dropbox" is ever linked today */
+    type: string;
+    /** Whose account it is, where the target says */
+    account: { name: string; email: string } | null;
+    /**
+     * Whether it holds the latest value saved here. It falls behind whenever a save doesn't reach it -
+     * offline, failing, or because it changed elsewhere first - and catches up with the next save that does.
+     */
+    inStep: boolean;
+    /** Whether the last save to it failed for some reason other than being offline */
+    failing: boolean;
+}
+
 /** What startup keeps of the storage it booted from, so that it doesn't depend on how that storage works */
 export interface StorageConnection {
     /** Handles on the underlying store, exposed alongside the other debug variables */

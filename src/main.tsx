@@ -8,19 +8,22 @@ import { createRoot } from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 import { App } from "./app";
 import { setPopupAlert } from "./app/popups";
-import { getMaybeDropboxRedirectCode } from "./state/logic/dropbox";
 import { initialiseAndGetDBConnection } from "./state/logic/startup";
 
-// AppSlice rewrites the URL as soon as any action runs through its reducer, and the app can dispatch
-// actions once it has rendered, so the Dropbox redirect code has to be read before anything else
-const maybeDropboxCode = getMaybeDropboxRedirectCode();
+// The Dropbox sign-in popup comes back to `dropbox.html`, which must stay a static page: booting the
+// app there would start a second copy of it, with the authorisation code still on the URL. The service
+// worker leaves that URL to the network (see `vite.config.ts`), but anything that serves the app for
+// it instead - a service worker installed before that rule was, say - is stopped here.
+if (window.location.pathname.endsWith("/dropbox.html")) {
+    document.body.textContent = "Signing in to Dropbox… you can close this window if it does not close itself.";
+} else {
+    // The app renders before boot rather than after it, so that the wait for saved data is a loading
+    // page rather than a blank one: what is on screen follows `app.storage` as boot progresses
+    const root = createRoot(document.getElementById("root")!);
+    root.render(<App />);
 
-// The app renders before boot rather than after it, so that the wait for saved data is a loading
-// page rather than a blank one: what is on screen follows `app.storage` as boot progresses
-const root = createRoot(document.getElementById("root")!);
-root.render(<App />);
-
-initialiseAndGetDBConnection(maybeDropboxCode);
+    initialiseAndGetDBConnection();
+}
 
 if ("serviceWorker" in navigator) {
     // && !/localhost/.test(window.location)) {

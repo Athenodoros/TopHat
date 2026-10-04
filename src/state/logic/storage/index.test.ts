@@ -15,6 +15,7 @@ import { omit, sum } from "lodash-es";
 import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
 import { getInitialTutorialLists, toListDataState, type DataState, type ListDataState } from "../../data";
 import { getCurrentMonth, getCurrentMonthString, parseDate, SDate, TransactionHistory } from "../../shared/values";
+import { bootTopHat, loadTopHat, moveClockForward, pause, startBootingTopHat, waitFor } from "./boot.testing";
 import {
     closeTestBroadcastChannels,
     deleteStore,
@@ -22,6 +23,7 @@ import {
     readFromStore,
     readRawFromStore,
     STORE_ID,
+    SYNC_CONFIG_KEY,
     writeRawToStore,
     writeToStore,
 } from "./fixtures.testing";
@@ -58,18 +60,13 @@ import {
     sortLists,
     writeToLegacyDatabase,
 } from "./legacy/fixtures.testing";
-import { maybeSaveDataToDropbox } from "../dropbox";
 import { CURRENT_GENERATION } from "./migrations";
 import type { StorageState } from "./types";
 
-// A boot also kicks off currency and Dropbox syncs, neither of which is part of what is tested here.
-// A test can hold the currency sync up, to keep a boot that loads demo data from finishing.
-const currencySync = vi.hoisted(() => ({ hold: null as Promise<void> | null }));
-vi.mock("../currencies", () => ({ updateSyncedCurrencies: vi.fn(async () => currencySync.hold ?? undefined) }));
-vi.mock("../dropbox", () => ({
-    dealWithDropboxRedirect: vi.fn(),
-    maybeSaveDataToDropbox: vi.fn(async () => undefined),
-}));
+// A boot also syncs currencies and moves over an earlier version's Dropbox link, neither of which is part
+// of what is tested here: `dropbox.test.ts` covers Dropbox
+vi.mock("../currencies", () => ({ updateSyncedCurrencies: vi.fn(async () => undefined) }));
+vi.mock("./dropbox", () => ({ moveLegacyDropboxLink: vi.fn(async () => undefined) }));
 
 // Two boots in this file talk to each other the way two tabs would
 installTestBroadcastChannel();
@@ -79,31 +76,7 @@ afterAll(() => {
 
 // The app's module graph takes half a minute to load the first time, and a fraction of a second on
 // each boot after that. Do it here, at collection time, where the per-test timeout does not apply.
-await Promise.all([import("../.."), import("../../data"), import("../startup")]);
-
-/**
- * A fresh page load: a new module registry, and so a new store, manager and listeners. Resolves once
- * the modules are loaded, with the tab and a promise of its boot finishing, for tests that act mid-boot.
- */
-const startBootingTopHat = async (maybeDropboxCode?: string) => {
-    vi.resetModules();
-
-    const [{ TopHatStore, TopHatDispatch }, { DataSlice }, { initialiseAndGetDBConnection }] = await Promise.all([
-        import("../.."),
-        import("../../data"),
-        import("../startup"),
-    ]);
-
-    const tab = {
-        dispatch: TopHatDispatch,
-        actions: DataSlice.actions,
-        data: () => TopHatStore.getState().data,
-        storage: () => TopHatStore.getState().app.storage,
-    };
-    return { tab, booted: initialiseAndGetDBConnection(maybeDropboxCode).then(() => tab) };
-};
-
-const bootTopHat = async () => (await startBootingTopHat()).booted;
+await loadTopHat();
 
 /** Redux state as sorted lists, so that it can be compared against either store or the fixtures */
 const asLists = (data: DataState) => sortLists(toListDataState(data));
@@ -116,29 +89,6 @@ const readSortedFromStore = async () => {
 
 /** Months between a fixture's hard-coded month and this one, which is how far caches roll forward */
 const getMonthsSince = (month: SDate) => getCurrentMonth().diff(parseDate(month), "months").months;
-
-const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-/**
- * Saves are fired from a `setTimeout` and never awaited, so tests poll for them. Attempts are counted
- * rather than timed, because some tests move the clock.
- */
-const waitFor = async <T>(assertion: () => T | Promise<T>, attempts: number = 200): Promise<T> => {
-    for (let attempt = 1; ; attempt++) {
-        try {
-            return await assertion();
-        } catch (error) {
-            if (attempt >= attempts) throw error;
-            await pause(10);
-        }
-    }
-};
-
-/** A manager only takes a value from another tab if it is newer than its own, so tabs that write move the clock */
-const moveClockForward = () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(Date.now() + 1000);
-};
 
 /** The version of the old database, or null if there is none, found without creating one */
 const getLegacyDatabaseVersion = async () => {
@@ -153,8 +103,30 @@ const readMigrationRecord = (): MigrationRecord | null => {
 
 const countRows = (data: object) => sum(Object.values(data).map(({ length }) => length));
 
-/** Where the library keeps a manager's list of targets, by default: under its own id */
-const SYNC_CONFIG_KEY = "personal-storage-manager-state-" + STORE_ID;
+/**
+ * A second row in the store's database, listed alongside the store in the saved list of targets,
+ * stands in for a remote target: the library reads, writes and timestamps it in the same way, with
+ * no network involved, and TopHat treats any target but its own row as somewhere else.
+ */
+const REMOTE_ID = "remote";
+
+/**
+ * The saved list of targets, with the history the library keeps for each: the target's own
+ * timestamp for the last value written there or read from there, and whether a save missed it
+ */
+const listBothTargets = (
+    ids = [STORE_ID, REMOTE_ID],
+    history: Record<string, { lastSeenWriteTime?: Date; missedWrite?: boolean }> = {}
+) =>
+    localStorage.setItem(
+        SYNC_CONFIG_KEY,
+        JSON.stringify(
+            ids.map((id) => ({
+                type: "indexeddb",
+                config: JSON.stringify({ target: { id }, compressed: true, ...history[id] }),
+            }))
+        )
+    );
 
 // A boot leaves its manager open, the way an open tab would. Closing the channels stops one test's
 // tabs hearing the next's, and deleting the store closes their connections to it.
@@ -455,8 +427,10 @@ describe("Other tabs", () => {
         expect(await readRawFromStore()).toEqual(saved);
     });
 
-    test("stops backing up to Dropbox when another tab saves data from a newer version of the app", async () => {
+    test("stops saving to a remote target when another tab saves data from a newer version of the app", async () => {
+        listBothTargets();
         await writeToStore(getSavedData());
+        await writeToStore(getSavedData(), REMOTE_ID);
 
         const older = await bootTopHat();
         const newer = await bootTopHat();
@@ -464,14 +438,16 @@ describe("Other tabs", () => {
         moveClockForward();
         newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
         await waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
-        await pause(25);
+        await waitFor(async () =>
+            expect((await readFromStore(REMOTE_ID))!.user[0].generation).toBe(CURRENT_GENERATION + 1)
+        );
+        const remote = await readRawFromStore(REMOTE_ID);
 
         // A change can still land after the freeze - a currency sync started at boot, say - and must
-        // not upload this tab's older data over the newer tab's backup
-        vi.mocked(maybeSaveDataToDropbox).mockClear();
+        // not save this tab's older data over the newer tab's
         older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
         await pause(25);
-        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
+        expect(await readRawFromStore(REMOTE_ID)).toEqual(remote);
     });
 
     test("migrates data saved by an older version of the app in another tab", async () => {
@@ -499,30 +475,6 @@ describe("Other tabs", () => {
          * versions of the app saving within moments of each other, the row still holds the same data,
          * and the next boot migrates it again.
          */
-    });
-
-    test("stays on the recovery screen when a newer version's data arrives before it has finished booting", async () => {
-        // A Dropbox redirect on a new install loads the demo data, and syncs currencies, before boot
-        // finishes, which leaves time for another tab to save in between
-        let release = () => undefined as void;
-        currencySync.hold = new Promise((resolve) => (release = resolve));
-        try {
-            const older = await startBootingTopHat("dropbox-code");
-            await waitFor(async () => expect(await readFromStore()).not.toBeNull());
-
-            const newer = await bootTopHat();
-            moveClockForward();
-            newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
-            await waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
-
-            // The rest of boot must not replace the recovery screen with what it found beforehand
-            release();
-            await older.booted;
-            expect(older.tab.storage()).toMatchObject({ type: "unreadable", error: expect.stringMatching(/newer/) });
-        } finally {
-            currencySync.hold = null;
-            release();
-        }
     });
 });
 
@@ -776,31 +728,6 @@ const withReference = (reference: string): ListDataState => ({
 });
 
 describe("Copies in two targets that disagree", () => {
-    /**
-     * A second row in the store's database, listed alongside the store in the saved list of targets,
-     * stands in for a remote target: the library reads, writes and timestamps it in the same way, with
-     * no network involved, and TopHat treats any target but its own row as somewhere else.
-     */
-    const REMOTE_ID = "remote";
-
-    /**
-     * The saved list of targets, with the history the library keeps for each: the target's own
-     * timestamp for the last value written there or read from there, and whether a save missed it
-     */
-    const listBothTargets = (
-        ids = [STORE_ID, REMOTE_ID],
-        history: Record<string, { lastSeenWriteTime?: Date; missedWrite?: boolean }> = {}
-    ) =>
-        localStorage.setItem(
-            SYNC_CONFIG_KEY,
-            JSON.stringify(
-                ids.map((id) => ({
-                    type: "indexeddb",
-                    config: JSON.stringify({ target: { id }, compressed: true, ...history[id] }),
-                }))
-            )
-        );
-
     const readReference = async (id: string = STORE_ID) => (await readFromStore(id))!.transaction[0].reference;
 
     // When the two copies last agreed, by their own clocks. A copy saved at any other time has moved on.
@@ -843,8 +770,7 @@ describe("Copies in two targets that disagree", () => {
         ]);
         expect(copies.map(({ savedAt }) => savedAt)).toEqual([MOVED.toISOString(), MOVED.toISOString()]);
 
-        // Not even a change in the meantime is saved, sent to other tabs, or backed up
-        vi.mocked(maybeSaveDataToDropbox).mockClear();
+        // Not even a change in the meantime is saved, or sent to other tabs
         const announce = vi.spyOn(BroadcastChannel.prototype, "postMessage");
         try {
             dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
@@ -856,7 +782,6 @@ describe("Copies in two targets that disagree", () => {
         }
         expect(await readRawFromStore()).toEqual(before.local);
         expect(await readRawFromStore(REMOTE_ID)).toEqual(before.remote);
-        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
 
         await chooseStorageCopy(copies[1].id);
 
@@ -957,7 +882,6 @@ describe("A database the Dexie version of the app saved into after the copy", ()
     test("asks which to keep, and changes neither until the user chooses", async () => {
         await saveBoth();
         const before = await readRawFromStore();
-        vi.mocked(maybeSaveDataToDropbox).mockClear();
 
         const { tab, booted } = await startBootingTopHat();
         const { copies, chooseStorageCopy } = await getConflict(tab.storage);
@@ -968,7 +892,6 @@ describe("A database the Dexie version of the app saved into after the copy", ()
         expect(await readRawFromStore()).toEqual(before);
         expect(await getLegacyDatabaseVersion()).not.toBe(LEGACY_LOCKED_VERSION);
         expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
-        expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
 
         // Kept, it is copied the way the first copy was: locked, read, saved and recorded
         await chooseStorageCopy(copies[1].id);

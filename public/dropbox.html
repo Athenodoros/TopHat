@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>TopHat - Dropbox</title>
+    </head>
+    <!--
+        Where the Dropbox sign-in popup lands. It exists so that the popup comes back to a same-origin
+        URL that is served as it is, without booting the app: TopHat reads the authorisation code out of
+        the popup and closes it from the tab that opened it. There is deliberately no script here.
+
+        GitHub Pages also serves this page at `/TopHat/dropbox`, where earlier versions had Dropbox
+        redirect back to, so someone can arrive here without a popup: the link takes them to the app.
+    -->
+    <body>
+        <p>Signing in to Dropbox… you can close this window if it does not close itself.</p>
+        <p><a href="./">Go to TopHat</a></p>
+    </body>
+</html>

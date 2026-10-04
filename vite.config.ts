@@ -16,6 +16,9 @@ export default defineConfig({
         VitePWA({
             workbox: {
                 globPatterns: ["**/*.{js,css,html,png,woff2,svg}"],
+                // The Dropbox sign-in popup lands here with a code on the URL, which no precached page
+                // matches, so it would otherwise be given the app: it must get the static page instead
+                navigateFallbackDenylist: [/\/dropbox\.html/],
             },
         }),
     ],

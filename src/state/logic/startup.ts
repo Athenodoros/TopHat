@@ -4,13 +4,14 @@ import Papa from "papaparse";
 import { TopHatDispatch, TopHatStore } from "..";
 import { formatNumber } from "../../shared/data";
 import { AppSlice, BASE_PATHNAME } from "../app";
-import { DataSlice, subscribeToDataUpdates } from "../data";
+import { DataSlice } from "../data";
 import { updateSyncedCurrencies } from "./currencies";
-import * as DBUtils from "./dropbox";
 import { initialiseNotificationUpdateHook } from "./notifications";
 import * as Statement from "./statement";
 import * as Parsing from "./statement/parsing";
 import { setupStorageAndLoadData, showStorageStateAfterBoot } from "./storage";
+import * as DBUtils from "./storage/dropbox";
+import { moveLegacyDropboxLink } from "./storage/dropbox";
 import { StorageConnection } from "./storage/types";
 
 const debug = !import.meta.env.PROD;
@@ -24,15 +25,12 @@ export const initialiseDemoData = async () => {
 /**
  * Boots TopHat, with the app already on screen and following `app.storage`.
  *
- * `maybeDropboxCode` is read by the caller before anything is rendered, because AppSlice rewrites
- * the URL the first time an action runs.
- *
  * Nothing is allowed to escape: a failure before the storage state is set would otherwise leave
  * the loading page up for good, with nothing said about why.
  */
-export const initialiseAndGetDBConnection = async (maybeDropboxCode: string | undefined) => {
+export const initialiseAndGetDBConnection = async () => {
     try {
-        await startTopHat(maybeDropboxCode);
+        await startTopHat();
     } catch (exception) {
         console.error("TopHat could not start up", exception);
 
@@ -47,7 +45,7 @@ export const initialiseAndGetDBConnection = async (maybeDropboxCode: string | un
     }
 };
 
-const startTopHat = async (maybeDropboxCode: string | undefined) => {
+const startTopHat = async () => {
     // Set up listener for forward/back browser buttons, correct initial path if necessary
     window.onpopstate = () => TopHatDispatch(AppSlice.actions.setPageStateFromPath());
 
@@ -65,18 +63,13 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
         return;
     }
 
-    // The app shows "undo" snacks once the storage state is set, so boot's own data changes are made
-    // before it: they never showed a snack when the app only rendered after boot
-
-    // If we're in a dropbox redirect loop, we don't want the initial empty state and popup -> silently set up demo
-    if (storage.type !== "loaded" && maybeDropboxCode) await initialiseDemoData();
-
-    // Another tab may have saved data this one can't use while boot was waiting. From here on boot
-    // doesn't wait again, so this is the last chance not to replace the recovery screen storage is
-    // about to show, or start the syncs that would upload what this tab holds.
+    // Another tab may have saved data this one can't use while boot was waiting. This is the last chance
+    // not to replace the recovery screen storage is about to show, or start the syncs that would change
+    // what this tab holds.
     if (connection.hasFrozenForRecovery()) return;
 
-    // Update caches to latest month
+    // Update caches to latest month. The app shows "undo" snacks once the storage state is set, so boot's
+    // own data changes are made before it: they never showed a snack when the app only rendered after boot.
     TopHatDispatch(DataSlice.actions.updateTransactionSummaryStartDates());
 
     // Storage may be waiting for the user to choose between copies that disagree, which stays on screen
@@ -85,22 +78,13 @@ const startTopHat = async (maybeDropboxCode: string | undefined) => {
     // Add notification hook to data updates
     initialiseNotificationUpdateHook();
 
-    // Dropbox setup
-    if (maybeDropboxCode) {
-        if (debug) console.log("Initialising Dropbox state from redirect...");
-        DBUtils.dealWithDropboxRedirect(maybeDropboxCode);
-    }
-    initialiseMaybeDropboxSyncFromRedux(connection);
-
     // Currency syncs
     updateSyncedCurrencies();
-};
 
-// A tab that has stopped saving for recovery holds data older than another tab's, and must not upload
-// it over that tab's backup - even if a change lands later, from a currency sync started at boot, say.
-// Nor may anything be uploaded while the user is choosing which copy of the data to keep.
-const initialiseMaybeDropboxSyncFromRedux = (connection: StorageConnection) =>
-    subscribeToDataUpdates(() => setTimeout(() => connection.isHoldingWrites() || DBUtils.maybeSaveDataToDropbox(), 0));
+    // The Dropbox link an earlier version made becomes a linked account. It takes a few requests to
+    // Dropbox, with the app on screen, and reports its own failures rather than throwing them.
+    await moveLegacyDropboxLink();
+};
 
 const getDebugVariablesAsync = (connection: StorageConnection) => async () => {
     if (!debug)

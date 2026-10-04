@@ -34,7 +34,7 @@ import { DateTime } from "luxon";
 import { AnyAction } from "redux";
 import { applyPatch } from "rfc6902";
 import { mapValuesWithKeys, takeWithDefault, updateListSelection } from "../../shared/data";
-import { CURRENCY_NOTIFICATION_ID, DROPBOX_NOTIFICATION_ID } from "../logic/notifications/types";
+import { CURRENCY_NOTIFICATION_ID } from "../logic/notifications/types";
 import { useSelector } from "../shared/hooks";
 import {
     BaseBalanceValues,
@@ -545,10 +545,13 @@ export const DataSlice = createSlice({
             rewindDisplaySpec = { message: "Notification state toggled", suppressSnack: true };
         },
 
-        removeDropoxSync: (state) => {
+        // The Dropbox link an earlier version of TopHat kept in the user's settings, once it has been moved over
+        // to a linked account or given up on. Kept out of the history, which would otherwise hold the token.
+        clearLegacyDropboxLink: (state) => {
+            if (state.user.entities[StubUserID]!.dropbox === undefined) return;
+
             state.user.entities[StubUserID]!.dropbox = undefined;
-            adapters.notification.removeOne(state.notification, DROPBOX_NOTIFICATION_ID);
-            rewindDisplaySpec = { message: "Dropbox sync removed!" };
+            rewindDisplaySpec = { message: "Dropbox link moved", suppressPatch: true, suppressSnack: true };
         },
 
         createInitialPatchState: (state) => {

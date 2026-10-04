@@ -28,7 +28,7 @@ export const TopHatDialog: React.FC = () => {
     const reRender = useState(false)[1];
     useEffect(() => void setTimeout(() => reRender(true), 0.1), [reRender]);
 
-    // A dialog can be open from the start (the Dropbox redirect opens storage settings), but until boot
+    // A dialog can be open from the start (the `/dropbox` path opens storage settings), but until boot
     // has finished it would show the tutorial placeholder data, over a loading or error page
     const running = useSelector((state) => isAppRunning(state.app.storage));
 

@@ -20,6 +20,9 @@ const STORE_DATABASE_NAME = "personal-storage-wrapper";
 const STORE_TABLE_NAME = "stores";
 export const STORE_ID = "tophat";
 
+/** Where the library keeps a manager's list of targets, by default: under its own id */
+export const SYNC_CONFIG_KEY = "personal-storage-manager-state-" + STORE_ID;
+
 const openStoreDatabase = () =>
     new Promise<IDBDatabase>((resolve, reject) => {
         const request = indexedDB.open(STORE_DATABASE_NAME);

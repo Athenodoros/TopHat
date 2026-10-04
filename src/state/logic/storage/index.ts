@@ -12,13 +12,19 @@
  * Copies of the data that disagree - the store's targets, or the store and an old database that a
  * Dexie version of the app has saved into since the copy - are settled by the rules in `conflicts.ts`
  * where they can be. Where they can't, the user chooses, and nothing is saved anywhere until they do.
+ *
+ * A remote target - a Dropbox account, linked by `dropbox.ts` - is added and removed through here, so
+ * that what it is decided to keep when one is linked goes into Redux the way any stored value does.
  */
 
+import type { DefaultTarget } from "personal-storage-wrapper";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { AppSlice } from "../../app";
 import { DataSlice, getInitialTutorialLists, ListDataState, subscribeToDataUpdates, toListDataState } from "../../data";
 import { DataKeys, StubUserID, User } from "../../data/types";
-import { setIDBConnectionExists } from "../notifications/variants/idb";
+import { applyNotificationRulesNow } from "../notifications";
+import { setDropboxSyncStatus } from "../notifications/variants/dropbox";
+import { setIDBConnectionExists, setRemoteHoldsLatestCopy } from "../notifications/variants/idb";
 import { describeCopy, getGeneration, holdsRealData } from "./conflicts";
 import {
     getLegacyDatabaseState,
@@ -30,7 +36,7 @@ import {
 import { CURRENT_GENERATION, handleMigrationsAndUpdates } from "./migrations";
 import { rescueStorageContents } from "./rescue";
 import { openStore, Store, StoreReadError, UnusableContents } from "./store";
-import { StorageConnection, StorageCopy, StorageState } from "./types";
+import { RemoteSyncState, StorageConnection, StorageCopy, StorageState } from "./types";
 
 /** Data was found that can't be used, so nothing was written with it */
 class UnusableDataError extends Error {}
@@ -47,7 +53,7 @@ export const setupStorageAndLoadData = async (
     let copyingLegacy = false;
     let lockedLegacy = false;
 
-    setIDBConnectionExists(true);
+    setSaveStatus(true);
 
     let store: Store;
     try {
@@ -61,6 +67,7 @@ export const setupStorageAndLoadData = async (
                 copyingLegacy = true;
                 return legacy;
             },
+            getUnavailableValue: getInitialTutorialLists,
             validate: getProblemWithValue,
             // Another tab may run an older version of the app, so its value is migrated as a stored one
             // is, and the migrated value saved: the migrations run outside the echo guard
@@ -72,7 +79,8 @@ export const setupStorageAndLoadData = async (
             // saving and goes to the recovery screen, rather than load data it doesn't understand.
             // Boot may still be running, so it is told at once, before the slower rescue.
             onUnusableValue: (problem, contents) => freeze(getUnreadableState(problem, contents)),
-            onSaveStatus: setIDBConnectionExists,
+            onSaveStatus: setSaveStatus,
+            onRemoteStatus: setRemoteStatus,
             getLiveValue,
             chooseCopy: async (copies) => {
                 const choices = copies.map(
@@ -87,13 +95,24 @@ export const setupStorageAndLoadData = async (
             },
         });
     } catch (error) {
-        if (error instanceof StoreReadError)
-            return error.unavailable
-                ? getUnavailableState(error.message)
-                : getUnreadableState(error.message, error.contents);
+        if (error instanceof StoreReadError) return getUnreadableState(error.message, error.contents);
         if (error instanceof UnusableDataError) return getUnreadableState(error.message, null);
         throw error;
     }
+
+    // The browser's store can't be opened, and has never been, so nothing can be saved there. That is
+    // only harmless if there is nothing in the old database either: if there is, it is data that can't
+    // be loaded, and must not look like a new install. Otherwise the app runs on, and a remote target
+    // can still be linked to keep what is entered.
+    if (store.unavailable !== null) {
+        const unreadable = await getUnreadableState(store.unavailable, null);
+        if (unreadable.storage.type === "unreadable" && unreadable.storage.rescuedRows) {
+            store.close();
+            return unreadable;
+        }
+        setSaveStatus(false);
+    }
+
     openedStore = store;
     const connection: StorageConnection = {
         debugVariables: store.debugVariables,
@@ -141,6 +160,7 @@ export const setupStorageAndLoadData = async (
             console.error("TopHat could not check on the database left by an earlier version", error)
         );
 
+    if (store.unavailable !== null) return { connection, storage: { type: "unavailable", error: store.unavailable } };
     return { connection, storage: { type: store.loadedFromStore || copyingLegacy ? "loaded" : "empty" } };
 };
 
@@ -309,6 +329,58 @@ const freeze = (state: Promise<{ storage: StorageState }>) => {
 };
 
 /**
+ * Remote targets
+ */
+
+/** Why remote targets can't be linked or unlinked right now, or null if they can */
+export const getRemoteLinkProblem = (): string | null => {
+    if (openedStore === null || frozenForRecovery)
+        return "TopHat is not saving data at the moment, so it can't sync it.";
+    if (choice !== null) return "TopHat is waiting for you to choose which copy of your data to keep.";
+    return null;
+};
+
+export const hasRemoteTarget = (type: string) => openedStore?.hasRemote(type) ?? false;
+
+/**
+ * Takes on a remote's value as the app's own, as though it had been read from the store, and saves it
+ * in the browser. It is migrated like any stored value, since whichever version of the app last wrote
+ * it may be older than this one.
+ */
+export const adoptRemoteValue = async (value: ListDataState) => {
+    const store = getStoreForRemotes();
+    loadValueFromStorage(value);
+    await store.save(getLiveValue());
+};
+
+/** See `Store.addRemote`: the app's value replaces `superseding`, if that is what the target still holds */
+export const addRemoteTarget = (target: DefaultTarget, superseding: ListDataState | null) =>
+    getStoreForRemotes().addRemote(target, superseding);
+
+export const removeRemoteTargets = (type: string) => getStoreForRemotes().removeRemotes(type);
+
+const getStoreForRemotes = () => {
+    const problem = getRemoteLinkProblem();
+    if (problem !== null) throw new Error(problem);
+    return openedStore!;
+};
+
+/** The browser's store has saved, or stopped saving. The warning that says so follows at once. */
+const setSaveStatus = (working: boolean) => {
+    if (setIDBConnectionExists(working)) applyNotificationRulesNow();
+};
+
+/** How the remote targets stand, for the settings page and the warnings that depend on them */
+const setRemoteStatus = (remotes: RemoteSyncState[]) => {
+    TopHatDispatch(AppSlice.actions.setRemoteSyncs(remotes));
+
+    const dropbox = remotes.find(({ type }) => type === "dropbox");
+    const changedDropbox = setDropboxSyncStatus(!dropbox ? "unlinked" : dropbox.failing ? "failing" : "working");
+    const changedRemote = setRemoteHoldsLatestCopy(remotes.some(({ inStep }) => inStep));
+    if (changedDropbox || changedRemote) applyNotificationRulesNow();
+};
+
+/**
  * Loading
  */
 
@@ -346,7 +418,7 @@ const withEveryList = (value: ListDataState) =>
     Object.fromEntries(DataKeys.map((key) => [key, value[key] ?? []])) as unknown as ListDataState;
 
 /** Why a stored value can't be loaded, or null if it can. A missing list is not a problem: see above. */
-const getProblemWithValue = (value: unknown): string | null => {
+export const getProblemWithValue = (value: unknown): string | null => {
     const lists = value as Partial<ListDataState>;
     if (
         typeof value !== "object" ||
@@ -376,25 +448,11 @@ const getUnreadableState = async (
     error: string,
     contents: UnusableContents | null
 ): Promise<{ connection: StorageConnection; storage: StorageState }> => {
-    setIDBConnectionExists(false);
+    setSaveStatus(false);
     return {
         connection: NO_CONNECTION,
         storage: { type: "unreadable", error, rescuedRows: await rescueStorageContents(contents) },
     };
-};
-
-/**
- * The store can't be opened at all, and has never been opened in this browser. That is only harmless
- * if there is nothing in the old database either: if there is, it is data that can't be loaded, and
- * must not look like a new install.
- */
-const getUnavailableState = async (
-    error: string
-): Promise<{ connection: StorageConnection; storage: StorageState }> => {
-    const unreadable = await getUnreadableState(error, null);
-    if (unreadable.storage.type === "unreadable" && unreadable.storage.rescuedRows) return unreadable;
-
-    return { connection: NO_CONNECTION, storage: { type: "unavailable", error } };
 };
 
 const getErrorMessage = (error: unknown) => (error instanceof Error && error.message) || "" + error;

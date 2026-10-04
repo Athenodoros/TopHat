@@ -40,7 +40,11 @@ export const readDataFile = async (file: File): Promise<DataState> => {
     return parseDataJSON(await files[0].async("string"));
 };
 
-const parseDataJSON = (contents: string): DataState => {
+/**
+ * A TopHat export's contents, checked as far as an import needs: JSON, with the user row, from a version of the
+ * app no newer than this one. The Dropbox backup earlier versions wrote holds the same JSON, and is checked here too.
+ */
+export const parseDataJSON = (contents: string): DataState => {
     let data;
     try {
         data = JSON.parse(contents);
