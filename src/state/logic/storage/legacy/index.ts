@@ -250,7 +250,7 @@ export const countBootFromStore = (record: MigrationRecord, now: Date) => {
  * locked was made by a Dexie version of the app after that - once it had deleted the locked one from
  * its recovery screen, say - and may hold data that the store doesn't.
  */
-const getLegacyDatabaseState = async (): Promise<"absent" | "locked" | "unlocked"> => {
+export const getLegacyDatabaseState = async (): Promise<"absent" | "locked" | "unlocked"> => {
     if (!(await legacyDatabaseExists())) return "absent";
 
     const { db, created } = await openWithoutUpgrade();

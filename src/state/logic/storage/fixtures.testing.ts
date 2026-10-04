@@ -59,13 +59,13 @@ export const readFromStore = async <V = ListDataState>(id: string = STORE_ID): P
 };
 
 /** Saves bytes into the row, the way the library would have written them */
-export const writeRawToStore = (buffer: ArrayBuffer, id: string = STORE_ID) =>
-    runOnStoreTable("readwrite", (table) => table.put({ id, buffer, timestamp: new Date() }));
+export const writeRawToStore = (buffer: ArrayBuffer, id: string = STORE_ID, timestamp: Date = new Date()) =>
+    runOnStoreTable("readwrite", (table) => table.put({ id, buffer, timestamp }));
 
 /** Saves a value, compressed the way the library compresses it */
-export const writeToStore = (value: unknown, id: string = STORE_ID) =>
+export const writeToStore = (value: unknown, id: string = STORE_ID, timestamp: Date = new Date()) =>
     // Copied, since a Buffer can be a view onto a larger, shared one
-    writeRawToStore(new Uint8Array(gzipSync(JSON.stringify(value))).buffer, id);
+    writeRawToStore(new Uint8Array(gzipSync(JSON.stringify(value))).buffer, id, timestamp);
 
 /** Removes the whole database. Any connection the library holds closes when asked, so this is never blocked. */
 export const deleteStore = () =>

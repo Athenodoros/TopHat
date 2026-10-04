@@ -11,7 +11,40 @@ export type StorageState =
     /** Data is in the browser but couldn't be read, so it must not be written over */
     | { type: "unreadable"; error: string; rescuedRows: number }
     /** Boot threw before the app could be shown - nothing suggests saved data is at fault, so it's left alone */
-    | { type: "failed"; error: string };
+    | { type: "failed"; error: string }
+    /** Saved copies of the data disagree, and only the user can say which to keep: nothing is saved until they do */
+    | { type: "conflict"; copies: StorageCopy[] };
+
+/** One of the copies offered when they disagree, described for the user to choose between */
+export interface StorageCopy {
+    /** What to pass to `chooseStorageCopy` to keep it */
+    id: string;
+    source: StorageCopySource;
+    /** When it was saved where it is kept, by that place's own clock, as an ISO timestamp - if that place says */
+    savedAt: string | null;
+    summary: CopySummary;
+}
+
+export type StorageCopySource =
+    /** The browser's own store, as the app holds it now */
+    | { type: "browser" }
+    /** A target other than the browser's store, by its type in the storage library */
+    | { type: "remote"; target: string }
+    /** The database a Dexie version of the app saved into, since this one copied out of it */
+    | { type: "legacy" };
+
+/** What a copy holds, as far as it helps to tell copies apart */
+export interface CopySummary {
+    accounts: number;
+    transactions: number;
+    /** The date of the latest transaction, as an SDate */
+    latestTransaction: string | null;
+    /** When the data was last changed, from the undo history, which only goes back thirty days */
+    lastChanged: string | null;
+    isDemo: boolean;
+    /** Whether it holds anything of the user's own, rather than only the tutorial or the demo */
+    holdsRealData: boolean;
+}
 
 /** What startup keeps of the storage it booted from, so that it doesn't depend on how that storage works */
 export interface StorageConnection {
@@ -25,6 +58,11 @@ export interface StorageConnection {
      * avoid replacing that screen with its own result.
      */
     hasFrozenForRecovery: () => boolean;
+    /**
+     * Whether nothing may be written anywhere, including a backup: storage has frozen for recovery, or
+     * the user is choosing between copies that disagree.
+     */
+    isHoldingWrites: () => boolean;
 }
 
 /** Whether boot has got far enough for the app, and anything laid over it, to be shown */
@@ -33,6 +71,7 @@ export const isAppRunning = (state: StorageState): boolean => {
         case "loading":
         case "unreadable":
         case "failed":
+        case "conflict":
             return false;
         case "loaded":
         case "empty":
