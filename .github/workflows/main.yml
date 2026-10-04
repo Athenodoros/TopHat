@@ -38,6 +38,10 @@ jobs:
               run: |
                   yarn install --frozen-lockfile
 
+            - name: Check formatting
+              run: |
+                  yarn format:check
+
             - name: Run tests
               run: |
                   yarn test --run

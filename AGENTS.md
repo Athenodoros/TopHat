@@ -13,10 +13,11 @@ TopHat is an offline-first personal finance web app: no backend, all state lives
 -   `yarn preview` — preview the production build
 -   `yarn test` — run tests (Vitest)
 -   `yarn test <path or -t pattern>` — run a single test file or match by name, e.g. `yarn test src/state/data/index.test.ts` or `yarn test -t "State remains valid"`
+-   `yarn format` — format everything with Prettier; `yarn format:check` reports anything unformatted without changing it
 
-CI (`.github/workflows/main.yml`) runs `yarn test --run` and then `yarn build` on every pull request and push to `main`, and a push to `main` deploys only if both pass.
+CI (`.github/workflows/main.yml`) runs `yarn format:check`, `yarn test --run` and then `yarn build` on every pull request and push to `main`, and a push to `main` deploys only if all three pass.
 
-There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120) but no format/check script is wired up — format with your editor's Prettier integration or `npx prettier --write`.
+There is no separate lint script; type errors surface via `tsc` (run as part of `build`). Prettier config is in `.prettierrc.json` (tabWidth 4, printWidth 120), and `.prettierignore` leaves out build output. CI fails on any file Prettier would change, so run `yarn format` (or your editor's Prettier integration) before pushing.
 
 Tests use Vitest with a jsdom environment set per-file via `/** @vitest-environment jsdom */` docblocks (see `src/state/data/index.test.ts`). Vitest config is in `vitest.config.ts`, separate from `vite.config.ts`.
 

@@ -16,7 +16,7 @@ export interface AccountsPageState {
 
     // Summary
     chartSign: ChartSign;
-    chartAggregation: typeof AccountsPageAggregations[number];
+    chartAggregation: (typeof AccountsPageAggregations)[number];
 
     // Filters
     account: ID[];
@@ -42,7 +42,7 @@ export interface TransactionsPageState {
 
     // Summary
     chartSign: ChartSign;
-    chartAggregation: typeof TransactionsPageAggregations[number];
+    chartAggregation: (typeof TransactionsPageAggregations)[number];
 
     // Table
     table: {

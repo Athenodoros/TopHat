@@ -32,7 +32,7 @@ export const useTransactionsSummaryData = (
             const colour =
                 aggregation === "account"
                     ? institutions[(object as Account).institution!]!.colour
-                    : (object as Exclude<typeof objects[number], Account>).colour;
+                    : (object as Exclude<(typeof objects)[number], Account>).colour;
 
             return {
                 id: object.id,

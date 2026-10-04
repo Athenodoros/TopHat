@@ -35,7 +35,9 @@
         "dev": "vite --host 0.0.0.0",
         "build": "tsc && vite build --base=/TopHat/",
         "preview": "vite preview",
-        "test": "vitest"
+        "test": "vitest",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
     },
     "devDependencies": {
         "@types/chroma-js": "^2.1.5",
