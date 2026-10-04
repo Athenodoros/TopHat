@@ -487,11 +487,15 @@ describe("Other tabs", () => {
         expect(current.data().user.entities[0]!.generation).toBe(CURRENT_GENERATION);
 
         /*
-         * This tab saves the migrated value, but the store isn't checked here: both tabs save the whole
-         * value to the same row, with nothing ordering their writes, so the older tab's write can land
-         * last and leave the row at its generation. That conflict is deliberately out of scope - it
-         * needs two versions of the app open at once, saving within moments of each other - and it is
-         * harmless when it happens, since the next boot migrates the stored value again.
+         * Both tabs run this version of the app: the older one only saves data at an older generation.
+         * A real older version would refuse this tab's migrated value and stop saving instead, which
+         * "stops saving when another tab saves data from a newer version of the app" covers.
+         *
+         * So the store isn't checked here. This tab saves the migrated value, but both tabs save the
+         * whole value to the same row with nothing ordering their writes, and the older tab's can land
+         * last, leaving the row at its generation. That is deliberately out of scope: it needs two
+         * versions of the app saving within moments of each other, the row still holds the same data,
+         * and the next boot migrates it again.
          */
     });
 
