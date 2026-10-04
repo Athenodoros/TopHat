@@ -70,7 +70,7 @@ export const getCategoryColour = (id: ID, working?: Category) => {
     const { hierarchy } = working || entities[id]!;
     return hierarchy.length ? entities[last(hierarchy)!]!.colour : working?.colour || entities[id]!.colour;
 };
-export const getAccountCategoryIcon = (type: typeof AccountTypes[number], sx: SxProps) => (
+export const getAccountCategoryIcon = (type: (typeof AccountTypes)[number], sx: SxProps) => (
     <Avatar sx={sx} style={{ backgroundColor: type.colour }}>
         <type.icon sx={{ height: "60%" }} />
     </Avatar>

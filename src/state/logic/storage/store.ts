@@ -63,44 +63,47 @@ export interface Store {
 export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
     let opened = false;
 
-    const { manager, startSource, syncsSource } = await PersonalStorageManager.create<ListDataState>(callbacks.getInitialValue, {
-        id: STORE_ID,
-        getDefaultSyncs,
-        validate: callbacks.validate,
+    const { manager, startSource, syncsSource } = await PersonalStorageManager.create<ListDataState>(
+        callbacks.getInitialValue,
+        {
+            id: STORE_ID,
+            getDefaultSyncs,
+            validate: callbacks.validate,
 
-        // Other tabs' changes come over the broadcast channel, and there is nothing else to poll
-        pollPeriodInSeconds: null,
+            // Other tabs' changes come over the broadcast channel, and there is nothing else to poll
+            pollPeriodInSeconds: null,
 
-        // With a single target, this is every failure to read it: the library would otherwise carry on
-        // with the initial value, which here would copy the old database over a store that has data
-        handleAllEmptyAndFailedSyncsOnStartup: async (results) => {
-            throw getReadError(results.find(({ value }) => value.type === "error")!.value as ErrorResult);
-        },
+            // With a single target, this is every failure to read it: the library would otherwise carry on
+            // with the initial value, which here would copy the old database over a store that has data
+            handleAllEmptyAndFailedSyncsOnStartup: async (results) => {
+                throw getReadError(results.find(({ value }) => value.type === "error")!.value as ErrorResult);
+            },
 
-        // During startup a refusal is thrown above instead. Afterwards, nothing more is saved.
-        onUnreadableValue: (error) => {
-            if (!opened) return;
+            // During startup a refusal is thrown above instead. Afterwards, nothing more is saved.
+            onUnreadableValue: (error) => {
+                if (!opened) return;
 
-            manager.close();
-            callbacks.onUnusableValue(error.detail ?? error.error, getContents(error));
-        },
+                manager.close();
+                callbacks.onUnusableValue(error.detail ?? error.error, getContents(error));
+            },
 
-        onValueUpdate: (value, origin) => {
-            if (!opened || origin === "CREATION" || origin === "LOCAL") return;
-            callbacks.onExternalValue(value);
-        },
+            onValueUpdate: (value, origin) => {
+                if (!opened || origin === "CREATION" || origin === "LOCAL") return;
+                callbacks.onExternalValue(value);
+            },
 
-        // A desynced target is one whose last write failed
-        onSyncStatesUpdate: (syncs) => {
-            const local = syncs.find(isLocalSync);
-            if (local) callbacks.onSaveStatus(local.desynced !== true);
-        },
-        handleSyncOperationLog: ({ sync, operation, stage }) => {
-            if (!isLocalSync(sync) || operation !== "UPLOAD") return;
-            if (stage === "SUCCESS") callbacks.onSaveStatus(true);
-            if (stage === "ERROR" || stage === "OFFLINE") callbacks.onSaveStatus(false);
-        },
-    });
+            // A desynced target is one whose last write failed
+            onSyncStatesUpdate: (syncs) => {
+                const local = syncs.find(isLocalSync);
+                if (local) callbacks.onSaveStatus(local.desynced !== true);
+            },
+            handleSyncOperationLog: ({ sync, operation, stage }) => {
+                if (!isLocalSync(sync) || operation !== "UPLOAD") return;
+                if (stage === "SUCCESS") callbacks.onSaveStatus(true);
+                if (stage === "ERROR" || stage === "OFFLINE") callbacks.onSaveStatus(false);
+            },
+        }
+    );
     opened = true;
 
     return {
@@ -118,7 +121,9 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
 export const clearStore = async () => {
     const result = await IndexedDBTarget.clear(STORE_ID);
     if (result.type === "error")
-        throw new Error("TopHat could not clear the browser's data store" + (result.detail ? ": " + result.detail : "."));
+        throw new Error(
+            "TopHat could not clear the browser's data store" + (result.detail ? ": " + result.detail : ".")
+        );
 
     PersonalStorageManager.clearSyncData(STORE_ID);
 };

@@ -375,7 +375,10 @@ describe("Data that can't be used", () => {
         const saved = await readRawFromStore();
 
         const open = vi.spyOn(indexedDB, "open").mockImplementation(() => {
-            throw new DOMException("The operation failed for reasons unrelated to the database itself.", "UnknownError");
+            throw new DOMException(
+                "The operation failed for reasons unrelated to the database itself.",
+                "UnknownError"
+            );
         });
         try {
             const { storage } = await bootTopHat();

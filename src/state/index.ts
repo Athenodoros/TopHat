@@ -9,5 +9,5 @@ export const TopHatStore = configureStore({
     },
 });
 
-export type TopHatState = ReturnType<typeof TopHatStore["getState"]>;
+export type TopHatState = ReturnType<(typeof TopHatStore)["getState"]>;
 export const TopHatDispatch = TopHatStore.dispatch;
