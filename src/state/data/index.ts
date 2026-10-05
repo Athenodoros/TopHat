@@ -4,6 +4,7 @@ import {
     createNextState,
     createSlice,
     Dictionary,
+    Draft,
     EntityAdapter,
     EntityId,
     EntityState,
@@ -11,7 +12,6 @@ import {
     Update,
 } from "@reduxjs/toolkit";
 import chroma from "chroma-js";
-import { WritableDraft } from "immer/dist/internal";
 import {
     clone,
     cloneDeep,
@@ -312,7 +312,7 @@ export const DataSlice = createSlice({
             rewindDisplaySpec = { message: "Transactions deleted!" };
         },
         updateCurrencyRates: (
-            state: WritableDraft<DataState>,
+            state: Draft<DataState>,
             { payload: currencies }: PayloadAction<{ id: ID; rates: CurrencyExchangeRate[] }[]>
         ) => {
             currencies = currencies.filter(({ id, rates }) => !isEqual(state.currency.entities[id]?.rates, rates));
@@ -330,7 +330,7 @@ export const DataSlice = createSlice({
             adapters.user.updateOne(state.user, { id: StubUserID, changes: { lastSyncTime: getTodayString() } });
         },
         saveObject: <Type extends BasicObjectName>(
-            state: WritableDraft<DataState>,
+            state: Draft<DataState>,
             { payload: { type, working } }: PayloadAction<{ type: Type; working: BasicObjectType[Type] }>
         ) => {
             const original = state[type].entities[working.id] as BasicObjectType[Type] | undefined;
@@ -604,7 +604,7 @@ export const DataSlice = createSlice({
     },
 });
 
-export function refreshCaches(state: WritableDraft<DataState>) {
+export function refreshCaches(state: Draft<DataState>) {
     rewindDisplaySpec = { message: "Refreshed caches", suppressSnack: true };
 
     values(state.currency.entities).forEach((currency) => {
@@ -748,7 +748,7 @@ let dateBuckets: { start: SDate | undefined; buckets: Map<SDate, number> } = { s
 type BalanceSubset = { account: ID; currency: ID }[];
 const getBalanceSubset = (ids: EntityId[], entities: Dictionary<Transaction>) =>
     uniqWith(
-        // Can't use _.pick, because it doesn't work with WritableDraft
+        // Can't use _.pick, because it doesn't work with Draft
         ids.map((id) => ({ currency: entities[id]!.currency, account: entities[id]!.account })),
         isEqual
     );
@@ -1031,7 +1031,7 @@ export const getGetTransactionChangesForRule = (rule: Rule) => {
     };
 };
 
-export const updateStateWithCurrency = (state: WritableDraft<DataState>, working: Currency) => {
+export const updateStateWithCurrency = (state: Draft<DataState>, working: Currency) => {
     // Update local values if exchange rate changes
     const isDefaultCurrency = state.user.entities[StubUserID]?.currency === working.id;
     const transactionSubset = isDefaultCurrency
