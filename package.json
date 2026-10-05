@@ -20,7 +20,7 @@
         "lodash-es": "^4.17.21",
         "luxon": "^3.2.1",
         "papaparse": "^5.3.1",
-        "personal-storage-wrapper": "Athenodoros/personal-storage-wrapper#182151c7e44eec2180e09bfcd398b4955a0b85df",
+        "personal-storage-wrapper": "Athenodoros/personal-storage-wrapper#d366530691fe06954f063c6be281eebae2f799b2",
         "prettier": "^2.8.4",
         "react": "^18.2.0",
         "react-beautiful-dnd": "^13.1.1",

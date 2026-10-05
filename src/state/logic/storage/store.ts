@@ -198,8 +198,8 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                 return resolveConflict(
                     value,
                     // A browser copy that has itself changed underneath the manager can't be described here
-                    local?.lastSeenWriteTime && !unsettled.some(({ sync }) => isLocalSync(sync))
-                        ? toCopy(local, { timestamp: new Date(local.lastSeenWriteTime), value })
+                    local?.lastProcessedWriteTime && !unsettled.some(({ sync }) => isLocalSync(sync))
+                        ? toCopy(local, { timestamp: new Date(local.lastProcessedWriteTime), value })
                         : null,
                     unsettled,
                     "choose"
@@ -223,6 +223,7 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                 // Only a save says whether a remote is failing. Being offline isn't failing: the remote catches up
                 // with the first save once it's back. A check before a save that worked doesn't mean the save
                 // will, and taking it to would flip the warning, which is itself a change to save, on every save.
+                // A save refused because another device saved first isn't failing either: the remote is then read.
                 if (operation !== "UPLOAD") return;
                 if (stage === "ERROR" && !failing.some((target) => target.equals(sync.target))) {
                     failing = [...failing, sync.target];
@@ -350,6 +351,7 @@ const withLocalTarget = (saved: string | null) => {
  * Whether the browser's store may hold data, going by the saved list of targets: if the library has
  * ever written to it or read a value from it, or the data is synced somewhere else too. A store that
  * can't be opened then must not look like a new install. A list that can't be read may say either.
+ * Older versions of the library saved `lastProcessedWriteTime` as `lastSeenWriteTime`.
  */
 const mayHoldData = () => {
     const saved = getSyncDataFromLocalStorage(STORE_ID);
@@ -357,7 +359,9 @@ const mayHoldData = () => {
 
     try {
         return parseSavedTargets(saved).some(
-            (target) => !isSavedLocalTarget(target) || (target.sync.lastSeenWriteTime ?? null) !== null
+            (target) =>
+                !isSavedLocalTarget(target) ||
+                (target.sync.lastProcessedWriteTime ?? target.sync.lastSeenWriteTime ?? null) !== null
         );
     } catch {
         return true;
@@ -385,17 +389,17 @@ const getRemoteReadError = (sync: Sync<DefaultTarget>, error: ErrorResult) => {
 };
 
 /**
- * A target's copy, with what the library knows of the target's history. Its last seen write time is
- * that target's own timestamp for the last value it wrote there or read from there, so comparing the
- * two says whether anything else has written to it since. One with no last seen write time has no
+ * A target's copy, with what the library knows of the target's history. Its last processed write time
+ * is that target's own timestamp for the last value it wrote there or read from there, so comparing the
+ * two says whether anything else has written to it since. One with no last processed write time has no
  * history to say.
  */
 const toCopy = (sync: Sync<DefaultTarget>, { timestamp, value }: TimestampedValue<ListDataState>): TargetCopy => {
     const history: TargetHistory = {
         movedOn:
-            sync.lastSeenWriteTime === undefined
+            sync.lastProcessedWriteTime === undefined
                 ? null
-                : timestamp.valueOf() !== new Date(sync.lastSeenWriteTime).valueOf(),
+                : timestamp.valueOf() !== new Date(sync.lastProcessedWriteTime).valueOf(),
         missedWrite: sync.missedWrite === true,
     };
     return { timestamp, value, history };

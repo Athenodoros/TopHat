@@ -116,7 +116,7 @@ const REMOTE_ID = "remote";
  */
 const listBothTargets = (
     ids = [STORE_ID, REMOTE_ID],
-    history: Record<string, { lastSeenWriteTime?: Date; missedWrite?: boolean }> = {}
+    history: Record<string, { lastProcessedWriteTime?: Date; missedWrite?: boolean }> = {}
 ) =>
     localStorage.setItem(
         SYNC_CONFIG_KEY,
@@ -363,6 +363,37 @@ describe("Data that can't be used", () => {
             open.mockRestore();
         }
         expect(await readRawFromStore()).toEqual(saved);
+    });
+
+    test("doesn't mistake a store an older version of the library saved into, but can't open now, for a new install", async () => {
+        await writeToStore(getSavedData());
+        localStorage.setItem(
+            SYNC_CONFIG_KEY,
+            JSON.stringify([
+                {
+                    type: "indexeddb",
+                    config: JSON.stringify({
+                        target: { id: STORE_ID },
+                        compressed: true,
+                        lastSeenWriteTime: new Date(),
+                    }),
+                },
+            ])
+        );
+        localStorage.setItem(MIGRATION_RECORD_KEY, JSON.stringify({ migratedAt: new Date().toISOString(), boots: 0 }));
+
+        const open = vi.spyOn(indexedDB, "open").mockImplementation(() => {
+            throw new DOMException(
+                "The operation failed for reasons unrelated to the database itself.",
+                "UnknownError"
+            );
+        });
+        try {
+            const { storage } = await bootTopHat();
+            expect(storage()).toEqual({ type: "unreadable", error: expect.any(String), rescuedRows: 0 });
+        } finally {
+            open.mockRestore();
+        }
     });
 
     test("deletes both stores from the recovery screen, and then starts afresh", async () => {
@@ -740,8 +771,8 @@ describe("Copies in two targets that disagree", () => {
         remote: { reference: string; moved: boolean }
     ) => {
         listBothTargets(undefined, {
-            [STORE_ID]: { lastSeenWriteTime: AGREED_LOCAL },
-            [REMOTE_ID]: { lastSeenWriteTime: AGREED_REMOTE },
+            [STORE_ID]: { lastProcessedWriteTime: AGREED_LOCAL },
+            [REMOTE_ID]: { lastProcessedWriteTime: AGREED_REMOTE },
         });
         await writeToStore(withReference(local.reference), STORE_ID, local.moved ? MOVED : AGREED_LOCAL);
         await writeToStore(withReference(remote.reference), REMOTE_ID, remote.moved ? MOVED : AGREED_REMOTE);
