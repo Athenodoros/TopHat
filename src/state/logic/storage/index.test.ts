@@ -12,7 +12,7 @@
 import "fake-indexeddb/auto";
 
 import { omit, sum } from "lodash-es";
-import { afterAll, afterEach, describe, expect, test, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { getInitialTutorialLists, toListDataState, type DataState, type ListDataState } from "../../data";
 import { getCurrentMonth, getCurrentMonthString, parseDate, SDate, TransactionHistory } from "../../shared/values";
 import {
@@ -25,6 +25,7 @@ import {
     writeRawToStore,
     writeToStore,
 } from "./fixtures.testing";
+import { FAKE_TIMERS_BESIDE_INDEXEDDB, settle } from "./timers.testing";
 import {
     deleteLegacyDatabase,
     LEGACY_DATABASE_NAME,
@@ -117,28 +118,21 @@ const readSortedFromStore = async () => {
 /** Months between a fixture's hard-coded month and this one, which is how far caches roll forward */
 const getMonthsSince = (month: SDate) => getCurrentMonth().diff(parseDate(month), "months").months;
 
-const pause = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+// Captured before any test fakes it
+const realSetTimeout = setTimeout;
 
 /**
- * Saves are fired from a `setTimeout` and never awaited, so tests poll for them. Attempts are counted
- * rather than timed, because some tests move the clock.
+ * Showing that a change was not saved, sent to another tab or backed up takes a wait, since there is
+ * nothing to wait for. This moves time on one `vi.waitFor` step, so that every timer the change set
+ * goes off, then gives a write that did start a little real time to reach IndexedDB.
  */
-const waitFor = async <T>(assertion: () => T | Promise<T>, attempts: number = 200): Promise<T> => {
-    for (let attempt = 1; ; attempt++) {
-        try {
-            return await assertion();
-        } catch (error) {
-            if (attempt >= attempts) throw error;
-            await pause(10);
-        }
-    }
+const runChangeThrough = async () => {
+    await vi.advanceTimersByTimeAsync(50);
+    await new Promise((resolve) => realSetTimeout(resolve, 25));
 };
 
 /** A manager only takes a value from another tab if it is newer than its own, so tabs that write move the clock */
-const moveClockForward = () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(Date.now() + 1000);
-};
+const moveClockForward = () => vi.setSystemTime(Date.now() + 1000);
 
 /** The version of the old database, or null if there is none, found without creating one */
 const getLegacyDatabaseVersion = async () => {
@@ -156,11 +150,14 @@ const countRows = (data: object) => sum(Object.values(data).map(({ length }) => 
 /** Where the library keeps a manager's list of targets, by default: under its own id */
 const SYNC_CONFIG_KEY = "personal-storage-manager-state-" + STORE_ID;
 
+beforeEach(() => void vi.useFakeTimers(FAKE_TIMERS_BESIDE_INDEXEDDB));
+
 // A boot leaves its manager open, the way an open tab would. Closing the channels stops one test's
 // tabs hearing the next's, and deleting the store closes their connections to it.
 afterEach(async () => {
-    await pause(25); // Saves are fired from a timeout, so let any last one land before wiping
+    // A save whose timer has not gone off never will, but one that has may still be on its way
     vi.useRealTimers();
+    await new Promise((resolve) => setTimeout(resolve, 25));
     closeTestBroadcastChannels();
     await deleteLegacyDatabase();
     await deleteStore();
@@ -183,7 +180,7 @@ describe("Loading and saving", () => {
         expect(data().currency.entities[1]!.ticker).toBe("AUD");
 
         // It goes into the store, but nothing creates a database for the old version of the app
-        await waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
+        await vi.waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
         expect(await getLegacyDatabaseVersion()).toBeNull();
     });
 
@@ -192,7 +189,7 @@ describe("Loading and saving", () => {
 
         dispatch(actions.updateUserPartial({ tutorial: false }));
 
-        await waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(false));
+        await vi.waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(false));
         expect(await readSortedFromStore()).toEqual(asLists(data()));
     });
 
@@ -222,7 +219,7 @@ describe("Loading and saving", () => {
         const first = await bootTopHat();
         first.dispatch(first.actions.updateTransactions([{ id: 1, changes: { reference: "TEA", value: -4 } }]));
         first.dispatch(first.actions.addNewTransaction({ ...Coffee, id: 2, reference: "BOOKS" }));
-        await waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(first.data())));
+        await vi.waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(first.data())));
 
         const second = await bootTopHat();
 
@@ -237,7 +234,7 @@ describe("Loading and saving", () => {
         const { data, dispatch, actions } = await bootTopHat();
         dispatch(actions.deleteTransactions([1]));
 
-        await waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
+        await vi.waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
 
         const second = await bootTopHat();
         expect(second.data().transaction.ids).toEqual([]);
@@ -259,7 +256,7 @@ describe("Loading and saving", () => {
         expect(data().currency.entities[1]!.transactions.count).toBe(1);
 
         expect((await readFromStore())!.user[0].generation).toBe(5);
-        await waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
+        await vi.waitFor(async () => expect(await readSortedFromStore()).toEqual(asLists(data())));
     });
 
     test("warns that nothing can be saved as soon as it boots, when IndexedDB can't be used", async () => {
@@ -324,7 +321,7 @@ describe("Data that can't be used", () => {
         // The app is in the same state it would start a new install in, but nothing is written
         expect(data().user.entities[0]!.tutorial).toBe(true);
         dispatch(actions.updateUserPartial({ tutorial: false }));
-        await pause(25);
+        await runChangeThrough();
 
         expect(await readRawFromStore()).toEqual(before);
         expect(await readFromLegacyDatabase()).toEqual(legacy);
@@ -432,7 +429,7 @@ describe("Other tabs", () => {
         moveClockForward();
         first.dispatch(first.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
 
-        await waitFor(() => expect(second.data().transaction.entities[1]!.reference).toBe("TEA"));
+        await vi.waitFor(() => expect(second.data().transaction.entities[1]!.reference).toBe("TEA"));
         expect(asLists(second.data())).toEqual(asLists(first.data()));
     });
 
@@ -444,14 +441,14 @@ describe("Other tabs", () => {
 
         moveClockForward();
         newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
-        await waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
-        await waitFor(async () => expect((await readFromStore())!.user[0].generation).toBe(CURRENT_GENERATION + 1));
+        await vi.waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
+        await vi.waitFor(async () => expect((await readFromStore())!.user[0].generation).toBe(CURRENT_GENERATION + 1));
 
         // The older tab neither loaded the newer data nor saves over it
         expect(older.data().user.entities[0]!.generation).toBe(CURRENT_GENERATION);
         const saved = await readRawFromStore();
         older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
-        await pause(25);
+        await runChangeThrough();
         expect(await readRawFromStore()).toEqual(saved);
     });
 
@@ -463,14 +460,14 @@ describe("Other tabs", () => {
 
         moveClockForward();
         newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
-        await waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
-        await pause(25);
+        await vi.waitFor(() => expect(older.storage()).toMatchObject({ type: "unreadable" }));
+        await runChangeThrough();
 
         // A change can still land after the freeze - a currency sync started at boot, say - and must
         // not upload this tab's older data over the newer tab's backup
         vi.mocked(maybeSaveDataToDropbox).mockClear();
         older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
-        await pause(25);
+        await runChangeThrough();
         expect(maybeSaveDataToDropbox).not.toHaveBeenCalled();
     });
 
@@ -485,7 +482,7 @@ describe("Other tabs", () => {
         older.dispatch(older.actions.updateTransactions([{ id: 1, changes: { reference: "TEA" } }]));
 
         // This tab starts at the current generation, so wait for the older tab's value to arrive first
-        await waitFor(() => expect(current.data().transaction.entities[1]!.reference).toBe("TEA"));
+        await vi.waitFor(() => expect(current.data().transaction.entities[1]!.reference).toBe("TEA"));
         expect(current.data().user.entities[0]!.generation).toBe(CURRENT_GENERATION);
 
         /*
@@ -508,12 +505,12 @@ describe("Other tabs", () => {
         currencySync.hold = new Promise((resolve) => (release = resolve));
         try {
             const older = await startBootingTopHat("dropbox-code");
-            await waitFor(async () => expect(await readFromStore()).not.toBeNull());
+            await vi.waitFor(async () => expect(await readFromStore()).not.toBeNull());
 
             const newer = await bootTopHat();
             moveClockForward();
             newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
-            await waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
+            await vi.waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
 
             // The rest of boot must not replace the recovery screen with what it found beforehand
             release();
@@ -563,12 +560,12 @@ describe("Other tabs, while a boot is migrating", () => {
 
         try {
             const older = await startBootingTopHat();
-            await waitFor(() => expect(saves.held).toBe(1));
+            await vi.waitFor(() => expect(saves.held).toBe(1));
 
             // The open tab saves data from a newer version while the booting one waits on its migration
             moveClockForward();
             newer.dispatch(newer.actions.setUserGeneration(CURRENT_GENERATION + 1));
-            await waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
+            await vi.waitFor(() => expect(older.tab.storage()).toMatchObject({ type: "unreadable" }));
 
             release();
             await older.booted;
@@ -652,7 +649,7 @@ describe("Copying the database the Dexie version of the app saved into", () => {
 
         const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
         try {
-            const { storage } = await bootTopHat();
+            const { storage } = await settle(bootTopHat());
 
             expect(storage()).toEqual({ type: "failed", error: expect.stringMatching(/another tab/) });
             expect(await readFromStore()).toBeNull();
@@ -697,7 +694,7 @@ describe("Copying the database the Dexie version of the app saved into", () => {
             expect(log).toHaveBeenCalled();
 
             dispatch(actions.updateUserPartial({ tutorial: true }));
-            await waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(true));
+            await vi.waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(true));
         } finally {
             databases.mockRestore();
             log.mockRestore();
@@ -764,7 +761,7 @@ describe("Copying the database the Dexie version of the app saved into", () => {
 
 /** The copies a boot waiting on the user is offering, and the function that keeps one of them */
 const getConflict = async (storage: () => StorageState) => {
-    await waitFor(() => expect(storage()).toMatchObject({ type: "conflict" }));
+    await vi.waitFor(() => expect(storage()).toMatchObject({ type: "conflict" }));
     const { chooseStorageCopy } = await import("./index");
     return { copies: (storage() as StorageState & { type: "conflict" }).copies, chooseStorageCopy };
 };
@@ -801,6 +798,12 @@ describe("Copies in two targets that disagree", () => {
             )
         );
 
+    /** What the library has saved about a target's history, in the list `listBothTargets` writes */
+    const readTargetHistory = (id: string): { missedWrite?: boolean } =>
+        JSON.parse(localStorage.getItem(SYNC_CONFIG_KEY)!)
+            .map(({ config }: { config: string }) => JSON.parse(config))
+            .find(({ target }: { target: { id: string } }) => target.id === id);
+
     const readReference = async (id: string = STORE_ID) => (await readFromStore(id))!.transaction[0].reference;
 
     // When the two copies last agreed, by their own clocks. A copy saved at any other time has moved on.
@@ -825,8 +828,8 @@ describe("Copies in two targets that disagree", () => {
 
         const { data, storage } = await bootTopHat();
 
-        await waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
-        await waitFor(async () => expect(await readReference()).toBe("REMOTE"));
+        await vi.waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
+        await vi.waitFor(async () => expect(await readReference()).toBe("REMOTE"));
         expect(storage()).toEqual({ type: "loaded" });
     });
 
@@ -848,7 +851,7 @@ describe("Copies in two targets that disagree", () => {
         const announce = vi.spyOn(BroadcastChannel.prototype, "postMessage");
         try {
             dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
-            await pause(25);
+            await runChangeThrough();
 
             expect(announce).not.toHaveBeenCalled();
         } finally {
@@ -861,8 +864,8 @@ describe("Copies in two targets that disagree", () => {
         await chooseStorageCopy(copies[1].id);
 
         expect(storage()).toEqual({ type: "loaded" });
-        await waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
-        await waitFor(async () => expect(await readReference()).toBe("REMOTE"));
+        await vi.waitFor(() => expect(data().transaction.entities[1]!.reference).toBe("REMOTE"));
+        await vi.waitFor(async () => expect(await readReference()).toBe("REMOTE"));
         expect(await readReference(REMOTE_ID)).toBe("REMOTE");
     });
 
@@ -879,7 +882,7 @@ describe("Copies in two targets that disagree", () => {
         expect(storage()).toEqual({ type: "loaded" });
         expect(data().transaction.entities[1]!.reference).toBe("LOCAL");
         expect(data().user.entities[0]!.alphavantage).toBe("CHANGED");
-        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("CHANGED"));
+        await vi.waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("CHANGED"));
         expect(await readReference(REMOTE_ID)).toBe("LOCAL");
         expect((await readFromStore())!.user[0].alphavantage).toBe("CHANGED");
     });
@@ -898,12 +901,12 @@ describe("Copies in two targets that disagree", () => {
             const before = { local: await readRawFromStore(), remote: await readRawFromStore(REMOTE_ID) };
 
             const { dispatch, actions, storage } = await bootTopHat();
-            await waitFor(() =>
+            await vi.waitFor(() =>
                 expect(storage()).toMatchObject({ type: "unreadable", error: expect.stringMatching(/newer/) })
             );
 
             dispatch(actions.updateUserPartial({ alphavantage: "CHANGED" }));
-            await pause(25);
+            await runChangeThrough();
 
             expect(await readRawFromStore()).toEqual(before.local);
             expect(await readRawFromStore(REMOTE_ID)).toEqual(before.remote);
@@ -918,7 +921,7 @@ describe("Copies in two targets that disagree", () => {
         const { dispatch, actions } = await bootTopHat();
 
         dispatch(actions.updateUserPartial({ alphavantage: "KEY-1" }));
-        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-1"));
+        await vi.waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-1"));
 
         // A write to the other copy that fails, as a remote one does offline: `add` refuses a key that is already there
         const put = IDBObjectStore.prototype.put;
@@ -929,8 +932,8 @@ describe("Copies in two targets that disagree", () => {
             });
         try {
             dispatch(actions.updateUserPartial({ alphavantage: "KEY-2" }));
-            await waitFor(async () => expect((await readFromStore())!.user[0].alphavantage).toBe("KEY-2"));
-            await pause(25);
+            await vi.waitFor(() => expect(readTargetHistory(REMOTE_ID).missedWrite).toBe(true));
+            expect((await readFromStore())!.user[0].alphavantage).toBe("KEY-2");
             expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-1");
         } finally {
             failing.mockRestore();
@@ -940,7 +943,7 @@ describe("Copies in two targets that disagree", () => {
         // but the other copy is behind
         const next = await bootTopHat();
 
-        await waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-2"));
+        await vi.waitFor(async () => expect((await readFromStore(REMOTE_ID))!.user[0].alphavantage).toBe("KEY-2"));
         expect(next.storage()).toEqual({ type: "loaded" });
         expect(next.data().user.entities[0]!.alphavantage).toBe("KEY-2");
     });
@@ -964,7 +967,7 @@ describe("A database the Dexie version of the app saved into after the copy", ()
 
         expect(copies.map(({ source }) => source)).toEqual([{ type: "browser" }, { type: "legacy" }]);
 
-        await pause(25);
+        await runChangeThrough();
         expect(await readRawFromStore()).toEqual(before);
         expect(await getLegacyDatabaseVersion()).not.toBe(LEGACY_LOCKED_VERSION);
         expect(await readFromLegacyDatabase()).toEqual(sortLists(getSavedData()));
@@ -1030,7 +1033,7 @@ describe("A database the Dexie version of the app saved into after the copy", ()
         await writeToLegacyDatabase({ user: [{ ...getSavedData().user[0], generation: CURRENT_GENERATION + 1 }] });
         await chooseStorageCopy(copies[1].id);
 
-        await waitFor(() =>
+        await vi.waitFor(() =>
             expect(tab.storage()).toMatchObject({ type: "unreadable", error: expect.stringMatching(/newer/) })
         );
         expect(await readRawFromStore()).toEqual(before);

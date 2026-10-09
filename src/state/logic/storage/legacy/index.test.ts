@@ -8,7 +8,7 @@
 
 import "fake-indexeddb/auto";
 
-import { afterEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
     countBootFromStore,
     deleteLegacyDatabase,
@@ -31,6 +31,7 @@ import {
     sortLists,
     writeToLegacyDatabase,
 } from "./fixtures.testing";
+import { FAKE_TIMERS_BESIDE_INDEXEDDB, settle } from "../timers.testing";
 
 /** The version of the database in the browser, or null if there is none, without creating one by asking */
 const getLegacyDatabaseVersion = async () => {
@@ -58,7 +59,10 @@ const writeMigrationRecord = (record: MigrationRecord) =>
 const daysAgo = (days: number, now: Date = new Date()) =>
     new Date(now.valueOf() - days * 24 * 60 * 60 * 1000).toISOString();
 
+// A request another tab blocks is reported a second later, which these move fake time on to
+beforeEach(() => void vi.useFakeTimers(FAKE_TIMERS_BESIDE_INDEXEDDB));
 afterEach(async () => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     await deleteLegacyDatabase();
     localStorage.clear();
@@ -137,7 +141,7 @@ describe("Locking the legacy database", () => {
         await writeToLegacyDatabase(getSavedData());
         const tab = await openInAnotherTab();
 
-        await expect(lockLegacyDatabase()).rejects.toThrow("open in another tab");
+        await expect(settle(lockLegacyDatabase())).rejects.toThrow("open in another tab");
         expect(await getLegacyDatabaseVersion()).toBe(LegacySchema.version);
 
         tab.close();
@@ -157,10 +161,11 @@ describe("Deleting the legacy database", () => {
     test("can wait for another tab to let go, rather than failing", async () => {
         await writeToLegacyDatabase(getSavedData());
         const tab = await openInAnotherTab();
-        const onStillBlocked = vi.fn();
+        let onStillBlocked!: () => void;
+        const stillBlocked = new Promise<void>((resolve) => (onStillBlocked = resolve));
 
         const deleted = deleteLegacyDatabase(onStillBlocked);
-        await vi.waitFor(() => expect(onStillBlocked).toHaveBeenCalled(), { timeout: 2000 });
+        await settle(stillBlocked);
 
         tab.close();
         await deleted;
@@ -252,7 +257,7 @@ describe("The legacy database retention policy", () => {
 
         const tab = await openInAnotherTab();
 
-        await recordBootAndMaybeDeleteLegacyDatabase();
+        await settle(recordBootAndMaybeDeleteLegacyDatabase());
         expect(readMigrationRecord()).toEqual({ migratedAt: expect.any(String), boots: RETENTION_BOOTS });
 
         tab.close();
