@@ -81,15 +81,16 @@ export const describeCopy = (value: ListDataState): CopySummary => {
  * What the storage library knows of a target's history. Neither part compares one target's clock with
  * another's: each target's timestamps are only ever compared with earlier ones from the same target.
  */
-export interface TargetHistory {
-    /**
-     * Whether something else has written to the target since this browser last wrote to it or read it
-     * there, or null where it never has, so that there is no history to go on
-     */
-    movedOn: boolean | null;
-    /** Whether a value saved here never reached the target, because the write failed or was refused */
-    missedWrite: boolean;
-}
+export type TargetHistory =
+    /** This browser has never written to the target or read from it, so there is no history to go on */
+    | { type: "none" }
+    | {
+          type: "known";
+          /** Whether something else has written to the target since this browser last wrote to it or read it */
+          movedOn: boolean;
+          /** Whether a value saved here never reached the target, because the write failed or was refused */
+          missedWrite: boolean;
+      };
 
 /** A copy as a target holds it, with that target's own timestamp for when it was saved there */
 export interface TargetCopy {
@@ -103,9 +104,11 @@ export type Resolution = { type: "keep"; value: ListDataState } | { type: "choos
 /** The most that the browser's clock and a remote's are assumed to differ by, when nothing else can decide */
 export const CLOCK_TOLERANCE_MILLIS = 60 * 1000;
 
+/** The browser's copy, which is unknown where it couldn't be read or has changed underneath the manager */
+export type LocalCopy = { type: "known"; copy: TargetCopy } | { type: "unknown" };
+
 export interface Disagreement {
-    /** The browser's store, or null if its copy couldn't be read */
-    local: TargetCopy | null;
+    local: LocalCopy;
     remotes: TargetCopy[];
     /** The value the app loaded, before the other copies were read */
     original: ListDataState;
@@ -128,8 +131,15 @@ export interface Disagreement {
  * there is no history to say, timestamps from the two clocks are compared, and the browser's copy is
  * kept unless the remote one is clearly newer.
  */
-export const resolveCopies = ({ local, remotes, original, live, withoutHistory }: Disagreement): Resolution => {
-    if (local === null) return { type: "choose" };
+export const resolveCopies = ({
+    local: maybeLocal,
+    remotes,
+    original,
+    live,
+    withoutHistory,
+}: Disagreement): Resolution => {
+    if (maybeLocal.type === "unknown") return { type: "choose" };
+    const local = maybeLocal.copy;
 
     const differing = remotes.filter((remote) => !isSameData(remote.value, local.value));
     const verdicts = differing.map((remote) => getVerdict(local, remote, withoutHistory));
@@ -147,7 +157,7 @@ const getVerdict = (
     remote: TargetCopy,
     withoutHistory: Disagreement["withoutHistory"]
 ): "local" | "remote" | "choose" => {
-    if (local.history.movedOn === null || remote.history.movedOn === null) {
+    if (local.history.type === "none" || remote.history.type === "none") {
         if (withoutHistory === "choose") return "choose";
         return remote.timestamp.valueOf() - local.timestamp.valueOf() > CLOCK_TOLERANCE_MILLIS ? "remote" : "local";
     }

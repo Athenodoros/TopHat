@@ -33,16 +33,23 @@ const Agreed = withReference("AGREED");
 const LocalEdit = withReference("LOCAL");
 const RemoteEdit = withReference("REMOTE");
 
+type KnownHistory = Extract<TargetHistory, { type: "known" }>;
+const NO_HISTORY = { type: "none" } as const;
+
 /** A copy whose target nothing else has written to, and which has missed nothing, unless a test says so */
-const copy = (value: ListDataState, history: Partial<TargetHistory> = {}, timestamp: Date = SAVED): TargetCopy => ({
+const copy = (
+    value: ListDataState,
+    history: Partial<KnownHistory> | typeof NO_HISTORY = {},
+    timestamp: Date = SAVED
+): TargetCopy => ({
     timestamp,
     value,
-    history: { movedOn: false, missedWrite: false, ...history },
+    history: history.type === "none" ? history : { type: "known", movedOn: false, missedWrite: false, ...history },
 });
 
 /** A browser copy and one remote copy, with the app having loaded the browser's and changed nothing since */
 const disagreement = (local: TargetCopy, remote: TargetCopy, options: Partial<Disagreement> = {}): Disagreement => ({
-    local,
+    local: { type: "known", copy: local },
     remotes: [remote],
     original: local.value,
     live: local.value,
@@ -101,7 +108,7 @@ describe("Resolving copies that disagree", () => {
 
     describe("without history", () => {
         const withoutHistory = (remoteTimestamp: Date, options: Partial<Disagreement> = {}) =>
-            resolveCopies(disagreement(copy(LocalEdit), copy(RemoteEdit, { movedOn: null }, remoteTimestamp), options));
+            resolveCopies(disagreement(copy(LocalEdit), copy(RemoteEdit, NO_HISTORY, remoteTimestamp), options));
 
         test("keeps the browser's copy unless the remote one is more than a minute newer", () => {
             const withinTolerance = new Date(SAVED.valueOf() + CLOCK_TOLERANCE_MILLIS);
@@ -118,7 +125,7 @@ describe("Resolving copies that disagree", () => {
 
         test("falls back on the timestamps when it is the browser's copy that has none", () => {
             const resolution = resolveCopies(
-                disagreement(copy(LocalEdit, { movedOn: null }), copy(RemoteEdit, { movedOn: true }, LATER))
+                disagreement(copy(LocalEdit, NO_HISTORY), copy(RemoteEdit, { movedOn: true }, LATER))
             );
             expect(resolution).toEqual({ type: "keep", value: RemoteEdit });
         });
@@ -135,7 +142,7 @@ describe("Resolving copies that disagree", () => {
 
     test("asks when the browser's copy couldn't be read", () => {
         const base = disagreement(copy(Agreed), copy(RemoteEdit, { movedOn: true }));
-        expect(resolveCopies({ ...base, local: null })).toEqual({ type: "choose" });
+        expect(resolveCopies({ ...base, local: { type: "unknown" } })).toEqual({ type: "choose" });
     });
 });
 
