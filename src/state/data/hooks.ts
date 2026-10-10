@@ -73,13 +73,6 @@ export const useInstitutionMap = () => useSelector((state) => state.data.institu
 export const useAllInstitutions = () =>
     useSelector((state) => state.data.institution.ids.map((id) => state.data.institution.entities[id]!), shallowEqual);
 
-export const useNotificationCount = () => useSelector((state) => state.data.notification.ids.length);
-export const useAllNotifications = () =>
-    useSelector(
-        (state) => state.data.notification.ids.map((id) => state.data.notification.entities[id]!),
-        shallowEqual
-    );
-
 export const useTransactionIDs = () => useSelector((state) => state.data.transaction.ids);
 export const useTransactionMap = () => useSelector((state) => state.data.transaction.entities);
 export const useTransactionByID = (id: ID) => useSelector((state) => state.data.transaction.entities[id]!);

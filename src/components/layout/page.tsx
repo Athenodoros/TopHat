@@ -5,10 +5,10 @@ import { NAVBAR_LOGO_HEIGHT } from "../../app/navbar";
 import { Notifications } from "../../app/notifications";
 import { usePopoverProps } from "../../shared/hooks";
 import { FCWithChildren } from "../../shared/types";
-import { useNotificationCount } from "../../state/data/hooks";
+import { useNotifications } from "../../state/logic/notifications";
 
 export const Page: FCWithChildren<{ title: string }> = ({ children, title }) => {
-    const notifications = useNotificationCount();
+    const notifications = useNotifications().length;
     const { buttonProps, popoverProps } = usePopoverProps();
 
     return (

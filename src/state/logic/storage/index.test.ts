@@ -109,6 +109,19 @@ const startBootingTopHat = async (maybeDropboxCode?: string) => {
 
 const bootTopHat = async () => (await startBootingTopHat()).booted;
 
+/** The notifications the latest boot shows, from its own module registry, by key */
+const getShownNotifications = async () => {
+    const [{ TopHatStore }, { getNotifications }, { getSyncs }] = await Promise.all([
+        import("../.."),
+        import("../notifications"),
+        import("./index"),
+    ]);
+    const { app, data } = TopHatStore.getState();
+    const saved = data.notification.ids.map((id) => data.notification.entities[id]!);
+    const shown = getNotifications(saved, { storage: app.storage, syncs: getSyncs(), user: data.user.entities[0]! });
+    return Object.fromEntries(shown.map(({ key, display }) => [key, display]));
+};
+
 /**
  * Every boot leaves its manager open, the way an open tab would. Boot puts its manager on the window
  * for debugging, which is where it is found - before the end of boot too, so that one whose boot never
@@ -286,23 +299,68 @@ describe("Loading and saving", () => {
         });
 
         try {
-            const { data, dispatch, actions, storage } = await bootTopHat();
-            const { IDB_NOTIFICATION_ID } = await import("../notifications/types");
-            const { getNotificationDisplayMetadata } = await import("../notifications");
+            const { data, storage } = await bootTopHat();
+            const { IDB_DEVICE_NOTIFICATION_ID } = await import("../notifications/types");
 
             expect(storage()).toEqual({ type: "unavailable", error: expect.any(String) });
 
-            // Without the user having changed anything
-            const notification = data().notification.entities[IDB_NOTIFICATION_ID]!;
-            expect(notification).toBeDefined();
+            // Without the user having changed anything, and with no dismiss button
+            const warning = (await getShownNotifications())[IDB_DEVICE_NOTIFICATION_ID];
+            expect(warning).toBeDefined();
+            expect(warning.dismiss).toBeUndefined();
 
-            // It has no dismiss button, and deleting it some other way only brings it back
-            expect(getNotificationDisplayMetadata(notification).dismiss).toBeUndefined();
-            dispatch(actions.deleteNotification(IDB_NOTIFICATION_ID));
-            expect(data().notification.entities[IDB_NOTIFICATION_ID]).toBeDefined();
+            // It is about this browser, so it isn't saved with the data, which would carry it to other devices
+            expect(data().notification.entities[IDB_DEVICE_NOTIFICATION_ID]).toBeUndefined();
         } finally {
             open.mockRestore();
         }
+    });
+
+    test("warns that nothing is being saved while the browser's last save failed, until one works", async () => {
+        const { dispatch, actions } = await bootTopHat();
+        const { IDB_DEVICE_NOTIFICATION_ID } = await import("../notifications/types");
+        expect(await getShownNotifications()).not.toHaveProperty(IDB_DEVICE_NOTIFICATION_ID);
+
+        // The write is turned down, as IndexedDB does when the disk is full, say
+        const put = vi.spyOn(IDBObjectStore.prototype, "put").mockImplementation(() => {
+            const request = {} as IDBRequest;
+            setImmediate(() => request.onerror?.(new Event("error")));
+            return request;
+        });
+        try {
+            dispatch(actions.updateUserPartial({ tutorial: false }));
+            await vi.waitFor(async () =>
+                expect(await getShownNotifications()).toHaveProperty(IDB_DEVICE_NOTIFICATION_ID)
+            );
+        } finally {
+            put.mockRestore();
+        }
+
+        dispatch(actions.updateUserPartial({ tutorial: true }));
+        await vi.waitFor(async () =>
+            expect(await getShownNotifications()).not.toHaveProperty(IDB_DEVICE_NOTIFICATION_ID)
+        );
+    });
+
+    test("drops the save warning an earlier version kept in the data", async () => {
+        await writeToStore({ ...getSavedData(), notification: [{ id: "idb-sync-failed", contents: "" }] });
+
+        const { data } = await bootTopHat();
+
+        expect(data().notification.ids).toEqual([]);
+    });
+
+    test("keeps, but doesn't show, a notification this version has no rule for", async () => {
+        // Added by a newer version, which can do so without changing the generation
+        await writeToStore({ ...getSavedData(), notification: [{ id: "from-a-newer-version", contents: "" }] });
+
+        const { data, dispatch, actions } = await bootTopHat();
+        dispatch(actions.updateUserPartial({ tutorial: false }));
+
+        expect(data().notification.ids).toEqual(["from-a-newer-version"]);
+        expect(Object.keys(await getShownNotifications())).toEqual([]);
+        await vi.waitFor(async () => expect((await readFromStore())!.user[0].tutorial).toBe(false));
+        expect((await readFromStore())!.notification).toEqual([{ id: "from-a-newer-version", contents: "" }]);
     });
 
     test("shows an error page, rather than loading forever, when boot fails before storage is set up", async () => {

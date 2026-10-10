@@ -1,22 +1,31 @@
 import { createNextState } from "@reduxjs/toolkit";
 import { isEqual } from "lodash-es";
+import { useMemo, useSyncExternalStore } from "react";
+import { shallowEqual } from "react-redux";
 import { TopHatDispatch, TopHatStore } from "../..";
 import { zipObject } from "../../../shared/data";
-import { DataSlice, DataState, subscribeToDataUpdates, toListDataState } from "../../data";
-import { Notification } from "../../data/types";
+import { DataSlice, DataState, removeNotification, subscribeToDataUpdates, toListDataState } from "../../data";
+import { Notification, StubUserID } from "../../data/types";
+import { useSelector } from "../../shared/hooks";
+import { getSyncs, subscribeToSyncs } from "../storage";
 import { AccountNotificationDefinition } from "./variants/accounts";
 import { CurrencyNotificationDefinition } from "./variants/currency";
 import { DebtNotificationDefinition } from "./variants/debt";
 import { DemoNotificationDefinition } from "./variants/demo";
 import { DropboxNotificationDefinition } from "./variants/dropbox";
 import { IDBNotificationDefinition } from "./variants/idb";
+import {
+    DeviceNotificationDefinition,
+    DeviceState,
+    NotificationDisplayMetadata,
+    RETIRED_NOTIFICATION_IDS,
+} from "./types";
 import { MilestoneNotificationDefinition } from "./variants/milestone";
 import { UncategorisedNotificationDefinition } from "./variants/uncategorised";
 export type { NotificationDisplayMetadata } from "./types";
 
 const rules = [
     DemoNotificationDefinition,
-    IDBNotificationDefinition,
     DebtNotificationDefinition,
     AccountNotificationDefinition,
     MilestoneNotificationDefinition,
@@ -29,11 +38,44 @@ const definitions = zipObject(
     rules.map((rule) => rule.id),
     rules
 );
-export const getNotificationDisplayMetadata = (notification: Notification) =>
-    definitions[notification.id].display(notification);
-
-const runNotificationRules = (previous: DataState | undefined, current: DataState) =>
+const runNotificationRules = (previous: DataState | undefined, current: DataState) => {
+    RETIRED_NOTIFICATION_IDS.forEach((id) => removeNotification(current, id));
     rules.forEach((rule) => rule.maybeUpdateState && rule.maybeUpdateState(previous, current));
+};
+
+const deviceDefinitions: DeviceNotificationDefinition[] = [IDBNotificationDefinition];
+
+/**
+ * Every notification to show, device notifications first. A saved one this version has no rule for - added
+ * by a newer version, say - is left out, but left in the data.
+ */
+export const getNotifications = (
+    saved: Notification[],
+    device: DeviceState
+): { key: string; display: NotificationDisplayMetadata }[] =>
+    deviceDefinitions
+        .filter((definition) => definition.isShown(device))
+        .map(({ id, display }) => ({ key: id, display }))
+        .concat(
+            saved.flatMap((notification) => {
+                const definition = definitions[notification.id];
+                if (definition === undefined) return [];
+                return [
+                    { key: notification.id + "-" + notification.contents, display: definition.display(notification) },
+                ];
+            })
+        );
+
+export const useNotifications = () => {
+    const saved = useSelector(
+        (state) => state.data.notification.ids.map((id) => state.data.notification.entities[id]!),
+        shallowEqual
+    );
+    const storage = useSelector((state) => state.app.storage);
+    const syncs = useSyncExternalStore(subscribeToSyncs, getSyncs);
+    const user = useSelector((state) => state.data.user.entities[StubUserID]!);
+    return useMemo(() => getNotifications(saved, { storage, syncs, user }), [saved, storage, syncs, user]);
+};
 
 export const initialiseNotificationUpdateHook = () => {
     subscribeToDataUpdates(runNotificationRules);
