@@ -18,7 +18,6 @@ import { TopHatDispatch, TopHatStore } from "../..";
 import { AppSlice } from "../../app";
 import { DataSlice, getInitialTutorialLists, ListDataState, subscribeToDataUpdates, toListDataState } from "../../data";
 import { DataKeys, StubUserID, User } from "../../data/types";
-import { setIDBConnectionExists } from "../notifications/variants/idb";
 import { describeCopy, getGeneration, holdsRealData } from "./conflicts";
 import {
     getLegacyDatabaseState,
@@ -47,8 +46,6 @@ export const setupStorageAndLoadData = async (
     let copyingLegacy = false;
     let lockedLegacy = false;
 
-    setIDBConnectionExists(true);
-
     let store: Store;
     try {
         store = await openStore({
@@ -72,7 +69,6 @@ export const setupStorageAndLoadData = async (
             // saving and goes to the recovery screen, rather than load data it doesn't understand.
             // Boot may still be running, so it is told at once, before the slower rescue.
             onUnusableValue: (problem, contents) => freeze(getUnreadableState(problem, contents)),
-            onSaveStatus: setIDBConnectionExists,
             getLiveValue,
             chooseCopy: async (copies) => {
                 const choices = copies.map(
@@ -95,6 +91,8 @@ export const setupStorageAndLoadData = async (
         throw error;
     }
     openedStore = store;
+    store.subscribeToSyncs(tellSyncsListeners);
+    tellSyncsListeners();
     const connection: StorageConnection = {
         debugVariables: store.debugVariables,
         hasFrozenForRecovery: () => frozenForRecovery,
@@ -301,6 +299,23 @@ export const showStorageStateAfterBoot = (storage: StorageState) => {
     else TopHatDispatch(AppSlice.actions.setStorageState(storage));
 };
 
+/**
+ * Saving
+ */
+
+const NO_SYNCS: ReturnType<Store["getSyncs"]> = [];
+const syncsListeners = new Set<() => void>();
+const tellSyncsListeners = () => syncsListeners.forEach((listener) => listener());
+
+/** The store's syncs, which say how saving is going: none until it opens */
+export const getSyncs = () => openedStore?.getSyncs() ?? NO_SYNCS;
+
+/** Calls `listener` whenever `getSyncs` changes, from the store opening on */
+export const subscribeToSyncs = (listener: () => void) => {
+    syncsListeners.add(listener);
+    return () => void syncsListeners.delete(listener);
+};
+
 /** Stops saving for good, and shows the screen that says why once it is ready */
 const freeze = (state: Promise<{ storage: StorageState }>) => {
     frozenForRecovery = true;
@@ -375,13 +390,10 @@ const NO_CONNECTION: StorageConnection = {
 const getUnreadableState = async (
     error: string,
     contents: UnusableContents | null
-): Promise<{ connection: StorageConnection; storage: StorageState }> => {
-    setIDBConnectionExists(false);
-    return {
-        connection: NO_CONNECTION,
-        storage: { type: "unreadable", error, rescuedRows: await rescueStorageContents(contents) },
-    };
-};
+): Promise<{ connection: StorageConnection; storage: StorageState }> => ({
+    connection: NO_CONNECTION,
+    storage: { type: "unreadable", error, rescuedRows: await rescueStorageContents(contents) },
+});
 
 /**
  * The store can't be opened at all, and has never been opened in this browser. That is only harmless

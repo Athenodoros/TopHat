@@ -4,8 +4,7 @@ import { Button, Collapse, Fade, IconButton, Typography } from "@mui/material";
 import { Box, SxProps } from "@mui/system";
 import React, { useCallback, useState } from "react";
 import { NonIdealState } from "../components/display/NonIdealState";
-import { useAllNotifications } from "../state/data/hooks";
-import { getNotificationDisplayMetadata, NotificationDisplayMetadata } from "../state/logic/notifications";
+import { NotificationDisplayMetadata, useNotifications } from "../state/logic/notifications";
 import { Greys } from "../styles/colours";
 
 const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
@@ -65,17 +64,12 @@ const NotificationDisplay: React.FC<NotificationDisplayMetadata> = ({
 };
 
 export const Notifications: React.FC<{ sx?: SxProps }> = ({ sx }) => {
-    const notifications = useAllNotifications();
+    const notifications = useNotifications();
 
     return (
         <Box sx={{ width: 350, overflowY: "auto", ...sx }}>
             {notifications.length ? (
-                notifications.map((notification) => (
-                    <NotificationDisplay
-                        key={notification.id + "-" + notification.contents}
-                        {...getNotificationDisplayMetadata(notification)}
-                    />
-                ))
+                notifications.map(({ key, display }) => <NotificationDisplay key={key} {...display} />)
             ) : (
                 <NonIdealState icon={CheckCircleOutline} title="No Notifications!" intent="app" />
             )}

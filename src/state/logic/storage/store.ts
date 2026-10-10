@@ -59,8 +59,6 @@ export interface StoreCallbacks {
     onExternalValue: (value: ListDataState) => void;
     /** A value that can't be used arrived once the store was open. The store has already stopped saving. */
     onUnusableValue: (problem: string, contents: UnusableContents) => void;
-    /** Whether the last write to the browser's store worked, or it has stopped being written to */
-    onSaveStatus: (working: boolean) => void;
     /** The value the app holds now, which may include changes that have yet to be saved */
     getLiveValue: () => ListDataState;
     /**
@@ -77,6 +75,9 @@ export interface Store {
     loadedFromStore: boolean;
     /** Resolves to whether the browser's copy now holds the value */
     save: (value: ListDataState) => Promise<boolean>;
+    /** The library's syncs, which stay the same array until they change: see `isLocalSync` */
+    getSyncs: () => readonly Sync<DefaultTarget>[];
+    subscribeToSyncs: (listener: () => void) => () => void;
     close: () => void;
     debugVariables: Record<string, unknown>;
 }
@@ -151,17 +152,6 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                     "choose"
                 );
             },
-
-            // The store is behind if its last write failed, and until one works
-            onSyncStatesUpdate: (syncs) => {
-                const local = syncs.find(isLocalSync);
-                if (local) callbacks.onSaveStatus(local.status.type === "IN_STEP");
-            },
-            handleSyncOperationLog: ({ sync, operation, stage }) => {
-                if (!isLocalSync(sync) || operation !== "UPLOAD") return;
-                if (stage === "SUCCESS") callbacks.onSaveStatus(true);
-                if (stage === "ERROR" || stage === "OFFLINE") callbacks.onSaveStatus(false);
-            },
         }
     );
     opened = true;
@@ -198,6 +188,8 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
         getValue: manager.getValue,
         loadedFromStore: startSource === "TARGET",
         save: async (value) => (await manager.setValue(value)).saved.some(isLocalSync),
+        getSyncs: manager.getSyncsState,
+        subscribeToSyncs: manager.subscribeToSyncs,
         close: manager.close,
         // Only the local target is ever saved, so a list of targets that couldn't be read loses nothing
         // worth telling the user about - but it is worth being able to see
@@ -222,7 +214,7 @@ const getDefaultSyncs = async (): Promise<NewSync<DefaultTarget>[]> => [
 ];
 
 /** The browser's store is the IndexedDB target with TopHat's id: any other target is somewhere else */
-const isLocalSync = (sync: Sync<DefaultTarget>) =>
+export const isLocalSync = (sync: Sync<DefaultTarget>) =>
     sync.target instanceof IndexedDBTarget && sync.target.serialise().id === STORE_ID;
 
 /**
