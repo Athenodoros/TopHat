@@ -95,16 +95,34 @@ const startBootingTopHat = async (maybeDropboxCode?: string) => {
         import("../startup"),
     ]);
 
+    const booted = initialiseAndGetDBConnection(maybeDropboxCode);
+    void booted.then(keepManager);
+
     const tab = {
         dispatch: TopHatDispatch,
         actions: DataSlice.actions,
         data: () => TopHatStore.getState().data,
         storage: () => TopHatStore.getState().app.storage,
     };
-    return { tab, booted: initialiseAndGetDBConnection(maybeDropboxCode).then(() => tab) };
+    return { tab, booted: booted.then(() => tab) };
 };
 
 const bootTopHat = async () => (await startBootingTopHat()).booted;
+
+/**
+ * Every boot leaves its manager open, the way an open tab would. Boot puts its manager on the window
+ * for debugging, which is where it is found - before the end of boot too, so that one whose boot never
+ * finished, waiting on a choice, say, is closed as well.
+ */
+const closeOpenManagers = () => {
+    keepManager();
+    while (managers.length) managers.pop()!.close();
+};
+const managers: { close: () => void }[] = [];
+const keepManager = () => {
+    const manager = (window as { connection?: { manager?: { close: () => void } } }).connection?.manager;
+    if (manager && !managers.includes(manager)) managers.push(manager);
+};
 
 /** Redux state as sorted lists, so that it can be compared against either store or the fixtures */
 const asLists = (data: DataState) => sortLists(toListDataState(data));
@@ -152,11 +170,13 @@ const SYNC_CONFIG_KEY = "personal-storage-manager-state-" + STORE_ID;
 
 beforeEach(() => void vi.useFakeTimers(FAKE_TIMERS_BESIDE_INDEXEDDB));
 
-// A boot leaves its manager open, the way an open tab would. Closing the channels stops one test's
-// tabs hearing the next's, and deleting the store closes their connections to it.
+// Closing the managers a test booted, and then the channels, stops one test's tabs hearing the next's,
+// and deleting the store closes their connections to it.
 afterEach(async () => {
-    // A save whose timer has not gone off never will, but one that has may still be on its way
+    // A save whose timer has not gone off never will, and a closed manager starts nothing more. One that
+    // has may still be on its way, and must not reach the next test's store or post to a closed channel.
     vi.useRealTimers();
+    closeOpenManagers();
     await new Promise((resolve) => setTimeout(resolve, 25));
     closeTestBroadcastChannels();
     await deleteLegacyDatabase();
