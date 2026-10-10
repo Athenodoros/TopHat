@@ -20,7 +20,7 @@ import {
     TimestampedValue,
 } from "personal-storage-wrapper";
 import type { ListDataState } from "../../data";
-import { Disagreement, getChoices, resolveCopies, TargetCopy, TargetHistory } from "./conflicts";
+import { Disagreement, getChoices, LocalCopy, resolveCopies, TargetCopy, TargetHistory } from "./conflicts";
 import { StorageCopySource } from "./types";
 
 /** The manager's id, which names its broadcast channel and its list of targets, and the key of the row the data is saved under */
@@ -130,7 +130,7 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                 const local = syncs.find(({ sync }) => isLocalSync(sync));
                 return resolveConflict(
                     original,
-                    local ? toCopy(local.sync, local.value) : null,
+                    local ? { type: "known", copy: toCopy(local.sync, local.value) } : { type: "unknown" },
                     syncs.filter(({ sync }) => !isLocalSync(sync)),
                     "timestamps"
                 );
@@ -141,8 +141,11 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                     value,
                     // A browser copy that has itself changed underneath the manager can't be described here
                     local?.lastSeenWriteTime && !conflicts.some(({ sync }) => isLocalSync(sync))
-                        ? toCopy(local, { timestamp: new Date(local.lastSeenWriteTime), value })
-                        : null,
+                        ? {
+                              type: "known",
+                              copy: toCopy(local, { timestamp: new Date(local.lastSeenWriteTime), value }),
+                          }
+                        : { type: "unknown" },
                     conflicts,
                     "choose"
                 );
@@ -170,7 +173,7 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
     /** Settles a disagreement by the rules, or by asking the user where they can't */
     async function resolveConflict(
         original: ListDataState,
-        local: TargetCopy | null,
+        local: LocalCopy,
         remotes: { sync: Sync<DefaultTarget>; value: TimestampedValue<ListDataState> }[],
         withoutHistory: Disagreement["withoutHistory"]
     ) {
@@ -183,7 +186,10 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
         const resolution = resolveCopies({ local, remotes: remoteCopies, original, live, withoutHistory });
         if (resolution.type === "keep") return resolution.value;
 
-        const copies = local ? [{ ...local, source: { type: "browser" } as const }, ...remoteCopies] : remoteCopies;
+        const copies =
+            local.type === "known"
+                ? [{ ...local.copy, source: { type: "browser" } as const }, ...remoteCopies]
+                : remoteCopies;
         return callbacks.chooseCopy(getChoices(copies, original, live));
     }
 
@@ -221,17 +227,17 @@ const isLocalSync = (sync: Sync<DefaultTarget>) =>
 /**
  * A target's copy, with what the library knows of the target's history. Its last seen write time is
  * that target's own timestamp for the last value it wrote there or read from there, so comparing the
- * two says whether anything else has written to it since. One with no last seen write time has no
- * history to say.
+ * two says whether anything else has written to it since.
  */
 const toCopy = (sync: Sync<DefaultTarget>, { timestamp, value }: TimestampedValue<ListDataState>): TargetCopy => {
-    const history: TargetHistory = {
-        movedOn:
-            sync.lastSeenWriteTime === undefined
-                ? null
-                : timestamp.valueOf() !== new Date(sync.lastSeenWriteTime).valueOf(),
-        missedWrite: sync.missedWrite === true,
-    };
+    const history: TargetHistory =
+        sync.lastSeenWriteTime === undefined
+            ? { type: "none" }
+            : {
+                  type: "known",
+                  movedOn: timestamp.valueOf() !== new Date(sync.lastSeenWriteTime).valueOf(),
+                  missedWrite: sync.missedWrite === true,
+              };
     return { timestamp, value, history };
 };
 
