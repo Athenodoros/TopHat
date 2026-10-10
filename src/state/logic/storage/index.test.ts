@@ -806,7 +806,7 @@ describe("Copies in two targets that disagree", () => {
      */
     const listBothTargets = (
         ids = [STORE_ID, REMOTE_ID],
-        history: Record<string, { lastSeenWriteTime?: Date; missedWrite?: boolean }> = {}
+        history: Record<string, { lastProcessedWriteTime?: Date; missedWrite?: boolean }> = {}
     ) =>
         localStorage.setItem(
             SYNC_CONFIG_KEY,
@@ -836,8 +836,8 @@ describe("Copies in two targets that disagree", () => {
         remote: { reference: string; moved: boolean }
     ) => {
         listBothTargets(undefined, {
-            [STORE_ID]: { lastSeenWriteTime: AGREED_LOCAL },
-            [REMOTE_ID]: { lastSeenWriteTime: AGREED_REMOTE },
+            [STORE_ID]: { lastProcessedWriteTime: AGREED_LOCAL },
+            [REMOTE_ID]: { lastProcessedWriteTime: AGREED_REMOTE },
         });
         await writeToStore(withReference(local.reference), STORE_ID, local.moved ? MOVED : AGREED_LOCAL);
         await writeToStore(withReference(remote.reference), REMOTE_ID, remote.moved ? MOVED : AGREED_REMOTE);

@@ -15,6 +15,7 @@ import {
     ErrorResult,
     getSyncDataFromLocalStorage,
     IndexedDBTarget,
+    NewSync,
     PersonalStorageManager,
     Sync,
     TimestampedValue,
@@ -140,10 +141,10 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                 return resolveConflict(
                     value,
                     // A browser copy that has itself changed underneath the manager can't be described here
-                    local?.lastSeenWriteTime && !conflicts.some(({ sync }) => isLocalSync(sync))
+                    local?.lastProcessedWriteTime && !conflicts.some(({ sync }) => isLocalSync(sync))
                         ? {
                               type: "known",
-                              copy: toCopy(local, { timestamp: new Date(local.lastSeenWriteTime), value }),
+                              copy: toCopy(local, { timestamp: new Date(local.lastProcessedWriteTime), value }),
                           }
                         : { type: "unknown" },
                     conflicts,
@@ -151,10 +152,10 @@ export const openStore = async (callbacks: StoreCallbacks): Promise<Store> => {
                 );
             },
 
-            // The store missed a write if its last one failed, and until one works
+            // The store is behind if its last write failed, and until one works
             onSyncStatesUpdate: (syncs) => {
                 const local = syncs.find(isLocalSync);
-                if (local) callbacks.onSaveStatus(local.missedWrite !== true);
+                if (local) callbacks.onSaveStatus(local.status.type === "IN_STEP");
             },
             handleSyncOperationLog: ({ sync, operation, stage }) => {
                 if (!isLocalSync(sync) || operation !== "UPLOAD") return;
@@ -216,7 +217,7 @@ export const clearStore = async () => {
 };
 
 /** A fixed id, so that the data is found in the same row even if the list of targets is lost */
-const getDefaultSyncs = async (): Promise<Sync<DefaultTarget>[]> => [
+const getDefaultSyncs = async (): Promise<NewSync<DefaultTarget>[]> => [
     { target: await IndexedDBTarget.create(STORE_ID), compressed: true },
 ];
 
@@ -225,18 +226,18 @@ const isLocalSync = (sync: Sync<DefaultTarget>) =>
     sync.target instanceof IndexedDBTarget && sync.target.serialise().id === STORE_ID;
 
 /**
- * A target's copy, with what the library knows of the target's history. Its last seen write time is
- * that target's own timestamp for the last value it wrote there or read from there, so comparing the
+ * A target's copy, with what the library knows of the target's history. Its last processed write time
+ * is that target's own timestamp for the last value it wrote there or read from there, so comparing the
  * two says whether anything else has written to it since.
  */
 const toCopy = (sync: Sync<DefaultTarget>, { timestamp, value }: TimestampedValue<ListDataState>): TargetCopy => {
     const history: TargetHistory =
-        sync.lastSeenWriteTime === undefined
+        sync.lastProcessedWriteTime === undefined
             ? { type: "none" }
             : {
                   type: "known",
-                  movedOn: timestamp.valueOf() !== new Date(sync.lastSeenWriteTime).valueOf(),
-                  missedWrite: sync.missedWrite === true,
+                  movedOn: timestamp.valueOf() !== new Date(sync.lastProcessedWriteTime).valueOf(),
+                  missedWrite: sync.status.type !== "IN_STEP",
               };
     return { timestamp, value, history };
 };
